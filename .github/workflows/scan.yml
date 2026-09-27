@@ -4,7 +4,7 @@ on:
   schedule:
     # Every hour at minute 7 (UTC). For every 30 minutes use "7,37 * * * *"
     # and set SCAN_EVERY_MIN below to "30".
-    - cron: "7 * * * *"
+    - cron: "7,27,47 * * * *"
   workflow_dispatch:
     inputs:
       reset:
@@ -14,7 +14,7 @@ on:
 
 env:
   SCAN_MINUTE: "7"
-  SCAN_EVERY_MIN: "60"
+  SCAN_EVERY_MIN: "20"
 
 permissions:
   contents: read
