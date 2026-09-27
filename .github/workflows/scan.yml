@@ -1,0 +1,67 @@
+name: Scan
+
+on:
+  schedule:
+    # Every hour at minute 7 (UTC). For every 30 minutes use "7,37 * * * *"
+    # and set SCAN_EVERY_MIN below to "30".
+    - cron: "7 * * * *"
+  workflow_dispatch:
+    inputs:
+      reset:
+        description: "Start a new journal (wipes the strategy record and backtests the last 30 days again)"
+        type: boolean
+        default: false
+
+env:
+  SCAN_MINUTE: "7"
+  SCAN_EVERY_MIN: "60"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  actions: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Run the scanner
+        env:
+          RESET: ${{ github.event_name == 'workflow_dispatch' && inputs.reset && '--reset' || '' }}
+          # Optional alerts for new strong picks. Add these under Settings > Secrets and variables >
+          # Actions > New repository secret. Leave them out and no alerts are sent.
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python scanner.py --out site --pages-url "${{ steps.pages.outputs.base_url }}" $RESET
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Keep the hourly schedule switched on
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/scan.yml/enable" || true
