@@ -4051,10 +4051,19 @@ def h1_at(p, T):
 
 
 def _study_coin(job):
+    """Walk one coin's history with one strategy (see _study_coin_n); returns the trades."""
+    return _study_coin_n(job)[0]
+
+
+def _study_coin_n(job):
     """Walk one coin's history with one strategy: at every step (each hour, or each 4h bar)
     look at the chart as it was, and paper-trade a signal with the live rules and costs.
-    A new signal waits until the previous trade on the coin is over."""
+    A new signal waits until the previous trade on the coin is over. Also returns how many
+    steps had your rules all true but no order could be placed (price already under the
+    stop, or the stop wider than the max stop distance)."""
     coin, c, info, sp, btc1, now, days = job
+    rules = (sp.get("params") or {}).get("rules") if sp["base"] == "RULE" else None
+    dropped = 0
     bs, tfsec = _bar_sec(c), TF_SEC[sp["tf"]]
     tfc = c if tfsec == bs else agg_tf(c, tfsec)
     tt = [x["t"] for x in tfc]
@@ -4078,6 +4087,8 @@ def _study_coin(job):
         btc3 = btc1[ib - 1][1] / btc1[ib - 4][1] - 1 if ib >= 4 else 0.0
         sigs = find_signals(a, h1, None, specs=[sp], ctx={"regime": "Neutral", "btc3": btc3})
         if not sigs:
+            if rules and all(rule_ok(r, a, h1) for r in rules):
+                dropped += 1
             continue
         s = sigs[0]
         f = trade_features(a, h1, s, 0.0, {"label": "Neutral"}, info, None, btc3, T, live=False)
@@ -4092,7 +4103,7 @@ def _study_coin(job):
             break  # still running at the end of the data
         free_at = max(T + step, (res.get("xt") or 0) + 1,
                       T + (s["vh"] * 3600 if st in ("no_fill", "missed", "invalid") else 0))
-    return trades
+    return trades, dropped
 
 
 def study_report(sp, trades, base_trades=None):
@@ -4100,9 +4111,10 @@ def study_report(sp, trades, base_trades=None):
     trades = [t for t in trades if not t.get("dup")]
     done = sorted((t for t in trades if t["res"].get("done")), key=lambda t: t["res"].get("xt") or t["t"])
     st = trade_stats(done)
-    unfilled = sum(1 for t in trades if t["res"].get("state") in ("no_fill", "missed", "invalid"))
+    unfilled_by = {k: sum(1 for t in trades if t["res"].get("state") == k) for k in ("invalid", "no_fill", "missed")}
+    unfilled = sum(unfilled_by.values())
     status, why = decide_status("testing", st)
-    out = {"signals": len(trades), "filled": len(done), "unfilled": unfilled,
+    out = {"signals": len(trades), "filled": len(done), "unfilled": unfilled, "unfilled_by": unfilled_by,
            "open_at_end": sum(1 for t in trades if t["res"].get("state") in ACTIVE),
            "stats": {k: rnd(v, 4) if isinstance(v, float) else v for k, v in st.items()},
            "verdict": status, "why": why}
@@ -4196,13 +4208,19 @@ def run_study(req_text, out_dir):
         else:
             btc1 = [(x["t"], x["c"]) for x in agg_tf(C["BTC"], 3600)] if "BTC" in C else []
             jobs = [(t, C[t], crypto.get(t, {}), sp, btc1, now, days) for t in tested if t in C]
-            trades = []
+            trades, dropped = [], 0
             try:
                 with cf.ProcessPoolExecutor(max_workers=max(1, min(8, os.cpu_count() or 2))) as ex:
-                    for lst in ex.map(_study_coin, jobs, chunksize=1):
+                    for lst, nd in ex.map(_study_coin_n, jobs, chunksize=1):
                         trades += lst
+                        dropped += nd
             except (OSError, RuntimeError, cf.process.BrokenProcessPool):
-                trades = [x for j in jobs for x in _study_coin(j)]
+                trades, dropped = [], 0
+                for j in jobs:
+                    lst, nd = _study_coin_n(j)
+                    trades += lst
+                    dropped += nd
+            result["dropped"] = dropped
         result.update(study_report(sp, trades, base_trades))
         result.update(ok=True, name=sp["name"], desc=sp["desc"], tf=tf, days=days,
                       coins_tested=len([t for t in tested if t in C]), sources=srcs,
