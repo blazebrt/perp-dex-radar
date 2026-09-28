@@ -1,0 +1,54 @@
+name: Backtest
+run-name: "Test ${{ inputs.label }}"
+
+# Started by the Studio tab of the dashboard (it sends the strategy as JSON).
+# Tests the strategy on past candles and saves the result to the "results" branch as
+# backtests/<id>.json, where the dashboard picks it up. Nothing else is changed.
+
+on:
+  workflow_dispatch:
+    inputs:
+      request:
+        description: "Strategy test request (JSON, sent by the dashboard)"
+        required: true
+      label:
+        description: "Name shown in the list of runs"
+        required: false
+        default: "strategy"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: backtest
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Test the strategy
+        env:
+          REQUEST: ${{ inputs.request }}
+        run: python scanner.py --backtest-request "$REQUEST" --out bt_out
+
+      - name: Save the result for the dashboard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          id=$(cat bt_out/id.txt)
+          case "$id" in (*[!A-Za-z0-9_-]*|"") echo "bad id"; exit 1;; esac
+          if ! gh api "repos/$REPO/branches/results" --silent 2>/dev/null; then
+            gh api "repos/$REPO/git/refs" -f ref=refs/heads/results -f sha="$GITHUB_SHA" --silent
+          fi
+          base64 -w0 bt_out/result.json > content.b64
+          gh api -X PUT "repos/$REPO/contents/backtests/$id.json" \
+            -f message="Backtest $id" -f branch=results -F content=@content.b64 --silent
