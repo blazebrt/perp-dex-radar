@@ -1234,8 +1234,9 @@ function pollScan(t0,n){
     if(!run||run.status!=="completed"){var s=Math.round((Date.now()-t0)/1000);scanPill((run&&run.status==="in_progress"?"Scanning ":"Queued ")+Math.floor(s/60)+":"+String(s%60).padStart(2,"0"));
       if(n<120)setTimeout(function(){pollScan(t0,n+1)},6000);else scanPill("");return}
     if(run.conclusion!=="success"){scanPill("");toast("The scan did not finish ("+run.conclusion+"): see Actions on GitHub");return}
-    scanPill("Publishing…");var had=D&&D.scan_t,k=0;
-    (function wait(){load(false);setTimeout(function(){if(D&&D.scan_t!==had){scanPill("");return}if(++k<8)wait();else{scanPill("");toast("The scan finished; reload the page if it does not show yet")}},12000)})();
+    scanPill("Publishing…");var k=0,fresh=function(){return D&&D.scan_t&&D.scan_t*1000>=t0-60000};
+    if(fresh()){scanPill("");toast("Scan finished: the page shows it");return}
+    (function wait(){load(false);setTimeout(function(){if(fresh()){scanPill("");toast("Scan finished: the page shows it");return}if(++k<8)wait();else{scanPill("");toast("The scan finished; reload the page if it does not show yet")}},12000)})();
   }).catch(function(e){if(n<120)setTimeout(function(){pollScan(t0,n+1)},10000);else{scanPill("");toast(e.message)}});
 }
 
