@@ -75,6 +75,7 @@ import threading
 import time
 import traceback
 import urllib.error
+import urllib.parse
 import urllib.request
 
 VERSION = "4.1.0"
@@ -357,7 +358,6 @@ def http_json(url, body=None, timeout=25, retries=3):
     """GET (or POST a JSON body) and parse JSON. 400/404 raise HttpError at once
     (no data); 429/5xx and network errors are retried with backoff."""
     if not url.isascii():  # symbols such as 币安人生_USDT
-        import urllib.parse
         url = urllib.parse.quote(url, safe=":/?&=%#,+@~-._")
     data = json.dumps(body).encode() if body is not None else None
     headers = {"User-Agent": UA, "Accept": "application/json"}
