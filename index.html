@@ -394,6 +394,7 @@ td.tags{white-space:normal;min-width:160px;text-align:left;font-size:12px;color:
 }
 /* studio */
 .card2{background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:12px 14px;margin-top:12px;box-shadow:var(--shadow)}
+.note{background:var(--warn-bg);border-left:3px solid var(--warn);border-radius:8px;padding:8px 11px;font-size:14px;line-height:1.45;color:var(--ink)}
 .gh-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .steps{margin:0 0 10px;padding-left:20px;font-size:14px;color:var(--ink2)}
 .frow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:8px 0}
@@ -1242,8 +1243,8 @@ function pollScan(t0,n){
 var TESTS=(function(){var t=loadJSON("radar.tests",{list:[]});return Array.isArray(t.list)?t.list:[]})();
 function saveTests(){store("radar.tests",JSON.stringify({list:TESTS.slice(0,25)}))}
 function newId(){return "u"+Date.now().toString(36)}
-var DRAFT=(function(){var d={id:newId(),kind:"rule",name:"My strategy",tf:"1h",rules:[{f:"rsi",op:"<",v:40},{f:"above50",op:"is"},{f:"htf_up",op:"is"}],
-  entry:{type:"pullback",level:"ema21",depth:0.3},stop:{type:"atr",atr:1.5,pct:3},base:"PB",params:{},filters:{},sk:1,tp_r:[1.5,2.5,4],vh:3,th:24,max_risk:5,days:120,coins:40,coin_list:""},s=loadJSON("radar.draft",null);
+var DRAFT=(function(){var d={id:newId(),kind:"rule",name:"Dip in an uptrend",tf:"1h",rules:[{f:"htf_up",op:"is"},{f:"above50",op:"is"},{f:"rsi",op:"<",v:45}],
+  entry:{type:"market",level:"ema50",depth:0.3},stop:{type:"atr",atr:1.5,pct:3},base:"PB",params:{},filters:{},sk:1,tp_r:[1.5,2.5,4],vh:3,th:24,max_risk:5,days:120,coins:40,coin_list:""},s=loadJSON("radar.draft",null);
   if(s&&typeof s==="object"&&s.kind){Object.keys(d).forEach(function(k){if(s[k]!==undefined)d[k]=s[k]})}return d})();
 function saveDraft(){store("radar.draft",JSON.stringify(DRAFT))}
 var STUDY=null,STUDYING=null;
@@ -1311,7 +1312,7 @@ function runTest(){
   var tf=u.tf,id="t"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
   var req={id:id,days:Math.min(+DRAFT.days||30,D.studio.days[tf]),coins:+DRAFT.coins||40,strategy:u,
     coin_list:String(DRAFT.coin_list||"").split(/[\s,;]+/).map(function(x){return x.trim().toUpperCase()}).filter(Boolean).slice(0,100)};
-  STUDYING={id:id,t0:Date.now(),msg:"Starting the test…"};renderBuilder();
+  STUDYING={id:id,t0:Date.now(),msg:"Starting the test…"};STUDY=null;$("#studyOut").hidden=true;renderBuilder();
   dispatch("backtest.yml",{request:JSON.stringify(req),label:(u.name.slice(0,40)+" · "+id)}).then(function(){
     TESTS.unshift({id:id,name:u.name,t:Math.floor(Date.now()/1000),tf:tf,days:req.days});saveTests();renderPast();pollTest(id,0);
   }).catch(function(e){STUDYING=null;renderBuilder();toast("Could not start the test: "+e.message)});
@@ -1328,19 +1329,31 @@ function pollTest(id,n){
     });
   }).catch(function(){if(n<240)setTimeout(function(){pollTest(id,n+1)},15000)});
 }
+function studyHint(res){
+  /* why a test has few trades: rules never true together, entry impossible, or orders that never filled */
+  var n=res.signals||0,dr=res.dropped||0,u=res.unfilled_by||{},bad=(u.invalid||0)+(u.no_fill||0)+(u.missed||0)||res.unfilled||0,q=res.requested&&res.requested.strategy||{},e=q.entry||{};
+  var dip=(q.rules||[]).some(function(r){return (r.f==="rsi"&&(r.op==="<"||r.op==="<="))||/^(chg4|chg16|dist9|dist21|bb_pos|range_pos)$/.test(r.f)&&(r.op==="<"||r.op==="<=")});
+  var tip=e.type==="pullback"?(dip?' A rule like "RSI below…" means price has just fallen, so it is usually already under '+esc(String(e.level||"ema21").toUpperCase())+'. Try <b>At market</b>, or a pullback to a lower level such as EMA50.':' Try <b>At market</b>, a deeper pullback level, or a longer fill window.'):' Try a wider stop or a longer fill window.';
+  if(!n&&!dr)return '<b>No signals.</b> Your conditions were never all true at the same moment on these coins. Remove one condition or loosen a number, then test again.';
+  if(dr>n)return '<b>Your conditions were true '+dr.toLocaleString("en-US")+' times, but no order could be placed</b>: price was already under the stop, or the stop was wider than your max stop distance.'+tip;
+  var why=[[u.invalid,"fell through the stop before the entry filled"],[u.no_fill,"never came back to the entry zone within the fill window"],[u.missed,"ran to the first target without filling"]].filter(function(x){return x[0]}).map(function(x){return x[0]+" "+x[1]}).join(", ");
+  if(n&&bad>=n*0.5)return '<b>'+bad+' of '+n+' signals never became trades</b>'+(why?": "+why:"")+'.'+tip;
+  return "";
+}
 var VERDICT={passed:["good","✓ Would pass the tournament"],watch:["warn","◆ On watch: no clear edge"],rejected:["bad","✕ Would be rejected: loses after costs"],testing:["info","• Too few trades to judge (needs 15)"]};
 function showStudy(res){
   STUDY=res;var o=$("#studyOut");o.hidden=false;
   if(!res.ok){o.innerHTML='<b>The test failed.</b> <span class="muted">'+esc(res.error||"")+'</span>';return}
   var s=res.stats||{},v=VERDICT[res.verdict]||["",res.verdict],h='<div class="gh-h"><span><b>'+esc(res.name)+'</b> <span class="muted">'+esc(res.tf)+' · '+res.days+' days · '+res.coins_tested+' coins</span></span><span class="chip '+v[0]+'">'+esc(v[1])+'</span></div>';
   h+='<p class="muted" style="margin:4px 0 8px">'+esc(res.desc||"")+' '+esc(res.why||"")+(res.data_days&&res.data_days<res.days-2?' The exchanges had about '+Math.round(res.data_days)+' days of history for most coins, so the test is shorter than asked.':'')+'</p>';
+  var hint=studyHint(res);if(hint)h+='<div class="note" style="margin:0 0 8px">'+hint+'</div>';
   h+='<div class="tiles">'+tile("Trades",(s.n||0).toLocaleString("en-US"))+tile("Win rate",pc0(s.wr))+tile("Avg R",fR(s.exp))+tile("Profit factor",s.pf==null?"-":s.pf>=10?">10":(+s.pf).toFixed(2))+tile("Total R",fR(s.net,1))+tile("Worst drawdown",s.dd==null?"-":"−"+(+s.dd).toFixed(1)+"R")+tile("Filled",res.signals?pc0(res.filled/res.signals):"-")+tile("Median hold",s.hold==null?"-":(+s.hold).toFixed(1)+"h")+'</div>';
   if(res.curve&&res.curve.length>2)h+='<div class="eq" id="studyEq" data-sid="__study"></div>';
   if(res.baseline){var b=res.baseline.stats||{};h+='<p style="margin:8px 0">Same test, '+esc(res.baseline.name)+': <b>'+(b.n||0)+'</b> trades, '+pc0(b.wr)+' win, <b class="'+((b.exp||0)>0?"up":"dn")+'">'+fR(b.exp)+'</b> per trade. Yours: <b class="'+((s.exp||0)>0?"up":"dn")+'">'+fR(s.exp)+'</b>.</p>'}
   if(res.months&&res.months.length)h+='<div class="tw" style="max-height:none;display:inline-block;max-width:100%"><table><thead><tr><th class="l">Month</th><th>Trades</th><th>Win</th><th>R</th></tr></thead><tbody>'+res.months.map(function(m){return '<tr><td class="l">'+esc(m[0])+'</td><td class="n">'+m[1]+'</td><td class="n">'+pc0(m[2])+'</td><td class="n '+(m[3]>0?"up":"dn")+'">'+fR(m[3],1)+'</td></tr>'}).join("")+'</tbody></table></div>';
   if((res.coins_best||[]).length)h+='<p class="muted" style="margin:8px 0 0">Best coins: '+res.coins_best.map(function(c){return esc(c[0])+" "+fR(c[2],1)}).join(", ")+(res.coins_worst&&res.coins_worst.length?'. Worst: '+res.coins_worst.map(function(c){return esc(c[0])+" "+fR(c[2],1)}).join(", "):"")+'.</p>';
   h+='<details class="tr-d"><summary>Recent test trades</summary><div class="tw" style="max-height:320px"><table><thead><tr><th class="l">Coin</th><th class="l">Signal</th><th class="l">Result</th><th>R</th></tr></thead><tbody>'+(res.trades||[]).slice(0,80).map(function(t){var st=JSTATE[t[3]]||["",t[3]];return '<tr><td class="l">'+esc(t[1])+'</td><td class="l mono" style="font-size:12px">'+esc(tloc(t[0],true))+'</td><td class="l"><span class="chip '+st[0]+'">'+esc(st[1])+'</span></td><td class="n">'+(t[4]==null?"-":fR(t[4]))+'</td></tr>'}).join("")+'</tbody></table></div></details>';
-  h+='<div class="runrow"><button type="button" class="btn" id="addScan">Add to my scan</button><button type="button" class="btn ghost" id="editAgain">Edit and test again</button></div>';
+  h+='<div class="runrow"><button type="button" class="btn'+(res.verdict==="rejected"?" ghost":"")+'" id="addScan">'+(res.verdict==="rejected"?"Add to my scan anyway":"Add to my scan")+'</button><button type="button" class="btn ghost" id="editAgain">Edit and test again</button></div>';
   h+='<p class="muted" style="margin:6px 0 0">Backtests flatter a strategy (no missed fills, today\'s coin list, settings chosen after seeing the data). Use them to throw ideas out; the live journal decides.</p>';
   o.innerHTML=h;
   if(res.curve&&res.curve.length>2)drawEq($("#studyEq"),res.curve.map(function(x){return x[1]}),s.n||res.curve.length);
