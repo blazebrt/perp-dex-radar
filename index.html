@@ -392,6 +392,31 @@ td.tags{white-space:normal;min-width:160px;text-align:left;font-size:12px;color:
   .bar .wrap{flex-wrap:nowrap;padding-block:8px}
   .clock{flex-wrap:nowrap;white-space:nowrap;gap:10px;min-width:0;overflow:hidden}
 }
+/* studio */
+.card2{background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:12px 14px;margin-top:12px;box-shadow:var(--shadow)}
+.gh-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.steps{margin:0 0 10px;padding-left:20px;font-size:14px;color:var(--ink2)}
+.frow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:8px 0}
+.frow label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--ink2);font-weight:600;min-width:0}
+.frow .muted{font-size:11px;font-weight:400}
+.in select{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:inherit;padding:7px 0;outline:none}
+.in.tp{gap:6px}.in.tp input{width:0}
+.sub3{font-size:13px;font-weight:700;margin:12px 0 6px}
+.cond{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:var(--sunk);border-radius:10px;padding:6px 8px;margin-bottom:6px}
+.cond select,.cond input,.filt select{font:inherit;font-size:13.5px;border:1px solid var(--rule);border-radius:8px;background:var(--card);color:var(--ink);padding:5px 6px;min-width:0;max-width:100%}
+.cond select:first-child{flex:1 1 200px}
+.cond .x{border:0;background:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0 4px;margin-left:auto}
+.filt{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+.lnk{border:0;background:none;color:var(--accent-ink);font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;padding:4px 0}
+.runrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
+.btn[disabled]{opacity:.55;cursor:default}
+.btn.ghost{background:var(--sunk);color:var(--ink)}
+.pts{display:grid;gap:6px}
+.pt{display:block;text-align:left;font:inherit;font-size:13.5px;background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:8px 12px;color:var(--ink);cursor:pointer}
+.tr-d{margin-top:10px}
+.scanbtn{flex:none;font:inherit;font-size:13px;font-weight:700;border:0;border-radius:999px;padding:6px 12px;background:var(--accent);color:#fff;cursor:pointer;white-space:nowrap}
+.scanbtn.busy{background:var(--sunk);color:var(--ink2);cursor:default}
+@media (max-width:520px){.nx{display:none}.scanbtn{padding:5px 10px;font-size:12.5px}}
 /* tabs */
 .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 .tabs{display:flex;gap:6px;max-width:980px;margin:0 auto;padding:0 16px 9px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-padding-inline:16px}
@@ -432,13 +457,15 @@ details[open]>summary.plan-h{margin-bottom:8px}
     </div>
     <div class="clock" aria-live="polite">
       <span><span class="dot" id="dot"></span><span class="bn">Scan </span><b id="scanTime">loading</b> <span id="scanAgo"></span></span>
-      <span>Next <b id="nextIn">-</b></span>
+      <span class="nx">Next <b id="nextIn">-</b></span>
     </div>
+    <button type="button" class="scanbtn" id="scanBtn" title="Scan the whole market now">⟳ Scan now</button>
   </div>
   <nav class="tabs" role="tablist" aria-label="Sections">
     <button type="button" role="tab" id="tb-picks" data-tab="picks" aria-controls="tab-picks" aria-selected="true">Picks<span class="tb-n" id="tbn-picks"></span></button>
     <button type="button" role="tab" id="tb-goal" data-tab="goal" aria-controls="tab-goal" aria-selected="false" tabindex="-1">Goal</button>
     <button type="button" role="tab" id="tb-lab" data-tab="lab" aria-controls="tab-lab" aria-selected="false" tabindex="-1">Strategies</button>
+    <button type="button" role="tab" id="tb-studio" data-tab="studio" aria-controls="tab-studio" aria-selected="false" tabindex="-1">Studio</button>
     <button type="button" role="tab" id="tb-lessons" data-tab="lessons" aria-controls="tab-lessons" aria-selected="false" tabindex="-1">Lessons</button>
     <button type="button" role="tab" id="tb-journal" data-tab="journal" aria-controls="tab-journal" aria-selected="false" tabindex="-1">Journal</button>
     <button type="button" role="tab" id="tb-smart" data-tab="smart" aria-controls="tab-smart" aria-selected="false" tabindex="-1">Smart money</button>
@@ -523,6 +550,20 @@ details[open]>summary.plan-h{margin-bottom:8px}
   <div class="sub2">Recent decisions</div>
   <ul class="changes" id="changes"></ul>
 
+</div>
+
+<div class="tabpane" id="tab-studio" data-tab="studio" role="tabpanel" aria-labelledby="tb-studio" hidden>
+  <h2 id="studio-h">Strategy studio</h2>
+  <p class="lede" style="margin-bottom:10px">Build a strategy from your own rules or tune a built-in one, test it on past candles with the scanner's own fill, exit and cost rules, and add it to the hourly scan if you like the result.</p>
+  <section class="card2" id="ghCard"></section>
+  <div class="gh-h" style="margin-top:14px"><div class="sub2" style="margin:0">Build</div><button type="button" class="lnk" id="newStrat">+ New strategy</button></div>
+  <section class="card2" id="builder"></section>
+  <section class="card2" id="studyOut" hidden></section>
+  <div class="sub2">Your strategies in the scan</div>
+  <div class="vlist" id="myStrats"></div>
+  <div class="sub2">Your recent tests</div>
+  <div class="pts" id="pastTests"></div>
+  <p class="muted" style="margin-top:14px">Why no TradingView data: TradingView has no public data feed and its terms forbid pulling data from it. The tests use the same exchange candles TradingView shows for these perps (MEXC, Gate.io, Bitget, Hyperliquid, Aster), up to 2 years back on the 4h chart. Every pick has a TradingView link to chart it there.</p>
 </div>
 
 <div class="tabpane" id="tab-lessons" data-tab="lessons" role="tabpanel" aria-labelledby="tb-lessons" hidden>
@@ -711,7 +752,7 @@ function card(p){
   h+='<p class="thesis">'+esc(p.thesis)+'</p>';
   if(p.others&&p.others.length)h+='<div class="also">Other strategies on '+esc(p.coin)+':'+p.others.map(function(o){return '<span title="'+esc(o.name+(o.block?" – not published: "+o.block:""))+'">'+esc(o.short)+' '+Math.round(o.score)+(o.block?' ✕':'')+'</span>'}).join("")+'</div>';
   h+='<div class="grid2"><div><div class="chart" data-coin="'+esc(p.coin)+'"><div class="tip" hidden></div></div>'+
-     '<div class="legend"><span>'+line("var(--ema9)")+'EMA9</span><span>'+line("var(--ema21)")+'EMA21</span><span>'+sw("entry")+'Entry zone</span><span>'+sw("sl")+'Stop</span><span>'+sw("tp")+'Targets</span>'+(p.trigger?'<span>'+sw("trig")+'Trigger</span>':'')+'<span>15m candles, hollow = up</span></div></div>';
+     '<div class="legend"><span>'+line("var(--ema9)")+'EMA9</span><span>'+line("var(--ema21)")+'EMA21</span><span>'+sw("entry")+'Entry zone</span><span>'+sw("sl")+'Stop</span><span>'+sw("tp")+'Targets</span>'+(p.trigger?'<span>'+sw("trig")+'Trigger</span>':'')+'<span>'+esc(p.tf||"15m")+' candles, hollow = up</span><span><a href="'+esc(tvLink(p))+'" target="_blank" rel="noopener">Open in TradingView ↗</a></span></div></div>';
   h+='<div><div class="levels">'+
      '<div class="lv wide"><span class="k">'+sw("entry")+'Entry zone</span><span class="v">'+fp(p.elo)+' – '+fp(p.ehi)+'</span>'+(p.trigger?'<span class="s">after a 15m close above '+fp(p.trigger)+'</span>':'<span class="s">middle '+fp(p.mid)+'</span>')+'</div>'+
      '<div class="lv"><span class="k">'+sw("sl")+'Stop</span><span class="v">'+fp(p.stop)+'</span><span class="s dn">'+pct(-p.risk)+'</span></div>'+
@@ -1164,8 +1205,213 @@ function renderCoverage(){
   $("#coverage").innerHTML=h;
 }
 
+/* ---------- GitHub connection (the token stays in this browser only) ---------- */
+var GH=(function(){var g=loadJSON("radar.gh",{}),m=location.hostname.match(/^([a-z0-9-]+)\.github\.io$/i),seg=location.pathname.split("/").filter(Boolean)[0];
+  return {token:g.token||"",owner:g.owner||(m?m[1]:""),repo:g.repo||(m?(seg||m[1]+".github.io"):""),branch:g.branch||"main"}})();
+function ghSave(){store("radar.gh",JSON.stringify(GH))}
+function ghOn(){return !!(GH.token&&GH.owner&&GH.repo)}
+function gh(path,o){o=o||{};var hd={"Accept":o.raw?"application/vnd.github.raw+json":"application/vnd.github+json","Authorization":"Bearer "+GH.token,"X-GitHub-Api-Version":"2022-11-28"};
+  if(o.body)hd["Content-Type"]="application/json";
+  return fetch("https://api.github.com/repos/"+encodeURIComponent(GH.owner)+"/"+encodeURIComponent(GH.repo)+path,{method:o.method||"GET",headers:hd,body:o.body?JSON.stringify(o.body):undefined,cache:"no-store"})}
+function ghErr(r){return r.text().then(function(t){var m="";try{m=JSON.parse(t).message}catch(e){m=t.slice(0,120)}
+  throw new Error(r.status===401?"GitHub did not accept the token (401)":r.status===403?"The token lacks permission for this ("+m+")":r.status===404?"Not found: check the repository name, or the token's access to it ("+m+")":r.status+" "+m)})}
+function dispatch(wf,inputs){return gh("/actions/workflows/"+wf+"/dispatches",{method:"POST",body:{ref:GH.branch,inputs:inputs||{}}}).then(function(r){if(r.status!==204)return ghErr(r)})}
+function b64enc(s){return btoa(unescape(encodeURIComponent(s)))}
+function b64dec(b){return decodeURIComponent(escape(atob(String(b).replace(/\s/g,""))))}
+
+/* ---------- scan now ---------- */
+function scanPill(txt){var b=$("#scanBtn");if(!b)return;b.textContent=txt||"⟳ Scan now";b.classList.toggle("busy",!!txt);b.disabled=!!txt}
+function scanNow(){
+  if(window.__RADAR__){toast("Scan now works on your live dashboard");return}
+  if(!ghOn()){showTab("studio");toast("Connect GitHub once (Studio tab) to start scans from here");return}
+  var t0=Date.now();scanPill("Starting…");
+  dispatch("scan.yml").then(function(){scanPill("Queued…");pollScan(t0,0)}).catch(function(e){scanPill("");toast("Could not start the scan: "+e.message)});
+}
+function pollScan(t0,n){
+  gh("/actions/workflows/scan.yml/runs?per_page=5").then(function(r){return r.ok?r.json():ghErr(r)}).then(function(j){
+    var run=(j.workflow_runs||[]).filter(function(x){return Date.parse(x.created_at)>=t0-90000})[0];
+    if(!run||run.status!=="completed"){var s=Math.round((Date.now()-t0)/1000);scanPill((run&&run.status==="in_progress"?"Scanning ":"Queued ")+Math.floor(s/60)+":"+String(s%60).padStart(2,"0"));
+      if(n<120)setTimeout(function(){pollScan(t0,n+1)},6000);else scanPill("");return}
+    if(run.conclusion!=="success"){scanPill("");toast("The scan did not finish ("+run.conclusion+"): see Actions on GitHub");return}
+    scanPill("Publishing…");var had=D&&D.scan_t,k=0;
+    (function wait(){load(false);setTimeout(function(){if(D&&D.scan_t!==had){scanPill("");return}if(++k<8)wait();else{scanPill("");toast("The scan finished; reload the page if it does not show yet")}},12000)})();
+  }).catch(function(e){if(n<120)setTimeout(function(){pollScan(t0,n+1)},10000);else{scanPill("");toast(e.message)}});
+}
+
+/* ---------- studio ---------- */
+var TESTS=(function(){var t=loadJSON("radar.tests",{list:[]});return Array.isArray(t.list)?t.list:[]})();
+function saveTests(){store("radar.tests",JSON.stringify({list:TESTS.slice(0,25)}))}
+function newId(){return "u"+Date.now().toString(36)}
+var DRAFT=(function(){var d={id:newId(),kind:"rule",name:"My strategy",tf:"1h",rules:[{f:"rsi",op:"<",v:40},{f:"above50",op:"is"},{f:"htf_up",op:"is"}],
+  entry:{type:"pullback",level:"ema21",depth:0.3},stop:{type:"atr",atr:1.5,pct:3},base:"PB",params:{},filters:{},sk:1,tp_r:[1.5,2.5,4],vh:3,th:24,max_risk:5,days:120,coins:40,coin_list:""},s=loadJSON("radar.draft",null);
+  if(s&&typeof s==="object"&&s.kind){Object.keys(d).forEach(function(k){if(s[k]!==undefined)d[k]=s[k]})}return d})();
+function saveDraft(){store("radar.draft",JSON.stringify(DRAFT))}
+var STUDY=null,STUDYING=null;
+var OPS={num:[["<","below"],["<=","at most"],[">","above"],[">=","at least"],["between","between"]],bool:[["is","yes"],["not","no"]]};
+function opt(v,lab,sel){return '<option value="'+esc(v)+'"'+(String(v)===String(sel)?" selected":"")+'>'+esc(lab)+'</option>'}
+function numIn(k,v,step,min,max,w){return '<input type="number" data-k="'+k+'" value="'+esc(v)+'" step="'+(step||"any")+'"'+(min!=null?' min="'+min+'"':'')+(max!=null?' max="'+max+'"':'')+(w?' style="width:'+w+'"':'')+'>'}
+function renderGhCard(){
+  var h;
+  if(window.__RADAR__){$("#ghCard").innerHTML='<b>Connect GitHub</b><p class="muted" style="margin:4px 0 0">On your live dashboard this is where you connect your repository once, so the page can start scans and strategy tests.</p>';return}
+  if(ghOn()){h='<div class="gh-h"><span><b>Connected</b> to '+esc(GH.owner+"/"+GH.repo)+' ('+esc(GH.branch)+')</span><span><button type="button" class="lnk" data-gh="test">Check</button> · <button type="button" class="lnk" data-gh="off">Disconnect</button></span></div><div class="muted" id="ghMsg">Scan now and strategy tests run on your GitHub. The token is saved in this browser only.</div>'}
+  else h='<b>Connect GitHub once</b><p class="muted" style="margin:4px 0 8px">The page needs a GitHub token to start scans and tests on your repository. It is saved in this browser only and sent only to GitHub.</p>'+
+    '<ol class="steps"><li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub → new fine-grained token</a>.</li><li>Name it "radar", pick an expiry (90 days is fine).</li><li>Repository access: <b>Only select repositories</b> → <b>'+esc(GH.repo||"perp-dex-radar")+'</b>.</li><li>Permissions → Repository: <b>Actions: Read and write</b> and <b>Contents: Read and write</b>.</li><li>Generate, copy it, paste it below. Don\'t paste it anywhere else.</li></ol>'+
+    '<div class="frow"><label>Token<span class="in"><input type="password" id="ghTok" autocomplete="off" placeholder="github_pat_…"></span></label><label>Owner<span class="in"><input id="ghOwn" value="'+esc(GH.owner)+'"></span></label><label>Repository<span class="in"><input id="ghRepo" value="'+esc(GH.repo)+'"></span></label></div><button type="button" class="btn" data-gh="save">Connect</button> <span class="muted" id="ghMsg"></span>';
+  $("#ghCard").innerHTML=h;
+}
+function ghCheck(){var m=$("#ghMsg");if(m)m.textContent="Checking…";
+  return gh("").then(function(r){return r.ok?r.json():ghErr(r)}).then(function(j){GH.branch=j.default_branch||"main";ghSave();return gh("/actions/workflows").then(function(r){return r.ok?r.json():ghErr(r)})}).then(function(j){
+    var names=(j.workflows||[]).map(function(w){return w.path.split("/").pop()}),miss=["scan.yml","backtest.yml"].filter(function(x){return names.indexOf(x)<0});
+    renderGhCard();var m2=$("#ghMsg");if(m2)m2.textContent=miss.length?("Connected, but "+miss.join(" and ")+" is missing in .github/workflows."):"Connected: scans and tests can start from this page.";
+  }).catch(function(e){var m3=$("#ghMsg");if(m3)m3.textContent=e.message})}
+function renderBuilder(){
+  var S=D&&D.studio;if(!S){$("#builder").innerHTML='<p class="muted">The Studio needs the new scanner.py: upload it and run one scan.</p>';return}
+  var d=DRAFT,h='<div class="frow"><label style="grid-column:1/-1">Name<span class="in"><input data-k="name" value="'+esc(d.name)+'" maxlength="60"></span></label></div>';
+  h+='<div class="seg" role="group" style="margin:8px 0"><button type="button" data-kind="rule" aria-pressed="'+(d.kind==="rule")+'">Build from rules</button><button type="button" data-kind="tuned" aria-pressed="'+(d.kind==="tuned")+'">Tune a built-in strategy</button></div>';
+  if(d.kind==="rule"){
+    h+='<div class="frow"><label>Chart<span class="in"><select data-k="tf">'+["15m","1h","4h"].map(function(x){return opt(x,x+" candles",d.tf)}).join("")+'</select></span></label></div>';
+    h+='<div class="sub3">Buy when all of these are true</div>';
+    h+=(d.rules||[]).map(function(r,i){var f=S.fields.find(function(x){return x[0]===r.f})||S.fields[0],kind=f[2];
+      return '<div class="cond"><select data-k="rules.'+i+'.f">'+S.fields.map(function(x){return opt(x[0],x[1],r.f)}).join("")+'</select><select data-k="rules.'+i+'.op">'+OPS[kind].map(function(o){return opt(o[0],o[1],r.op)}).join("")+'</select>'+
+        (kind==="num"?numIn("rules."+i+".v",r.v==null?"":r.v,"any",null,null,"84px")+(r.op==="between"?'<span class="muted">and</span>'+numIn("rules."+i+".v2",r.v2==null?"":r.v2,"any",null,null,"84px"):""):"")+
+        '<button type="button" class="x" data-del="'+i+'" aria-label="Remove condition">×</button></div>'}).join("");
+    h+='<button type="button" class="lnk" data-add="1">+ Add a condition</button><p class="muted" style="margin:4px 0 0">Windows count bars of the chosen chart: on 1h, 96 bars are 4 days.</p>';
+    var e=d.entry||{},st=d.stop||{};
+    h+='<div class="frow"><label>Entry<span class="in"><select data-k="entry.type">'+opt("market","At market",e.type)+opt("pullback","Limit on a pullback",e.type)+opt("breakout","Break of the 96-bar high",e.type)+'</select></span></label>'+
+      (e.type==="pullback"?'<label>Pullback to<span class="in"><select data-k="entry.level">'+opt("ema9","EMA9",e.level)+opt("ema21","EMA21",e.level)+opt("ema50","EMA50",e.level)+opt("vwap","VWAP",e.level)+'</select></span></label><label>Zone depth (ATR)<span class="in">'+numIn("entry.depth",e.depth==null?0.3:e.depth,0.1,0,3)+'</span></label>':'')+
+      '<label>Stop<span class="in"><select data-k="stop.type">'+opt("atr","ATR multiple",st.type)+opt("swing","Under the last swing low",st.type)+opt("pct","Percent",st.type)+'</select></span></label>'+
+      (st.type==="atr"?'<label>Stop (ATR)<span class="in">'+numIn("stop.atr",st.atr==null?1.5:st.atr,0.1,0.3,10)+'</span></label>':st.type==="pct"?'<label>Stop (%)<span class="in">'+numIn("stop.pct",st.pct==null?3:st.pct,0.1,0.2,20)+'</span></label>':'')+'</div>';
+  }else{
+    var b=d.base,P=S.params[b]||[];
+    h+='<div class="frow"><label style="grid-column:1/-1">Strategy<span class="in"><select data-k="base">'+Object.keys(S.params).map(function(k){return opt(k,S.names[k],b)}).join("")+'</select></span></label></div><p class="muted" style="margin:0 0 6px">'+esc(S.descs[b]||"")+' Runs on the 15m chart.</p>';
+    h+='<div class="frow">'+P.map(function(p){var v=(d.params||{})[p[0]];return '<label>'+esc(p[1].replace("{v}","…"))+'<span class="in">'+numIn("params."+p[0],v==null?p[2]:v,p[5],p[3],p[4])+'</span><span class="muted">default '+p[2]+' ('+p[3]+'–'+p[4]+')</span></label>'}).join("")+'</div>';
+    h+='<div class="sub3">Extra filters</div><div class="filt">'+S.filters.map(function(f){var on=(d.filters||{})[f[0]]!=null;return '<label class="toggle"><input type="checkbox" data-fil="'+f[0]+'"'+(on?" checked":"")+'> '+esc(f[1].replace("{v}",f[2].length?"…":""))+'</label>'+
+      (f[2].length&&on?'<select data-k="filters.'+f[0]+'">'+f[2].map(function(v){return opt(v,v,d.filters[f[0]])}).join("")+'</select>':'')}).join("")+'</div>';
+    h+='<div class="frow"><label>Stop factor (x the rule\'s stop)<span class="in">'+numIn("sk",d.sk==null?1:d.sk,0.05,0.5,2.5)+'</span></label></div>';
+  }
+  h+='<div class="frow"><label>Targets (R)<span class="in tp">'+[0,1,2].map(function(i){return numIn("tp_r."+i,(d.tp_r||[])[i],0.1,0.2,30)}).join("")+'</span></label><label>Fill window (hours)<span class="in">'+numIn("vh",d.vh,1,1,72)+'</span></label><label>Max hold (hours)<span class="in">'+numIn("th",d.th,1,2,168)+'</span></label><label>Max stop distance (%)<span class="in">'+numIn("max_risk",d.max_risk,0.5,0.3,20)+'</span></label></div>';
+  var tf=d.kind==="rule"?d.tf:"15m",mx=S.days[tf];
+  h+='<div class="sub3">Test</div><div class="frow"><label>History (days, up to '+mx+')<span class="in">'+numIn("days",Math.min(d.days,mx),1,7,mx)+'</span></label><label>Most traded coins<span class="in">'+numIn("coins",d.coins,1,d.kind==="tuned"?20:5,S.max_coins)+'</span></label><label style="grid-column:span 2">Or these coins (comma separated)<span class="in"><input data-k="coin_list" value="'+esc(d.coin_list||"")+'" placeholder="BTC, ETH, SOL"></span></label></div>';
+  h+='<div class="runrow"><button type="button" class="btn" id="runTest"'+(STUDYING?" disabled":"")+'>Run backtest</button><span class="muted" id="testMsg">'+(STUDYING?esc(STUDYING.msg||""):"")+'</span></div>';
+  h+='<p class="muted" style="margin:6px 0 0">Tests use the scanner\'s own fill, exit and cost rules on exchange candles'+(d.kind==="rule"?", every coin checked at each "+(tf==="4h"?"4-hour":"1-hour")+" step":", ranking the market each hour like a live scan")+'. A test takes 1 to 10 minutes.</p>';
+  $("#builder").innerHTML=h;
+}
+function setPath(o,path,v){var p=path.split("."),x=o;for(var i=0;i<p.length-1;i++){var k=/^\d+$/.test(p[i])?+p[i]:p[i];if(x[k]==null)x[k]=/^\d+$/.test(p[i+1])?[]:{};x=x[k]}x[/^\d+$/.test(p[p.length-1])?+p[p.length-1]:p[p.length-1]]=v}
+function draftStrategy(){
+  var d=DRAFT,u={id:d.id,kind:d.kind,name:(d.name||"My strategy").trim().slice(0,60),tp_r:(d.tp_r||[]).map(Number),vh:+d.vh,th:+d.th,max_risk:+d.max_risk};
+  if(d.kind==="rule"){u.tf=d.tf;u.rules=(d.rules||[]).map(function(r){var x={f:r.f,op:r.op};if(r.op!=="is"&&r.op!=="not"){x.v=+r.v;if(r.op==="between")x.v2=+r.v2}return x});u.entry=d.entry;u.stop=d.stop}
+  else{u.tf="15m";u.base=d.base;u.sk=+d.sk;u.params={};var P=(D.studio.params[d.base]||[]).map(function(p){return p[0]});Object.keys(d.params||{}).forEach(function(k){if(P.indexOf(k)>=0&&d.params[k]!==""&&d.params[k]!=null)u.params[k]=+d.params[k]});u.filters=d.filters||{}}
+  return u;
+}
+function runTest(){
+  if(window.__RADAR__){toast("Tests run from your live dashboard");return}
+  if(!ghOn()){toast("Connect GitHub first");$("#ghCard").scrollIntoView({block:"start"});return}
+  var u=draftStrategy();
+  if(u.kind==="rule"&&!u.rules.length){toast("Add at least one condition");return}
+  var tf=u.tf,id="t"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+  var req={id:id,days:Math.min(+DRAFT.days||30,D.studio.days[tf]),coins:+DRAFT.coins||40,strategy:u,
+    coin_list:String(DRAFT.coin_list||"").split(/[\s,;]+/).map(function(x){return x.trim().toUpperCase()}).filter(Boolean).slice(0,100)};
+  STUDYING={id:id,t0:Date.now(),msg:"Starting the test…"};renderBuilder();
+  dispatch("backtest.yml",{request:JSON.stringify(req),label:(u.name.slice(0,40)+" · "+id)}).then(function(){
+    TESTS.unshift({id:id,name:u.name,t:Math.floor(Date.now()/1000),tf:tf,days:req.days});saveTests();renderPast();pollTest(id,0);
+  }).catch(function(e){STUDYING=null;renderBuilder();toast("Could not start the test: "+e.message)});
+}
+function testMsg(t){if(STUDYING)STUDYING.msg=t;var m=$("#testMsg");if(m)m.textContent=t}
+function pollTest(id,n){
+  gh("/contents/backtests/"+id+".json?ref=results",{raw:true}).then(function(r){
+    if(r.ok)return r.json().then(function(res){STUDYING=null;renderBuilder();showStudy(res)});
+    return gh("/actions/workflows/backtest.yml/runs?per_page=10").then(function(r2){return r2.ok?r2.json():{}}).then(function(j){
+      var run=(j.workflow_runs||[]).find(function(x){return(x.display_title||"").indexOf(id)>=0}),s=Math.round((Date.now()-(STUDYING?STUDYING.t0:Date.now()))/1000);
+      if(run&&run.status==="completed"&&run.conclusion!=="success"&&n>2){STUDYING=null;renderBuilder();$("#studyOut").hidden=false;$("#studyOut").innerHTML='<b>The test did not finish ('+esc(run.conclusion)+').</b> <a href="'+esc(run.html_url)+'" target="_blank" rel="noopener">Open the run on GitHub</a> to see why.';return}
+      testMsg((run?(run.status==="in_progress"?"Testing":"Waiting for a runner"):"Starting")+"… "+Math.floor(s/60)+":"+String(s%60).padStart(2,"0"));
+      if(n<240)setTimeout(function(){pollTest(id,n+1)},run&&run.status==="completed"?5000:12000);else{STUDYING=null;renderBuilder();toast("Still no result: check Actions on GitHub")}
+    });
+  }).catch(function(){if(n<240)setTimeout(function(){pollTest(id,n+1)},15000)});
+}
+var VERDICT={passed:["good","✓ Would pass the tournament"],watch:["warn","◆ On watch: no clear edge"],rejected:["bad","✕ Would be rejected: loses after costs"],testing:["info","• Too few trades to judge (needs 15)"]};
+function showStudy(res){
+  STUDY=res;var o=$("#studyOut");o.hidden=false;
+  if(!res.ok){o.innerHTML='<b>The test failed.</b> <span class="muted">'+esc(res.error||"")+'</span>';return}
+  var s=res.stats||{},v=VERDICT[res.verdict]||["",res.verdict],h='<div class="gh-h"><span><b>'+esc(res.name)+'</b> <span class="muted">'+esc(res.tf)+' · '+res.days+' days · '+res.coins_tested+' coins</span></span><span class="chip '+v[0]+'">'+esc(v[1])+'</span></div>';
+  h+='<p class="muted" style="margin:4px 0 8px">'+esc(res.desc||"")+' '+esc(res.why||"")+(res.data_days&&res.data_days<res.days-2?' The exchanges had about '+Math.round(res.data_days)+' days of history for most coins, so the test is shorter than asked.':'')+'</p>';
+  h+='<div class="tiles">'+tile("Trades",(s.n||0).toLocaleString("en-US"))+tile("Win rate",pc0(s.wr))+tile("Avg R",fR(s.exp))+tile("Profit factor",s.pf==null?"-":s.pf>=10?">10":(+s.pf).toFixed(2))+tile("Total R",fR(s.net,1))+tile("Worst drawdown",s.dd==null?"-":"−"+(+s.dd).toFixed(1)+"R")+tile("Filled",res.signals?pc0(res.filled/res.signals):"-")+tile("Median hold",s.hold==null?"-":(+s.hold).toFixed(1)+"h")+'</div>';
+  if(res.curve&&res.curve.length>2)h+='<div class="eq" id="studyEq" data-sid="__study"></div>';
+  if(res.baseline){var b=res.baseline.stats||{};h+='<p style="margin:8px 0">Same test, '+esc(res.baseline.name)+': <b>'+(b.n||0)+'</b> trades, '+pc0(b.wr)+' win, <b class="'+((b.exp||0)>0?"up":"dn")+'">'+fR(b.exp)+'</b> per trade. Yours: <b class="'+((s.exp||0)>0?"up":"dn")+'">'+fR(s.exp)+'</b>.</p>'}
+  if(res.months&&res.months.length)h+='<div class="tw" style="max-height:none;display:inline-block;max-width:100%"><table><thead><tr><th class="l">Month</th><th>Trades</th><th>Win</th><th>R</th></tr></thead><tbody>'+res.months.map(function(m){return '<tr><td class="l">'+esc(m[0])+'</td><td class="n">'+m[1]+'</td><td class="n">'+pc0(m[2])+'</td><td class="n '+(m[3]>0?"up":"dn")+'">'+fR(m[3],1)+'</td></tr>'}).join("")+'</tbody></table></div>';
+  if((res.coins_best||[]).length)h+='<p class="muted" style="margin:8px 0 0">Best coins: '+res.coins_best.map(function(c){return esc(c[0])+" "+fR(c[2],1)}).join(", ")+(res.coins_worst&&res.coins_worst.length?'. Worst: '+res.coins_worst.map(function(c){return esc(c[0])+" "+fR(c[2],1)}).join(", "):"")+'.</p>';
+  h+='<details class="tr-d"><summary>Recent test trades</summary><div class="tw" style="max-height:320px"><table><thead><tr><th class="l">Coin</th><th class="l">Signal</th><th class="l">Result</th><th>R</th></tr></thead><tbody>'+(res.trades||[]).slice(0,80).map(function(t){var st=JSTATE[t[3]]||["",t[3]];return '<tr><td class="l">'+esc(t[1])+'</td><td class="l mono" style="font-size:12px">'+esc(tloc(t[0],true))+'</td><td class="l"><span class="chip '+st[0]+'">'+esc(st[1])+'</span></td><td class="n">'+(t[4]==null?"-":fR(t[4]))+'</td></tr>'}).join("")+'</tbody></table></div></details>';
+  h+='<div class="runrow"><button type="button" class="btn" id="addScan">Add to my scan</button><button type="button" class="btn ghost" id="editAgain">Edit and test again</button></div>';
+  h+='<p class="muted" style="margin:6px 0 0">Backtests flatter a strategy (no missed fills, today\'s coin list, settings chosen after seeing the data). Use them to throw ideas out; the live journal decides.</p>';
+  o.innerHTML=h;
+  if(res.curve&&res.curve.length>2)drawEq($("#studyEq"),res.curve.map(function(x){return x[1]}),s.n||res.curve.length);
+  o.scrollIntoView({block:"start"});
+}
+function loadStrategiesFile(){return gh("/contents/strategies.json?ref="+encodeURIComponent(GH.branch)).then(function(r){
+  if(r.status===404)return {sha:null,list:[]};if(!r.ok)return ghErr(r);
+  return r.json().then(function(j){var d={};try{d=JSON.parse(b64dec(j.content))}catch(e){}return {sha:j.sha,list:Array.isArray(d.strategies)?d.strategies:[]}})})}
+function writeStrategies(f,msg){return gh("/contents/strategies.json",{method:"PUT",body:{message:msg,branch:GH.branch,sha:f.sha||undefined,
+  content:b64enc(JSON.stringify({version:1,strategies:f.list},null,1))}}).then(function(r){if(!r.ok)return ghErr(r)})}
+function addToScan(u){
+  if(!ghOn()){toast("Connect GitHub first");return}
+  u=JSON.parse(JSON.stringify(u));u.active=true;u.added=Math.floor(Date.now()/1000);
+  loadStrategiesFile().then(function(f){var i=f.list.findIndex(function(x){return x.id===u.id});if(i>=0)f.list[i]=u;else f.list.push(u);
+    return writeStrategies(f,"Add strategy "+u.name).then(function(){MYSTRATS=f.list;renderMine();toast(u.name+" is in your scan from the next run");
+      var b=$("#addScan");if(b){b.textContent="Added ✓";b.disabled=true}})}).catch(function(e){toast("Could not save: "+e.message)});
+}
+var MYSTRATS=null;
+function renderMine(){
+  var list=MYSTRATS||(D&&D.user_strategies)||[],host=$("#myStrats");if(!host)return;
+  var live={};((D&&D.journal&&D.journal.strategies)||[]).forEach(function(s){live[s.id]=s});
+  if(!list.length){host.innerHTML='<div class="empty">None yet. Test a strategy above, then tap "Add to my scan".</div>';return}
+  host.innerHTML=list.map(function(u,i){var sid=u.kind==="rule"?"RULE~"+u.id:u.base+"~"+u.id,s=live[sid],on=u.active!==false;
+    return '<div class="vrow'+(on?"":" retired")+'"><div class="top"><div><b>'+esc(u.name||u.id)+'</b><span class="code">'+esc(u.kind==="rule"?(u.tf||"15m")+" rules":"tuned "+u.base)+'</span></div>'+(on?(s?schip(s.status):'<span class="chip info">• From the next scan</span>'):'<span class="chip">Paused</span>')+'</div>'+
+      (s?'<div class="nums">Live '+(s.n||0)+' trades'+(s.n?' · '+pc0(s.wr)+' win · '+fR(s.exp):'')+'</div>':'')+
+      '<div class="runrow" style="margin-top:6px"><button type="button" class="lnk" data-mine="load" data-i="'+i+'">Load into builder</button><button type="button" class="lnk" data-mine="toggle" data-i="'+i+'">'+(on?"Pause":"Resume")+'</button><button type="button" class="lnk" data-mine="del" data-i="'+i+'">Delete</button></div></div>'}).join("");
+}
+function mineAction(act,i){
+  var list=MYSTRATS||(D&&D.user_strategies)||[],u=list[i];if(!u)return;
+  if(act==="load"){var d=JSON.parse(JSON.stringify(u));Object.keys(d).forEach(function(k){DRAFT[k]=d[k]});if(!DRAFT.entry)DRAFT.entry={type:"market"};if(!DRAFT.stop)DRAFT.stop={type:"atr",atr:1.5};saveDraft();renderBuilder();$("#builder").scrollIntoView({block:"start"});return}
+  if(!ghOn()){toast("Connect GitHub first");return}
+  if(act==="del"&&!confirm("Delete "+(u.name||u.id)+" from your scan? Its past trades stay in the journal."))return;
+  loadStrategiesFile().then(function(f){var j=f.list.findIndex(function(x){return x.id===u.id});if(j<0)throw new Error("not found in strategies.json");
+    if(act==="del")f.list.splice(j,1);else f.list[j].active=f.list[j].active===false;
+    return writeStrategies(f,(act==="del"?"Delete":"Update")+" strategy "+(u.name||u.id)).then(function(){MYSTRATS=f.list;renderMine();toast("Saved: applies from the next scan")})}).catch(function(e){toast("Could not save: "+e.message)});
+}
+function renderPast(){var host=$("#pastTests");if(!host)return;
+  host.innerHTML=TESTS.length?TESTS.slice(0,12).map(function(t){return '<button type="button" class="pt" data-test="'+esc(t.id)+'"><b>'+esc(t.name)+'</b><span class="muted"> '+esc(t.tf||"")+' · '+(t.days||"")+'d · '+esc(tloc(t.t,true))+'</span></button>'}).join(""):'<div class="muted">Your tests will be listed here (on this device).</div>'}
+function openTest(id){if(!ghOn()){toast("Connect GitHub first");return}
+  gh("/contents/backtests/"+id+".json?ref=results",{raw:true}).then(function(r){if(r.status===404)throw new Error("no result yet (still running, or it failed)");return r.ok?r.json():ghErr(r)}).then(showStudy).catch(function(e){toast(e.message)})}
+function renderStudio(){renderGhCard();if(!$("#builder").contains(document.activeElement))renderBuilder();renderMine();renderPast()}
+function bindStudio(){
+  $("#ghCard").addEventListener("click",function(e){var b=e.target.closest("[data-gh]");if(!b)return;var a=b.dataset.gh;
+    if(a==="save"){var t=($("#ghTok").value||"").trim();if(!t){toast("Paste the token first");return}GH.token=t;GH.owner=($("#ghOwn").value||"").trim();GH.repo=($("#ghRepo").value||"").trim();ghSave();renderGhCard();ghCheck()}
+    else if(a==="test")ghCheck();
+    else if(a==="off"){if(!confirm("Forget the token on this device?"))return;GH.token="";ghSave();renderGhCard()}});
+  var B=$("#builder");
+  B.addEventListener("input",function(e){var k=e.target.dataset&&e.target.dataset.k;if(!k)return;var v=e.target.type==="number"?(e.target.value===""?"":+e.target.value):e.target.value;setPath(DRAFT,k,v);saveDraft();
+    if(/^(tf|base|entry\.type|entry\.level|stop\.type)$/.test(k)||/\.op$|\.f$/.test(k)){if(/\.f$/.test(k)){var i=+k.split(".")[1],f=D.studio.fields.find(function(x){return x[0]===v});DRAFT.rules[i].op=f&&f[2]==="bool"?"is":"<"}if(k==="base")DRAFT.params={};renderBuilder()}});
+  B.addEventListener("change",function(e){var t=e.target;if(t.dataset&&t.dataset.fil){var k=t.dataset.fil,f=D.studio.filters.find(function(x){return x[0]===k});DRAFT.filters=DRAFT.filters||{};if(t.checked)DRAFT.filters[k]=f&&f[2].length?f[2][0]:true;else delete DRAFT.filters[k];saveDraft();renderBuilder()}});
+  B.addEventListener("click",function(e){var t=e.target.closest("button");if(!t)return;
+    if(t.dataset.kind){DRAFT.kind=t.dataset.kind;if(DRAFT.kind==="tuned")DRAFT.coins=Math.max(20,DRAFT.coins||40);saveDraft();renderBuilder()}
+    else if(t.dataset.add){DRAFT.rules=DRAFT.rules||[];DRAFT.rules.push({f:"rsi",op:"<",v:50});saveDraft();renderBuilder()}
+    else if(t.dataset.del!=null){DRAFT.rules.splice(+t.dataset.del,1);saveDraft();renderBuilder()}
+    else if(t.id==="runTest")runTest()});
+  $("#studyOut").addEventListener("click",function(e){var t=e.target.closest("button");if(!t)return;
+    if(t.id==="addScan"&&STUDY&&STUDY.requested)addToScan(STUDY.requested.strategy);
+    if(t.id==="editAgain"&&STUDY&&STUDY.requested){var u=STUDY.requested.strategy;Object.keys(u).forEach(function(k){DRAFT[k]=JSON.parse(JSON.stringify(u[k]))});saveDraft();renderBuilder();$("#builder").scrollIntoView({block:"start"})}});
+  $("#myStrats").addEventListener("click",function(e){var t=e.target.closest("[data-mine]");if(t)mineAction(t.dataset.mine,+t.dataset.i)});
+  $("#pastTests").addEventListener("click",function(e){var t=e.target.closest("[data-test]");if(t)openTest(t.dataset.test)});
+  $("#newStrat").addEventListener("click",function(){DRAFT.id=newId();DRAFT.name="My strategy "+(TESTS.length+1);saveDraft();renderBuilder();toast("New strategy: the old one stays in your scan if you added it")});
+  $("#scanBtn").addEventListener("click",scanNow);
+  renderGhCard();renderPast();
+  if(ghOn()&&!window.__RADAR__)loadStrategiesFile().then(function(f){MYSTRATS=f.list;renderMine()}).catch(function(){});
+}
+function tvLink(p){var s=String(p.sym||"").replace(/[_-]/g,""),pre={mexc:"MEXC",gate:"GATEIO",bitget:"BITGET"}[p.src];
+  var sym=pre&&s?pre+":"+s.replace(/USDT$/,"")+"USDT.P":"BINANCE:"+p.coin+"USDT.P",iv={"15m":"15","1h":"60","4h":"240"}[p.tf||"15m"]||"15";
+  return "https://www.tradingview.com/chart/?symbol="+encodeURIComponent(sym)+"&interval="+iv}
+
 /* ---------- load + auto refresh ---------- */
-function renderAll(){renderNotices();renderRegime();renderPlan();renderPicks();renderWatch();renderGoal();renderLab();renderDiscovery();renderLessons();renderJournal();renderBoard();renderTable();renderCoverage();tick()}
+function renderAll(){renderStudio();renderNotices();renderRegime();renderPlan();renderPicks();renderWatch();renderGoal();renderLab();renderDiscovery();renderLessons();renderJournal();renderBoard();renderTable();renderCoverage();tick()}
 function toast(msg){var t=document.createElement("div");t.className="toast";t.setAttribute("role","status");t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove()},4000)}
 function load(first){
   if(window.__RADAR__&&first){D=window.__RADAR__;renderAll();return}
@@ -1184,7 +1430,7 @@ function redraw(){
 var rt;window.addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(redraw,150)});
 
 /* ---------- tabs ---------- */
-var TABS=["picks","goal","lab","lessons","journal","smart","scan","guide"],TAB="picks";
+var TABS=["picks","goal","lab","studio","lessons","journal","smart","scan","guide"],TAB="picks";
 function showTab(t,o){
   o=o||{};if(TABS.indexOf(t)<0)t="picks";TAB=t;
   document.querySelectorAll(".tabpane").forEach(function(p){p.hidden=p.dataset.tab!==t});
@@ -1241,6 +1487,7 @@ $("#jsid").addEventListener("change",function(e){jsid=e.target.value;renderJourn
 buildHead();
 bindPlan();
 bindGoal();
+bindStudio();
 showTab((fromHash()||{}).tab||"picks",{keepHash:true,keepScroll:true});
 load(true);
 goHash();

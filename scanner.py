@@ -44,6 +44,13 @@ Pipeline
                      go to a live forward test; they are published only after
                      passing on live trades, and retired when they fail.
     9. Alerts        optional Telegram / Discord message for new strong picks.
+   10. Your own      strategies from strategies.json (built and tested in the
+       strategies    Studio tab of the page): rule strategies on the 15m, 1h or
+                     4h chart and tuned versions of the built-in ones. They are
+                     scanned and paper-traded like the others.
+
+Studio tests: `python scanner.py --backtest-request '<json>' --out DIR` tests one
+strategy on past candles and writes DIR/result.json (run by backtest.yml).
 
 Prices and levels are per 1 unit of the coin. Where a DEX lists a multiple
 (1000PEPE, kPEPE) the page shows the multiplier.
@@ -70,7 +77,7 @@ import traceback
 import urllib.error
 import urllib.request
 
-VERSION = "4.0.0"
+VERSION = "4.1.0"
 
 # --------------------------------------------------------------------------- settings
 CFG = {
@@ -117,6 +124,10 @@ CFG = {
     "forward_max_days": 21,    # a variant not promoted by then is retired
     "variants_max": 16,        # promoted variants kept (the weakest is retired beyond this)
     # alerts (optional): set TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID and/or DISCORD_WEBHOOK_URL as repository secrets
+    # your own strategies (Studio tab)
+    "user_file": "strategies.json",  # written by the page; read at the start of every scan
+    "tf_signal_cap": 15,       # at most this many signals per scan from each of your 1h/4h strategies
+    "study_max_coins": 100,    # coins in one Studio test
     "alert_min_score": 62,     # new picks at or above this final score are sent
     "alert_max": 5,            # at most this many picks per message
     "schedule_minute": int(os.environ.get("SCAN_MINUTE", "7")),        # set in scan.yml
@@ -345,6 +356,9 @@ def throttle_key(key, gap):
 def http_json(url, body=None, timeout=25, retries=3):
     """GET (or POST a JSON body) and parse JSON. 400/404 raise HttpError at once
     (no data); 429/5xx and network errors are retried with backoff."""
+    if not url.isascii():  # symbols such as 币安人生_USDT
+        import urllib.parse
+        url = urllib.parse.quote(url, safe=":/?&=%#,+@~-._")
     data = json.dumps(body).encode() if body is not None else None
     headers = {"User-Agent": UA, "Accept": "application/json"}
     if data is not None:
@@ -1243,6 +1257,9 @@ STRATEGIES = {
                       "RSI 50-72. Buy near EMA21; stop under the 2-hour low."},
 }
 SID_ORDER = ["BRK", "SQZ", "PB", "MOM", "VWAP", "MR", "SMF", "HI24", "XOVER"]
+# the engine behind your own rule strategies (never a strategy of its own)
+STRATEGIES["RULE"] = {"name": "Your rules", "short": "Rules", "kind": "custom", "base": 5, "tp_r": (1.5, 2.5, 4.0),
+                      "desc": "A strategy you built in the Studio from your own conditions."}
 
 
 def _bull(a):
@@ -1270,6 +1287,7 @@ PARAMS = {
             "n_min": (5, 3, 10, 1)},
     "HI24": {"vol_min": (2.0, 1.2, 4.0, 0.2), "retest_atr": (0.2, 0.0, 0.5, 0.05), "stop_atr": (1.0, 0.6, 1.8, 0.1)},
     "XOVER": {"rsi_lo": (50, 42, 58, 2), "rsi_hi": (72, 64, 80, 2), "cross_max": (2, 0, 5, 1)},
+    "RULE": {},
 }
 PARAM_LABEL = {
     "brk_vol": "breakout candle volume {v}x+", "vr_min": "3-candle volume {v}x+", "retest_atr": "retest within {v} ATR",
@@ -1375,8 +1393,126 @@ def det_xover(a, h1, sm, P):
     return None
 
 
+# ---- your own strategies: rules built in the Studio tab of the page
+# A rule strategy is a list of conditions on the chart of its timeframe (15m, 1h or 4h),
+# an entry (at market, a pullback to a moving average or VWAP, or a breakout of the
+# 96-bar high), a stop (ATR multiple, under the last swing low, or a percentage) and
+# three targets in R. Windows are counted in bars of the chosen timeframe, so on the
+# 1h chart "96 bars" means 4 days. Long only, like the rest of the scanner.
+def _pct(x):
+    return None if x is None else x * 100
+
+
+RULE_FIELDS = {
+    # key: (label, kind, getter(a, h1))
+    "rsi": ("RSI 14", "num", lambda a, h: a["rsi"]),
+    "rsi_chg": ("RSI change over the last 4 bars", "num", lambda a, h: a["rsi"] - a["rsi_prev"]),
+    "adx": ("ADX 14 (trend strength)", "num", lambda a, h: a["adx"]),
+    "di": ("+DI minus -DI (buyers vs sellers)", "num", lambda a, h: (a["pdi"] or 0) - (a["mdi"] or 0)),
+    "vol": ("Volume vs normal (x)", "num", lambda a, h: a["vr"]),
+    "atr_pct": ("ATR as % of price", "num", lambda a, h: _pct(a["atr_pct"])),
+    "dist9": ("% above EMA9", "num", lambda a, h: _pct(a["last"] / a["e9"] - 1)),
+    "dist21": ("% above EMA21", "num", lambda a, h: _pct(a["dist21"])),
+    "dist50": ("% above EMA50", "num", lambda a, h: _pct(a["last"] / a["e50"] - 1)),
+    "ext21": ("ATRs above EMA21", "num", lambda a, h: a["ext21_atr"]),
+    "bb_pos": ("Position in the Bollinger band (0 = lower, 1 = upper)", "num", lambda a, h: a["bb_pos"]),
+    "bw_pct": ("Bollinger width percentile (low = squeeze)", "num", lambda a, h: a["bw_pct"]),
+    "range_pos": ("Position in the last 96 bars' range (0-1)", "num", lambda a, h: a["pos24"]),
+    "from_high": ("% from the 96-bar high (0 = at the high)", "num", lambda a, h: _pct(a["dist_hi24"])),
+    "chg4": ("% change over the last 4 bars", "num", lambda a, h: _pct(a["chg_1h"])),
+    "chg16": ("% change over the last 16 bars", "num", lambda a, h: _pct(a["chg_4h"])),
+    "chg64": ("% change over the last 64 bars", "num", lambda a, h: _pct(a["chg_16h"])),
+    "vwap": ("% above VWAP (last 96 bars)", "num", lambda a, h: _pct(a["vwap_dist"])),
+    "macd_up_bars": ("MACD histogram rising for N bars", "num", lambda a, h: a["hist_up"]),
+    "higher_lows": ("Higher swing lows in a row", "num", lambda a, h: a["hl"]),
+    "btc3": ("BTC % change over 3 hours", "num", lambda a, h: _pct(a.get("_btc3"))),
+    "ema_bull": ("EMA9 > EMA21 > EMA50", "bool", lambda a, h: a["e9"] > a["e21"] > a["e50"]),
+    "ema9_21": ("EMA9 above EMA21", "bool", lambda a, h: a["e9"] > a["e21"]),
+    "above50": ("Price above EMA50", "bool", lambda a, h: a["last"] > a["e50"]),
+    "above_vwap": ("Price above VWAP", "bool", lambda a, h: (a["vwap_dist"] or 0) > 0),
+    "macd_pos": ("MACD histogram above 0", "bool", lambda a, h: a["hist"] > 0),
+    "cross": ("EMA9 crossed above EMA21 in the last 3 bars", "bool",
+              lambda a, h: a["cross_up_ago"] is not None and a["cross_up_ago"] <= 3),
+    "break96": ("Closed above the prior 96-bar high (last 3 bars)", "bool", lambda a, h: a["brk24"] is not None),
+    "break32": ("Broke out of the prior 32-bar range (last 3 bars)", "bool", lambda a, h: a["breakout"] is not None),
+    "htf_up": ("4h trend up (price > EMA20 > EMA50)", "bool", lambda a, h: (a.get("htf") or {}).get("trend") == "up"),
+    "htf_down": ("4h trend down", "bool", lambda a, h: (a.get("htf") or {}).get("trend") == "down"),
+    "h1_up": ("1h trend up (EMA8 above EMA21)", "bool", lambda a, h: (h or {}).get("trend", 0) > 0),
+}
+RULE_OPS = {"<": lambda x, v, w: x < v, "<=": lambda x, v, w: x <= v, ">": lambda x, v, w: x > v,
+            ">=": lambda x, v, w: x >= v, "between": lambda x, v, w: v <= x <= w,
+            "is": lambda x, v, w: bool(x), "not": lambda x, v, w: not x}
+RULE_ENTRY_LEVEL = {"ema9": "e9", "ema21": "e21", "ema50": "e50", "vwap": "vwap"}
+
+
+def rule_value(r, a, h1):
+    f = RULE_FIELDS.get(r.get("f"))
+    if not f:
+        return None
+    try:
+        return f[2](a, h1)
+    except (TypeError, KeyError, ZeroDivisionError):
+        return None
+
+
+def rule_ok(r, a, h1):
+    x = rule_value(r, a, h1)
+    op = RULE_OPS.get(r.get("op"))
+    if x is None or op is None:
+        return False
+    try:
+        return op(x, r.get("v"), r.get("v2"))
+    except TypeError:
+        return False
+
+
+def rule_text(r, x=None):
+    """'RSI 14 below 35' (+ the value seen, when given)."""
+    lab = RULE_FIELDS.get(r.get("f"), (r.get("f"),))[0]
+    op, v, w = r.get("op"), r.get("v"), r.get("v2")
+    words = {"<": f"below {v:g}" if isinstance(v, (int, float)) else "",
+             "<=": f"at most {v:g}" if isinstance(v, (int, float)) else "",
+             ">": f"above {v:g}" if isinstance(v, (int, float)) else "",
+             ">=": f"at least {v:g}" if isinstance(v, (int, float)) else "",
+             "between": f"between {v:g} and {w:g}" if isinstance(v, (int, float)) and isinstance(w, (int, float))
+             else "", "is": "", "not": "(no)"}.get(op, "")
+    t = f"{lab} {words}".strip() if op != "is" else lab
+    if op == "not":
+        t = f"not: {lab}"
+    if x is not None and not isinstance(x, bool):
+        t += f" (now {x:.2f})" if abs(x) < 100 else f" (now {x:,.0f})"
+    return t
+
+
+def det_rule(a, h1, sm, P):
+    rules = P.get("rules") or []
+    if not rules or not all(rule_ok(r, a, h1) for r in rules):
+        return None
+    A, last = a["atr"], a["last"]
+    e = P.get("entry") or {}
+    kind, trig = e.get("type", "market"), None
+    if kind == "pullback":
+        lvl = a.get(RULE_ENTRY_LEVEL.get(e.get("level"), "e21")) or a["e21"]
+        lo, hi = lvl - float(e.get("depth", 0.3)) * A, lvl + 0.1 * A
+    elif kind == "breakout":
+        trig = a["hi24_prior"]
+        lo, hi = trig, trig + 0.3 * A
+    else:  # at market
+        lo, hi = last - 0.15 * A, last + 0.05 * A
+    st = P.get("stop") or {}
+    mid = (lo + hi) / 2
+    if st.get("type") == "swing":
+        sw = a["last_swing_low"] if a["last_swing_low"] and a["last_swing_low"] < lo else a["support"]
+        stop = (min(sw, lo) - 0.2 * A) if sw else mid - 1.5 * A
+    elif st.get("type") == "pct":
+        stop = mid * (1 - float(st.get("pct", 3)) / 100)
+    else:
+        stop = mid - float(st.get("atr", 1.5)) * A
+    return lo, hi, stop, trig
+
+
 DETECT = {"BRK": det_brk, "SQZ": det_sqz, "PB": det_pb, "MOM": det_mom, "VWAP": det_vwap, "MR": det_mr,
-          "SMF": det_smf, "HI24": det_hi24, "XOVER": det_xover}
+          "SMF": det_smf, "HI24": det_hi24, "XOVER": det_xover, "RULE": det_rule}
 
 # Extra conditions a variant can add on top of its strategy's rules. Each takes the
 # signal context and a value; the text is shown on the page.
@@ -1427,7 +1563,7 @@ def spec(sid):
 
 
 def active_specs():
-    return [sp for sp in SPECS.values() if sp["stage"] in ("base", "forward", "promoted")]
+    return [sp for sp in SPECS.values() if sp["stage"] in ("base", "forward", "promoted", "user")]
 
 
 def load_specs(J):
@@ -1446,6 +1582,153 @@ def load_specs(J):
                       "tp_r": v.get("tp_r"), "sk": v.get("sk"), "name": v.get("name") or vid,
                       "short": v.get("short") or vid, "kind": STRATEGIES[b]["kind"], "desc": v.get("desc", ""),
                       "stage": v.get("stage", "retired")}
+    for sp in USER_SPECS:  # your own strategies from strategies.json
+        SPECS[sp["id"]] = dict(sp)
+
+
+# ---- your own strategies (strategies.json, written by the Studio tab of the page)
+TF_OK = ("15m", "1h", "4h")
+TF_SEC["4h"] = 14400
+USER_SPECS = []  # loaded from strategies.json at the start of every run
+
+
+def _num(x, lo, hi, default):
+    try:
+        v = float(x)
+    except (TypeError, ValueError):
+        return default
+    return default if v != v else clamp(v, lo, hi)
+
+
+def user_spec(u, stage="user"):
+    """Turn one strategy from strategies.json (or a Studio test request) into a spec.
+    Raises ValueError for anything the scanner cannot run."""
+    if not isinstance(u, dict):
+        raise ValueError("not a strategy")
+    uid = str(u.get("id") or "")
+    if not re.fullmatch(r"[A-Za-z0-9_-]{1,24}", uid):
+        raise ValueError("the id may only use letters, digits, - and _")
+    kind, tf = u.get("kind"), u.get("tf") or "15m"
+    if tf not in TF_OK:
+        raise ValueError(f"unknown timeframe {tf}")
+    name = re.sub(r"\s+", " ", str(u.get("name") or uid)).strip()[:60] or uid
+    tp = u.get("tp_r")
+    try:
+        tp = [round(_num(x, 0.2, 30, 0), 2) for x in tp][:3] if isinstance(tp, list) else []
+    except TypeError:
+        tp = []
+    if len(tp) != 3 or not (0 < tp[0] <= tp[1] <= tp[2]):
+        tp = None
+    sp = {"user": True, "stage": stage, "tf": tf, "name": name, "short": name[:18],
+          "vh": _num(u.get("vh"), 1, 72, CFG["valid_hours"]), "th": _num(u.get("th"), 2, 168, CFG["track_hours"]),
+          "max_risk": _num(u.get("max_risk"), 0.3, 20, CFG["max_risk"] * 100) / 100}
+    filters = {}
+    for k, v in (u.get("filters") or {}).items():
+        if k in FILTERS:
+            filters[k] = True if k not in FILTER_VALUES else _num(v, 0, 100, FILTER_VALUES[k][0])
+    if kind == "tuned":
+        base = u.get("base")
+        if base not in SID_ORDER or base == "SMF":
+            raise ValueError("pick one of the built-in strategies (smart-money follow cannot be tuned)")
+        if tf != "15m":
+            raise ValueError("the built-in strategies run on the 15m chart")
+        params = P_default(base)
+        for k, v in (u.get("params") or {}).items():
+            if k in PARAMS[base]:
+                d, lo, hi, _ = PARAMS[base][k]
+                x = _num(v, lo, hi, d)
+                params[k] = int(round(x)) if isinstance(d, int) else x
+        sp.update(id=f"{base}~{uid}", base=base, variant=True, params=params, filters=filters,
+                  tp_r=tp or list(STRATEGIES[base]["tp_r"]), sk=round(_num(u.get("sk"), 0.5, 2.5, 1.0), 2),
+                  kind=STRATEGIES[base]["kind"])
+        changed = [PARAM_LABEL.get(k, k).format(v=_fmt_v(params[k], k)) for k in PARAMS[base]
+                   if params[k] != PARAMS[base][k][0]]
+        sp["desc"] = (f"Your version of {STRATEGIES[base]['name']}"
+                      + (": " + "; ".join(changed) if changed else " with its default rules")
+                      + ("; " + "; ".join(FILTERS[k][0].format(v=_fmt_v(v)) for k, v in filters.items())
+                         if filters else "") + ".")
+    elif kind == "rule":
+        rules = []
+        for r in (u.get("rules") or [])[:12]:
+            f, op = (r or {}).get("f"), (r or {}).get("op")
+            if f not in RULE_FIELDS or op not in RULE_OPS:
+                raise ValueError(f"unknown condition {f} {op}")
+            boolean = RULE_FIELDS[f][1] == "bool"
+            if boolean != (op in ("is", "not")):
+                raise ValueError(f"'{RULE_FIELDS[f][0]}' needs {'yes/no' if boolean else 'a number'}")
+            rr = {"f": f, "op": op}
+            if not boolean:
+                rr["v"] = _num(r.get("v"), -1e6, 1e6, 0.0)
+                if op == "between":
+                    rr["v2"] = _num(r.get("v2"), -1e6, 1e6, rr["v"])
+                    if rr["v2"] < rr["v"]:
+                        rr["v"], rr["v2"] = rr["v2"], rr["v"]
+            rules.append(rr)
+        if not rules:
+            raise ValueError("add at least one condition")
+        e = u.get("entry") or {}
+        et = e.get("type") if e.get("type") in ("market", "pullback", "breakout") else "market"
+        entry = {"type": et}
+        if et == "pullback":
+            entry.update(level=e.get("level") if e.get("level") in RULE_ENTRY_LEVEL else "ema21",
+                         depth=_num(e.get("depth"), 0, 3, 0.3))
+        s_ = u.get("stop") or {}
+        stt = s_.get("type") if s_.get("type") in ("atr", "swing", "pct") else "atr"
+        stop = {"type": stt}
+        if stt == "atr":
+            stop["atr"] = _num(s_.get("atr"), 0.3, 10, 1.5)
+        elif stt == "pct":
+            stop["pct"] = _num(s_.get("pct"), 0.2, 20, 3)
+        sp.update(id=f"RULE~{uid}", base="RULE", variant=True, params={"rules": rules, "entry": entry, "stop": stop},
+                  filters=filters, tp_r=tp or list(STRATEGIES["RULE"]["tp_r"]), sk=None, kind="custom",
+                  stop_atr=(0.3, 12))
+        how = {"market": "buy at market", "breakout": "buy the break of the prior 96-bar high",
+               "pullback": f"buy a pullback to {str(entry.get('level', '')).upper()}"}[et]
+        sl = {"atr": f"stop {stop.get('atr', 1.5):g} ATR below", "swing": "stop under the last swing low",
+              "pct": f"stop {stop.get('pct', 3):g}% below"}[stt]
+        sp["desc"] = (f"{tf} chart: " + "; ".join(rule_text(r) for r in rules) + f". Entry: {how}; {sl}; "
+                      f"targets {'/'.join(f'{x:g}' for x in sp['tp_r'])}R.")
+    else:
+        raise ValueError("kind must be 'rule' or 'tuned'")
+    return sp
+
+
+def load_user_strategies(path=None):
+    """Active strategies from strategies.json next to scanner.py (missing file = none)."""
+    path = path or os.path.join(os.path.dirname(os.path.abspath(__file__)), CFG["user_file"])
+    if not os.path.exists(path):
+        return [], []
+    try:
+        with open(path, encoding="utf-8") as fh:
+            data = json.load(fh)
+    except (OSError, ValueError) as e:
+        note_error(f"strategies.json could not be read ({type(e).__name__}); your strategies were skipped")
+        return [], []
+    items = data.get("strategies") if isinstance(data, dict) else data
+    out, raw = [], []
+    for u in (items if isinstance(items, list) else [])[:40]:
+        if not isinstance(u, dict):
+            continue
+        raw.append(u)
+        if u.get("active", True) is False:
+            continue
+        try:
+            out.append(user_spec(u))
+        except (ValueError, TypeError, KeyError) as e:
+            note_error(f"Your strategy {str(u.get('name'))[:40]!r} was skipped: {e}")
+    return out, raw
+
+
+def studio_meta():
+    """What the Studio tab needs to build forms (kept in step with the code)."""
+    return {"params": {b: [[k, PARAM_LABEL.get(k, k), *PARAMS[b][k]] for k in PARAMS[b]]
+                       for b in SID_ORDER if b != "SMF"},
+            "names": {b: STRATEGIES[b]["name"] for b in SID_ORDER}, "descs": {b: STRATEGIES[b]["desc"] for b in SID_ORDER},
+            "tp_r": {b: list(STRATEGIES[b]["tp_r"]) for b in STRATEGIES},
+            "filters": [[k, FILTERS[k][0], list(FILTER_VALUES.get(k, []))] for k in FILTERS],
+            "fields": [[k, v[0], v[1]] for k, v in RULE_FIELDS.items()],
+            "days": STUDY_DAYS, "max_coins": CFG["study_max_coins"],
+            "defaults": {"vh": CFG["valid_hours"], "th": CFG["track_hours"], "max_risk": CFG["max_risk"] * 100}}
 
 
 def build_plan(sp, a, lo, hi, stop, trig, tp_r, sk=1.0):
@@ -1456,15 +1739,16 @@ def build_plan(sp, a, lo, hi, stop, trig, tp_r, sk=1.0):
     if hi < lo:
         lo, hi = hi, lo
     mid = (lo + hi) / 2
-    min_risk = max(0.9 * A, mid * 0.005)
+    smin, smax = sp.get("stop_atr") or (0.9, 3.5)  # your own strategies can set wider or tighter bounds
+    min_risk = max(smin * A, mid * 0.003)
     if mid - stop < min_risk:
         stop = mid - min_risk
-    if mid - stop > 3.5 * A:
-        stop = mid - 3.5 * A
+    if mid - stop > smax * A:
+        stop = mid - smax * A
     if sk and sk != 1.0:
         stop = mid - (mid - stop) * sk
     risk = (mid - stop) / mid if mid > 0 else 1.0
-    if stop <= 0 or risk > CFG["max_risk"] or last <= stop:
+    if stop <= 0 or risk > (sp.get("max_risk") or CFG["max_risk"]) or last <= stop:
         return None
     R = mid - stop
     tps = [mid + R * k for k in tp_r]
@@ -1481,7 +1765,8 @@ def build_plan(sp, a, lo, hi, stop, trig, tp_r, sk=1.0):
     return {"sid": sp["id"], "base": sp["base"], "type": sp["id"], "name": sp["name"], "short": sp["short"],
             "elo": lo, "ehi": hi, "mid": mid, "stop": stop, "risk": risk, "R": R, "tps": tps,
             "tp_r": [round(x, 2) for x in tp_r], "sk": sk, "trigger": trig, "status": status,
-            "above_r": (last - hi) / R if last > hi else 0.0}
+            "above_r": (last - hi) / R if last > hi else 0.0, "tf": sp.get("tf") or "15m",
+            "vh": sp.get("vh") or CFG["valid_hours"], "th": sp.get("th") or CFG["track_hours"]}
 
 
 def find_signals(a, h1, sm=None, learn=None, only=None, specs=None, ctx=None):
@@ -1489,6 +1774,8 @@ def find_signals(a, h1, sm=None, learn=None, only=None, specs=None, ctx=None):
     levels. `ctx` (regime label, BTC 3h change) is needed for variant filters."""
     learn = learn or {}
     out = []
+    if ctx:
+        a["_btc3"] = ctx.get("btc3")  # for your rules on BTC's move
     for sp in (specs if specs is not None else [SPECS[s] for s in SID_ORDER]):
         if only and sp["id"] not in only:
             continue
@@ -2192,6 +2479,81 @@ def learning_section(sid, lc):
             "text": t}
 
 
+def write_rule_case(coin, a, h1, s, cdata, regime, conv, sm=None, lc=None, sp=None):
+    """The written case for one of your own rule strategies (any timeframe)."""
+    sp = sp or spec(s["sid"])
+    tf = a.get("tf") or s.get("tf") or "15m"
+    last, mid, stop, R, A = a["last"], s["mid"], s["stop"], s["R"], a["atr"]
+    tp1, tp2, tp3 = s["tps"]
+    rules = (sp.get("params") or {}).get("rules") or []
+    sections = []
+    seen = [rule_text(r, None if RULE_FIELDS.get(r["f"], ("", "bool"))[1] == "bool" else rule_value(r, a, h1))
+            for r in rules]
+    sections.append({"id": "rules", "title": f"Your rules ({tf} chart)", "tone": "pos",
+                     "text": "Every condition of " + sp["name"] + " is true on the " + tf + " chart: "
+                             + "; ".join(seen) + "."})
+    stack = a["e9"] > a["e21"] > a["e50"]
+    hx = a.get("htf") or {}
+    t = (f"On the {tf} chart EMA9 {fp(a['e9'])}, EMA21 {fp(a['e21'])}, EMA50 {fp(a['e50'])}: "
+         + ("a bullish stack. " if stack else "not a clean bullish stack. ")
+         + (f"The 4-hour trend is {hx.get('trend')}. " if hx else "")
+         + f"The 1-hour trend is {'up' if h1['trend'] > 0 else 'down'} (EMA8 {pc(h1['trend'])} vs EMA21).")
+    sections.append({"id": "trend", "title": "Trend", "tone": "pos" if stack and hx.get("trend") != "down" else
+                     "neg" if hx.get("trend") == "down" else "neu", "text": t})
+    r = a["rsi"]
+    t = (f"RSI(14) {r:.0f}, MACD histogram {'positive' if a['hist'] > 0 else 'negative'}"
+         + (f" and rising for {a['hist_up']} bars" if a["hist_up"] else "")
+         + (f", ADX {a['adx']:.0f}" if a.get("adx") is not None else "") + ".")
+    sections.append({"id": "momentum", "title": "Momentum", "tone": "pos" if 50 <= r <= 75 and a["hist"] > 0 else "neu",
+                     "text": t})
+    sections.append({"id": "volume", "title": "Volume", "tone": "pos" if a["vr"] >= 1.5 else "neu",
+                     "text": f"The last three closed {tf} candles averaged {a['vr']:.1f}x the median volume."})
+    sections.append({"id": "risk", "title": "Volatility and stop", "tone": "neu",
+                     "text": f"ATR(14) is {fp(A)}, about {a['atr_pct'] * 100:.1f}% of price per {tf} candle. The stop at "
+                             f"{fp(stop)} is {R / A:.1f} ATR ({pc(-s['risk'])}) below the middle of the entry zone. "
+                             f"Targets sit at {' / '.join(f'{x:g}R' for x in s['tp_r'])}."})
+    tier, _ = liquidity_tier(cdata.get("best_vol"))
+    vs = sorted((cdata.get("venues") or {}).values(), key=lambda v: -(v.get("vol") or 0))
+    sections.append({"id": "liquidity", "title": "Liquidity and where to trade",
+                     "tone": "pos" if tier in ("deep", "good") else "neg" if tier in ("thin", "very thin") else "neu",
+                     "text": (f"Listed on {len(vs)} perp DEX{'es' if len(vs) != 1 else ''}"
+                              + (": " + ", ".join(f"{DEX_NAME[v['dex']]} {usd(v.get('vol'))}" for v in vs[:5]) if vs
+                                 else "") + ".")})
+    sections.append({"id": "backdrop", "title": "Market backdrop",
+                     "tone": {"Risk-on": "pos", "Neutral": "neu", "Risk-off": "neg"}[regime["label"]],
+                     "text": regime["text"]})
+    if lc:
+        sections.append(learning_section(s["sid"], lc))
+    st = s["status"]
+    tail = {"in_zone": " Price is inside the zone now.",
+            "above": f" Price is {pc(last / s['ehi'] - 1)} above the zone: wait for the pullback, don't chase.",
+            "reclaim": f" Price is just under the zone: use a buy-stop at {fp(s['elo'])}.",
+            "trigger": ""}[st]
+    plan = [(f"Entry: only after a {tf} candle closes above {fp(s['trigger'])}; then buy between {fp(s['elo'])} "
+             f"and {fp(s['ehi'])}." if s.get("trigger") else
+             f"Entry: buy between {fp(s['elo'])} and {fp(s['ehi'])}.{tail}"),
+            f"Stop-loss: {fp(stop)} ({pc(-s['risk'])} from the middle of the zone).",
+            f"Targets: TP1 {fp(tp1)} ({pc(tp1 / mid - 1)}), TP2 {fp(tp2)} ({pc(tp2 / mid - 1)}), TP3 {fp(tp3)} "
+            f"({pc(tp3 / mid - 1)}). Take a third at each and move the stop to breakeven after TP1.",
+            f"Skip it if it is not filled within {s['vh']:g} hours; close what is left after {s['th']:g} hours."]
+    risks = []
+    if regime["label"] == "Risk-off":
+        risks.append("The market is risk-off; long setups fail more often, so cut size.")
+    if hx.get("trend") == "down":
+        risks.append("The 4-hour trend is down: this is a counter-trend long.")
+    if tier in ("thin", "very thin"):
+        risks.append(f"Thin DEX volume (best {usd(cdata.get('best_vol'))}): expect slippage and trade small.")
+    if sm and sm["long_usd"] + sm["short_usd"] >= 25_000 and sm["share"] <= 0.4:
+        risks.append(f"Hyperliquid's top traders lean short ({(1 - sm['share']) * 100:.0f}% of their money).")
+    if lc and lc.get("status") == "testing":
+        risks.append("This strategy is still being tested live, so its real hit rate is not known yet.")
+    if not risks:
+        risks.append("No specific red flags beyond normal market risk.")
+    thesis = (f"{coin}: {sp['name']} matched on the {tf} chart ({'; '.join(seen[:2])}). Plan: buy "
+              f"{fp(s['elo'])}-{fp(s['ehi'])}, stop {fp(stop)}, targets {fp(tp1)} / {fp(tp2)} / {fp(tp3)}.")
+    return {"thesis": thesis, "sections": sections, "plan": plan, "risks": risks}
+
+
 def fmt_pf(pf):
     return "-" if pf is None else ("above 10" if pf >= 10 else f"{pf:.2f}")
 
@@ -2253,12 +2615,19 @@ REG_CODE = {"Risk-on": "on", "Neutral": "neu", "Risk-off": "off"}
 STATUS_RANK = {"passed": 0, "watch": 1, "testing": 2, "rejected": 3}
 
 
-def _bar_index(candles, ts):
+def _bar_sec(candles):
+    """Candle length in seconds (15m unless the candles say otherwise)."""
+    if candles and len(candles) > 2:
+        return max(60, min(candles[i + 1]["t"] - candles[i]["t"] for i in range(min(5, len(candles) - 1))))
+    return 900
+
+
+def _bar_index(candles, ts, bar=900):
     """Index of the first candle that ends after ts (candles sorted by open time)."""
     lo, hi = 0, len(candles)
     while lo < hi:
         m = (lo + hi) // 2
-        if candles[m]["t"] + 900 <= ts:
+        if candles[m]["t"] + bar <= ts:
             lo = m + 1
         else:
             hi = m
@@ -2311,17 +2680,19 @@ def simulate_trade(tr, candles, now, btc=None):
         return {"state": "invalid", "r": 0.0, "done": False, "final": True}
     if not candles or candles[0]["t"] > t0:
         return None
-    fill_end = t0 + CFG["valid_hours"] * 3600
-    track_end = t0 + CFG["track_hours"] * 3600
-    horizon = t0 + (CFG["track_hours"] + CFG["hunt_hours"]) * 3600 + 900
+    bs = _bar_sec(candles)  # 15m normally; 1h candles in long strategy tests
+    vh, th = tr.get("vh") or CFG["valid_hours"], tr.get("th") or CFG["track_hours"]
+    fill_end = t0 + vh * 3600
+    track_end = t0 + th * 3600
+    horizon = t0 + (th + CFG["hunt_hours"]) * 3600 + bs
     bars = []
-    for x in candles[_bar_index(candles, t0):]:
-        if x["t"] >= horizon or x["t"] + 900 > now:  # stop at the candle that is still forming
+    for x in candles[_bar_index(candles, t0, bs):]:
+        if x["t"] >= horizon or x["t"] + bs > now:  # stop at the candle that is still forming
             break
         if x["t"] < t0:  # candle already running at scan time: only scan price -> close is known
             x = {"t": x["t"], "o": px, "h": max(px, x["c"]), "l": min(px, x["c"]), "c": x["c"]}
         bars.append(x)
-    covered = bars[-1]["t"] + 900 if bars else t0
+    covered = bars[-1]["t"] + bs if bars else t0
     slack = 7200  # after this long past a deadline, missing candles no longer hold a trade open
 
     def over(deadline):
@@ -2342,7 +2713,7 @@ def simulate_trade(tr, candles, now, btc=None):
                     return {"state": "invalid", "r": 0.0, "done": False, "final": True, "xt": x["t"]}
                 if x["c"] > tr["tg"]:
                     if x["c"] <= hi:
-                        fill, fill_t, fill_i = x["c"], x["t"] + 900, i + 1
+                        fill, fill_t, fill_i = x["c"], x["t"] + bs, i + 1
                         break
                     mode = "above"  # closed beyond the zone: wait for a dip into it
                 continue
@@ -2450,13 +2821,14 @@ def simulate_trade(tr, candles, now, btc=None):
     final = done and (touched0 or over(track_end)) and (state != "loss" or hunt is not None)
     btc_ch = None
     if btc and exit_t and fill_t:
-        b0, b1 = _px_at(btc, fill_t), _px_at(btc, exit_t + (0 if state == "expired" else 900))
+        b0, b1 = _px_at(btc, fill_t), _px_at(btc, exit_t + (0 if state == "expired" else 900))  # btc is 15m
         btc_ch = (b1 / b0 - 1) if b0 and b1 else None
     return {"state": state, "r": round(r, 3), "ro": round(ro, 3), "gross": round(gross, 3), "cost": round(cost, 3),
             "done": done, "final": final,
             "fill": sig6(fill), "ft": fill_t, "xt": exit_t, "tph": hits,
             "mfe": round((mfe_hi - fill) / R0, 2), "mae": round((fill - mae_lo) / R0, 2), "hunt": hunt,
-            "btc": rnd(btc_ch, 4), "hold": (exit_i - fill_i + 1) if exit_i is not None else None}
+            "btc": rnd(btc_ch, 4),
+            "hold": round((exit_i - fill_i + 1) * bs / 900) if exit_i is not None else None}  # in 15m bars
 
 
 # ---- features, traits (lesson buckets) and mistake tags
@@ -2940,7 +3312,10 @@ def new_trade(coin, s, a, t, f, conv_raw, final, rank=None, blk=None, bt=False):
             "tg": sig6(s["trigger"]) if s["trigger"] is not None else None, "st": s["status"],
             "tr": s["tp_r"], "sk": s["sk"], "cv": round(conv_raw, 1), "fs": round(final, 1), "rk": rank,
             "blk": blk, "f": f, "res": {"state": "open" if s["status"] == "in_zone" else "waiting", "r": 0.0,
-                                        "done": False, "final": False}, "tags": []}
+                                        "done": False, "final": False}, "tags": [],
+            **({"vh": s["vh"]} if s.get("vh", CFG["valid_hours"]) != CFG["valid_hours"] else {}),
+            **({"th": s["th"]} if s.get("th", CFG["track_hours"]) != CFG["track_hours"] else {}),
+            **({"tf": s["tf"]} if s.get("tf", "15m") != "15m" else {})}
 
 
 def _supersede(old, t, retire):
@@ -3010,7 +3385,7 @@ def journal_update(J, candles_by_coin, btc, now):
         res = simulate_trade(t, c, now, btc) if c else None
         if res is not None:
             t["res"] = res
-        elif now - t["t"] > 20 * 3600:
+        elif now - t["t"] > ((t.get("th") or CFG["track_hours"]) + CFG["hunt_hours"] + 5) * 3600:
             res = t["res"]
             if res.get("done"):
                 res["final"] = True
@@ -3109,15 +3484,9 @@ def backtest(C, crypto, now, days, specs, rank_specs=(), learn=None):
                         trades[sid].append(book.pop(key))
         s1 = {}
         for t, p in P_.items():
-            i1 = bisect.bisect_right(p["h1t"], T - 3600)  # 1h candles closed by T
-            if i1 < 30 or p["h1t"][i1 - 1] < T - 7200:  # too little history, or no recent candles
-                continue
-            lo, last = i1 - 29, p["cl"][i1 - 1]
-            e8, e21 = p["e8"][i1 - 1], p["e21"][i1 - 1]
-            # the flat forming bar leaves Wilder's RSI unchanged and moves the EMAs one step toward the price
-            s1[t] = h1_metrics(p["h1"][lo:i1] + [_forming(last, T)],
-                               pre=(p["cl"][lo:i1] + [last], p["e8"][lo:i1] + [e8 + (last - e8) * 2 / 9],
-                                    p["e21"][lo:i1] + [e21 + (last - e21) * 2 / 22], p["rsi"][i1 - 1]))
+            m = h1_at(p, T)  # 1h candles closed by T, plus the one just opened
+            if m is not None:
+                s1[t] = m
         if "BTC" not in s1 or len(s1) < 20:
             continue
         btc = s1["BTC"]
@@ -3524,7 +3893,7 @@ def journal_summary(J, L, now, sig_now):
     trades = [t for t in everything if not t.get("dup")]  # copies of published picks count for the picks only
     done = sorted((t for t in trades if t["res"].get("done")), key=lambda t: t["res"].get("xt") or t["t"])
     strategies = []
-    for sid in [sp["id"] for sp in active_specs() if sp["stage"] in ("base", "promoted")]:
+    for sid in [sp["id"] for sp in active_specs() if sp["stage"] in ("base", "promoted", "user")]:
         info, S_ = L["strat"][sid], spec(sid)
         st = info["stat"]
         ds = [t for t in done if t["s"] == sid][-CFG["strategy_window"]:]
@@ -3535,7 +3904,7 @@ def journal_summary(J, L, now, sig_now):
         tuned = info.get("tuned")
         strategies.append({
             "id": sid, "name": S_["name"], "short": S_["short"], "desc": S_["desc"], "kind": S_["kind"],
-            "base": S_["base"], "variant": S_["variant"],
+            "base": S_["base"], "variant": S_["variant"], "user": bool(S_.get("user")), "tf": S_.get("tf", "15m"),
             "status": info["status"], "why": info["why"], "since": info["since"],
             "n": st.get("n", 0), "wr": rnd(st.get("wr"), 3), "exp": rnd(st.get("exp"), 3), "pf": rnd(st.get("pf"), 2),
             "rr": rnd(st.get("rr"), 2), "net": rnd(st.get("net"), 2), "dd": rnd(st.get("dd"), 2),
@@ -3663,6 +4032,193 @@ def journal_csv(J):
     return buf.getvalue()
 
 
+# ---- Studio: test one strategy on demand (the Backtest workflow runs this)
+STUDY_DAYS = {"15m": 60, "1h": 365, "4h": 730}  # longest test per timeframe
+
+
+def h1_at(p, T):
+    """1h metrics as a live scan at time T sees them: the closed 1h bars plus the bar that
+    has just opened (flat), with EMAs and RSI taken from the whole history (see bt_prepare)."""
+    i1 = bisect.bisect_right(p["h1t"], T - 3600)
+    if i1 < 30 or p["h1t"][i1 - 1] < T - 7200:
+        return None
+    lo, last = i1 - 29, p["cl"][i1 - 1]
+    e8, e21 = p["e8"][i1 - 1], p["e21"][i1 - 1]
+    # the flat forming bar leaves Wilder's RSI unchanged and moves the EMAs one step toward the price
+    return h1_metrics(p["h1"][lo:i1] + [_forming(last, T)],
+                      pre=(p["cl"][lo:i1] + [last], p["e8"][lo:i1] + [e8 + (last - e8) * 2 / 9],
+                           p["e21"][lo:i1] + [e21 + (last - e21) * 2 / 22], p["rsi"][i1 - 1]))
+
+
+def _study_coin(job):
+    """Walk one coin's history with one strategy: at every step (each hour, or each 4h bar)
+    look at the chart as it was, and paper-trade a signal with the live rules and costs.
+    A new signal waits until the previous trade on the coin is over."""
+    coin, c, info, sp, btc1, now, days = job
+    bs, tfsec = _bar_sec(c), TF_SEC[sp["tf"]]
+    tfc = c if tfsec == bs else agg_tf(c, tfsec)
+    tt = [x["t"] for x in tfc]
+    p = bt_prepare({coin: c})[coin]
+    btc_t = [x[0] for x in btc1]
+    step = max(tfsec, 3600)
+    start = (now - days * 86400) // step * step + step
+    trades, free_at = [], 0
+    for T in range(start, (now // step) * step + 1, step):
+        if T < free_at:
+            continue
+        j = bisect.bisect_right(tt, T - tfsec)  # bars of the strategy's timeframe closed by T
+        if j < 60 or tt[j - 1] < T - 2 * tfsec:
+            continue
+        a = m15_analysis(tfc[max(0, j - 119):j] + [_forming(tfc[j - 1]["c"], T)], chart=False)
+        a["htf"] = bt_htf(p, bisect.bisect_right(p["h4t"], T - 14400), a["last"])
+        h1 = h1_at(p, T)
+        if h1 is None:
+            continue
+        ib = bisect.bisect_right(btc_t, T - 3600)
+        btc3 = btc1[ib - 1][1] / btc1[ib - 4][1] - 1 if ib >= 4 else 0.0
+        sigs = find_signals(a, h1, None, specs=[sp], ctx={"regime": "Neutral", "btc3": btc3})
+        if not sigs:
+            continue
+        s = sigs[0]
+        f = trade_features(a, h1, s, 0.0, {"label": "Neutral"}, info, None, btc3, T, live=False)
+        tr = new_trade(coin, s, a, T, f, 0.0, 0.0, bt=True)
+        res = simulate_trade(tr, c, now)
+        if res is None:
+            continue
+        tr["res"] = res
+        trades.append(tr)
+        st = res.get("state")
+        if st in ACTIVE:
+            break  # still running at the end of the data
+        free_at = max(T + step, (res.get("xt") or 0) + 1,
+                      T + (s["vh"] * 3600 if st in ("no_fill", "missed", "invalid") else 0))
+    return trades
+
+
+def study_report(sp, trades, base_trades=None):
+    """Numbers for the Studio page: record, verdict, equity curve, months, coins, trades."""
+    trades = [t for t in trades if not t.get("dup")]
+    done = sorted((t for t in trades if t["res"].get("done")), key=lambda t: t["res"].get("xt") or t["t"])
+    st = trade_stats(done)
+    unfilled = sum(1 for t in trades if t["res"].get("state") in ("no_fill", "missed", "invalid"))
+    status, why = decide_status("testing", st)
+    out = {"signals": len(trades), "filled": len(done), "unfilled": unfilled,
+           "open_at_end": sum(1 for t in trades if t["res"].get("state") in ACTIVE),
+           "stats": {k: rnd(v, 4) if isinstance(v, float) else v for k, v in st.items()},
+           "verdict": status, "why": why}
+    cum, curve = 0.0, []
+    for t in done:
+        cum += t["res"]["r"]
+        curve.append([t["res"].get("xt") or t["t"], round(cum, 2)])
+    if len(curve) > 160:
+        k = len(curve) / 160
+        curve = [curve[int(i * k)] for i in range(160)] + [curve[-1]]
+    out["curve"] = curve
+    months = {}
+    for t in done:
+        m = dt.datetime.fromtimestamp(t["res"].get("xt") or t["t"], dt.timezone.utc).strftime("%Y-%m")
+        g = months.setdefault(m, [0, 0, 0.0])
+        g[0] += 1
+        g[1] += 1 if t["res"]["r"] > 0.02 else 0
+        g[2] += t["res"]["r"]
+    out["months"] = [[m, g[0], round(g[1] / g[0], 3), round(g[2], 2)] for m, g in sorted(months.items())]
+    coins = {}
+    for t in done:
+        g = coins.setdefault(t["c"], [0, 0.0])
+        g[0] += 1
+        g[1] += t["res"]["r"]
+    rows = sorted(([c, g[0], round(g[1], 2)] for c, g in coins.items()), key=lambda x: -x[2])
+    out["coins_best"], out["coins_worst"] = rows[:8], [r for r in rows[::-1][:8] if r[2] < 0]
+    out["coins_traded"] = len(coins)
+    out["trades"] = [[t["t"], t["c"], t["st"], t["res"].get("state"), t["res"].get("r"), t["res"].get("ft"),
+                      t["res"].get("xt"), t["res"].get("mfe"), t["res"].get("mae")]
+                     for t in sorted(trades, key=lambda t: -t["t"])[:120]]
+    if base_trades is not None:
+        bd = sorted((t for t in base_trades if t["res"].get("done") and not t.get("dup")),
+                    key=lambda t: t["res"].get("xt") or t["t"])
+        bst = trade_stats(bd)
+        out["baseline"] = {"name": STRATEGIES[sp["base"]]["name"] + " (default settings)",
+                           "stats": {k: rnd(v, 4) if isinstance(v, float) else v for k, v in bst.items()},
+                           "verdict": decide_status("testing", bst)[0]}
+    return out
+
+
+def run_study(req_text, out_dir):
+    """Handle one Studio request (JSON): test the strategy and write result.json."""
+    t0 = time.time()
+    try:
+        req = json.loads(req_text)
+    except ValueError:
+        raise SystemExit("The test request is not valid JSON")
+    rid = str((req or {}).get("id") or "")
+    if not re.fullmatch(r"[A-Za-z0-9_-]{4,40}", rid):
+        raise SystemExit("The test request has no valid id")
+    os.makedirs(out_dir, exist_ok=True)
+    with open(os.path.join(out_dir, "id.txt"), "w") as fh:
+        fh.write(rid)
+    result = {"id": rid, "ok": False, "version": VERSION, "requested": req, "started": now_ts()}
+    try:
+        u = dict(req.get("strategy") or {})
+        u["id"] = re.sub(r"[^A-Za-z0-9_-]", "", str(u.get("id") or "t" + rid))[:24] or "test"
+        sp = user_spec(u, stage="test")
+        tf = sp["tf"]
+        days = int(_num(req.get("days"), 7, STUDY_DAYS[tf], 30))
+        n_coins = int(_num(req.get("coins"), 5, CFG["study_max_coins"], 40))
+        if sp["base"] != "RULE":
+            n_coins = max(n_coins, 20)  # the built-in engine ranks the market, so it needs a crowd
+        now = now_ts()
+        coins, _, dex_ok = build_universe()
+        crypto = {t: c for t, c in coins.items() if not c["tradfi"]}
+        wanted = [canon(str(x)) for x in (req.get("coin_list") or [])][:CFG["study_max_coins"]]
+        pool = [t for t in wanted if t in crypto] or sorted(
+            [t for t, c in crypto.items() if (not dex_ok) or (c.get("best_vol") or 0) >= CFG["min_dex_vol"]],
+            key=lambda t: -(crypto[t].get("best_vol") or 0))[:n_coins]
+        tested = list(pool)
+        if "BTC" in crypto and "BTC" not in pool:
+            pool.append("BTC")  # the market reference (BTC's own move is a rule field)
+        sim_tf = "15m" if tf == "15m" else "1h"
+        bars = days * 86400 // TF_SEC[sim_tf] + (600 if sim_tf == "15m" else 400)
+        got = parallel(lambda t: get_candles(crypto[t], sim_tf, bars), pool)
+        C = {t: r["candles"] for t, r in got.items() if r and len(r["candles"]) >= 200}
+        srcs = {}
+        for r in got.values():
+            if r:
+                srcs[r["src"]] = srcs.get(r["src"], 0) + 1
+        log(f"study {rid}: {sp['name']} ({tf}), {days} days, {len(C)} of {len(pool)} coins with data")
+        if len(C) < 3:
+            raise RuntimeError("too few coins returned price history")
+        base_trades = None
+        if sp["base"] != "RULE":
+            if "BTC" not in C or len(C) < 20:
+                raise RuntimeError("the built-in engine needs BTC and at least 20 coins with history")
+            res = backtest(C, crypto, now, days, [base_spec(sp["base"]), sp])
+            trades, base_trades = res[sp["id"]], res[sp["base"]]
+        else:
+            btc1 = [(x["t"], x["c"]) for x in agg_tf(C["BTC"], 3600)] if "BTC" in C else []
+            jobs = [(t, C[t], crypto.get(t, {}), sp, btc1, now, days) for t in tested if t in C]
+            trades = []
+            try:
+                with cf.ProcessPoolExecutor(max_workers=max(1, min(8, os.cpu_count() or 2))) as ex:
+                    for lst in ex.map(_study_coin, jobs, chunksize=1):
+                        trades += lst
+            except (OSError, RuntimeError, cf.process.BrokenProcessPool):
+                trades = [x for j in jobs for x in _study_coin(j)]
+        result.update(study_report(sp, trades, base_trades))
+        result.update(ok=True, name=sp["name"], desc=sp["desc"], tf=tf, days=days,
+                      coins_tested=len([t for t in tested if t in C]), sources=srcs,
+                      sim_tf=sim_tf, costs=CFG["costs"],
+                      data_days=round(median([(c[-1]["t"] - c[0]["t"]) / 86400 for c in C.values()], 0), 1))
+    except Exception as e:  # noqa: BLE001 - the page shows what went wrong
+        traceback.print_exc()
+        result["error"] = f"{type(e).__name__}: {e}"
+    result["duration_s"] = round(time.time() - t0, 1)
+    result["finished"] = now_ts()
+    with open(os.path.join(out_dir, "result.json"), "w") as fh:
+        json.dump(result, fh, separators=(",", ":"))
+    log(f"study {rid}: {'done' if result['ok'] else 'failed'} in {result['duration_s']}s")
+    return result
+
+
 # --------------------------------------------------------------------------- alerts
 def post_json(url, body, timeout=20):
     """POST a JSON body and ignore the reply (webhooks answer 204 with no body)."""
@@ -3777,6 +4333,10 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
         f"{len(crypto)} crypto, {len(tradfi)} excluded")
 
     J, jsrc = load_journal(pages_url, journal_path, reset, scan_t)
+    user_specs, user_raw = load_user_strategies()
+    USER_SPECS[:] = user_specs
+    if user_specs:
+        log(f"your strategies: {', '.join(sp['name'] for sp in user_specs)}")
     load_specs(J)
     log(f"journal ({jsrc}): {len(J['open'])} open and {len(J['closed'])} closed trades, "
         f"{sum(1 for sp in SPECS.values() if sp['stage'] in ('forward', 'promoted'))} active variants")
@@ -3916,16 +4476,43 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
     prelim = {}
     ctx = {"regime": regime["label"], "btc3": btc3}
     specs_now = active_specs()
+    specs15 = [sp for sp in specs_now if sp.get("tf", "15m") == "15m"]
     for t, a in A.items():
-        a["signals"] = find_signals(a, s1[t], smc.get(t), L, specs=specs_now, ctx=ctx)
+        a["signals"] = find_signals(a, s1[t], smc.get(t), L, specs=specs15, ctx=ctx)
         if a["signals"]:
             prelim[t] = max(conviction(a, s1[t], s, None, crypto[t], regime, smc.get(t))["score"]
                             for s in a["signals"])
+    # your 1h and 4h strategies read every liquid coin's chart from the stage-1 candles
+    raw = [(t, s, a) for t, a in A.items() for s in a["signals"]]
+    by_tf = {}
+    for sp in specs_now:
+        if sp.get("tf", "15m") != "15m":
+            by_tf.setdefault(sp["tf"], []).append(sp)
+    for tf, sps in by_tf.items():
+        found = {}
+        for t in s1:
+            r1 = res1.get(t)
+            if not liquid(t) or not r1:
+                continue
+            c1 = r1["candles"]
+            cc = c1[-120:] if tf == "1h" else agg_tf(c1, 14400)[-120:]
+            if len(cc) < 60:
+                continue
+            a = m15_analysis(cc, chart=False)
+            a.update(src=r1["src"], sym=r1["sym"], scale=r1["scale"], tf=tf, _cc=cc, _t=scan_t)
+            a["htf"] = htf_metrics(c1, a["last"], now=scan_t)
+            for s in find_signals(a, s1[t], smc.get(t), L, specs=sps, ctx=ctx):
+                sc = conviction(a, s1[t], s, None, crypto[t], regime, smc.get(t))["score"]
+                found.setdefault(s["sid"], []).append((sc, t, s, a))
+        for sid, lst in found.items():
+            lst.sort(key=lambda x: -x[0])
+            raw += [(t, s, a) for _, t, s, a in lst[:CFG["tf_signal_cap"]]]
+        log(f"your {tf} strategies: {sum(len(v) for v in found.values())} signals")
     pos_list = sorted(prelim, key=lambda t: -prelim[t])[:CFG["positioning_n"]]
     POS = parallel(fetch_positioning, pos_list)
     sigs, sig_now = [], {}
-    for t, a in A.items():
-        for s in a["signals"]:
+    for t, s, a in raw:
+        if True:
             conv = conviction(a, s1[t], s, POS.get(t), crypto[t], regime, smc.get(t))
             f = trade_features(a, s1[t], s, conv["score"], regime, crypto[t], smc.get(t), btc3, scan_t)
             adj, block = adjustments(s["sid"], f, t, L)
@@ -3935,7 +4522,7 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
             if not block and spec(s["sid"])["stage"] == "forward":
                 block = "new variant in its live test: paper-traded only"
             final = round(clamp(conv["score"] + sum(p for _, p in adj), 0, 100), 1)
-            sigs.append({"t": t, "s": s, "conv": conv, "f": f, "adj": adj, "block": block, "final": final})
+            sigs.append({"t": t, "s": s, "a": a, "conv": conv, "f": f, "adj": adj, "block": block, "final": final})
             sig_now.setdefault(s["sid"], []).append({"coin": t, "score": final, "block": bool(block)})
     for v in sig_now.values():
         v.sort(key=lambda x: -x["score"])
@@ -3954,7 +4541,7 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
 
     def record(rank, x, full=True):
         t, s = x["t"], x["s"]
-        a, c, pos, sm = A[t], crypto[t], POS.get(t), smc.get(t)
+        a, c, pos, sm = x.get("a") or A[t], crypto[t], POS.get(t), smc.get(t)
         sid = s["sid"]
         info = L["strat"][sid]
         st_ = info["stat"]
@@ -3974,7 +4561,8 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
             "trigger": sig6(s["trigger"]) if s["trigger"] else None, "tp_r": s["tp_r"], "sk": s["sk"],
             "risk": rnd(s["risk"], 5), "tp_pct": [rnd(v / s["mid"] - 1, 5) for v in s["tps"]],
             "conv": conv, "new": t not in prev_picks,
-            "valid_until": scan_t + CFG["valid_hours"] * 3600,
+            "valid_until": scan_t + s.get("vh", CFG["valid_hours"]) * 3600, "tf": s.get("tf", "15m"),
+            "hold_h": s.get("th", CFG["track_hours"]), "user": bool(spec(sid).get("user")),
             "src": a["src"], "sym": a["sym"], "venues": venue_list(c),
             "best_vol": round(c["best_vol"]) if c.get("best_vol") else None,
             "strategy": {"id": sid, "name": s["name"], "short": s["short"], "status": info["status"],
@@ -3983,7 +4571,8 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
             "others": [{"sid": y["s"]["sid"], "short": y["s"]["short"], "name": y["s"]["name"], "score": y["final"],
                         "block": y["block"]} for y in sigs if y["t"] == t and y is not x],
         }
-        case = write_case(t, a, s1[t], s, pos, c, regime, conv, sm, lc)
+        case = (write_rule_case(t, a, s1[t], s, c, regime, conv, sm, lc) if s["base"] == "RULE" else
+                write_case(t, a, s1[t], s, pos, c, regime, conv, sm, lc))
         rec["thesis"] = case["thesis"]
         if full:
             rec.update(case)
@@ -3995,6 +4584,8 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
                               htf=(a.get("htf") or {}).get("trend"))
             rec["pos"] = {k: (rnd(v, 4) if isinstance(v, float) else v) for k, v in pos.items()} if pos else None
             rec["smart"] = sm
+            if a.get("chart") is None and a.get("_cc"):  # a 1h/4h chart: draw its own candles
+                a["chart"] = m15_analysis(a["_cc"])["chart"]
             rec["chart"] = a["chart"]
         return rec
 
@@ -4003,7 +4594,7 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
 
     # 4. paper-trade this scan's signals (every strategy, published or not)
     rank_of = {(x["t"], x["s"]["sid"]): i + 1 for i, x in enumerate(pick_sigs)}
-    added = journal_add(J, [new_trade(x["t"], x["s"], A[x["t"]], A[x["t"]]["_t"], x["f"], x["conv"]["score"],
+    added = journal_add(J, [new_trade(x["t"], x["s"], x["a"], x["a"].get("_t", scan_t), x["f"], x["conv"]["score"],
                                       x["final"], rank_of.get((x["t"], x["s"]["sid"])), x["block"]) for x in sigs])
     J["last_picks"] = [x["t"] for x in pick_sigs]
     J["scans"] = J.get("scans", 0) + 1
@@ -4034,7 +4625,8 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
         spark = [round((v - lo_) / (hi_ - lo_) * 99) if hi_ > lo_ else 50 for v in sp]
         a = A.get(t)
         cs = best[t]["final"] if t in best else None
-        setups = " ".join(sorted({s["base"] for s in a["signals"]}, key=SID_ORDER.index)) \
+        setups = " ".join(sorted({s["base"] for s in a["signals"]},
+                                 key=lambda b: SID_ORDER.index(b) if b in SID_ORDER else 99)) \
             if a and a.get("signals") else None
         c = crypto[t]
         sm = smc.get(t)
@@ -4050,7 +4642,11 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
         "duration_s": round(time.time() - t0, 1), "regime": regime, "picks": picks, "watch": watch,
         "table": table, "journal": journal, "smart_board": board,
         "strategies": {sid: {"name": v["name"], "short": v["short"], "kind": v["kind"], "base": v["base"],
-                             "stage": v["stage"]} for sid, v in SPECS.items()},
+                             "stage": v["stage"], "tf": v.get("tf", "15m"), "user": bool(v.get("user"))}
+                       for sid, v in SPECS.items()},
+        "studio": studio_meta(),
+        "user_strategies": [dict(u, spec_id=(f"RULE~{u.get('id')}" if u.get("kind") == "rule" else
+                                             f"{u.get('base')}~{u.get('id')}")) for u in user_raw],
         "smart": {k: smart[k] for k in ("traders", "read", "positions", "min_account")} if smart else None,
         "coverage": {"coins": len(coins), "crypto": len(crypto), "scanned": len(s1), "nodata": sorted(nodata),
                      "tradfi": tradfi, "deep": len(A), "setups": len({x["t"] for x in sigs}), "signals": len(sigs),
@@ -4088,10 +4684,15 @@ def main(argv=None):
                     help="public URL of the dashboard; the journal is carried between runs through it")
     ap.add_argument("--journal", default=None, help="local journal.json to use instead of the published one")
     ap.add_argument("--reset", action="store_true", help="start a new journal (backtests the last days again)")
+    ap.add_argument("--backtest-request", default=None,
+                    help="run one Studio strategy test (JSON request from the page) instead of a scan")
     ap.add_argument("--replay-days", type=int, default=None,
                     help=f"days backtested for a new journal and for strategy discovery "
                          f"(default {CFG['bt_days']}, 0 = no backtest and no discovery)")
     args = ap.parse_args(argv)
+    if args.backtest_request is not None:
+        run_study(args.backtest_request, args.out)
+        return
     run(args.out, pages_url=args.pages_url, journal_path=args.journal, reset=args.reset,
         replay_days=args.replay_days)
 

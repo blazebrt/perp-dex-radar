@@ -23,6 +23,8 @@ Nothing runs on your computer.
 | `scanner.py` | Pulls the data, runs the strategies, the journal, the backtest and strategy discovery, writes the site (Python standard library only) |
 | `index.html` | The dashboard page |
 | `.github/workflows/scan.yml` | The hourly schedule and the publish step |
+| `.github/workflows/backtest.yml` | Strategy tests started from the Studio tab |
+| `strategies.json` | Your own strategies (written by the Studio tab; created when you add the first one) |
 
 ## Setup (about 10 minutes, works from a phone browser)
 
@@ -151,6 +153,44 @@ weakest is retired when a better one arrives. The page shows all of it on the **
   shows both.
 
 The plan and the goal are saved in your browser only (per device) and never leave it.
+
+## Scan now and the Strategy studio
+
+Both buttons start work on your GitHub from the page, so the page needs a GitHub token once, per device:
+
+1. Open **github.com > Settings > Developer settings > Personal access tokens > Fine-grained tokens >
+   Generate new token** (the Studio tab has a direct link).
+2. Name it `radar`, pick an expiry (90 days is fine), **Repository access: Only select repositories >
+   perp-dex-radar**.
+3. **Permissions > Repository permissions**: **Actions: Read and write** and **Contents: Read and write**.
+4. Generate it, copy it, and paste it into the dashboard's **Studio** tab under **Connect GitHub**.
+
+The token is saved in that browser only and sent only to GitHub. Don't paste it anywhere else; to revoke it,
+delete it on the same GitHub page.
+
+- **⟳ Scan now** (top right) starts a full-market scan right away (about 2 minutes) and loads the result
+  when it is published. Use it whenever the hourly schedule is late.
+- **Studio tab**: build a strategy and test it on past candles.
+  - **Build from rules**: pick the chart (15m, 1h or 4h), add conditions (RSI, ADX, volume, distance from
+    EMAs or VWAP, Bollinger squeeze, position in the range, breakouts, EMA cross, 4h/1h trend, BTC's move...),
+    an entry (at market, a pullback to EMA9/21/50 or VWAP, or a break of the 96-bar high), a stop (ATR
+    multiple, under the last swing low, or a percentage), three targets, the fill window, the longest hold and
+    the widest stop you accept.
+  - **Tune a built-in strategy**: change every setting of one of the eight built-in strategies, add filters,
+    change targets and the stop.
+  - **Run backtest** tests it on the most traded coins (or your own list): up to 60 days on 15m, a year on 1h,
+    two years on 4h, with the scanner's own fill, exit and cost rules. The result shows trades, win rate, R
+    per trade, profit factor, drawdown, an equity curve, months, best and worst coins, and whether it would
+    pass the tournament. Tuned strategies are compared with the default version on the same data.
+  - **Add to my scan** writes the strategy to `strategies.json` in your repository; from the next scan it is
+    scanned and paper-traded like the others (1h and 4h strategies check every coin; 15m ones the ~56 most
+    active). Pause or delete it any time from the same tab.
+  - Tests run as the **Backtest** workflow (`.github/workflows/backtest.yml`) and save their results on a
+    separate `results` branch.
+
+**Why not TradingView data?** TradingView has no public data feed and its terms forbid pulling data from it.
+The tests use the same exchange candles that TradingView charts for these perps (MEXC, Gate.io, Bitget,
+Hyperliquid, Aster). Every pick has an **Open in TradingView** link for charting.
 
 ## Alerts (optional)
 
