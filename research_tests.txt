@@ -1,0 +1,41 @@
+test_live_spike_in_forming_candle_is_ignored (test_v5.ClosedCandles.test_live_spike_in_forming_candle_is_ignored) ... ok
+[19:32] universe: 60 coins across 2 DEXs, 60 crypto, 0 excluded
+[19:32] journal (new): 0 open and 0 closed trades, 0 active variants
+[19:32] stage 1: 60 charted, 0 without data, sources {'mexc': 60}
+[19:32] market gate closed: the market is risk-off
+[19:32] backtest: 2 days, 60 coins, 1288 paper trades seeded
+[19:32] backtest done in 1s (9 strategies and variants)
+[19:32] stage 2: 40 deep dives (0 extra), 4 signals on 3 coins, 0 publishable, Gate.io positioning for 0
+[19:32] journal: 6 new paper trades, 0 closed this scan, 73 open, 1219 closed in total
+[19:32] done in 1.3s: 0 picks, regime Risk-off, 7 notes
+[19:32] universe: 60 coins across 2 DEXs, 60 crypto, 0 excluded
+[19:32] journal (file): 73 open and 1219 closed trades, 0 active variants
+[19:32] stage 1: 60 charted, 0 without data, sources {'mexc': 60}
+[19:32] market gate closed: the market is risk-off
+[19:32] stage 2: 40 deep dives (0 extra), 4 signals on 3 coins, 0 publishable, Gate.io positioning for 0
+[19:32] journal: 3 new paper trades, 0 closed this scan, 76 open, 1219 closed in total
+[19:32] done in 0.1s: 0 picks, regime Risk-off, 7 notes
+test_csv_has_gate_column (test_v5.EndToEnd.test_csv_has_gate_column) ... ok
+test_gate_and_rules_are_published (test_v5.EndToEnd.test_gate_and_rules_are_published) ... ok
+test_only_passed_strategies_are_published (test_v5.EndToEnd.test_only_passed_strategies_are_published) ... ok
+test_strategy_rows_have_v5_fields (test_v5.EndToEnd.test_strategy_rows_have_v5_fields) ... ok
+test_twins_in_journal_but_never_published (test_v5.EndToEnd.test_twins_in_journal_but_never_published) ... ok
+test_version_and_files (test_v5.EndToEnd.test_version_and_files) ... ok
+test_gate (test_v5.Gate.test_gate) ... ok
+test_floor_survives_tighter_stop_factor (test_v5.Plan.test_floor_survives_tighter_stop_factor) ... ok
+test_live_price_sets_order_type_only (test_v5.Plan.test_live_price_sets_order_type_only) ... ok
+test_stop_floor (test_v5.Plan.test_stop_floor) ... ok
+test_clear_loser_is_rejected (test_v5.Stats.test_clear_loser_is_rejected) ... ok
+test_edge_uses_results_before_costs (test_v5.Stats.test_edge_uses_results_before_costs) ... ok
+test_same_day_trades_are_one_block (test_v5.Stats.test_same_day_trades_are_one_block) ... ok
+test_tournament_needs_live_proof_and_beating_twins (test_v5.Stats.test_tournament_needs_live_proof_and_beating_twins) ... ok
+test_rule_strategy_test_reports_twins (test_v5.Studio.test_rule_strategy_test_reports_twins) ... [19:32] study testv5a: RSI dip (1h), 30 days, 11 of 11 coins with data
+[19:32] study testv5a: done in 1.1s
+ok
+test_twin_clones_the_order (test_v5.Twins.test_twin_clones_the_order) ... ok
+test_twin_coin_is_another_coin_and_reproducible (test_v5.Twins.test_twin_coin_is_another_coin_and_reproducible) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 2.934s
+
+OK

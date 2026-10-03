@@ -1,0 +1,10 @@
+[19:35] universe: 846 coins across 8 DEXs, 609 crypto, 237 excluded
+[19:35] journal (new): 0 open and 0 closed trades, 0 active variants
+[19:35] smart money: 150 of 150 top Hyperliquid traders read, 217 open positions
+[19:37] stage 1: 585 charted, 24 without data, sources {'mexc': 524, 'aster': 23, 'gate': 36, 'hyperliquid': 1, 'bitget': 1}
+[19:38] backtest: 30 days, 145 coins, 16453 paper trades seeded
+[19:38] discovery: 16 variants backtested, 1 beat their parent, 1 sent to a live test
+[19:38] backtest done in 87s (25 strategies and variants)
+[19:38] stage 2: 56 deep dives (16 extra), 45 signals on 32 coins, 6 publishable, Gate.io positioning for 24
+[19:38] journal: 28 new paper trades, 0 closed this scan, 193 open, 15689 closed in total
+[19:38] done in 184.0s: 5 picks, regime Risk-on, 15 notes
