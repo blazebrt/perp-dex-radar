@@ -629,21 +629,22 @@ details[open]>summary.plan-h{margin-bottom:8px}
 
 <div class="tabpane" id="tab-guide" data-tab="guide" role="tabpanel" aria-labelledby="tb-guide" hidden>
   <h2 id="about-h">About this dashboard</h2>
-  <p class="lede">Every crypto perp listed on Hyperliquid, Variational, Aster, edgeX, Lighter, dYdX, Paradex and Extended is scanned each hour by nine strategies. Every signal is paper-traded after fees, slippage and funding: strategies that make money pass, losing ones are rejected, and the mistakes behind losing trades change how new signals are scored. Every day the scanner also invents new strategy variants, backtests them over 30 days and live-tests the best. Set your balance and risk under Your plan on the Picks tab and each pick shows your position size. The page checks for a new scan every 3 minutes.</p>
+  <p class="lede">Every crypto perp listed on Hyperliquid, Variational, Aster, edgeX, Lighter, dYdX, Paradex and Extended is scanned by nine strategies. Every signal is paper-traded after fees, slippage and funding, next to a random twin: the same order on another coin at the same moment. A strategy is published only once its live trades make money after costs and clearly beat their twins, and nothing long is published while the market is risk-off or BTC&rsquo;s 4-hour trend is down. Set your balance and risk under Your plan on the Picks tab and each pick shows your position size. The page checks for a new scan every 3 minutes.</p>
 
   <h2 id="how-h">How it works</h2>
   <ol class="method">
     <li><b>Universe.</b> The market list of every DEX (Hyperliquid, Variational, Aster, edgeX, Lighter, dYdX, Paradex, Extended) merged into one coin list. 1000PEPE, kPEPE and PEPE count as one coin; a DEX whose price is far from the main market for the same ticker is treated as a different asset and left out. Stocks, FX, indices, commodities and pre-IPO markets are removed.</li>
     <li><b>Stage 1, every coin.</b> 300 hours (12.5 days) of 1-hour candles from MEXC futures, falling back to Gate.io, Bitget, Hyperliquid or Aster (so DEX-only coins are covered). A momentum score ranks them: 3h/6h/24h returns, strength against BTC, position in the 24h range, EMA8/21 trend, volume surge and trend smoothness, with penalties for overheated charts. The same candles give the <b>4-hour trend</b>: up when price is above the 4h EMA20 and the EMA20 above the EMA50, down when both are the other way round, mixed otherwise.</li>
-    <li><b>Stage 2, the leaders.</b> 24 hours of 15-minute candles for the top 40 that trade at least $20K a day on some DEX, plus up to 16 more: coins Hyperliquid&rsquo;s top traders hold long and 1-hour uptrends that are dipping. Indicators: EMA 9/21/50, RSI 14, MACD, ADX, ATR, Bollinger squeeze, 24h VWAP, swing structure and volume spikes.</li>
-    <li><b>Nine strategies.</b> Range breakout retest, squeeze break, EMA21 trend pullback, trend continuation (EMA9 dip), VWAP reclaim, oversold bounce in an uptrend, smart-money follow, 24-hour high breakout and EMA9/21 bull cross. Each sets its own entry zone, a stop under the level that proves it wrong (0.9 to 3.5 ATR, at most 5% away) and three targets in R. Their rules have settings (the RSI band, how close to the EMA, the volume needed...) that strategy discovery can change. The Strategy lab lists the exact rules.</li>
+    <li><b>Stage 2, the leaders.</b> 24 hours of 15-minute candles for the top 40 that trade at least $1M a day on a DEX you trade (Hyperliquid, Lighter, Aster or Variational), plus up to 16 more: coins Hyperliquid&rsquo;s top traders hold long and 1-hour uptrends that are dipping. Signals are read on closed candles only, exactly as in the backtest; the live price only decides the kind of order and the paper fill. Indicators: EMA 9/21/50, RSI 14, MACD, ADX, ATR, Bollinger squeeze, 24h VWAP, swing structure and volume spikes.</li>
+    <li><b>Nine strategies.</b> Range breakout retest, squeeze break, EMA21 trend pullback, trend continuation (EMA9 dip), VWAP reclaim, oversold bounce in an uptrend, smart-money follow, 24-hour high breakout and EMA9/21 bull cross. Each sets its own entry zone, a stop under the level that proves it wrong (0.9 to 3.5 ATR, never closer than 1.5%, since closer stops lose too much to fees and slippage, and at most 5% away) and three targets in R. Their rules have settings (the RSI band, how close to the EMA, the volume needed...) that strategy discovery can change. The Strategy lab lists the exact rules.</li>
     <li><b>Smart money.</b> Hyperliquid positions are public. The scanner takes its public leaderboard, keeps the 150 most profitable accounts over 30 days (at least $50K, profitable all-time, market makers removed) and reads their open positions: how many are long or short each coin, with how much money, at what average entry, and what changed since the last scan. Gate.io&rsquo;s top-trader ratio, open-interest change and funding across DEXs add to it.</li>
-    <li><b>Conviction score.</b> Trend 20, momentum 20, volume 15, structure 15, positioning 15, liquidity 10 and market backdrop 5, minus penalties for overextension, late pumps, chasing, risk-off markets and going against the 4-hour downtrend. Then the journal adjusts it: a strategy that passed the tournament adds up to 8, one on watch loses points, lessons from past mistakes add or subtract, and a coin that just stopped out is cooled down. A pick needs a final score of 50. 75+ is High, 62-75 Medium.</li>
+    <li><b>Conviction score.</b> Trend 20, momentum 20, volume 15, structure 15, positioning 15, liquidity 10 and market backdrop 5, minus penalties for overextension, late pumps, chasing, risk-off markets and going against the 4-hour downtrend. Then the journal adjusts it: a strategy that passed the tournament adds up to 8, one on watch loses points, and a coin that just stopped out is cooled down. A pick needs a final score of 50 and a strategy that passed. 75+ is High, 62-75 Medium.</li>
     <li><b>Journal.</b> Every signal of every strategy is paper-traded: filled in the zone (or on the trigger close, or a buy-stop for reclaims) within 3 hours, a third off at each target, stop to breakeven after TP1, stop counted first if a candle touches both, closed at market after 12 hours. Costs come off every trade: a 0.045% taker fee plus 0.05-0.2% slippage (less on liquid coins) for market entries, stops and closes, a 0.015% maker fee for limit entries and targets, and the coin&rsquo;s funding while the trade is open. For each trade it records the best run (MFE) and worst dip (MAE) in R, whether a stopped trade went on to hit TP1 within 3 hours (a stop hunt), and tags what went wrong.</li>
-    <li><b>Strategy tournament.</b> A strategy is tested until it has 15 closed trades. It passes with a clearly positive R per trade, a profit factor of 1.2 or more and either a 45%+ win rate or winners 1.5x the size of its losers. It is rejected when it clearly loses (negative R per trade or a profit factor under 0.8) and stops being published, but keeps being paper-traded so it can come back. Everything in between is on watch. Only the last 30 days count, so the verdicts follow the market.</li>
-    <li><b>Tuning.</b> Each strategy&rsquo;s targets move toward the levels its trades actually reach (TP1 where about 55% of them got to, TP2 35%, TP3 20%) once 30 trades back them, and its stop widens by 10% when a third or more of recent stops were hunted, or tightens when winners rarely dip.</li>
+    <li><b>Market gate.</b> No long is published while the market is risk-off or BTC&rsquo;s 4-hour trend is down: in the old journal, longs taken in risk-off markets averaged &minus;0.20R against &minus;0.04R for the rest. Signals are still paper-traded with a flag, so the Strategies tab shows what the gate kept out.</li>
+    <li><b>Strategy tournament.</b> Every signal gets a random twin: the same order (entry zone, stop and targets, scaled to price) on another coin of the same scan, at the same moment. A strategy passes only on live trades: at least 40 of them on 10+ different days, making money after costs and beating their twins before costs, both by 2 standard errors. Trades of the same day move together, so each day counts as one block of evidence. Backtest trades are shown but never decide a pass. A strategy is rejected when it clearly loses (30+ trades); everything else is testing or on watch and is paper-traded only. Only the last 30 days count.</li>
+    <li><b>Tuning and lessons (paused).</b> Moving targets and stops toward each strategy&rsquo;s record, and changing scores by traits of past losers, are switched off until a strategy has an edge: with many traits and settings tried on the same month, some always look good by chance. Lessons are still shown on the Lessons tab.</li>
     <li><b>Backtest.</b> On the first run the scanner downloads 30 days of 15-minute candles for the 150 most traded coins and walks through them hour by hour, doing what a live scan does with only the candles that had closed by then, so the tournament starts with about a month of trades. Smart-money follow needs live positions, so it starts from zero. Backtest trades are marked in the journal and stop counting after 30 days.</li>
-    <li><b>Strategy discovery.</b> Once a day it creates 16 new variants of the strategies (one or two rule changes, an extra filter, other targets or a different stop), backtests each over the last 30 days next to its parent, and sends the few that clearly beat their parent after costs to a live test. Trying many variants on the same history always finds some that look good by luck, so the backtest only nominates: a variant is published only after it passes the tournament on at least 20 live trades spread over at least 5 days and does at least as well as its parent over the same days. It is retired when it loses money live or has not passed within 21 days.</li>
+    <li><b>Strategy discovery (paused).</b> When switched on, once a day it creates 16 new variants of the strategies (one or two rule changes, an extra filter, other targets or a different stop), backtests each over the last 30 days next to its parent, and sends the few that clearly beat their parent after costs to a live test. Trying many variants on the same history always finds some that look good by luck, so the backtest only nominates: a variant is published only after it passes the tournament on at least 20 live trades spread over at least 5 days and does at least as well as its parent over the same days. It is retired when it loses money live or has not passed within 21 days.</li>
     <li><b>Your plan and goal.</b> Position sizes come from the balance and risk per trade you enter (saved on this device only): position = balance &times; risk &divide; (distance to the stop + fees and slippage in and out), capped by your maximum leverage, so a stop-out loses about the amount you chose. The goal tracker compares your logged balance with the path to your goal and replays the journal&rsquo;s own trade results at random (a Monte Carlo simulation) to show the range of outcomes at different risk levels.</li>
     <li><b>Alerts (optional).</b> With a Telegram bot or a Discord webhook added to the repository&rsquo;s secrets, each scan sends new picks scoring 62 or more. The README explains the setup.</li>
   </ol>
@@ -698,6 +699,7 @@ function renderNotices(){
   if(D.notice)n.push('<div class="notice info">'+esc(D.notice)+'</div>');
   if(age>5400&&!D.notice)n.push('<div class="notice">The last scan is '+ago(age)+'. GitHub may have paused the hourly schedule; open the repository’s Actions tab to run it or re-enable it.</div>');
   if(D.coverage&&D.coverage.dex_ok===false)n.push('<div class="notice">No DEX market list could be loaded on this scan, so the built-in coin list was used without DEX volumes.</div>');
+  if(D.gate&&D.gate.closed)n.push('<div class="notice info"><b>Standing aside:</b> '+esc(D.gate.why)+'. New long signals are paper-traded only until the market turns, so nothing is published.</div>');
   $("#notices").innerHTML=n.join("");
 }
 
@@ -734,7 +736,7 @@ function renderStrip(list){
 function stratBadge(p){
   var S=p.strategy;if(!S)return"";
   var R=(D.journal&&D.journal.rules)||{min_trades:15};
-  var x=S.status==="testing"?(S.n+" of "+R.min_trades+" trades"):(S.n?(pc0(S.wr)+" win · "+fR(S.exp)):"");
+  var x=S.status==="testing"?((S.live_n||0)+" of "+(R.pass_min_live||R.min_trades)+" live trades"):(S.n?(pc0(S.wr)+" win · "+fR(S.exp)):"");
   var lab={passed:"✓ Strategy passed",watch:"◆ Strategy on watch",testing:"• Strategy in testing",rejected:"✕ Strategy rejected"}[S.status]||S.status;
   return '<span class="chip '+((SSTAT[S.status]||[""])[0])+'" title="'+esc(S.name+": "+S.why)+'">'+esc(lab)+(x?" · "+esc(x):"")+'</span>';
 }
@@ -808,7 +810,7 @@ function indv(k,v){return '<div><span class="k">'+esc(k)+'</span><span class="v"
 function renderPicks(){
   var list=(D.picks||[]).slice(0,view);
   $("#b5").setAttribute("aria-pressed",view===5);$("#b10").setAttribute("aria-pressed",view===10);
-  if(!list.length){$("#tbn-picks").textContent="";$("#strip").innerHTML="";$("#picks").innerHTML='<div class="empty">No setup reached a final score of '+((D.settings&&D.settings.min_pick_score)||50)+' on this scan. That happens in choppy or risk-off markets, or when the journal has blocked the patterns on offer; the next scan runs '+esc(tloc(D.next_scan_t))+'.</div>';return}
+  if(!list.length){$("#tbn-picks").textContent="";$("#strip").innerHTML="";$("#picks").innerHTML='<div class="empty">'+emptyPicks()+' The next scan runs '+esc(tloc(D.next_scan_t))+'.</div>';return}
   $("#tbn-picks").textContent=String(list.length);
   if(!list.some(function(p){return p.coin===sel}))sel=list[0].coin;
   $("#bOne").setAttribute("aria-pressed",one);$("#bAll").setAttribute("aria-pressed",!one);
@@ -820,6 +822,12 @@ function renderPicks(){
   }else $("#picks").innerHTML=list.map(card).join("");
   $("#picks").classList.toggle("compact",compact);
   document.querySelectorAll(".chart").forEach(function(el){var p=list.find(function(x){return x.coin===el.dataset.coin});if(p)drawChart(el,p)});
+}
+function emptyPicks(){
+  var J=D.journal||{},R=J.rules||{},S=J.strategies||[],passed=S.filter(function(s){return s.status==="passed"}).length;
+  if(D.gate&&D.gate.closed)return 'No picks: standing aside because '+esc(D.gate.why)+'. Long setups lose more often in this tape, so signals are paper-traded only.';
+  if(!passed)return 'No picks: no strategy has proven an edge yet. A strategy is published only after '+(R.pass_min_live||40)+' live paper trades on '+(R.pass_min_days||10)+'+ days that make money after costs and beat random entries taken at the same moments. Until then every signal is paper-traded so the record builds up (Strategies tab).';
+  return 'No setup from a proven strategy reached a final score of '+((D.settings&&D.settings.min_pick_score)||50)+' on this scan.';
 }
 function pickCoin(c,scroll){sel=c;renderPicks();if(scroll){var el=document.getElementById("pick-"+c);if(el)el.scrollIntoView({block:"start"})}}
 
@@ -905,9 +913,14 @@ function stratCard(s){
   if(s.hold!=null)bits.push("median hold <b>"+s.hold.toFixed(1)+"h</b>");
   if(s.dd!=null&&s.n)bits.push("worst drawdown <b>"+s.dd.toFixed(1)+"R</b>");
   if(bits.length)h+='<div class="sx">'+bits.join(" · ")+'</div>';
+  var v5=[];
+  if(s.gross!=null&&s.cost!=null)v5.push("before costs <b>"+fR(s.gross)+"</b> · costs <b>"+fR(-s.cost)+"</b> a trade");
+  if(s.edge!=null)v5.push("vs random entries <b class=\""+(s.edge>0?"up":"dn")+"\">"+fR(s.edge)+"</b> ± "+(s.edge_se||0).toFixed(2)+"R over "+(s.twin_n||0)+" twins");
+  if(v5.length)h+='<div class="sx">'+v5.join(" · ")+'</div>';
   var tuned=s.own_tp?" (set by this variant)":s.tuned_n?(" tuned from "+s.tuned_n+" trades (default "+s.default_tp.join(" / ")+")"):" (default)";
   h+='<div class="sx">Targets <b>'+s.tp_r.map(function(x){return x+"R"}).join(" / ")+'</b>'+esc(tuned)+(Math.abs(s.sk-1)>0.004?' · stop <b>'+s.sk.toFixed(2)+'x</b> the base distance':'')+'</div>';
-  if(s.live_n||s.bt_n)h+='<div class="sx">Live <b>'+s.live_n+'</b> trades'+(s.live_exp!=null?' ('+esc(fR(s.live_exp))+' avg)':'')+(s.bt_n?' · backtest <b>'+s.bt_n+'</b>':'')+'</div>';
+  var RR=(D.journal&&D.journal.rules)||{};
+  if(s.live_n||s.bt_n)h+='<div class="sx">Live <b>'+s.live_n+'</b> trades'+(s.live_days?' on '+s.live_days+' days':'')+(s.live_exp!=null?' ('+esc(fR(s.live_exp))+' avg)':'')+(s.bt_n?' · backtest <b>'+s.bt_n+'</b>':'')+(s.status!=="passed"&&RR.pass_min_live?' · a pass needs '+RR.pass_min_live+' live on '+RR.pass_min_days+'+ days':'')+'</div>';
   if(s.life&&s.life.n>(s.n||0))h+='<div class="sx">Since the journal started: <b>'+s.life.n+'</b> closed trades, <b>'+esc(fR(s.life.r,1))+'</b></div>';
   h+='<div class="why">'+esc(s.why)+(s.since&&s.status!=="testing"?' · since '+esc(tloc(s.since,true)):'')+'</div>';
   var now=s.now||[];
@@ -937,9 +950,11 @@ function renderLab(){
   var R=J.rules,S=J.strategies||[];
   var bt=J.bt&&J.bt.trades?(" Started with a "+J.bt.days+"-day backtest ("+J.bt.trades.toLocaleString("en-US")+" trades on "+J.bt.coins+" coins)."):"";
   var nv=S.filter(function(s){return s.id.indexOf("~")>0}).length;
-  $("#labNote").textContent="Nine strategies"+(nv?" and "+nv+" promoted variant"+(nv>1?"s":""):"")+", every signal paper-traded after costs. After "+R.min_trades+" closed trades each one passes, goes on watch or is rejected, judged on its last "+R.window_days+" days; rejected ones keep paper-trading and can come back."+bt;
+  $("#labNote").textContent=R.pass_min_live?("Nine strategies"+(nv?" and "+nv+" promoted variant"+(nv>1?"s":""):"")+", every signal paper-traded after costs, each with a random twin: the same order on another coin at the same moment. A strategy is published only after it passes on live trades: "+R.pass_min_live+"+ trades on "+R.pass_min_days+"+ days that make money after costs and beat their twins by a clear margin ("+R.pass_z+" standard errors, counting each day as one block because trades move together). Backtest trades show what to expect but never decide a pass; signals taken while the market gate was closed do not count."+bt):("Nine strategies"+(nv?" and "+nv+" promoted variant"+(nv>1?"s":""):"")+", every signal paper-traded after costs. After "+R.min_trades+" closed trades each one passes, goes on watch or is rejected, judged on its last "+R.window_days+" days; rejected ones keep paper-trading and can come back."+bt);
   var cnt={passed:0,watch:0,testing:0,rejected:0};S.forEach(function(s){cnt[s.status]=(cnt[s.status]||0)+1});
-  $("#labTiles").innerHTML=tile("Passed",cnt.passed)+tile("On watch",cnt.watch)+tile("Testing",cnt.testing)+tile("Rejected",cnt.rejected)+tile("Closed trades, "+R.window_days+"d",(J.counts.done||0).toLocaleString("en-US"))+tile("Open paper trades",J.counts.open||0);
+  var G=J.gate||{},gg=G.gated||{},go=G.open||{};
+  $("#labTiles").innerHTML=tile("Passed",cnt.passed)+tile("On watch",cnt.watch)+tile("Testing",cnt.testing)+tile("Rejected",cnt.rejected)+tile("Closed trades, "+R.window_days+"d",(J.counts.done||0).toLocaleString("en-US"))+tile("Open paper trades",J.counts.open||0)+
+    (gg.n?tile("Kept out by the gate",fR(gg.avg_r)+" avg · "+gg.n):"")+(go.n?tile("Taken with the gate open",fR(go.avg_r)+" avg · "+go.n):"");
   $("#lab").innerHTML=S.map(stratCard).join("");
   S.forEach(function(s){var el=document.querySelector('.eq[data-sid="'+s.id+'"]');if(el)drawEq(el,s.curve,s.n)});
   var ch=J.changes||[];
@@ -955,14 +970,16 @@ function renderLab(){
 function renderLessons(){
   var J=D.journal;
   if(!J){$("#lessons").innerHTML='<div class="empty">Lessons appear once the journal has closed trades.</div>';return}
-  var L=J.lessons||[];
+  var L=J.lessons||[],on=!J.rules||J.rules.lesson_points!==false;
   function les(l){
-    var cls=l.block?"block":l.pts<0?"bad":"good",pts=l.block?"Blocked":((l.pts>0?"+":"−")+Math.abs(l.pts));
+    var cls=l.block?"block":l.pts<0?"bad":"good",pts=!on?(l.avg<l.base?"−":"+"):l.block?"Blocked":((l.pts>0?"+":"−")+Math.abs(l.pts));
     var scope=l.sid?(sname(l.sid)+" only"):"all strategies";
-    var txt=l.n+" trades like this averaged "+fR(l.avg)+" ("+pc0(l.wr)+" winners) vs "+fR(l.base)+" for the rest. "+(l.block?"Signals like this are no longer published.":l.pts<0?"New signals like this lose "+Math.abs(l.pts)+" points.":"New signals like this gain "+l.pts+" points.");
+    var eff=!on?"For information only: in this version lessons do not change scores.":l.block?"Signals like this are no longer published.":l.pts<0?"New signals like this lose "+Math.abs(l.pts)+" points.":"New signals like this gain "+l.pts+" points.";
+    var txt=l.n+" trades like this averaged "+fR(l.avg)+" ("+pc0(l.wr)+" winners) vs "+fR(l.base)+" for the rest. "+eff;
     return '<div class="les"><span class="pts '+cls+'">'+esc(pts)+'</span><div><b>'+esc(l.label)+'</b><span class="scope">'+esc(scope)+'</span><p>'+esc(txt)+'</p></div></div>'}
   var bad=L.filter(function(l){return l.block||l.pts<0}),good=L.filter(function(l){return !l.block&&l.pts>0});
-  var html=(bad.length?'<div class="lgroup">Mistakes it now avoids</div>'+bad.map(les).join(""):"")+(good.length?'<div class="lgroup">Patterns that worked</div>'+good.map(les).join(""):"");
+  var intro=on?"":'<p class="muted" style="margin:0 0 8px">Lessons are shown but no longer change scores: with dozens of traits tested at once, some always look special by chance, and trades of the same hours move together. The market gate and the random-twin benchmark now do that job.</p>';
+  var html=(bad.length||good.length?intro:"")+(bad.length?'<div class="lgroup">'+(on?"Mistakes it now avoids":"Traits of losing trades")+'</div>'+bad.map(les).join(""):"")+(good.length?'<div class="lgroup">'+(on?"Patterns that worked":"Traits of winning trades")+'</div>'+good.map(les).join(""):"");
   $("#lessons").innerHTML=html||'<div class="empty">No lessons yet. A trait needs at least '+J.rules.lesson_min+' closed trades and a clear, consistent difference from the rest before it changes scores.</div>';
   var M=J.mistakes||[];
   $("#mist").innerHTML=M.length?M.slice(0,10).map(function(m){return '<div class="mrow"><div class="top"><span>'+esc(m.label)+'</span><span class="n">'+m.n+' of '+J.losses+' losses</span></div><div class="track" role="img" aria-label="'+pc0(m.share)+' of losing trades"><i style="width:'+(m.share*100).toFixed(1)+'%"></i></div>'+(m.fix?'<div class="fix">What changed: '+esc(m.fix)+'</div>':'')+'</div>'}).join(""):'<div class="empty">No losing trades have closed yet.</div>';
@@ -1152,6 +1169,8 @@ function bindGoal(){
 var VSTAGE={forward:["info","• Live test"],promoted:["good","✓ Promoted"],retired:["","– Retired"]};
 function renderDiscovery(){
   var X=(D.journal||{}).discovery,host=$("#disc");if(!host)return;
+  var JR=(D.journal||{}).rules||{};
+  if(JR.discovery===false&&!(X&&X.rows&&X.rows.length)){$("#discNote").textContent="Strategy discovery is paused. Changing the settings of strategies that have not shown an edge only produces more variants without one, and testing many variants on the same month always finds some that look good by luck. It comes back once a strategy beats random entries on live trades.";host.innerHTML="";$("#discTiles").innerHTML="";return}
   if(!X||!X.rounds){$("#discNote").textContent="Strategy discovery runs once a day. Its first round starts with the next scan that downloads the 30-day history.";host.innerHTML="";$("#discTiles").innerHTML="";return}
   var R=X.rules||{};
   $("#discNote").textContent="Once a day the scanner creates "+R.batch+" new variants of its strategies (other rule settings, an extra filter, different targets or stop) and backtests each over 30 days next to its parent. The few that clearly beat their parent after costs go to a live test. A variant is only published after it passes the tournament on at least "+R.forward_min_trades+" live trades it had never seen, spread over "+(R.forward_min_days||5)+"+ days, and does at least as well as its parent over the same days; one that loses money live, or has not passed within "+R.forward_max_days+" days, is retired. Last round "+tloc(X.last,true)+", next about "+tloc(X.next,true)+".";
@@ -1293,6 +1312,8 @@ function renderBuilder(){
   }
   h+='<div class="frow"><label>Targets (R)<span class="in tp">'+[0,1,2].map(function(i){return numIn("tp_r."+i,(d.tp_r||[])[i],0.1,0.2,30)}).join("")+'</span></label><label>Fill window (hours)<span class="in">'+numIn("vh",d.vh,1,1,72)+'</span></label><label>Max hold (hours)<span class="in">'+numIn("th",d.th,1,2,168)+'</span></label><label>Max stop distance (%)<span class="in">'+numIn("max_risk",d.max_risk,0.5,0.3,20)+'</span></label></div>';
   var tf=d.kind==="rule"?d.tf:"15m",mx=S.days[tf];
+  h+='<div class="filt" style="margin:6px 0"><label class="toggle"><input type="checkbox" data-gate="1"'+(d.gate!==false?" checked":"")+'> Stand aside when BTC\'s 4-hour trend is down, like the live scan</label></div>';
+  h+='<p class="muted" style="margin:0 0 6px">Stops are never closer than '+(((D.settings||{}).min_stop_pct||0.015)*100)+'% to the entry: closer ones lose too much to fees and slippage. Every signal also gets a random twin (the same order on another coin at the same moment), so the result shows whether your rules beat chance.</p>';
   h+='<div class="sub3">Test</div><div class="frow"><label>History (days, up to '+mx+')<span class="in">'+numIn("days",Math.min(d.days,mx),1,7,mx)+'</span></label><label>Most traded coins<span class="in">'+numIn("coins",d.coins,1,d.kind==="tuned"?20:5,S.max_coins)+'</span></label><label style="grid-column:span 2">Or these coins (comma separated)<span class="in"><input data-k="coin_list" value="'+esc(d.coin_list||"")+'" placeholder="BTC, ETH, SOL"></span></label></div>';
   h+='<div class="runrow"><button type="button" class="btn" id="runTest"'+(STUDYING?" disabled":"")+'>Run backtest</button><span class="muted" id="testMsg">'+(STUDYING?esc(STUDYING.msg||""):"")+'</span></div>';
   h+='<p class="muted" style="margin:6px 0 0">Tests use the scanner\'s own fill, exit and cost rules on exchange candles'+(d.kind==="rule"?", every coin checked at each "+(tf==="4h"?"4-hour":"1-hour")+" step":", ranking the market each hour like a live scan")+'. A test takes 1 to 10 minutes.</p>';
@@ -1311,7 +1332,7 @@ function runTest(){
   var u=draftStrategy();
   if(u.kind==="rule"&&!u.rules.length){toast("Add at least one condition");return}
   var tf=u.tf,id="t"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
-  var req={id:id,days:Math.min(+DRAFT.days||30,D.studio.days[tf]),coins:+DRAFT.coins||40,strategy:u,
+  var req={id:id,days:Math.min(+DRAFT.days||30,D.studio.days[tf]),coins:+DRAFT.coins||40,strategy:u,gate:DRAFT.gate!==false,
     coin_list:String(DRAFT.coin_list||"").split(/[\s,;]+/).map(function(x){return x.trim().toUpperCase()}).filter(Boolean).slice(0,100)};
   STUDYING={id:id,t0:Date.now(),msg:"Starting the test…"};STUDY=null;$("#studyOut").hidden=true;renderBuilder();
   dispatch("backtest.yml",{request:JSON.stringify(req),label:(u.name.slice(0,40)+" · "+id)}).then(function(){
@@ -1341,7 +1362,7 @@ function studyHint(res){
   if(n&&bad>=n*0.5)return '<b>'+bad+' of '+n+' signals never became trades</b>'+(why?": "+why:"")+'.'+tip;
   return "";
 }
-var VERDICT={passed:["good","✓ Would pass the tournament"],watch:["warn","◆ On watch: no clear edge"],rejected:["bad","✕ Would be rejected: loses after costs"],testing:["info","• Too few trades to judge (needs 15)"]};
+var VERDICT={passed:["good","✓ Beats random entries after costs"],watch:["warn","◆ No clear edge over random entries"],rejected:["bad","✕ Would be rejected: loses after costs"],testing:["info","• Too few trades to judge"]};
 function showStudy(res){
   STUDY=res;var o=$("#studyOut");o.hidden=false;
   if(!res.ok){o.innerHTML='<b>The test failed.</b> <span class="muted">'+esc(res.error||"")+'</span>';return}
@@ -1349,6 +1370,9 @@ function showStudy(res){
   h+='<p class="muted" style="margin:4px 0 8px">'+esc(res.desc||"")+' '+esc(res.why||"")+(res.data_days&&res.data_days<res.days-2?' The exchanges had about '+Math.round(res.data_days)+' days of history for most coins, so the test is shorter than asked.':'')+'</p>';
   var hint=studyHint(res);if(hint)h+='<div class="note" style="margin:0 0 8px">'+hint+'</div>';
   h+='<div class="tiles">'+tile("Trades",(s.n||0).toLocaleString("en-US"))+tile("Win rate",pc0(s.wr))+tile("Avg R",fR(s.exp))+tile("Profit factor",s.pf==null?"-":s.pf>=10?">10":(+s.pf).toFixed(2))+tile("Total R",fR(s.net,1))+tile("Worst drawdown",s.dd==null?"-":"−"+(+s.dd).toFixed(1)+"R")+tile("Filled",res.signals?pc0(res.filled/res.signals):"-")+tile("Median hold",s.hold==null?"-":(+s.hold).toFixed(1)+"h")+'</div>';
+  if(res.twins){var tw=res.twins,e=tw.edge,ok=e!=null&&e-2*(tw.edge_se||0)>0;
+    h+='<p style="margin:8px 0">Random twins, the same orders on random coins at the same moments: <b>'+(tw.n||0)+'</b> trades, '+pc0(tw.wr)+' win, <b>'+fR(tw.exp)+'</b> per trade after costs.'+(e!=null?' Your rules before costs: <b class="'+(e>0?"up":"dn")+'">'+fR(e)+'</b> per trade against the twins (± '+(tw.edge_se||0).toFixed(2)+'R), '+(ok?"<b>clearly better than chance</b>.":"not clearly better than chance."):"")+'</p>'}
+  if(res.gated)h+='<p class="muted" style="margin:4px 0">'+res.gated.toLocaleString("en-US")+' signals were skipped because the market gate was closed (BTC\'s 4-hour trend down'+(res.requested&&res.requested.strategy&&res.requested.strategy.kind==="tuned"?", or a risk-off market":"")+').</p>';
   if(res.curve&&res.curve.length>2)h+='<div class="eq" id="studyEq" data-sid="__study"></div>';
   if(res.baseline){var b=res.baseline.stats||{};h+='<p style="margin:8px 0">Same test, '+esc(res.baseline.name)+': <b>'+(b.n||0)+'</b> trades, '+pc0(b.wr)+' win, <b class="'+((b.exp||0)>0?"up":"dn")+'">'+fR(b.exp)+'</b> per trade. Yours: <b class="'+((s.exp||0)>0?"up":"dn")+'">'+fR(s.exp)+'</b>.</p>'}
   if(res.months&&res.months.length)h+='<div class="tw" style="max-height:none;display:inline-block;max-width:100%"><table><thead><tr><th class="l">Month</th><th>Trades</th><th>Win</th><th>R</th></tr></thead><tbody>'+res.months.map(function(m){return '<tr><td class="l">'+esc(m[0])+'</td><td class="n">'+m[1]+'</td><td class="n">'+pc0(m[2])+'</td><td class="n '+(m[3]>0?"up":"dn")+'">'+fR(m[3],1)+'</td></tr>'}).join("")+'</tbody></table></div>';
@@ -1404,7 +1428,7 @@ function bindStudio(){
   var B=$("#builder");
   B.addEventListener("input",function(e){var k=e.target.dataset&&e.target.dataset.k;if(!k)return;var v=e.target.type==="number"?(e.target.value===""?"":+e.target.value):e.target.value;setPath(DRAFT,k,v);saveDraft();
     if(/^(tf|base|entry\.type|entry\.level|stop\.type)$/.test(k)||/\.op$|\.f$/.test(k)){if(/\.f$/.test(k)){var i=+k.split(".")[1],f=D.studio.fields.find(function(x){return x[0]===v});DRAFT.rules[i].op=f&&f[2]==="bool"?"is":"<"}if(k==="base")DRAFT.params={};renderBuilder()}});
-  B.addEventListener("change",function(e){var t=e.target;if(t.dataset&&t.dataset.fil){var k=t.dataset.fil,f=D.studio.filters.find(function(x){return x[0]===k});DRAFT.filters=DRAFT.filters||{};if(t.checked)DRAFT.filters[k]=f&&f[2].length?f[2][0]:true;else delete DRAFT.filters[k];saveDraft();renderBuilder()}});
+  B.addEventListener("change",function(e){var t=e.target;if(t.dataset&&t.dataset.gate){DRAFT.gate=t.checked;saveDraft();return}if(t.dataset&&t.dataset.fil){var k=t.dataset.fil,f=D.studio.filters.find(function(x){return x[0]===k});DRAFT.filters=DRAFT.filters||{};if(t.checked)DRAFT.filters[k]=f&&f[2].length?f[2][0]:true;else delete DRAFT.filters[k];saveDraft();renderBuilder()}});
   B.addEventListener("click",function(e){var t=e.target.closest("button");if(!t)return;
     if(t.dataset.kind){DRAFT.kind=t.dataset.kind;if(DRAFT.kind==="tuned")DRAFT.coins=Math.max(20,DRAFT.coins||40);saveDraft();renderBuilder()}
     else if(t.dataset.add){DRAFT.rules=DRAFT.rules||[];DRAFT.rules.push({f:"rsi",op:"<",v:50});saveDraft();renderBuilder()}

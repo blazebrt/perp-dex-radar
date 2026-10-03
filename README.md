@@ -1,17 +1,44 @@
 # Perp DEX Radar
 
-A dashboard that scans every crypto perp listed on the major decentralised perp exchanges every hour with nine
-strategies, paper-trades every signal after trading costs, learns from the results, and invents and tests new
-strategy variants every day:
+A dashboard that scans every crypto perp listed on the major decentralised perp exchanges with nine strategies,
+paper-trades every signal after trading costs next to a random twin, and publishes only the strategies that prove
+an edge on live trades:
 
 **Hyperliquid, Variational, Aster, edgeX, Lighter, dYdX, Paradex and Extended.**
 
 Each pick comes with an entry zone, stop-loss, three targets, a conviction score out of 100, the DEXs it trades on
 (with symbol, multiplier and 24h volume on each), where Hyperliquid's most profitable traders are positioned, the
 4-hour trend, a written technical case, and your position size for the balance and risk you set on the page.
-Strategies that make money after costs pass; losing ones are rejected and stop being published; the mistakes behind
-losing trades change how new signals are scored. A goal tracker shows whether your balance is on the path to your
-target and what the journal's own results say about reaching it.
+Every signal is paper-traded next to a **random twin** (the same order on another coin at the same moment), and a
+strategy is published only once its live trades make money after costs and clearly beat their twins. Nothing long
+is published while the market is risk-off or BTC's 4-hour trend is down. A goal tracker shows whether your balance
+is on the path to your target and what the journal's own results say about reaching it.
+
+## What changed in version 5
+
+An audit of version 4 found that its signals did no better than random entries once costs were counted: the
+Studio's own tests matched a random-walk market almost exactly, and trading costs took 10-30% of the risk on every
+trade. Version 5 changes how strategies are judged rather than adding more of them:
+
+- **Closed candles only.** Live scans read the same closed candles as the backtest. The live price only decides
+  the kind of order (in the zone, a pullback, a buy-stop) and the paper fill, so a spike inside an unfinished
+  candle no longer counts as a breakout.
+- **Market gate.** No long is published in a risk-off market or while BTC's 4-hour trend is down (in the
+  version 4 journal those trades averaged -0.20R against -0.04R for the rest). Gated signals are still paper-traded
+  with a flag, so the Strategies tab shows what the gate kept out.
+- **Cheaper trades.** Stops are at least 1.5% away and coins need $1M+ a day on a DEX you trade (`trade_dexes` in
+  `CFG`: Hyperliquid, Lighter, Aster and Variational). That roughly halves the share of each trade lost to costs.
+- **Random twins and honest statistics.** A strategy passes only on live trades: 40+ of them on 10+ days, making
+  money after costs and beating their twins before costs, both by two standard errors, with each day counted as one
+  block of evidence because trades of the same hours move together. Backtest trades never decide a pass.
+- **Only proven strategies are published.** Lesson points, automatic target and stop tuning and strategy discovery
+  are switched off (`lesson_points`, `auto_tune`, `discovery` in `CFG`) until something has an edge. Expect few or
+  no picks for the first weeks: that is the scanner refusing to publish coin flips.
+- **Checks.** `tests/` holds unit tests and a full scan on a fake exchange (`python -m unittest discover -s tests`);
+  `tools/no_edge_check.py` runs the strategies on a market where profit is impossible and fails if any change lets
+  the backtest see the future. Pushing to a branch named `v5...` runs `.github/workflows/research.yml`, which tests
+  the new code and the code on `main` side by side on live exchange data and saves the results to the `research`
+  branch. Each scan also saves `latest.json` and `journal.csv` to the `journal-data` branch.
 
 It runs for free on GitHub: GitHub Actions runs `scanner.py` every hour and publishes the result to GitHub Pages.
 Nothing runs on your computer.
@@ -24,6 +51,9 @@ Nothing runs on your computer.
 | `index.html` | The dashboard page |
 | `.github/workflows/scan.yml` | The hourly schedule and the publish step |
 | `.github/workflows/backtest.yml` | Strategy tests started from the Studio tab |
+| `.github/workflows/research.yml` | Tests a `v5...` branch against `main` on live exchange data (nothing published) |
+| `tests/` | Unit tests and a full scan on a fake exchange |
+| `tools/no_edge_check.py` | The strategies on a random market: shows costs and catches look-ahead bugs |
 | `strategies.json` | Your own strategies (written by the Studio tab; created when you add the first one) |
 
 ## Setup (about 10 minutes, works from a phone browser)
@@ -52,9 +82,10 @@ Guide), so each part is one tap away. On the Picks tab, tap a coin in the list t
 After that it updates by itself every hour at minute 7 (UTC). The page checks for a new scan every 3 minutes.
 Once a day one run takes a few minutes longer: that is strategy discovery.
 
-**Upgrading from version 3?** Replace all four files. The first version-4 run starts a new journal by itself
-(older journals were measured without trading costs, so their results can't be mixed with the new ones) and
-backtests the last 30 days.
+**Upgrading from version 4?** Replace `scanner.py`, `index.html`, `README.md` and `.github/workflows/scan.yml`,
+and add `.github/workflows/research.yml`, `tests/` and `tools/`. The first version-5 run starts a new journal by
+itself (version 4 results were measured under other rules, so they can't be mixed with the new ones) and backtests
+the last 30 days.
 
 ## The strategies
 
@@ -90,12 +121,13 @@ lose 4 points, and the journal learns whether that trait keeps losing.
   day on a DEX, 0.1% above $200K, 0.2% below) for market entries, buy-stops, stop-losses and closes at market; a
   0.015% maker fee for limit entries and take-profits; and the coin's funding for the hours the trade is open (longs
   pay positive funding). These are Hyperliquid's base-tier fees; change them in `CFG` if your DEX differs.
-- **Strategy tournament.** A strategy is *testing* until it has 15 closed trades. It *passes* with a clearly
-  positive R per trade, a profit factor of 1.2 or more and either a 45%+ win rate or winners 1.5x the size of its
-  losers. It is *rejected* when it clearly loses money (negative R per trade or a profit factor under 0.8): it is
-  no longer published but keeps being paper-traded, so it can come back. Everything in between is *on watch*
-  (published with a penalty). Only the last 30 days count.
-- **Lessons from mistakes.** Closed trades are grouped by traits they had at entry (RSI 75+, low volume, chasing
+- **Strategy tournament.** Every signal gets a random twin: the same order (zone, stop and targets, scaled to the
+  price) on another coin of the same scan at the same moment. A strategy *passes* only on live trades: at least 40
+  on 10+ different days, R per trade after costs more than two day-clustered standard errors above zero, the same
+  margin above its twins before costs, and a profit factor of 1.2 or more. It is *rejected* when it clearly loses
+  (30+ trades, backtest included). Everything else is *testing* or *on watch* and is paper-traded only. Signals
+  taken while the market gate was closed don't count. Only the last 30 days count.
+- **Lessons from mistakes** (shown for information only while `lesson_points` is off). Closed trades are grouped by traits they had at entry (RSI 75+, low volume, chasing
   far above EMA21, risk-off market, against the 4-hour trend, thin liquidity, crowded funding, smart money short,
   weak trend, time of day...). When a trait keeps losing compared with everything else, with a clear and
   consistent difference, new signals with that trait lose points; the worst patterns are blocked from the picks.
@@ -103,7 +135,7 @@ lose 4 points, and the journal learns whether that trait keeps losing.
   breakout, BTC fell, chased...).
 - **Cool-downs.** A coin that stopped out in the last 4 hours loses 6 points; after two separate stop-outs in 24
   hours it is not published for 12 hours.
-- **Tuning.** Once a strategy has 30 closed trades, its targets move toward the levels its trades actually reach.
+- **Tuning** (off while `auto_tune` is off). Once a strategy has 30 closed trades, its targets move toward the levels its trades actually reach.
   Its stop widens by 10% when 35%+ of recent stops were hunted (price hit the stop, then the target), and tightens
   when winners rarely dip.
 
@@ -119,7 +151,8 @@ taken over.
 
 ## Strategy discovery
 
-Once a day the scanner creates 16 new variants of its strategies: one or two changes to a rule setting, an extra
+Paused in version 5 (`discovery` in `CFG`): mutating strategies that have no edge only produces more variants
+without one. When it is switched on, once a day the scanner creates 16 new variants of its strategies: one or two changes to a rule setting, an extra
 filter (only in risk-on markets, only in a 4-hour uptrend, minimum volume, maximum RSI, minimum ADX, above VWAP,
 BTC calm...), different targets or a wider or tighter stop. Each variant is backtested over the last 30 days next
 to its parent. The few that clearly beat their parent after costs (at least 40 trades, a positive R per trade even
