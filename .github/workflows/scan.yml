@@ -17,7 +17,7 @@ env:
   SCAN_EVERY_MIN: "20"
 
 permissions:
-  contents: read
+  contents: write   # to save a copy of the journal on the journal-data branch (see the last step)
   pages: write
   id-token: write
   actions: write
@@ -52,6 +52,28 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python scanner.py --out site --pages-url "${{ steps.pages.outputs.base_url }}" $RESET
+
+      - name: Save a copy of the journal for review
+        # Replaces the journal-data branch with this scan's latest.json and journal.csv (one commit,
+        # no history), so the results can be read from the repository as well as from the site.
+        if: always()
+        continue-on-error: true
+        env:
+          GIT_AUTHOR_NAME: perp-dex-radar
+          GIT_AUTHOR_EMAIL: actions@users.noreply.github.com
+          GIT_COMMITTER_NAME: perp-dex-radar
+          GIT_COMMITTER_EMAIL: actions@users.noreply.github.com
+        run: |
+          test -f site/data/latest.json || exit 0
+          export GIT_INDEX_FILE="$RUNNER_TEMP/journal.index"
+          git read-tree --empty
+          for f in latest.json journal.csv; do
+            if [ -f "site/data/$f" ]; then
+              git update-index --add --cacheinfo "100644,$(git hash-object -w "site/data/$f"),$f"
+            fi
+          done
+          commit=$(git commit-tree "$(git write-tree)" -m "Journal snapshot $(date -u +%Y-%m-%dT%H:%MZ)")
+          git push --force origin "$commit:refs/heads/journal-data"
 
       - uses: actions/upload-pages-artifact@v3
         with:
