@@ -70,7 +70,6 @@ import random
 import re
 import shutil
 import statistics
-import sys
 import threading
 import time
 import traceback
@@ -78,7 +77,20 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-VERSION = "4.1.0"
+VERSION = "5.0.0"
+
+# Version 5 changes how strategies are judged, after an audit found that the signals of
+# version 4 did no better than random entries once costs were counted:
+#   * signals are read on closed candles only, live exactly as in the backtest (the live
+#     price is used only to choose the order type and as the paper fill);
+#   * a market gate keeps new longs out of risk-off markets and BTC 4-hour downtrends;
+#   * stops are at least 1.5% away and coins need $1M+ a day on the DEXs you trade, so
+#     fees and slippage take a smaller share of every trade;
+#   * every signal gets a random twin (another coin, same moment, same stop distance and
+#     targets) and a strategy passes only when it beats its twins on live trades, with
+#     statistics that allow for trades moving together;
+#   * only strategies that passed are published; lesson points, auto-tuning and strategy
+#     discovery are switched off until something has an edge.
 
 # --------------------------------------------------------------------------- settings
 CFG = {
@@ -90,8 +102,12 @@ CFG = {
     "top_n": 10,               # picks published (the page shows top 5 / top 10)
     "watch_n": 8,              # runners-up shown on the watchlist
     "min_pick_score": 50,      # final score (after the journal's adjustments) needed to be a pick
-    "min_dex_vol": 20_000,     # a pick needs at least one DEX with this 24h volume (USD)
+    "min_dex_vol": 1_000_000,  # a coin needs at least this 24h volume (USD) on one of the DEXs you trade
+    "trade_dexes": ("hyperliquid", "lighter", "aster", "variational"),  # the DEXs you trade on ("" = any DEX)
     "max_risk": 0.05,          # setups with a stop further than 5% away are dropped
+    "min_stop_pct": 0.015,     # stops are at least this far away: closer ones lose too much to fees and slippage
+    "gate_longs": True,        # market gate: no published longs in a risk-off market or a BTC 4-hour downtrend
+    "twins": True,             # a random twin trade for every signal (the benchmark a strategy must beat)
     "h1_bars": 300,            # 1h candles per coin in stage 1 (12.5 days: also gives the 4h trend)
     "m15_bars": 96,            # 15m candles per coin in stage 2 (24h)
     "chart_bars": 64,          # 15m candles shipped to the page per pick (16h)
@@ -110,13 +126,19 @@ CFG = {
     "journal_keep_days": 32,   # closed trades older than this are dropped from journal.json
     "journal_max": 40000,      # closed trades kept in journal.json (the oldest go first)
     "strategy_window": 250,    # most recent closed trades per strategy that count for its status
-    "min_trades": 15,          # closed trades before a strategy can pass or be rejected
+    "min_trades": 15,          # closed trades before a strategy leaves "testing"
+    "pass_min_live": 40,       # a pass needs this many live (not backtest) closed trades...
+    "pass_min_days": 10,       # ... on at least this many different days ...
+    "pass_z": 2.0,             # ... and results this many standard errors above zero and above its random twins
+    "reject_min": 30,          # closed trades (backtest included) before a strategy can be rejected
     "lesson_min": 12,          # trades in a bucket before it can become a lesson
-    "publish": ("passed", "watch", "testing"),  # strategy statuses whose signals can become picks
+    "lesson_points": False,    # lessons change scores (off: they are shown for information only)
+    "auto_tune": False,        # targets and stops follow each strategy's record (off: default targets and stops)
+    "publish": ("passed",),    # strategy statuses whose signals can become picks
     "bt_days": 30,             # days of history the backtest walks through (first run and discovery)
     "bt_universe": 150,        # coins in the backtest (the most traded on the DEXs)
     # strategy discovery
-    "discovery": True,         # invent, backtest and live-test new strategy variants
+    "discovery": False,        # invent, backtest and live-test new strategy variants (paused in version 5)
     "discovery_every_h": 24,   # hours between discovery rounds
     "discovery_batch": 16,     # new variants backtested per round
     "forward_slots": 12,       # variants in a live test at the same time
@@ -665,14 +687,26 @@ def build_universe():
         vols = [v["vol"] for v in c["venues"].values() if v.get("vol")]
         c["best_vol"] = max(vols) if vols else None
         c["tot_vol"] = sum(vols) if vols else None
+        mine = [v["vol"] for d, v in c["venues"].items() if v.get("vol") and in_my_dexes(d)]
+        c["trade_vol"] = max(mine) if mine else None
         c["tradfi"] = c["tradfi"] or is_tradfi(t, c.get("name"))
     coins = {t: c for t, c in coins.items() if c["venues"]}
     any_ok = any(s["ok"] for s in status.values())
     if not any_ok:
         note_error("No DEX market list could be loaded; using the built-in coin list without DEX data")
         coins = {t: {"t": t, "venues": {}, "name": t, "tradfi": False, "ref_price": None, "best_vol": None,
-                     "tot_vol": None} for t in FALLBACK_CRYPTO}
+                     "tot_vol": None, "trade_vol": None} for t in FALLBACK_CRYPTO}
     return coins, status, any_ok
+
+
+def in_my_dexes(dex):
+    """Whether `dex` is one of the DEXs you trade on (all DEXs count when trade_dexes is empty)."""
+    return not CFG["trade_dexes"] or dex in CFG["trade_dexes"]
+
+
+def liq_of(coin):
+    """24h volume that counts for liquidity: the best of the DEXs you trade on."""
+    return (coin or {}).get("trade_vol") if CFG["trade_dexes"] else (coin or {}).get("best_vol")
 
 
 # --------------------------------------------------------------------------- candles
@@ -1024,6 +1058,18 @@ def agg_tf(c, sec):
     if cur:
         out.append(cur)
     return out
+
+
+def closed_part(c, bar, now):
+    """The candles that had closed by `now` (exchanges also return the one still forming)."""
+    return [x for x in c if x["t"] + bar <= now]
+
+
+def as_backtest(closed, bar):
+    """Closed candles plus a flat placeholder for the candle that has just opened: exactly what
+    the backtest sees at each step, so live signals and backtest signals follow the same rules."""
+    last = closed[-1]
+    return closed + [_forming(last["c"], last["t"] + bar)]
 
 
 def htf_from(closes, px):
@@ -1686,7 +1732,8 @@ def user_spec(u, stage="user"):
                "pullback": f"buy a pullback to {str(entry.get('level', '')).upper()}"}[et]
         sl = {"atr": f"stop {stop.get('atr', 1.5):g} ATR below", "swing": "stop under the last swing low",
               "pct": f"stop {stop.get('pct', 3):g}% below"}[stt]
-        sp["desc"] = (f"{tf} chart: " + "; ".join(rule_text(r) for r in rules) + f". Entry: {how}; {sl}; "
+        sp["desc"] = (f"{tf} chart: " + "; ".join(rule_text(r) for r in rules) + f". Entry: {how}; {sl} "
+                      f"(never closer than {CFG['min_stop_pct'] * 100:g}%); "
                       f"targets {'/'.join(f'{x:g}' for x in sp['tp_r'])}R.")
     else:
         raise ValueError("kind must be 'rule' or 'tuned'")
@@ -1731,28 +1778,34 @@ def studio_meta():
             "defaults": {"vh": CFG["valid_hours"], "th": CFG["track_hours"], "max_risk": CFG["max_risk"] * 100}}
 
 
-def build_plan(sp, a, lo, hi, stop, trig, tp_r, sk=1.0):
-    """Shared risk rules: the stop is 0.9-3.5 ATR (and at least 0.5%) below the middle
-    of the zone, then scaled by the stop factor (learned by the journal, or set by a
-    variant). Setups risking more than max_risk, or already past TP1, are dropped."""
-    A, last = a["atr"], a["last"]
+def build_plan(sp, a, lo, hi, stop, trig, tp_r, sk=1.0, px=None):
+    """Shared risk rules: the stop is 0.9-3.5 ATR below the middle of the zone and never
+    closer than min_stop_pct (tighter stops lose too much to costs), then scaled by the stop
+    factor (set by a variant). Setups risking more than max_risk, or already past TP1, are
+    dropped. `px` is the live price: it only decides the order type (in the zone, above it,
+    under it) and the paper fill; the signal itself comes from closed candles."""
+    A = a["atr"]
+    last = a["last"] if px is None else px
     if hi < lo:
         lo, hi = hi, lo
     mid = (lo + hi) / 2
     smin, smax = sp.get("stop_atr") or (0.9, 3.5)  # your own strategies can set wider or tighter bounds
-    min_risk = max(smin * A, mid * 0.003)
+    floor = mid * max(0.003, CFG["min_stop_pct"])
+    min_risk = max(smin * A, floor)
     if mid - stop < min_risk:
         stop = mid - min_risk
-    if mid - stop > smax * A:
-        stop = mid - smax * A
+    if mid - stop > max(smax * A, min_risk):  # the cost floor wins over the ATR cap
+        stop = mid - max(smax * A, min_risk)
     if sk and sk != 1.0:
         stop = mid - (mid - stop) * sk
+        if mid - stop < floor:
+            stop = mid - floor
     risk = (mid - stop) / mid if mid > 0 else 1.0
     if stop <= 0 or risk > (sp.get("max_risk") or CFG["max_risk"]) or last <= stop:
         return None
     R = mid - stop
     tps = [mid + R * k for k in tp_r]
-    if trig is not None and last < trig:
+    if trig is not None and a["last"] < trig:  # a trigger needs a closed candle above it, not a live spike
         status = "trigger"
     elif lo <= last <= hi:
         status = "in_zone"
@@ -1769,9 +1822,10 @@ def build_plan(sp, a, lo, hi, stop, trig, tp_r, sk=1.0):
             "vh": sp.get("vh") or CFG["valid_hours"], "th": sp.get("th") or CFG["track_hours"]}
 
 
-def find_signals(a, h1, sm=None, learn=None, only=None, specs=None, ctx=None):
+def find_signals(a, h1, sm=None, learn=None, only=None, specs=None, ctx=None, px=None):
     """Every strategy (and active variant) that fires on this chart, each with its own
-    levels. `ctx` (regime label, BTC 3h change) is needed for variant filters."""
+    levels. `ctx` (regime label, BTC 3h change, market gate) is needed for variant filters
+    and the gate; `px` is the live price (see build_plan)."""
     learn = learn or {}
     out = []
     if ctx:
@@ -1787,9 +1841,10 @@ def find_signals(a, h1, sm=None, learn=None, only=None, specs=None, ctx=None):
             continue
         tp_r = tuple(sp.get("tp_r") or (learn.get("tp_r") or {}).get(sp["id"]) or STRATEGIES[sp["base"]]["tp_r"])
         sk = sp.get("sk") or (learn.get("sk") or {}).get(sp["id"], 1.0)
-        s = build_plan(sp, a, *lv, tp_r=tp_r, sk=sk)
+        s = build_plan(sp, a, *lv, tp_r=tp_r, sk=sk, px=px)
         if not s:
             continue
+        s["gate"] = (ctx or {}).get("gate")
         if sp.get("filters"):
             c = {"a": a, "h1": h1, "regime": (ctx or {}).get("regime", "Neutral"),
                  "btc3": (ctx or {}).get("btc3", 0.0), "status": s["status"]}
@@ -1800,6 +1855,78 @@ def find_signals(a, h1, sm=None, learn=None, only=None, specs=None, ctx=None):
                 continue
         out.append(s)
     return out
+
+
+# ---- market gate and random twins
+def market_gate(regime, btc_trend):
+    """Why new longs should stand aside right now, or None when the gate is open. In version 4
+    the journal's longs taken in risk-off markets averaged -0.20R against -0.04R for the rest:
+    the market's direction, not the setups, decided most of the result."""
+    if not CFG["gate_longs"]:
+        return None
+    why = []
+    if regime and regime.get("label") == "Risk-off":
+        why.append("the market is risk-off")
+    if btc_trend == "down":
+        why.append("BTC's 4-hour trend is down")
+    return " and ".join(why) or None
+
+
+def is_twin(sid):
+    return str(sid).startswith("RAND:")
+
+
+def gated(t):
+    """A trade signalled while the market gate was closed (paper only, not counted for stats)."""
+    return bool((t.get("f") or {}).get("gate"))
+
+
+def twin_coin(coin, sid, T, pool):
+    """A random other coin from the same scan (reproducible for the same coin, strategy and time)."""
+    rest = [c for c in pool if c != coin]
+    return random.Random(f"{T}|{coin}|{sid}").choice(rest) if rest else None
+
+
+def twin_signal(s, px0, px):
+    """The random twin of signal `s` on another coin: the very same order - entry zone, trigger,
+    stop and targets - scaled from the signal's price `px0` to the other coin's price `px`, with
+    the same fill window and holding time. Only the choice of coin and moment differs, so if a
+    strategy has an edge its trades beat their twins; if not, the two look alike."""
+    k = px / px0 if px0 else 1.0
+    return {"sid": "RAND:" + s["sid"], "base": "RAND", "type": "RAND:" + s["sid"], "name": "Random twin of " + s["name"],
+            "short": "Random", "elo": s["elo"] * k, "ehi": s["ehi"] * k, "mid": s["mid"] * k, "stop": s["stop"] * k,
+            "risk": s["risk"], "R": (s["mid"] - s["stop"]) * k, "tps": [x * k for x in s["tps"]],
+            "tp_r": list(s["tp_r"]), "sk": 1.0, "trigger": s["trigger"] * k if s.get("trigger") is not None else None,
+            "status": s["status"], "above_r": s.get("above_r", 0.0), "tf": s.get("tf", "15m"),
+            "vh": s.get("vh", CFG["valid_hours"]), "th": s.get("th", CFG["track_hours"]), "gate": s.get("gate")}
+
+
+def _gross(t):
+    g = t["res"].get("gross")
+    return t["res"]["r"] if g is None else g
+
+
+def edge_vs_twins(ds, tw):
+    """How much better a strategy's trades did than their random twins over the same period, in R
+    per trade before costs (the twins' costs depend on which coin was drawn, which says nothing
+    about the strategy; whether the strategy beats its own costs is checked separately). The
+    standard error is clustered by day: trades of the same day move together, so they count as
+    one block of evidence rather than many independent ones."""
+    if len(ds) < 2 or len(tw) < 2:
+        return None
+    a, b = [_gross(t) for t in ds], [_gross(t) for t in tw]
+    ms, mt = sum(a) / len(a), sum(b) / len(b)
+    by_day = {}
+    for t, x in zip(ds, a):
+        k = t["t"] // 86400
+        by_day[k] = by_day.get(k, 0.0) + (x - ms) / len(a)
+    for t, x in zip(tw, b):
+        k = t["t"] // 86400
+        by_day[k] = by_day.get(k, 0.0) - (x - mt) / len(b)
+    se = math.sqrt(sum(v * v for v in by_day.values()))
+    naive = math.sqrt(statistics.pvariance(a) / len(a) + statistics.pvariance(b) / len(b))
+    return {"edge": ms - mt, "se": max(se, naive), "twin_n": len(b), "twin_exp": sum(t["res"]["r"] for t in tw) / len(tw),
+            "twin_gross": mt, "gross": ms}
 
 
 # --------------------------------------------------------------------------- positioning (Gate.io)
@@ -2042,7 +2169,7 @@ def conviction(a, h1, s, pos, coin, regime, sm=None):
     p = positioning_points(a, pos, coin, sm)
     parts["positioning"] = (p, 15)
 
-    tier, L = liquidity_tier(coin.get("best_vol"))
+    tier, L = liquidity_tier(liq_of(coin))
     nv = len(coin.get("venues") or {})
     L = min(10, L + (1 if nv >= 4 else 0))
     var = (coin.get("venues") or {}).get("variational") or {}
@@ -2390,7 +2517,7 @@ def write_case(coin, a, h1, s, pos, cdata, regime, conv, sm=None, lc=None):
     if sid == "MR":
         risks.append("Buying weakness: if the swing low breaks, the dip becomes a trend change. Respect the stop.")
     if tier in ("thin", "very thin"):
-        risks.append(f"Thin DEX volume (best {usd(cdata.get('best_vol'))}): expect slippage and trade small.")
+        risks.append(f"Thin volume on your DEXs (best {usd(liq_of(cdata))} a day): expect slippage and trade small.")
     fa = funding_avg(cdata)
     if fa is not None and fa > 0.0005:
         risks.append(f"Longs pay high funding ({fa * 100:.3f}% per 8h on average): crowded long side.")
@@ -2454,11 +2581,17 @@ def learning_section(sid, lc):
     st, status = lc.get("stat") or {}, lc.get("status", "testing")
     name = spec(sid)["name"]
     n = st.get("n") or 0
+    lv, eg = lc.get("live") or {}, lc.get("edge") or {}
     if status == "testing":
-        t = f"{name} is still being tested: {n} of {CFG['min_trades']} closed paper trades so far"
+        t = f"{name} is still being tested: {n} closed paper trades so far"
         if n:
             t += f" ({st['wr'] * 100:.0f}% winners, {st['exp']:+.2f}R per trade)"
-        t += ". Its signals are published so they can be judged, without a score bonus. "
+        t += ". Its signals are paper-traded until it proves itself on live trades. "
+    elif status == "passed" and lv.get("n"):
+        t = (f"{name} has passed the strategy tournament on live trades: {lv['wr'] * 100:.0f}% winners, "
+             f"{lv['exp']:+.2f}R per trade and a profit factor of {fmt_pf(lv.get('pf'))} over {lv['n']} live trades"
+             + (f", {eg['edge']:+.2f}R per trade better than random entries taken at the same moments"
+                if eg.get("edge") is not None else "") + ". ")
     elif status == "passed":
         t = (f"{name} has passed the strategy tournament: {st['wr'] * 100:.0f}% winners, {st['exp']:+.2f}R per trade "
              f"and a profit factor of {fmt_pf(st.get('pf'))} over its last {n} closed trades. ")
@@ -2512,7 +2645,7 @@ def write_rule_case(coin, a, h1, s, cdata, regime, conv, sm=None, lc=None, sp=No
                      "text": f"ATR(14) is {fp(A)}, about {a['atr_pct'] * 100:.1f}% of price per {tf} candle. The stop at "
                              f"{fp(stop)} is {R / A:.1f} ATR ({pc(-s['risk'])}) below the middle of the entry zone. "
                              f"Targets sit at {' / '.join(f'{x:g}R' for x in s['tp_r'])}."})
-    tier, _ = liquidity_tier(cdata.get("best_vol"))
+    tier, _ = liquidity_tier(liq_of(cdata))
     vs = sorted((cdata.get("venues") or {}).values(), key=lambda v: -(v.get("vol") or 0))
     sections.append({"id": "liquidity", "title": "Liquidity and where to trade",
                      "tone": "pos" if tier in ("deep", "good") else "neg" if tier in ("thin", "very thin") else "neu",
@@ -2542,7 +2675,7 @@ def write_rule_case(coin, a, h1, s, cdata, regime, conv, sm=None, lc=None, sp=No
     if hx.get("trend") == "down":
         risks.append("The 4-hour trend is down: this is a counter-trend long.")
     if tier in ("thin", "very thin"):
-        risks.append(f"Thin DEX volume (best {usd(cdata.get('best_vol'))}): expect slippage and trade small.")
+        risks.append(f"Thin volume on your DEXs (best {usd(liq_of(cdata))} a day): expect slippage and trade small.")
     if sm and sm["long_usd"] + sm["short_usd"] >= 25_000 and sm["share"] <= 0.4:
         risks.append(f"Hyperliquid's top traders lean short ({(1 - sm['share']) * 100:.0f}% of their money).")
     if lc and lc.get("status") == "testing":
@@ -2837,7 +2970,7 @@ def trade_features(a, h1, s, conv_raw, regime, coin, sm, btc3, t, live=True):
             "ext": round(a["ext21_atr"], 2), "bw": round(a["bw_pct"]), "p24": round(a["pos24"], 2),
             "r24": round(h1["r24"], 4), "reg": REG_CODE.get(regime["label"], "neu"),
             "sm": round(sm["share"], 3) if live and sm and sm["long_usd"] + sm["short_usd"] >= 25_000 else None,
-            "liq": round(coin.get("best_vol") or 0), "fund": rnd(funding_avg(coin), 6) if live else None,
+            "liq": round(liq_of(coin) or 0), "fund": rnd(funding_avg(coin), 6) if live else None,
             "btc3": round(btc3 or 0.0, 4), "vw": rnd(a["vwap_dist"], 4), "risk": round(s["risk"], 4),
             "hr": dt.datetime.fromtimestamp(t, dt.timezone.utc).hour, "cv": round(conv_raw, 1), "st": s["status"],
             "htf": (a.get("htf") or {}).get("trend")}
@@ -2869,6 +3002,7 @@ BUCKETS = [
     ("late_us", "Late US session (21-24 UTC)", lambda f, s: f["hr"] >= 21),
 ]
 BUCKET_FN = {b: fn for b, _, fn in BUCKETS}
+SESSION_BUCKETS = ("asia", "europe", "us", "late_us")  # shown as lessons, never used for scoring
 BUCKET_LABEL = {b: lab for b, lab, _ in BUCKETS}
 # traits that need data the backtest (or an API outage) cannot provide are only compared
 # among trades where that data exists
@@ -2903,6 +3037,8 @@ TAG_BUCKET = {"chased": "ext_high", "rsi_hot": "rsi_hot", "low_vol": "vol_low", 
 
 def trade_tags(tr):
     res, f, sid = tr["res"], tr.get("f") or {}, tr["s"]
+    if is_twin(sid):  # random twins are a benchmark, not trades to learn from
+        return []
     sid = base_of(sid)
     kind = STRATEGIES.get(sid, {}).get("kind")  # a strategy removed from the code keeps its old trades
     st = res.get("state")
@@ -2968,42 +3104,65 @@ def trade_stats(trs):
         peak = max(peak, cum)
         dd = max(dd, peak - cum)
     holds = [(t["res"]["xt"] - t["res"]["ft"]) / 3600 for t in trs if t["res"].get("xt") and t["res"].get("ft")]
-    return {"n": n, "wr": len(wins) / n, "exp": mean, "se": (sd / math.sqrt(n)) if n > 1 else 1.0,
+    se = (sd / math.sqrt(n)) if n > 1 else 1.0
+    # trades of the same day move together (one BTC drop stops many longs at once), so the honest
+    # standard error treats each day as one block of evidence; it is never below the naive one
+    by_day = {}
+    for t, x in zip(trs, rs):
+        k = t["t"] // 86400
+        by_day[k] = by_day.get(k, 0.0) + (x - mean)
+    se_cl = max(se, math.sqrt(sum(v * v for v in by_day.values())) / n) if n > 1 else 1.0
+    gross = [t["res"]["gross"] for t in trs if t["res"].get("gross") is not None]
+    cost = [t["res"]["cost"] for t in trs if t["res"].get("cost") is not None]
+    return {"n": n, "wr": len(wins) / n, "exp": mean, "se": se, "se_cl": se_cl, "days": len(by_day),
             "pf": (gw / gl) if gl > 0 else (99.0 if gw > 0 else None),
             "rr": ((gw / len(wins)) / (gl / len(losses))) if wins and losses else None,
             "avg_win": gw / len(wins) if wins else None, "avg_loss": -gl / len(losses) if losses else None,
             "net": sum(rs), "dd": dd,
+            "gross": sum(gross) / len(gross) if gross else None, "cost": sum(cost) / len(cost) if cost else None,
             "tp1": sum(1 for t in trs if (t["res"].get("tph") or [None])[0]) / n,
             "stopped": sum(1 for t in trs if t["res"]["state"] == "loss") / n,
             "hold": median(holds, None)}
 
 
-def decide_status(prev, st):
-    """Pass: clearly positive R per trade, profit factor 1.2+, and either a 45%+ win
-    rate or winners 1.5x the size of losers. Reject: clearly negative R per trade or
-    a profit factor under 0.8. In between: watch. Hysteresis stops flip-flopping."""
-    n = st.get("n", 0)
-    if n < CFG["min_trades"]:
+def decide_status(prev, st, live=None, edge=None):
+    """The tournament. `st` covers every recent closed trade (backtest included), `live` only the
+    live ones, `edge` the live trades against their random twins (see edge_vs_twins).
+    Passed: proven live - pass_min_live trades on pass_min_days different days, R per trade more
+    than pass_z day-clustered standard errors above zero AND above its random twins, profit
+    factor 1.2+. A backtest can never pass a strategy: it only shows what to expect.
+    Rejected: clearly losing after reject_min trades (R per trade a standard error below zero, or
+    a profit factor under 0.8). Hysteresis stops flip-flopping."""
+    live = st if live is None else live
+    n, ln = st.get("n", 0), live.get("n", 0)
+    if n < CFG["min_trades"] and ln < CFG["min_trades"]:
         return "testing", f"{n} of {CFG['min_trades']} closed trades so far"
-    exp, se, wr = st["exp"], st.get("se") or 0.5, st["wr"]
+    exp, se = st["exp"], st.get("se_cl") or st.get("se") or 0.5
     pf = st["pf"] if st.get("pf") is not None else 0.0
-    rr = st.get("rr") or 0.0
-    summary = (f"{wr * 100:.0f}% winners, {exp:+.2f}R per trade, profit factor {fmt_pf(st.get('pf'))} "
+    summary = (f"{st['wr'] * 100:.0f}% winners, {exp:+.2f}R per trade, profit factor {fmt_pf(st.get('pf'))} "
                f"over {n} trades")
-    good = exp - 0.5 * se > 0 and pf >= 1.2 and (wr >= 0.45 or rr >= 1.5)
-    bad = exp + 0.5 * se < 0 or pf < 0.8
-    if prev == "passed" and not good and not bad and exp > 0 and pf >= 1.05:
-        return "passed", summary + "; keeps its pass while it stays profitable (profit factor 1.05+)"
-    if prev == "passed" and good:
-        return "passed", summary
+    if edge and edge.get("edge") is not None:
+        summary += f"; {edge['edge']:+.2f}R per trade against random entries"
+    z = CFG["pass_z"]
+    lexp = live.get("exp") or 0.0
+    lse = live.get("se_cl") or live.get("se") or 0.5
+    lpf = live["pf"] if live.get("pf") is not None else 0.0
+    proven = (ln >= CFG["pass_min_live"] and live.get("days", 0) >= CFG["pass_min_days"]
+              and lexp - z * lse > 0 and lpf >= 1.2 and bool(edge) and edge["edge"] - z * edge["se"] > 0)
+    bad = n >= CFG["reject_min"] and (exp + se < 0 or pf < 0.8)
+    holding = ln > 0 and lexp > 0 and lpf >= 1.05 and bool(edge) and edge["edge"] > 0
+    if prev == "passed" and (proven or (holding and not bad)):
+        return "passed", summary + ("" if proven else "; keeps its pass while it stays ahead of random entries")
     if prev == "rejected" and not (exp > 0 and pf >= 1.05):
         return "rejected", summary + ("" if bad else "; stays rejected until it makes money again "
                                                     "(profit factor 1.05+)")
-    if good:
+    if proven:
         return "passed", summary
     if bad:
         return "rejected", summary
-    return "watch", summary
+    if ln < CFG["pass_min_live"]:
+        return "testing", summary + f"; {ln} of {CFG['pass_min_live']} live trades needed for a pass"
+    return "watch", summary + "; no clear edge over random entries yet"
 
 
 def tune_targets(sid, ds):
@@ -3153,12 +3312,19 @@ def learn(J, now):
     sks = lst.setdefault("sk", {})
     L = {"strat": {}, "tp_r": {}, "sk": {}, "n_done": len(done)}
     for sid in [sp["id"] for sp in active_specs()]:
-        ds = [t for t in done if t["s"] == sid][-CFG["strategy_window"]:]
+        # signals taken while the market gate was closed are paper only and do not count
+        ds = [t for t in done if t["s"] == sid and not gated(t)][-CFG["strategy_window"]:]
         st = trade_stats(ds)
         st["bt_n"] = sum(1 for t in ds if t.get("bt"))
         st["live_n"] = len(ds) - st["bt_n"]
+        live_ds = [t for t in ds if not t.get("bt")]
+        lst_ = trade_stats(live_ds)
+        since = ds[0]["t"] if ds else horizon
+        tw = [t for t in done if t["s"] == "RAND:" + sid and not gated(t) and t["t"] >= since]
+        edge = edge_vs_twins(ds, tw)
+        edge_live = edge_vs_twins(live_ds, [t for t in tw if not t.get("bt")])
         prev = (status.get(sid) or {}).get("s", "testing")
-        new, why = decide_status(prev, st)
+        new, why = decide_status(prev, st, live=lst_, edge=edge_live)
         if new != prev:
             J.setdefault("changes", []).append({"t": now, "sid": sid, "kind": "status", "from": prev, "to": new,
                                                 "why": why})
@@ -3166,27 +3332,34 @@ def learn(J, now):
             status[sid] = {"s": new, "since": now, "why": why}
         else:
             status[sid]["why"] = why
-        info = {"status": new, "why": why, "stat": st, "since": status[sid]["since"]}
-        tt = None if spec(sid).get("tp_r") else tune_targets(sid, ds)  # a variant's own targets stay fixed
-        if tt:
-            L["tp_r"][sid] = tt["tp_r"]
-            info["tuned"] = tt
+        info = {"status": new, "why": why, "stat": st, "live": lst_, "edge": edge, "edge_live": edge_live,
+                "since": status[sid]["since"]}
+        if CFG["auto_tune"]:
+            tt = None if spec(sid).get("tp_r") else tune_targets(sid, ds)  # a variant's own targets stay fixed
+            if tt:
+                L["tp_r"][sid] = tt["tp_r"]
+                info["tuned"] = tt
         if spec(sid).get("sk"):  # a variant's own stop factor stays fixed, like its targets
             L["sk"][sid] = spec(sid)["sk"]
             L["strat"][sid] = info
             continue
-        old = sks.get(sid, 1.0)
-        sk, why_sk = tune_stop(old, ds)
-        if why_sk:
-            sks[sid] = sk
-            J.setdefault("changes", []).append({"t": now, "sid": sid, "kind": "stop", "from": f"{old:.2f}x",
-                                                "to": f"{sk:.2f}x", "why": why_sk})
-        L["sk"][sid] = sks.get(sid, 1.0)
+        if CFG["auto_tune"]:
+            old = sks.get(sid, 1.0)
+            sk, why_sk = tune_stop(old, ds)
+            if why_sk:
+                sks[sid] = sk
+                J.setdefault("changes", []).append({"t": now, "sid": sid, "kind": "stop", "from": f"{old:.2f}x",
+                                                    "to": f"{sk:.2f}x", "why": why_sk})
+            L["sk"][sid] = sks.get(sid, 1.0)
+        else:
+            L["sk"][sid] = 1.0
         L["strat"][sid] = info
     J["changes"] = J.get("changes", [])[-40:]
-    # variants repeat their parent's trades, so lessons and cool-downs use the base strategies only
-    L["lessons"] = compute_lessons([t for t in done if "~" not in t["s"]])
-    L["cool"] = coin_cooldowns([t for t in trades if "~" not in t["s"]], now)
+    # variants repeat their parent's trades and twins are only a benchmark, so lessons and
+    # cool-downs use the base strategies' trades taken with the market gate open
+    base = [t for t in done if t["s"] in SID_ORDER and not gated(t)]
+    L["lessons"] = compute_lessons(base)
+    L["cool"] = coin_cooldowns([t for t in trades if t["s"] in SID_ORDER and not gated(t)], now)
     return L
 
 
@@ -3205,8 +3378,10 @@ def adjustments(sid, f, coin, L):
     elif info["status"] == "rejected":
         block = f"{name} is rejected by the tournament"
     matched = {}
-    for lesson in L.get("lessons") or []:
+    for lesson in (L.get("lessons") or []) if CFG["lesson_points"] else []:
         if lesson["sid"] and lesson["sid"] != base:
+            continue
+        if lesson["bucket"] in SESSION_BUCKETS:  # time of day: too easy to learn a coincidence
             continue
         if not BUCKET_FN[lesson["bucket"]](f, base):
             continue
@@ -3232,7 +3407,7 @@ def adjustments(sid, f, coin, L):
 
 
 # ---- journal state
-ENGINE = 4  # journals written before version 4 have no trading costs in their results
+ENGINE = 5  # journals written before version 5 used other rules (no gate, no twins, tighter stops)
 
 
 def new_journal(now):
@@ -3241,11 +3416,11 @@ def new_journal(now):
 
 
 def _upgrade(J, now, src):
-    """A journal from before version 4 measured trades without costs, so its results cannot
+    """A journal from an older version measured trades under other rules, so its results cannot
     be mixed with the new ones: start a new journal (with a new backtest) instead."""
     if J.get("engine", 3) >= ENGINE:
         return J, src
-    log("journal from an older version (no trading costs): starting a new one with a fresh backtest")
+    log("journal from an older version (other rules): starting a new one with a fresh backtest")
     K = new_journal(now)
     K["smart_prev"] = J.get("smart_prev")
     return K, "upgraded"
@@ -3305,9 +3480,11 @@ def load_journal(pages_url, journal_path, reset, now):
     return _upgrade(J, now, "pages")
 
 
-def new_trade(coin, s, a, t, f, conv_raw, final, rank=None, blk=None, bt=False):
+def new_trade(coin, s, a, t, f, conv_raw, final, rank=None, blk=None, bt=False, px=None):
+    """One paper trade. `px` is the price when the signal was published (the live price in a scan,
+    the last close in a backtest): an order in the zone fills there."""
     return {"id": f"{coin}-{s['sid']}-{t}", "c": coin, "s": s["sid"], "t": t, "bt": 1 if bt else 0,
-            "px": sig6(a["last"]), "lo": sig6(s["elo"]), "hi": sig6(s["ehi"]), "m": sig6(s["mid"]),
+            "px": sig6(a["last"] if px is None else px), "lo": sig6(s["elo"]), "hi": sig6(s["ehi"]), "m": sig6(s["mid"]),
             "sl": sig6(s["stop"]), "tp": [sig6(x) for x in s["tps"]],
             "tg": sig6(s["trigger"]) if s["trigger"] is not None else None, "st": s["status"],
             "tr": s["tp_r"], "sk": s["sk"], "cv": round(conv_raw, 1), "fs": round(final, 1), "rk": rank,
@@ -3367,7 +3544,7 @@ def journal_add(J, trades):
         if how == "skip":
             continue
         J["open"].append(tr)
-        if how == "add":
+        if how == "add" and not is_twin(tr["s"]):
             life.setdefault(tr["s"], {"sig": 0, "n": 0, "win": 0, "loss": 0, "r": 0.0})["sig"] += 1
         n += 1
     if retired:
@@ -3417,8 +3594,8 @@ def agg_1h(c15):
 
 def fetch_history(crypto, dex_ok, days):
     """15m candles covering the last `days` days (plus a warm-up) for the most traded coins."""
-    pool = sorted([t for t, c in crypto.items() if (not dex_ok) or (c.get("best_vol") or 0) >= CFG["min_dex_vol"]],
-                  key=lambda t: -(crypto[t].get("best_vol") or 0))[:CFG["bt_universe"]]
+    pool = sorted([t for t, c in crypto.items() if (not dex_ok) or (liq_of(c) or 0) >= CFG["min_dex_vol"]],
+                  key=lambda t: -(liq_of(crypto[t]) or 0))[:CFG["bt_universe"]]
     if "BTC" in crypto and "BTC" not in pool:
         pool.append("BTC")
     bars = days * 96 + 600  # warm-up: 150 hours, so the 4h trend exists from the first backtest hour
@@ -3457,7 +3634,7 @@ def _forming(last, t):
     return {"t": t, "o": last, "h": last, "l": last, "c": last, "qv": 0.0}
 
 
-def backtest(C, crypto, now, days, specs, rank_specs=(), learn=None):
+def backtest(C, crypto, now, days, specs, rank_specs=(), learn=None, twin_ids=None):
     """Walk-forward test of `specs` over the last `days` days of the 15m candles in C.
     Every hour it does what a live scan does, using only candles that had closed by
     then: rank the coins on 1h momentum, take the leaders plus dipping uptrends,
@@ -3466,12 +3643,18 @@ def backtest(C, crypto, now, days, specs, rank_specs=(), learn=None):
     with the candle that has just opened (flat, no volume). Smart-money data does not
     exist for the past, so smart-money follow cannot fire. `learn` holds the targets
     and stop factors to use (the live ones). The best signal per coin from
-    `rank_specs` gets a pick rank, like the live page. Returns {spec id: [trades]},
-    every trade evaluated up to `now`."""
+    `rank_specs` gets a pick rank, like the live page. The market gate works as live:
+    signals while it is closed are paper-traded (flagged) and never ranked. Every signal of a
+    spec in `twin_ids` (default: all, when twins are on) gets a random twin, kept under
+    "RAND:<spec id>". Returns {spec id: [trades]}, every trade evaluated up to `now`."""
     P_ = bt_prepare(C)
     end = (now // 3600) * 3600
-    books = {sp["id"]: ({}, {}) for sp in specs}
-    trades = {sp["id"]: [] for sp in specs}
+    if twin_ids is None:
+        twin_ids = {sp["id"] for sp in specs} if CFG["twins"] else set()
+    twin_ids = set(twin_ids)
+    ids = [sp["id"] for sp in specs] + ["RAND:" + x for x in sorted(twin_ids)]
+    books = {sid: ({}, {}) for sid in ids}
+    trades = {sid: [] for sid in ids}
     rank_specs = set(rank_specs)
     for T in range(end - days * 86400, end + 1, 3600):
         for sid, (active, copies) in books.items():
@@ -3500,8 +3683,11 @@ def backtest(C, crypto, now, days, specs, rank_specs=(), learn=None):
         cands = ranked[:CFG["stage2_n"]]
         dips = sorted([t for t in ranked[CFG["stage2_n"]:] if s1[t]["trend"] > 0 and s1[t]["r24"] > 0
                        and s1[t]["r3"] < 0], key=lambda t: -s1[t]["trend"])[:CFG["stage2_extra"]]
-        ctx = {"regime": regime["label"], "btc3": btc["r3"]}
-        found = []
+        pb = P_["BTC"]
+        btc_htf = bt_htf(pb, bisect.bisect_right(pb["h4t"], T - 14400), C["BTC"][ib - 1]["c"]) if ib > 0 else None
+        gate = market_gate(regime, (btc_htf or {}).get("trend"))
+        ctx = {"regime": regime["label"], "btc3": btc["r3"], "gate": gate}
+        found, seen_a = [], {}
         for t in cands + dips:
             c = C[t]
             i15 = _bar_index(c, T)
@@ -3510,23 +3696,37 @@ def backtest(C, crypto, now, days, specs, rank_specs=(), learn=None):
             a = m15_analysis(c[i15 - 95:i15] + [_forming(c[i15 - 1]["c"], T)], chart=False)
             p = P_[t]
             a["htf"] = bt_htf(p, bisect.bisect_right(p["h4t"], T - 14400), a["last"])
+            seen_a[t] = a
             # where the coin trades counts for liquidity; its funding and open interest then are unknown
             coin = {"venues": {d: {} for d in (crypto.get(t) or {}).get("venues") or {}},
-                    "best_vol": (crypto.get(t) or {}).get("best_vol")}
+                    "best_vol": (crypto.get(t) or {}).get("best_vol"), "trade_vol": (crypto.get(t) or {}).get("trade_vol")}
             for s in find_signals(a, s1[t], None, learn=learn, specs=specs, ctx=ctx):
                 found.append((conviction(a, s1[t], s, None, coin, regime)["score"], t, s, a))
         found.sort(key=lambda x: -x[0])
         rank, seen = {}, set()
         for score, t, s, _ in found:
-            if s["sid"] in rank_specs and t not in seen and score >= CFG["min_pick_score"] \
+            if s["sid"] in rank_specs and not gate and t not in seen and score >= CFG["min_pick_score"] \
                     and len(rank) < CFG["top_n"]:
                 seen.add(t)
                 rank[(t, s["sid"])] = len(rank) + 1
+        pool = sorted(seen_a)
         for score, t, s, a in found:
             f = trade_features(a, s1[t], s, score, regime, crypto.get(t, {}), None, btc["r3"], T, live=False)
+            f["gate"] = 1 if gate else 0
             active, copies = books[s["sid"]]
             log_signal(active, copies, new_trade(t, s, a, T, f, score, score, rank.get((t, s["sid"])), bt=True),
                        trades[s["sid"]].append)
+            if s["sid"] in twin_ids:
+                c2 = twin_coin(t, s["sid"], T, pool)
+                if c2 is None:
+                    continue
+                a2 = seen_a[c2]
+                s2 = twin_signal(s, a["last"], a2["last"])
+                f2 = trade_features(a2, s1[c2], s2, 0.0, regime, crypto.get(c2, {}), None, btc["r3"], T, live=False)
+                f2["gate"] = f["gate"]
+                active, copies = books[s2["sid"]]
+                log_signal(active, copies, new_trade(c2, s2, a2, T, f2, 0.0, 0.0, None, "Random benchmark", bt=True),
+                           trades[s2["sid"]].append)
     for sid, (active, copies) in books.items():
         trades[sid] += list(active.values()) + list(copies.values())
         for tr in trades[sid]:
@@ -3540,7 +3740,7 @@ def backtest(C, crypto, now, days, specs, rank_specs=(), learn=None):
 
 def _life_close(J, t):
     """Lifetime counters for a strategy when one of its filled trades is closed for good."""
-    if t["res"].get("done") and not t.get("dup"):
+    if t["res"].get("done") and not t.get("dup") and not is_twin(t["s"]):
         lf = J.setdefault("life", {}).setdefault(t["s"], {"sig": 0, "n": 0, "win": 0, "loss": 0, "r": 0.0})
         lf["n"] += 1
         lf["r"] = round(lf["r"] + t["res"]["r"], 3)
@@ -3561,7 +3761,7 @@ def seed_journal(J, trades, now, days, n_coins, secs):
             if tr["t"] >= start:
                 continue
             n += 1
-            if not tr.get("dup"):
+            if not tr.get("dup") and not is_twin(sid):
                 life.setdefault(sid, {"sig": 0, "n": 0, "win": 0, "loss": 0, "r": 0.0})["sig"] += 1
             if tr["res"].get("final"):
                 J["closed"].append(tr)
@@ -3658,6 +3858,8 @@ def discovery_due(J, now):
 
 def current_tuning(J, now):
     """The targets and stop factors the strategies trade with right now (as learn() sets them)."""
+    if not CFG["auto_tune"]:
+        return {"tp_r": {}, "sk": {}}
     horizon = now - CFG["journal_days"] * 86400
     done = sorted((t for t in J["closed"] + J["open"] if t["t"] >= horizon and not t.get("dup")
                    and t["res"].get("done")), key=lambda t: t["res"].get("xt") or t["t"])
@@ -3896,7 +4098,8 @@ def journal_summary(J, L, now, sig_now):
     for sid in [sp["id"] for sp in active_specs() if sp["stage"] in ("base", "promoted", "user")]:
         info, S_ = L["strat"][sid], spec(sid)
         st = info["stat"]
-        ds = [t for t in done if t["s"] == sid][-CFG["strategy_window"]:]
+        ds = [t for t in done if t["s"] == sid and not gated(t)][-CFG["strategy_window"]:]
+        eg, el, lv = info.get("edge") or {}, info.get("edge_live") or {}, info.get("live") or {}
         sig = [t for t in trades if t["s"] == sid]
         resolved = [t for t in sig if t["res"].get("done") or t["res"].get("state") in ("missed", "no_fill", "invalid")]
         filled = [t for t in resolved if t["res"].get("done")]
@@ -3919,10 +4122,16 @@ def journal_summary(J, L, now, sig_now):
             "own_tp": bool(S_.get("tp_r")), "default_tp": list(STRATEGIES[S_["base"]]["tp_r"]),
             "reach": (tuned or {}).get("reach"), "tuned_n": (tuned or {}).get("n"),
             "sk": S_.get("sk") or L["sk"].get(sid, 1.0), "curve": _curve([t["res"]["r"] for t in ds]),
-            "now": sig_now.get(sid, []), "life": (J.get("life") or {}).get(sid)})
+            "now": sig_now.get(sid, []), "life": (J.get("life") or {}).get(sid),
+            # version 5: what costs take, the result before costs, and the result against random twins
+            "gross": rnd(st.get("gross"), 3), "cost": rnd(st.get("cost"), 3), "se_cl": rnd(st.get("se_cl"), 3),
+            "days": st.get("days"), "live_days": lv.get("days"), "live_se": rnd(lv.get("se_cl"), 3),
+            "edge": rnd(eg.get("edge"), 3), "edge_se": rnd(eg.get("se"), 3), "twin_n": eg.get("twin_n"),
+            "twin_exp": rnd(eg.get("twin_exp"), 3), "edge_live": rnd(el.get("edge"), 3),
+            "edge_live_se": rnd(el.get("se"), 3)})
     strategies.sort(key=lambda s: (STATUS_RANK[s["status"]], -(s["exp"] if s["exp"] is not None else -9)))
 
-    base_done = [t for t in done if "~" not in t["s"]]
+    base_done = [t for t in done if t["s"] in SID_ORDER and not gated(t)]
     losses = [t for t in base_done if t["res"]["state"] == "loss"]
     lesson_by_bucket = {}
     for lesson in L.get("lessons") or []:
@@ -3965,7 +4174,7 @@ def journal_summary(J, L, now, sig_now):
     live_picks = [t for t in everything if t.get("rk") and not t.get("bt")]
     bt_picks = [t for t in everything if t.get("rk") and t.get("bt")]
     day = [t for t in live_picks if now - t["t"] <= 86400]
-    shown = [t for t in everything if t["res"].get("state") != "superseded" or t.get("rk")]
+    shown = [t for t in everything if not is_twin(t["s"]) and (t["res"].get("state") != "superseded" or t.get("rk"))]
     recent = sorted(shown, key=lambda t: (-t["t"], t.get("rk") or 99))[:240]
     rows = []
     for t in recent:
@@ -3977,9 +4186,14 @@ def journal_summary(J, L, now, sig_now):
     changes = sorted(J.get("changes") or [], key=lambda c: -c["t"])[:24]
     return {
         "since": J.get("created"), "scans": J.get("scans", 0), "bt": J.get("bt"),
-        "counts": {"open": len(J["open"]), "closed": len(J["closed"]), "window": len(trades),
-                   "done": len(done), "live": sum(1 for t in trades if not t.get("bt")),
-                   "replay": sum(1 for t in trades if t.get("bt"))},
+        # random twins are a benchmark, not trades: they are left out of the counts
+        "counts": {"open": sum(1 for t in J["open"] if not is_twin(t["s"])),
+                   "closed": sum(1 for t in J["closed"] if not is_twin(t["s"])),
+                   "window": sum(1 for t in trades if not is_twin(t["s"])),
+                   "done": sum(1 for t in done if not is_twin(t["s"])),
+                   "live": sum(1 for t in trades if not t.get("bt") and not is_twin(t["s"])),
+                   "replay": sum(1 for t in trades if t.get("bt") and not is_twin(t["s"])),
+                   "twins": sum(1 for t in done if is_twin(t["s"]))},
         "strategies": strategies,
         "lessons": (L.get("lessons") or [])[:30],
         "mistakes": mistakes, "losses": len(losses), "calib": calib,
@@ -3992,13 +4206,33 @@ def journal_summary(J, L, now, sig_now):
         "bt_picks_r": [round(t["res"]["r"], 3) for t in sorted((t for t in bt_picks if t["res"].get("done")),
                                                                  key=lambda t: t["res"].get("xt") or t["t"])][-400:],
         "rows": rows, "changes": changes, "discovery": discovery_summary(J, L, now),
+        "gate": gate_report(done, now),
         "rules": {"min_trades": CFG["min_trades"], "window_days": CFG["journal_days"],
                   "strategy_window": CFG["strategy_window"], "lesson_min": CFG["lesson_min"],
                   "publish": list(CFG["publish"]), "valid_hours": CFG["valid_hours"],
                   "track_hours": CFG["track_hours"], "hunt_hours": CFG["hunt_hours"],
                   "costs": CFG["costs"], "fee_taker": CFG["fee_taker"], "fee_maker": CFG["fee_maker"],
-                  "slip": [list(x) for x in CFG["slip"]], "fund_default": CFG["fund_default"]},
+                  "slip": [list(x) for x in CFG["slip"]], "fund_default": CFG["fund_default"],
+                  "pass_min_live": CFG["pass_min_live"], "pass_min_days": CFG["pass_min_days"],
+                  "pass_z": CFG["pass_z"], "reject_min": CFG["reject_min"], "gate_longs": CFG["gate_longs"],
+                  "twins": CFG["twins"], "min_stop_pct": CFG["min_stop_pct"], "min_dex_vol": CFG["min_dex_vol"],
+                  "trade_dexes": [DEX_NAME.get(d, d) for d in CFG["trade_dexes"]],
+                  "lesson_points": CFG["lesson_points"], "auto_tune": CFG["auto_tune"],
+                  "discovery": CFG["discovery"]},
     }
+
+
+def gate_report(done, now):
+    """What the market gate kept out against what it let through (base strategies, last 30 days),
+    and the same for the random twins: the gate is worth having only if the gated trades did worse."""
+    out = {}
+    for name, keep in (("gated", True), ("open", False)):
+        rs = [t["res"]["r"] for t in done if t["s"] in SID_ORDER and gated(t) == keep]
+        tw = [t["res"]["r"] for t in done if is_twin(t["s"]) and t["s"][5:] in SID_ORDER and gated(t) == keep]
+        out[name] = {"n": len(rs), "avg_r": rnd(sum(rs) / len(rs), 3) if rs else None,
+                     "wr": rnd(sum(1 for x in rs if x > 0.02) / len(rs), 3) if rs else None,
+                     "twin_n": len(tw), "twin_avg_r": rnd(sum(tw) / len(tw), 3) if tw else None}
+    return out
 
 
 CSV_COLS = ["id", "time_utc", "coin", "strategy", "source", "status_at_scan", "rank", "score_raw", "score_final",
@@ -4006,7 +4240,7 @@ CSV_COLS = ["id", "time_utc", "coin", "strategy", "source", "status_at_scan", "r
             "result", "r_net", "r_gross", "costs_r", "fill_price", "fill_time_utc", "exit_time_utc", "mfe_r", "mae_r",
             "stop_hunt",
             "btc_move", "tags", "rsi", "adx", "vol_ratio", "atr_above_ema21", "regime", "smart_long_share",
-            "dex_vol_24h", "funding_8h"]
+            "dex_vol_24h", "funding_8h", "market_gate"]
 
 
 def journal_csv(J):
@@ -4028,7 +4262,7 @@ def journal_csv(J):
                     "" if res.get("hunt") is None else int(res["hunt"]), res.get("btc", ""),
                     " ".join(t.get("tags") or []), f.get("rsi"), f.get("adx"), f.get("vr"), f.get("ext"),
                     f.get("reg"), "" if f.get("sm") is None else f["sm"], f.get("liq"),
-                    "" if f.get("fund") is None else f["fund"]])
+                    "" if f.get("fund") is None else f["fund"], 1 if f.get("gate") else 0])
     return buf.getvalue()
 
 
@@ -4060,10 +4294,12 @@ def _study_coin_n(job):
     look at the chart as it was, and paper-trade a signal with the live rules and costs.
     A new signal waits until the previous trade on the coin is over. Also returns how many
     steps had your rules all true but no order could be placed (price already under the
-    stop, or the stop wider than the max stop distance)."""
-    coin, c, info, sp, btc1, now, days = job
+    stop, or the stop wider than the max stop distance), and how many signals the market
+    gate kept out (BTC's 4-hour trend down; the market-wide regime is not known here)."""
+    coin, c, info, sp, btc1, now, days = job[:7]
+    p_btc, gate_on = (job[7], job[8]) if len(job) > 8 else (None, False)
     rules = (sp.get("params") or {}).get("rules") if sp["base"] == "RULE" else None
-    dropped = 0
+    dropped = gated_n = 0
     bs, tfsec = _bar_sec(c), TF_SEC[sp["tf"]]
     tfc = c if tfsec == bs else agg_tf(c, tfsec)
     tt = [x["t"] for x in tfc]
@@ -4085,10 +4321,16 @@ def _study_coin_n(job):
             continue
         ib = bisect.bisect_right(btc_t, T - 3600)
         btc3 = btc1[ib - 1][1] / btc1[ib - 4][1] - 1 if ib >= 4 else 0.0
+        btc_trend = None
+        if p_btc is not None and ib > 0:
+            btc_trend = (bt_htf(p_btc, bisect.bisect_right(p_btc["h4t"], T - 14400), btc1[ib - 1][1]) or {}).get("trend")
         sigs = find_signals(a, h1, None, specs=[sp], ctx={"regime": "Neutral", "btc3": btc3})
         if not sigs:
             if rules and all(rule_ok(r, a, h1) for r in rules):
                 dropped += 1
+            continue
+        if gate_on and market_gate(None, btc_trend):
+            gated_n += 1
             continue
         s = sigs[0]
         f = trade_features(a, h1, s, 0.0, {"label": "Neutral"}, info, None, btc3, T, live=False)
@@ -4103,21 +4345,60 @@ def _study_coin_n(job):
             break  # still running at the end of the data
         free_at = max(T + step, (res.get("xt") or 0) + 1,
                       T + (s["vh"] * 3600 if st in ("no_fill", "missed", "invalid") else 0))
-    return trades, dropped
+    return trades, dropped, gated_n
 
 
-def study_report(sp, trades, base_trades=None):
-    """Numbers for the Studio page: record, verdict, equity curve, months, coins, trades."""
+def study_twins(sp, trades, C, crypto, coins, now):
+    """A random twin for every Studio signal: another tested coin at the same moment, bought at
+    its last close with the same stop distance and targets (see twin_signal)."""
+    out = []
+    for tr in trades:
+        T = tr["t"]
+        c2 = twin_coin(tr["c"], tr["s"], T, coins)
+        if c2 is None or c2 not in C:
+            continue
+        cc = C[c2]
+        bs = _bar_sec(cc)
+        i = _bar_index(cc, T, bs)
+        if i < 1 or cc[i - 1]["t"] < T - 2 * bs:
+            continue
+        px = cc[i - 1]["c"]
+        risk = (tr["m"] - tr["sl"]) / tr["m"] if tr["m"] else 0.0
+        if not 0 < risk < 1 or not tr.get("px"):
+            continue
+        s2 = twin_signal({"sid": tr["s"], "name": sp["name"], "elo": tr["lo"], "ehi": tr["hi"], "mid": tr["m"],
+                          "stop": tr["sl"], "risk": risk, "tps": tr["tp"], "tp_r": tr["tr"], "trigger": tr.get("tg"),
+                          "status": tr["st"], "vh": tr.get("vh", CFG["valid_hours"]),
+                          "th": tr.get("th", CFG["track_hours"]), "tf": tr.get("tf", "15m")}, tr["px"], px)
+        t2 = new_trade(c2, s2, {"last": px}, T, {"liq": round(liq_of(crypto.get(c2) or {}) or 0), "fund": None,
+                                                  "risk": round(risk, 4)}, 0.0, 0.0, bt=True)
+        res = simulate_trade(t2, cc, now)
+        if res is None:
+            continue
+        t2["res"] = res
+        out.append(t2)
+    return out
+
+
+def study_report(sp, trades, base_trades=None, twins=None, gated_n=0):
+    """Numbers for the Studio page: record, verdict, equity curve, months, coins, trades, and the
+    same signals' random twins (the strategy only has an edge if it clearly beats them)."""
     trades = [t for t in trades if not t.get("dup")]
     done = sorted((t for t in trades if t["res"].get("done")), key=lambda t: t["res"].get("xt") or t["t"])
     st = trade_stats(done)
     unfilled_by = {k: sum(1 for t in trades if t["res"].get("state") == k) for k in ("invalid", "no_fill", "missed")}
     unfilled = sum(unfilled_by.values())
-    status, why = decide_status("testing", st)
+    twin_done = [t for t in (twins or []) if t["res"].get("done") and not t.get("dup")]
+    edge = edge_vs_twins(done, twin_done)
+    status, why = decide_status("testing", st, live=st, edge=edge)  # in a test every trade counts as "live"
     out = {"signals": len(trades), "filled": len(done), "unfilled": unfilled, "unfilled_by": unfilled_by,
            "open_at_end": sum(1 for t in trades if t["res"].get("state") in ACTIVE),
            "stats": {k: rnd(v, 4) if isinstance(v, float) else v for k, v in st.items()},
-           "verdict": status, "why": why}
+           "verdict": status, "why": why, "gated": gated_n}
+    if twins is not None:
+        tst = trade_stats(twin_done)
+        out["twins"] = {"n": len(twin_done), "exp": rnd(tst.get("exp"), 4), "wr": rnd(tst.get("wr"), 4),
+                        "edge": rnd((edge or {}).get("edge"), 4), "edge_se": rnd((edge or {}).get("se"), 4)}
     cum, curve = 0.0, []
     for t in done:
         cum += t["res"]["r"]
@@ -4151,7 +4432,7 @@ def study_report(sp, trades, base_trades=None):
         bst = trade_stats(bd)
         out["baseline"] = {"name": STRATEGIES[sp["base"]]["name"] + " (default settings)",
                            "stats": {k: rnd(v, 4) if isinstance(v, float) else v for k, v in bst.items()},
-                           "verdict": decide_status("testing", bst)[0]}
+                           "verdict": decide_status("testing", bst, live=bst)[0]}
     return out
 
 
@@ -4183,8 +4464,8 @@ def run_study(req_text, out_dir):
         crypto = {t: c for t, c in coins.items() if not c["tradfi"]}
         wanted = [canon(str(x)) for x in (req.get("coin_list") or [])][:CFG["study_max_coins"]]
         pool = [t for t in wanted if t in crypto] or sorted(
-            [t for t, c in crypto.items() if (not dex_ok) or (c.get("best_vol") or 0) >= CFG["min_dex_vol"]],
-            key=lambda t: -(crypto[t].get("best_vol") or 0))[:n_coins]
+            [t for t, c in crypto.items() if (not dex_ok) or (liq_of(c) or 0) >= CFG["min_dex_vol"]],
+            key=lambda t: -(liq_of(crypto[t]) or 0))[:n_coins]
         tested = list(pool)
         if "BTC" in crypto and "BTC" not in pool:
             pool.append("BTC")  # the market reference (BTC's own move is a rule field)
@@ -4200,28 +4481,40 @@ def run_study(req_text, out_dir):
         if len(C) < 3:
             raise RuntimeError("too few coins returned price history")
         base_trades = None
+        gate_on = req.get("gate", True) is not False  # stand aside when BTC's 4-hour trend is down (default)
+        gated_n = 0
         if sp["base"] != "RULE":
             if "BTC" not in C or len(C) < 20:
                 raise RuntimeError("the built-in engine needs BTC and at least 20 coins with history")
-            res = backtest(C, crypto, now, days, [base_spec(sp["base"]), sp])
-            trades, base_trades = res[sp["id"]], res[sp["base"]]
+            res = backtest(C, crypto, now, days, [base_spec(sp["base"]), sp], twin_ids={sp["id"]})
+            trades, base_trades, twins = res[sp["id"]], res[sp["base"]], res["RAND:" + sp["id"]]
+            if gate_on:
+                gated_n = sum(1 for t in trades if gated(t))
+                trades = [t for t in trades if not gated(t)]
+                base_trades = [t for t in base_trades if not gated(t)]
+                twins = [t for t in twins if not gated(t)]
         else:
             btc1 = [(x["t"], x["c"]) for x in agg_tf(C["BTC"], 3600)] if "BTC" in C else []
-            jobs = [(t, C[t], crypto.get(t, {}), sp, btc1, now, days) for t in tested if t in C]
+            p_btc = bt_prepare({"BTC": C["BTC"]})["BTC"] if "BTC" in C else None
+            jobs = [(t, C[t], crypto.get(t, {}), sp, btc1, now, days, p_btc, gate_on) for t in tested if t in C]
             trades, dropped = [], 0
             try:
                 with cf.ProcessPoolExecutor(max_workers=max(1, min(8, os.cpu_count() or 2))) as ex:
-                    for lst, nd in ex.map(_study_coin_n, jobs, chunksize=1):
+                    for lst, nd, ng in ex.map(_study_coin_n, jobs, chunksize=1):
                         trades += lst
                         dropped += nd
+                        gated_n += ng
             except (OSError, RuntimeError, cf.process.BrokenProcessPool):
-                trades, dropped = [], 0
+                trades, dropped, gated_n = [], 0, 0
                 for j in jobs:
-                    lst, nd = _study_coin_n(j)
+                    lst, nd, ng = _study_coin_n(j)
                     trades += lst
                     dropped += nd
+                    gated_n += ng
             result["dropped"] = dropped
-        result.update(study_report(sp, trades, base_trades))
+            twins = study_twins(sp, trades, C, crypto, [t for t in tested if t in C], now)
+        result.update(study_report(sp, trades, base_trades, twins=twins, gated_n=gated_n))
+        result["gate"] = gate_on
         result.update(ok=True, name=sp["name"], desc=sp["desc"], tf=tf, days=days,
                       coins_tested=len([t for t in tested if t in C]), sources=srcs,
                       sim_tf=sim_tf, costs=CFG["costs"],
@@ -4371,15 +4664,18 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
     if smart:
         SM_META.update(traders=smart["traders"])
 
-    # stage 1: every crypto coin on 1h candles
-    res1 = parallel(lambda t: get_candles(crypto[t], "1h", CFG["h1_bars"]), list(crypto))
+    # stage 1: every crypto coin on 1h candles. Exchanges also send the hour still forming;
+    # like the backtest, the analysis uses closed candles plus a flat placeholder for it.
+    res1 = parallel(lambda t: get_candles(crypto[t], "1h", CFG["h1_bars"] + 1), list(crypto))
     s1, nodata, src_count = {}, [], {}
     for t in crypto:
         r = res1.get(t)
-        if not r or len(r["candles"]) < 30:
+        cl1 = closed_part(r["candles"], 3600, scan_t) if r else []
+        if len(cl1) < 30:
             nodata.append(t)
             continue
-        m = h1_metrics(r["candles"])
+        r["closed"] = cl1
+        m = h1_metrics(as_backtest(cl1[-(CFG["h1_bars"] - 1):], 3600))
         m["src"] = r["src"]
         s1[t] = m
         src_count[r["src"]] = src_count.get(r["src"], 0) + 1
@@ -4392,10 +4688,15 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
     if len(s1) < 20:
         raise SystemExit("Too few coins returned data; exchanges unreachable from this runner?")
 
-    btc15 = get_candles(crypto["BTC"], "15m", CFG["m15_bars"], prefer=btc["src"] if btc else None) \
+    btc15 = get_candles(crypto["BTC"], "15m", CFG["m15_bars"] + 1, prefer=btc["src"] if btc else None) \
         if "BTC" in crypto else None
-    regime = market_regime(s1, btc15["candles"] if btc15 else None)
+    btc15c = closed_part(btc15["candles"], 900, scan_t) if btc15 else []
+    regime = market_regime(s1, as_backtest(btc15c[-(CFG["m15_bars"] - 1):], 900) if btc15c else None)
     btc3 = btc["r3"] if btc else 0.0
+    btc_htf = htf_metrics(res1["BTC"]["closed"], now=scan_t) if btc and res1.get("BTC") else None
+    gate = market_gate(regime, (btc_htf or {}).get("trend"))
+    if gate:
+        log(f"market gate closed: {gate}")
 
     # backtest: a new journal starts with every strategy's last `days` days, and once a day
     # strategy discovery backtests new variants against their parents
@@ -4426,7 +4727,7 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
                 cands = make_candidates(J, scan_t, tune) if disc else []
                 specs_bt = [SPECS[s] for s in SID_ORDER] + [sp for sp in SPECS.values() if sp["stage"] == "promoted"]
                 res_bt = backtest(bt_c, crypto, scan_t, days, specs_bt + cands, rank_specs=SID_ORDER if seed else (),
-                                  learn=tune)
+                                  learn=tune, twin_ids={sp["id"] for sp in specs_bt} if CFG["twins"] else set())
                 if seed:
                     seed_journal(J, res_bt, scan_t, days, len(bt_c), time.time() - t_bt)
                     seeded = True
@@ -4445,21 +4746,27 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
 
     # stage 2: 15m deep dive on the leaders that trade with real volume on a DEX, plus extras
     def liquid(t):
-        return (not dex_ok) or (crypto[t].get("best_vol") or 0) >= CFG["min_dex_vol"]
+        return (not dex_ok) or (liq_of(crypto[t]) or 0) >= CFG["min_dex_vol"]
 
     cands = [t for t in ranked if liquid(t)][:CFG["stage2_n"]]
     extras = pick_extras(ranked, s1, smc, liquid, set(cands))
     cands += extras
-    res2 = parallel(lambda t: get_candles(crypto[t], "15m", CFG["m15_bars"], prefer=s1[t]["src"]), cands)
+    res2 = parallel(lambda t: get_candles(crypto[t], "15m", CFG["m15_bars"] + 1, prefer=s1[t]["src"]), cands)
     A = {}
     for t in cands:
         r = res2.get(t)
-        if not r or len(r["candles"]) < 60:
+        raw15 = r["candles"] if r else []
+        cl15 = closed_part(raw15, 900, scan_t)
+        if len(cl15) < 60:
             continue
-        a = m15_analysis(r["candles"])
+        # signals read closed candles only, exactly like the backtest; the live price (the last
+        # trade, possibly inside the candle still forming) only sets the order type and the fill
+        a = m15_analysis(as_backtest(cl15[-(CFG["m15_bars"] - 1):], 900), chart=False)
         a.update(src=r["src"], sym=r["sym"], scale=r["scale"])
-        a["htf"] = htf_metrics(res1[t]["candles"], a["last"], now=scan_t) if res1.get(t) else None
-        a["_candles"] = r["candles"]
+        a["htf"] = htf_metrics(res1[t]["closed"], a["last"], now=scan_t) if res1.get(t) else None
+        a["_candles"] = raw15
+        a["_raw"] = raw15[-CFG["m15_bars"]:]  # the page's chart shows the real candles, the forming one too
+        a["_px"] = raw15[-1]["c"]
         a["_t"] = max(scan_t, r.get("fetched") or scan_t)  # trades start when their price was read
         A[t] = a
 
@@ -4492,11 +4799,11 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
 
     # 3. run every strategy on this scan's charts, with the learned targets and stops
     prelim = {}
-    ctx = {"regime": regime["label"], "btc3": btc3}
+    ctx = {"regime": regime["label"], "btc3": btc3, "gate": gate}
     specs_now = active_specs()
     specs15 = [sp for sp in specs_now if sp.get("tf", "15m") == "15m"]
     for t, a in A.items():
-        a["signals"] = find_signals(a, s1[t], smc.get(t), L, specs=specs15, ctx=ctx)
+        a["signals"] = find_signals(a, s1[t], smc.get(t), L, specs=specs15, ctx=ctx, px=a["_px"])
         if a["signals"]:
             prelim[t] = max(conviction(a, s1[t], s, None, crypto[t], regime, smc.get(t))["score"]
                             for s in a["signals"])
@@ -4512,14 +4819,16 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
             r1 = res1.get(t)
             if not liquid(t) or not r1:
                 continue
-            c1 = r1["candles"]
-            cc = c1[-120:] if tf == "1h" else agg_tf(c1, 14400)[-120:]
-            if len(cc) < 60:
+            c1 = r1["closed"]
+            bars = c1 if tf == "1h" else [x for x in agg_tf(c1, 14400) if x["t"] + 14400 <= scan_t]
+            if len(bars) < 60:
                 continue
+            cc = as_backtest(bars[-119:], 3600 if tf == "1h" else 14400)  # what a Studio test sees
             a = m15_analysis(cc, chart=False)
-            a.update(src=r1["src"], sym=r1["sym"], scale=r1["scale"], tf=tf, _cc=cc, _t=scan_t)
+            px = A[t]["_px"] if t in A else r1["candles"][-1]["c"]
+            a.update(src=r1["src"], sym=r1["sym"], scale=r1["scale"], tf=tf, _cc=cc, _t=scan_t, _px=px)
             a["htf"] = htf_metrics(c1, a["last"], now=scan_t)
-            for s in find_signals(a, s1[t], smc.get(t), L, specs=sps, ctx=ctx):
+            for s in find_signals(a, s1[t], smc.get(t), L, specs=sps, ctx=ctx, px=px):
                 sc = conviction(a, s1[t], s, None, crypto[t], regime, smc.get(t))["score"]
                 found.setdefault(s["sid"], []).append((sc, t, s, a))
         for sid, lst in found.items():
@@ -4533,8 +4842,11 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
         if True:
             conv = conviction(a, s1[t], s, POS.get(t), crypto[t], regime, smc.get(t))
             f = trade_features(a, s1[t], s, conv["score"], regime, crypto[t], smc.get(t), btc3, scan_t)
+            f["gate"] = 1 if gate else 0
             adj, block = adjustments(s["sid"], f, t, L)
             status = L["strat"][s["sid"]]["status"]
+            if gate:
+                block = f"Market gate: {gate}"
             if not block and status not in CFG["publish"]:
                 block = f"{s['name']} is {status}: paper-traded only"
             if not block and spec(s["sid"])["stage"] == "forward":
@@ -4567,14 +4879,14 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
         conv = dict(x["conv"], raw=x["conv"]["score"], score=x["final"], grade=grade_of(x["final"]),
                     adj=[[lab, p] for lab, p in x["adj"]])
         lc = {"status": info["status"], "stat": st_, "adj": x["adj"], "live_n": st_.get("live_n"),
-              "bt_n": st_.get("bt_n"),
+              "bt_n": st_.get("bt_n"), "live": info.get("live"), "edge": info.get("edge_live"),
               "tuned": (f"TP1 {tuned['tp_r'][0]:g}R is where {tuned['reach'][0] * 100:.0f}% of its last "
                         f"{tuned['n']} trades reached" if tuned else None)}
         rec = {
             "rank": rank, "coin": t, "name": c.get("name") or t, "sid": sid, "setup": sid,
             "setup_name": s["name"], "short": s["short"],
             "status": s["status"], "status_text": STATUS_TEXT[s["status"]],
-            "price": sig6(a["last"]), "elo": sig6(s["elo"]), "ehi": sig6(s["ehi"]), "mid": sig6(s["mid"]),
+            "price": sig6(a.get("_px", a["last"])), "elo": sig6(s["elo"]), "ehi": sig6(s["ehi"]), "mid": sig6(s["mid"]),
             "stop": sig6(s["stop"]), "tps": [sig6(v) for v in s["tps"]],
             "trigger": sig6(s["trigger"]) if s["trigger"] else None, "tp_r": s["tp_r"], "sk": s["sk"],
             "risk": rnd(s["risk"], 5), "tp_pct": [rnd(v / s["mid"] - 1, 5) for v in s["tps"]],
@@ -4583,9 +4895,12 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
             "hold_h": s.get("th", CFG["track_hours"]), "user": bool(spec(sid).get("user")),
             "src": a["src"], "sym": a["sym"], "venues": venue_list(c),
             "best_vol": round(c["best_vol"]) if c.get("best_vol") else None,
+            "trade_vol": round(c["trade_vol"]) if c.get("trade_vol") else None,
             "strategy": {"id": sid, "name": s["name"], "short": s["short"], "status": info["status"],
                          "why": info["why"], "n": st_.get("n", 0), "wr": rnd(st_.get("wr"), 3),
-                         "exp": rnd(st_.get("exp"), 3), "pf": rnd(st_.get("pf"), 2)},
+                         "exp": rnd(st_.get("exp"), 3), "pf": rnd(st_.get("pf"), 2),
+                         "live_n": (info.get("live") or {}).get("n", 0),
+                         "edge": rnd((info.get("edge_live") or {}).get("edge"), 3)},
             "others": [{"sid": y["s"]["sid"], "short": y["s"]["short"], "name": y["s"]["name"], "score": y["final"],
                         "block": y["block"]} for y in sigs if y["t"] == t and y is not x],
         }
@@ -4604,16 +4919,32 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
             rec["smart"] = sm
             if a.get("chart") is None and a.get("_cc"):  # a 1h/4h chart: draw its own candles
                 a["chart"] = m15_analysis(a["_cc"])["chart"]
+            if a.get("chart") is None and a.get("_raw"):  # the 15m chart with the candle still forming
+                a["chart"] = m15_analysis(a["_raw"])["chart"]
             rec["chart"] = a["chart"]
         return rec
 
     picks = [record(i + 1, x) for i, x in enumerate(pick_sigs)]
     watch = [record(CFG["top_n"] + i + 1, x, full=False) for i, x in enumerate(watch_sigs)]
 
-    # 4. paper-trade this scan's signals (every strategy, published or not)
+    # 4. paper-trade this scan's signals (every strategy, published or not), each with a random
+    #    twin on another coin of this scan: the benchmark every strategy has to beat
     rank_of = {(x["t"], x["s"]["sid"]): i + 1 for i, x in enumerate(pick_sigs)}
-    added = journal_add(J, [new_trade(x["t"], x["s"], x["a"], x["a"].get("_t", scan_t), x["f"], x["conv"]["score"],
-                                      x["final"], rank_of.get((x["t"], x["s"]["sid"])), x["block"]) for x in sigs])
+    new = [new_trade(x["t"], x["s"], x["a"], x["a"].get("_t", scan_t), x["f"], x["conv"]["score"], x["final"],
+                     rank_of.get((x["t"], x["s"]["sid"])), x["block"], px=x["a"].get("_px")) for x in sigs]
+    if CFG["twins"]:
+        pool = sorted(t for t, a in A.items() if a.get("_px"))
+        for x in sigs:
+            c2 = twin_coin(x["t"], x["s"]["sid"], scan_t, pool)
+            if c2 is None:
+                continue
+            a2 = A[c2]
+            s2 = twin_signal(x["s"], x["a"].get("_px") or x["a"]["last"], a2["_px"])
+            f2 = trade_features(a2, s1[c2], s2, 0.0, regime, crypto[c2], smc.get(c2), btc3, scan_t)
+            f2["gate"] = x["f"].get("gate", 0)
+            new.append(new_trade(c2, s2, a2, a2.get("_t", scan_t), f2, 0.0, 0.0, None,
+                                 "Random benchmark: never published", px=a2["_px"]))
+    added = journal_add(J, new)
     J["last_picks"] = [x["t"] for x in pick_sigs]
     J["scans"] = J.get("scans", 0) + 1
     J["updated"] = scan_t
@@ -4659,9 +4990,15 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
         "version": VERSION, "generated_at": iso(scan_t), "scan_t": scan_t, "next_scan_t": next_scan_ts(scan_t),
         "duration_s": round(time.time() - t0, 1), "regime": regime, "picks": picks, "watch": watch,
         "table": table, "journal": journal, "smart_board": board,
-        "strategies": {sid: {"name": v["name"], "short": v["short"], "kind": v["kind"], "base": v["base"],
-                             "stage": v["stage"], "tf": v.get("tf", "15m"), "user": bool(v.get("user"))}
-                       for sid, v in SPECS.items()},
+        "strategies": dict({sid: {"name": v["name"], "short": v["short"], "kind": v["kind"], "base": v["base"],
+                                  "stage": v["stage"], "tf": v.get("tf", "15m"), "user": bool(v.get("user"))}
+                            for sid, v in SPECS.items()},
+                           **{"RAND:" + sid: {"name": "Random twin of " + v["name"], "short": "Random",
+                                              "kind": "benchmark", "base": "RAND", "stage": "benchmark",
+                                              "tf": v.get("tf", "15m"), "user": False}
+                              for sid, v in SPECS.items()}),
+        "gate": {"closed": bool(gate), "why": gate, "btc_trend": (btc_htf or {}).get("trend"),
+                 "on": CFG["gate_longs"]},
         "studio": studio_meta(),
         "user_strategies": [dict(u, spec_id=(f"RULE~{u.get('id')}" if u.get("kind") == "rule" else
                                              f"{u.get('base')}~{u.get('id')}")) for u in user_raw],
@@ -4673,7 +5010,9 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
                      "dex_ok": dex_ok},
         "settings": {"min_dex_vol": CFG["min_dex_vol"], "valid_hours": CFG["valid_hours"],
                      "track_hours": CFG["track_hours"], "every_min": CFG["schedule_every_min"],
-                     "min_pick_score": CFG["min_pick_score"], "top_n": CFG["top_n"]},
+                     "min_pick_score": CFG["min_pick_score"], "top_n": CFG["top_n"],
+                     "trade_dexes": [DEX_NAME.get(d, d) for d in CFG["trade_dexes"]],
+                     "min_stop_pct": CFG["min_stop_pct"], "publish": list(CFG["publish"])},
         "errors": ERRORS[:60],
     }
     n_alerts = send_alerts(out, pages_url)
