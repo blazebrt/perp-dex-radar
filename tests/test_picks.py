@@ -136,6 +136,77 @@ class Supply(unittest.TestCase):
         self.assertEqual(len(J["supply"]["ABC"]), 2)
 
 
+FIX = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures")
+NOW_FIX = 1791106800  # 2026-10-04 09:40 UTC, when the fixtures were saved
+
+RSS = """<?xml version="1.0"?><rss version="2.0"><channel><title>t</title>
+<item><title>Plasma (XPL) price surges as stablecoin deposits jump</title><description>XPL rallies</description>
+<pubDate>Sun, 04 Oct 2026 08:00:00 GMT</pubDate></item>
+<item><title>Bitcoin slides as ETF outflows grow</title><description>BTC drops</description>
+<pubDate>Sun, 04 Oct 2026 07:00:00 GMT</pubDate></item>
+<item><title>NEAR protocol upgrade goes live</title><description>near</description>
+<pubDate>Sun, 04 Oct 2026 06:00:00 GMT</pubDate></item>
+<item><title>Old story about Plasma</title><description>x</description>
+<pubDate>Mon, 21 Sep 2026 06:00:00 GMT</pubDate></item>
+</channel></rss>"""
+
+
+class Sentiment(unittest.TestCase):
+    def test_stocktwits_thin_coin(self):
+        with open(os.path.join(FIX, "stocktwits_XPL.json")) as fh:
+            r = P.stocktwits_parse(json.load(fh), "XPL", NOW_FIX)
+        self.assertEqual((r["bull"], r["bear"]), (7, 8))
+        self.assertLess(r["posts_day"], 1)
+        self.assertEqual(r["watchers"], 449)
+
+    def test_stocktwits_busy_coin(self):
+        with open(os.path.join(FIX, "stocktwits_BTC.json")) as fh:
+            r = P.stocktwits_parse(json.load(fh), "BTC", NOW_FIX)
+        self.assertGreater(r["posts_day"], 100)
+        self.assertGreater(r["bull_share"], 0.8)
+        self.assertTrue(r["week"])
+
+    def test_apewisdom(self):
+        with open(os.path.join(FIX, "apewisdom.json")) as fh:
+            page = json.load(fh)
+        old = sc.FETCH
+        sc.FETCH = lambda url, body=None, timeout=25: page
+        try:
+            a = P.apewisdom(None, NOW_FIX)
+        finally:
+            sc.FETCH = old
+        self.assertEqual(a["coins"]["BTC"]["rank"], 1)
+        self.assertIn("mentions", a["coins"]["ETH"])
+
+    def test_news_matching_and_tone(self):
+        old = P.get_text
+        P.get_text = lambda url, timeout=30: RSS
+        try:
+            feed = P.news(None, NOW_FIX)
+        finally:
+            P.get_text = old
+        self.assertEqual(len(feed["items"]), 3, "same headline from 5 feeds counted once, old news dropped")
+        xpl = P.news_for("XPL", "Plasma", feed)
+        self.assertEqual(xpl["n"], 1)
+        self.assertGreater(xpl["tone"], 0)
+        self.assertIn("link", xpl["top"][0], "headlines keep their link for the analyzer")
+        btc = P.news_for("BTC", "Bitcoin", feed)
+        self.assertLess(btc["tone"], 0)
+        self.assertIsNone(P.news_for("NEAR", None, feed), "NEAR as a word is too common to match by ticker")
+
+    def test_combined_score(self):
+        st = {"coins": {"XPL": {"t": NOW_FIX, "bull": 9, "bear": 1, "bull_share": 0.9, "posts_day": 3}}}
+        s = P.sentiment_of("XPL", {"id": "plasma", "name": "Plasma"}, {"coins": {"XPL": {"rank": 2}}},
+                           {"coins": {"plasma": {"t": NOW_FIX, "up": 70}}}, st, None, None, [3, 1, 900_000, 100_000, None])
+        self.assertEqual(s["trending"], 2)
+        self.assertEqual(s["label"], "Bullish")
+        self.assertEqual([p[0] for p in s["parts"]], ["Stocktwits", "CoinGecko votes", "Hyperliquid top traders long"])
+        self.assertTrue(60 < s["score"] <= 100)
+        empty = P.sentiment_of("ABC", None, None, None, None, None, None, None)
+        self.assertIsNone(empty["score"])
+        self.assertEqual(len(P.sentiment_checks(empty)), 4)
+
+
 class GateStats(unittest.TestCase):
     def test_seven_day_values(self):
         rows = [{"time": T0 + i * 14400, "open_interest_usd": 100.0 + i, "mark_price": 10.0 + 0.1 * i,
@@ -230,6 +301,8 @@ class EndToEnd(unittest.TestCase):
         cls.uni = uni
         old_min, P.CFG["paper_swing_min"] = P.CFG["paper_swing_min"], 0  # paper trade everything in the test
         cls.restore = old_min
+        cls.gaps = (P.CFG["gap_stocktwits"], P.CFG["gap_coingecko"])
+        P.CFG["gap_stocktwits"] = P.CFG["gap_coingecko"] = 0.0
         for run in ("s1", "s2"):
             d = os.path.join(cls.tmp, run, "data")
             os.makedirs(d)
@@ -245,6 +318,7 @@ class EndToEnd(unittest.TestCase):
     def tearDownClass(cls):
         sc.FETCH = cls.old
         P.CFG["paper_swing_min"] = cls.restore
+        P.CFG["gap_stocktwits"], P.CFG["gap_coingecko"] = cls.gaps
         shutil.rmtree(cls.tmp, ignore_errors=True)
 
     def test_files_and_pages(self):
@@ -254,6 +328,16 @@ class EndToEnd(unittest.TestCase):
             self.assertIn("radar", fh.read(), "the old front page moves to radar.html")
         with open(os.path.join(self.tmp, "s2", "index.html")) as fh:
             self.assertIn("Coin Picks", fh.read())
+        for name in ("analyze.html", "analyze.js"):
+            self.assertTrue(os.path.exists(os.path.join(self.tmp, "s2", name)), name + " is published with the picks")
+
+    def test_scores_for_the_analyzer(self):
+        sc = self.out1["scores"]
+        self.assertEqual(len(sc), self.out1["coins"], "every scored coin is listed for the analyzer")
+        for coin, x in sc.items():
+            self.assertIn(x["side"], ("long", "short"))
+            self.assertIn("venues", x)
+            self.assertIn("sentiment", x)
 
     def test_lists_and_scores(self):
         o = self.out1
