@@ -85,9 +85,9 @@ class Scores(unittest.TestCase):
             self.assertEqual(sum(W.values()), 100)
 
     def test_extra_checks_are_capped(self):
-        ex = [("a", "A", True, 6, "", "g"), ("b", "B", True, 6, "", "g")]
+        ex = [("a", "A", True, 6, "", "g", True), ("b", "B", True, 6, "", "g", True)]
         self.assertEqual(P.extra_points(ex), P.CFG["extra_max"])
-        ex = [("a", "A", False, 6, "", "g"), ("b", "B", False, 6, "", "g")]
+        ex = [("a", "A", False, 6, "", "g", True), ("b", "B", False, 6, "", "g", True)]
         self.assertEqual(P.extra_points(ex), -P.CFG["extra_max"])
 
     def test_smart_money_direction(self):
@@ -96,7 +96,59 @@ class Scores(unittest.TestCase):
         sh = {e[0]: e for e in P.extra_checks("short", {}, sm, None, 0.00005, None, 2e6)}
         self.assertIs(lg["smart"][2], True)
         self.assertIs(sh["smart"][2], False)
-        self.assertIsNone(lg["oi"][2], "no Gate.io data: no points either way")
+        self.assertIsNone(lg["lev"][2], "no Gate.io data: no points either way")
+
+    def test_tested_extra_checks_follow_the_evidence(self):
+        gs = {"oi7": 0.12, "px7": 0.08, "liq3": 0.7, "top0": 1.0, "top1": 1.1, "top7": 0.1}
+        lg = {e[0]: e for e in P.extra_checks("long", {}, None, gs, 0.0005, {"mc": 1e9, "vol": 4e8}, 2e6, 0.03)}
+        self.assertIs(lg["lev"][2], False, "leverage piling into a rise is a minus for longs")
+        self.assertIs(lg["flush"][2], True)
+        self.assertIs(lg["supply"][2], False, "3% more supply in 30 days is a minus for longs")
+        self.assertIs(lg["turnover"][2], False, "volume 40% of the market cap: overheated")
+        self.assertIsNone(lg["funding"][2], "funding is information only for longs")
+        sh = {e[0]: e for e in P.extra_checks("short", {}, None, gs, 0.0005, {"mc": 1e9, "vol": 4e8}, 2e6, 0.03)}
+        self.assertIs(sh["supply"][2], True, "unlocks help shorts")
+        self.assertIs(sh["funding"][2], False, "shorting into high funding did worse")
+        pts = P.extra_points(list(P.extra_checks("long", {}, None, gs, 0.0005, {"mc": 1e9, "vol": 4e8}, 2e6, 0.03)))
+        self.assertLess(pts, 0)
+
+    def test_every_extra_check_has_seven_fields(self):
+        for side in ("long", "short"):
+            for e in P.extra_checks(side, {}, None, None, None, None, 2e6):
+                self.assertEqual(len(e), 7)
+
+
+class Supply(unittest.TestCase):
+    def test_growth_over_thirty_days(self):
+        now = T0 + 40 * DAY + 3600
+        J = {"supply": {"ABC": [[T0 + i * DAY, 100.0 + i] for i in range(41)]}}
+        g = P.supply_growth(J, "ABC", now)
+        self.assertAlmostEqual(g, 140.0 / 105.0 - 1)  # 35 days back is the oldest snapshot used
+        self.assertIsNone(P.supply_growth(J, "XYZ", now))
+
+    def test_update_keeps_one_snapshot_a_day(self):
+        J = {"supply": {"ABC": [[T0, 100.0]]}}
+        cg = {"coins": {"ABC": {"circ": 101.0}}}
+        P.supply_update(J, cg, T0 + 3600)
+        P.supply_update(J, {"coins": {"ABC": {"circ": 102.0}}}, T0 + 7200)
+        self.assertEqual(J["supply"]["ABC"], [[T0, 102.0]])
+        P.supply_update(J, cg, T0 + DAY + 60)
+        self.assertEqual(len(J["supply"]["ABC"]), 2)
+
+
+class GateStats(unittest.TestCase):
+    def test_seven_day_values(self):
+        rows = [{"time": T0 + i * 14400, "open_interest_usd": 100.0 + i, "mark_price": 10.0 + 0.1 * i,
+                 "top_lsr_size": 1.0, "long_liq_usd": 3.0, "short_liq_usd": 1.0} for i in range(45)]
+        old = sc.FETCH
+        sc.FETCH = lambda url, body=None, timeout=25: rows
+        try:
+            g = P.gate_stats7("ABC")
+        finally:
+            sc.FETCH = old
+        self.assertAlmostEqual(g["oi7"], 144.0 / 102.0 - 1)
+        self.assertAlmostEqual(g["px7"], 14.4 / 10.2 - 1)
+        self.assertAlmostEqual(g["liq3"], 0.75)
 
 
 class SwingValues(unittest.TestCase):
@@ -243,6 +295,12 @@ class EndToEnd(unittest.TestCase):
         for r in recs:
             sm = next(e for e in r["extras"] if e["k"] == "smart")
             self.assertIn("4 long", sm["detail"])
+
+    def test_extra_points_stay_within_the_cap(self):
+        for kind in ("swing", "daytrade"):
+            for r in self.out1[kind]["all"]:
+                self.assertLessEqual(abs(r["extra"]), P.CFG["extra_max"])
+                self.assertAlmostEqual(r["score"], max(0, min(100, r["core"] + r["extra"])), places=1)
 
     def test_paper_trades_are_not_repeated(self):
         with open(self.j1) as fh:
