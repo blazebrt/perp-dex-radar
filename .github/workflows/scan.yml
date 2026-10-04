@@ -71,6 +71,10 @@ jobs:
       - name: Run the coin picks (swing and day-trade scores with their reasons)
         id: picks
         continue-on-error: true
+        env:
+          # Optional: a free CoinGecko Demo key, added under Settings > Secrets and variables > Actions > New
+          # repository secret (name COINGECKO_API_KEY). Without it the public CoinGecko API is used.
+          COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
         run: python picks.py --out site --pages-url "${{ steps.pages.outputs.base_url }}"
 
       - name: Keep the coin picks if they failed
@@ -84,6 +88,11 @@ jobs:
           done
           if [ ! -f site/radar.html ]; then cp site/index.html site/radar.html; fi
           cp picks.html site/index.html || true
+
+      - name: Publish the coin analyzer page
+        # The analyzer runs in the browser (it reads exchange data itself), so it is published on every scan.
+        if: always()
+        run: cp analyze.html analyze.js site/ || true
 
       - name: Save a copy of the journal for review
         # Replaces the journal-data branch with this scan's latest.json, journal.csv and the quant desk's
