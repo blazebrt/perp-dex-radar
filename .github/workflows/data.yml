@@ -36,6 +36,8 @@ jobs:
       - name: Download futures statistics and fundamentals
         continue-on-error: true
         timeout-minutes: 75
+        env:
+          COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
         run: python tools/fetch_extra.py --out md --days 365
 
       - name: Save on the market-data branch

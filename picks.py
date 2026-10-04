@@ -35,7 +35,7 @@ import time
 import quant as q
 import scanner as sc
 
-VERSION = "1.0.1"
+VERSION = "1.2.0"
 ENGINE = 1
 H = 3600
 B4 = 4 * H
@@ -62,6 +62,8 @@ CFG = {
     "paper_day_min": 85,        # day picks with this score or more are paper traded
     "paper_day_max_new": 3,     # new day paper trades per closed hour at most
     "keep_closed": 600,
+    "gap_stocktwits": 1.2,      # seconds between Stocktwits requests (about 200 an hour are allowed)
+    "gap_coingecko": 3.0,       # seconds between CoinGecko requests without a key (2.2 with one)
 }
 
 LONG_W = {"near_low": 25, "rsi": 20, "squeeze": 15, "tight": 10, "calm": 10, "mom30": 5, "higher_low": 5,
@@ -488,8 +490,34 @@ def label_of(score, kind="swing"):
 
 
 # --------------------------------------------------------------------------- live data
-CG_MARKETS = ("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc"
-              "&per_page=250&page={page}")
+# Optional CoinGecko key, set as a GitHub secret (Settings > Secrets and variables > Actions) and passed in by
+# scan.yml; without it the free public CoinGecko API is used (slower, sometimes rate limited).
+CG_KEY = os.environ.get("COINGECKO_API_KEY", "").strip()
+CG_PRO = os.environ.get("COINGECKO_PLAN", "").strip().lower() == "pro"
+CG_BASE = "https://pro-api.coingecko.com/api/v3" if (CG_KEY and CG_PRO) else "https://api.coingecko.com/api/v3"
+CG_MARKETS = CG_BASE + "/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page={page}"
+# free social sources (no key): Stocktwits posts with bullish / bearish tags, ApeWisdom mentions on Reddit and
+# 4chan, crypto news headlines, the Fear & Greed index
+ST_STREAM = "https://api.stocktwits.com/api/2/streams/symbol/{sym}.X.json"
+APE = "https://apewisdom.io/api/v1.0/filter/all-crypto/page/{page}"
+FNG = "https://api.alternative.me/fng/?limit=1"
+NEWS_FEEDS = (("CoinDesk", "https://www.coindesk.com/arc/outboundfeeds/rss/"),
+              ("Cointelegraph", "https://cointelegraph.com/rss"),
+              ("The Block", "https://www.theblock.co/rss.xml"),
+              ("CryptoSlate", "https://cryptoslate.com/feed/"),
+              ("Bitcoinist", "https://bitcoinist.com/feed/"))
+
+
+def cg_url(url):
+    """Add the CoinGecko key (demo or pro) to a request URL when one is set."""
+    if not CG_KEY:
+        return url
+    return url + ("&" if "?" in url else "?") + ("x_cg_pro_api_key=" if CG_PRO else "x_cg_demo_api_key=") + CG_KEY
+
+
+def cg_get(url, timeout=40):
+    sc.throttle_key("coingecko", min(2.2, CFG["gap_coingecko"]) if CG_KEY else CFG["gap_coingecko"])
+    return sc.FETCH(cg_url(url), timeout=timeout)
 
 
 def coingecko(coins, cached, now):
@@ -498,11 +526,10 @@ def coingecko(coins, cached, now):
         return cached, "cached"
     rows = []
     for page in range(1, CFG["cg_pages"] + 1):
-        sc.throttle_key("coingecko", 3.0)
         try:
-            d = sc.FETCH(CG_MARKETS.format(page=page), timeout=40)
+            d = cg_get(CG_MARKETS.format(page=page))
         except Exception as e:  # noqa: BLE001
-            sc.note_error(f"CoinGecko page {page}: {e}")
+            sc.note_error(f"CoinGecko page {page}: {type(e).__name__} {getattr(e, 'code', '')}")
             break
         if not isinstance(d, list) or not d:
             break
@@ -524,11 +551,338 @@ def coingecko(coins, cached, now):
         if not good:
             continue
         m = max(good, key=lambda m: sc.fnum(m.get("market_cap"), 0.0) or 0.0)
-        out[t] = {"id": m.get("id"), "mc": sc.fnum(m.get("market_cap")), "fdv": sc.fnum(m.get("fully_diluted_valuation")),
+        out[t] = {"id": m.get("id"), "name": m.get("name"), "mc": sc.fnum(m.get("market_cap")),
+                  "fdv": sc.fnum(m.get("fully_diluted_valuation")),
                   "circ": sc.fnum(m.get("circulating_supply")), "total": sc.fnum(m.get("total_supply")),
                   "ath": sc.fnum(m.get("ath")), "ath_ch": sc.fnum(m.get("ath_change_percentage")),
                   "vol": sc.fnum(m.get("total_volume")), "rank": m.get("market_cap_rank")}
     return {"time": now, "coins": out}, "fresh"
+
+
+def cg_trending(cached, now):
+    """Coins people search for most on CoinGecko right now (top 15), refreshed every hour."""
+    if cached and now - cached.get("time", 0) < H:
+        return cached
+    try:
+        d = cg_get(CG_BASE + "/search/trending")
+    except Exception as e:  # noqa: BLE001
+        sc.note_error(f"CoinGecko trending: {type(e).__name__} {getattr(e, 'code', '')}")
+        return cached
+    out = {}
+    for i, x in enumerate((d or {}).get("coins") or []):
+        it = (x or {}).get("item") or {}
+        sym = str(it.get("symbol", "")).upper()
+        if sym and sym not in out:
+            out[sym] = {"rank": i + 1, "id": it.get("id")}
+    return {"time": now, "coins": out}
+
+
+def cg_votes(ids, cached, now, budget):
+    """CoinGecko community sentiment (share of bullish votes) per coin id, kept for a day; at most `budget`
+    new requests per run so the free API is not overused."""
+    C = dict((cached or {}).get("coins") or {})
+    todo = [i for i in ids if i and (i not in C or now - C[i].get("t", 0) > DAY)][:budget]
+    for cid in todo:
+        try:
+            d = cg_get(f"{CG_BASE}/coins/{cid}?localization=false&tickers=false&market_data=false"
+                       "&community_data=true&developer_data=false&sparkline=false")
+        except Exception as e:  # noqa: BLE001
+            sc.note_error(f"CoinGecko coin {cid}: {type(e).__name__} {getattr(e, 'code', '')}")
+            if getattr(e, "code", None) == 429:
+                break
+            continue
+        up = sc.fnum((d or {}).get("sentiment_votes_up_percentage"))
+        C[cid] = {"t": now, "up": up, "watch": (d or {}).get("watchlist_portfolio_users")}
+    C = {k: v for k, v in C.items() if now - v.get("t", 0) < 3 * DAY}
+    return {"time": now, "coins": C}
+
+
+def get_text(url, timeout=30):
+    """GET a text page (RSS) with the scanner's user agent; None on failure."""
+    import urllib.request
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": sc.UA, "Accept": "application/rss+xml, application/xml, text/xml, */*"})
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return r.read().decode("utf-8", "replace")
+    except Exception as e:  # noqa: BLE001
+        sc.note_error(f"news feed {url.split('/')[2]}: {type(e).__name__} {getattr(e, 'code', '')}")
+        return None
+
+
+def _iso_ts(x):
+    try:
+        import datetime as _dt
+        return int(_dt.datetime.strptime(x[:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=_dt.timezone.utc).timestamp())
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def stocktwits_parse(d, sym, now):
+    """Bullish / bearish tags, post rate and watchers from a Stocktwits symbol stream (its 30 newest posts)."""
+    msgs = [m for m in ((d or {}).get("messages") or []) if isinstance(m, dict)]
+    ts = [t for t in (_iso_ts(m.get("created_at") or "") for m in msgs) if t]
+    if not msgs or not ts:
+        return None
+    week = [m for m, t in zip(msgs, ts) if now - t <= 7 * DAY]
+    tag = lambda ms, v: sum(1 for m in ms if (((m.get("entities") or {}).get("sentiment") or {}).get("basic") == v))  # noqa: E731
+    bull7, bear7 = tag(week, "Bullish"), tag(week, "Bearish")
+    bull, bear = tag(msgs, "Bullish"), tag(msgs, "Bearish")
+    span = max(now - min(ts), 3600)
+    per_day = len(ts) / (span / DAY)
+    info = {}
+    for m in msgs[:3]:
+        for x in m.get("symbols") or []:
+            if str(x.get("symbol", "")).upper() == f"{sym}.X":
+                info = x
+                break
+        if info:
+            break
+    wl = ((d or {}).get("symbol") or {}).get("watchlist_count") or info.get("watchlist_count")
+    use_bull, use_bear = (bull7, bear7) if bull7 + bear7 >= 4 else (bull, bear)
+    return {"t": now, "posts_day": round(per_day, 2), "posts_24h": sum(1 for t in ts if now - t <= DAY),
+            "bull": use_bull, "bear": use_bear,
+            "bull_share": round(use_bull / (use_bull + use_bear), 3) if (use_bull + use_bear) >= 4 else None,
+            "watchers": wl, "sent_change": sc.fnum(info.get("sentiment_change")),
+            "vol_change": sc.fnum(info.get("volume_change")), "week": bull7 + bear7 >= 4}
+
+
+def stocktwits(syms, cached, now, budget=30):
+    """Stocktwits for the given tickers, each refreshed at most once an hour (about 30 requests a run)."""
+    C = dict((cached or {}).get("coins") or {})
+    todo = [t for t in syms if t not in C or now - C[t].get("t", 0) > H][:budget]
+    for t in todo:
+        sc.throttle_key("stocktwits", CFG["gap_stocktwits"])
+        try:
+            d = sc.FETCH(ST_STREAM.format(sym=t), timeout=20)
+        except Exception as e:  # noqa: BLE001
+            code = getattr(e, "code", None)
+            if code in (404, 400):
+                C[t] = {"t": now, "none": True}
+                continue
+            sc.note_error(f"Stocktwits {t}: {type(e).__name__} {code or ''}")
+            if code in (403, 429):
+                break
+            continue
+        r = stocktwits_parse(d, t, now)
+        C[t] = r or {"t": now, "none": True}
+    C = {k: v for k, v in C.items() if now - v.get("t", 0) < 2 * DAY}
+    return {"time": now, "coins": C}
+
+
+def apewisdom(cached, now):
+    """Mentions per coin on Reddit and 4chan's crypto boards (ApeWisdom), with the change against 24 hours ago."""
+    if cached and now - cached.get("time", 0) < H and cached.get("coins"):
+        return cached
+    out = {}
+    for page in (1, 2):
+        try:
+            d = sc.FETCH(APE.format(page=page), timeout=20)
+        except Exception as e:  # noqa: BLE001
+            sc.note_error(f"ApeWisdom: {type(e).__name__} {getattr(e, 'code', '')}")
+            break
+        for x in (d or {}).get("results") or []:
+            sym = str(x.get("ticker", "")).upper().replace(".X", "")
+            if sym and sym not in out:
+                out[sym] = {"rank": x.get("rank"), "mentions": x.get("mentions"), "prev": x.get("mentions_24h_ago"),
+                            "upvotes": x.get("upvotes"), "rank_prev": x.get("rank_24h_ago")}
+        if page >= ((d or {}).get("pages") or 1):
+            break
+    if not out:
+        return cached
+    return {"time": now, "coins": out}
+
+
+POS_WORDS = ("surge", "surges", "soar", "soars", "rally", "rallies", "jump", "jumps", "climb", "climbs", "gain", "gains",
+             "rise", "rises", "bullish", "record", "breakout", "inflow", "inflows", "approve", "approves", "approval",
+             "launch", "launches", "partnership", "partners", "upgrade", "adopt", "adopts", "adoption", "buy", "buys",
+             "accumulate", "accumulating", "rebound", "rebounds", "recover", "recovers", "listing", "lists", "etf")
+NEG_WORDS = ("plunge", "plunges", "drop", "drops", "fall", "falls", "crash", "crashes", "bearish", "hack", "hacked",
+             "exploit", "exploited", "lawsuit", "sues", "sued", "ban", "bans", "outflow", "outflows", "selloff", "sell-off",
+             "dump", "dumps", "delist", "delists", "scam", "fraud", "liquidation", "liquidations", "decline", "declines",
+             "slide", "slides", "tumble", "tumbles", "sink", "sinks", "warning", "risk", "fear", "unlock", "unlocks")
+TICKER_WORDS = {"ONE", "NEAR", "US", "UP", "MET", "LIT", "GAS", "SUN", "ALL", "ANY", "FUN", "KEY", "MAX", "NOT", "CAT",
+                "DOG", "ACT", "MOVE", "ME", "AI", "IO", "OM", "GO", "SAFE", "REAL", "TRUMP", "HYPE", "PUMP", "BIO",
+                "PEOPLE", "BABY", "GOOD", "BANK", "ICE", "PRIME", "CORE", "ZERO", "OPEN", "EDGE", "ETF", "SEC", "USD",
+                "CEO", "API", "NFT", "DEX", "CEX", "TVL", "ATH", "FED", "CPI", "GDP", "BTC", "ETH"}
+
+
+def news(cached, now):
+    """Headlines from the main crypto news sites (RSS), kept for 3 days, refreshed every hour."""
+    import email.utils
+    import re
+    import xml.etree.ElementTree as ET
+    if cached and now - cached.get("time", 0) < H:
+        return cached
+    items = [x for x in ((cached or {}).get("items") or []) if now - x["t"] < 3 * DAY]
+    seen = {x["title"] for x in items}
+    for src, url in NEWS_FEEDS:
+        txt = get_text(url)
+        if not txt:
+            continue
+        try:
+            root = ET.fromstring(txt.encode("utf-8", "replace"))
+        except ET.ParseError:
+            continue
+        for it in root.iter("item"):
+            title = (it.findtext("title") or "").strip()
+            desc = re.sub(r"<[^>]+>", " ", it.findtext("description") or "")
+            try:
+                t = int(email.utils.parsedate_to_datetime(it.findtext("pubDate") or "").timestamp())
+            except Exception:  # noqa: BLE001
+                t = now
+            if not title or title in seen or now - t > 3 * DAY:
+                continue
+            seen.add(title)
+            link = (it.findtext("link") or "").strip()
+            items.append({"t": t, "src": src, "title": title[:200], "desc": re.sub(r"\s+", " ", desc)[:300],
+                          "link": link[:300] if link.startswith("https://") else ""})
+    items.sort(key=lambda x: -x["t"])
+    return {"time": now, "items": items[:400]}
+
+
+def news_for(t, name, feed):
+    """Headlines that mention the coin (by name, or by its ticker in capitals) and their tone (-1..1)."""
+    import re
+    pats = []
+    if name and len(name) >= 4:
+        pats.append(re.compile(r"\b" + re.escape(name) + r"\b", re.I))
+    if len(t) >= 3 and t not in TICKER_WORDS:
+        pats.append(re.compile(r"(?<![A-Za-z0-9$])\$?" + re.escape(t) + r"(?![A-Za-z0-9])"))
+    if t == "BTC":
+        pats.append(re.compile(r"\bbitcoin\b", re.I))
+    if t == "ETH":
+        pats.append(re.compile(r"\bethereum|\bether\b", re.I))
+    if not pats:
+        return None
+    hits = []
+    for x in (feed or {}).get("items") or []:
+        text = x["title"] + " " + x["desc"]
+        if any(p.search(text) for p in pats):
+            words = re.findall(r"[a-z\-]+", x["title"].lower())
+            pos = sum(1 for w in words if w in POS_WORDS)
+            neg = sum(1 for w in words if w in NEG_WORDS)
+            hits.append({"t": x["t"], "src": x["src"], "title": x["title"], "link": x.get("link") or "",
+                         "tone": (pos - neg) / (pos + neg) if (pos + neg) else 0.0})
+    if not hits:
+        return {"n": 0}
+    hits.sort(key=lambda h: -h["t"])
+    return {"n": len(hits), "tone": round(sum(h["tone"] for h in hits) / len(hits), 2), "top": hits[:3]}
+
+
+def fear_greed(cached, now):
+    if cached and now - cached.get("time", 0) < 3 * H:
+        return cached
+    try:
+        d = sc.FETCH(FNG, timeout=20)
+        x = ((d or {}).get("data") or [{}])[0]
+        return {"time": now, "value": int(x.get("value")), "label": x.get("value_classification")}
+    except Exception as e:  # noqa: BLE001
+        sc.note_error(f"Fear & Greed: {type(e).__name__} {getattr(e, 'code', '')}")
+        return cached
+
+
+SENT_W = {"st": 35, "whales": 25, "votes": 20, "news": 20}
+SENT_NAMES = {"st": "Stocktwits", "whales": "Hyperliquid top traders", "votes": "CoinGecko votes", "news": "News tone"}
+
+
+def sentiment_of(t, fdm, trend, votes, st, ape, feed, sm):
+    """The free sentiment inputs of one coin: Stocktwits bullish share, CoinGecko community votes, news tone and the
+    Hyperliquid top traders' long share (each kept as a raw value for sentiment_rank), plus trending and Reddit
+    buzz shown next to them. Small samples are pulled toward neutral. Not part of the tested score."""
+    out = {"score": None, "label": None, "parts": [], "trending": None, "stocktwits": None, "reddit": None,
+           "news": None, "votes": None, "whales": None, "raw": {}}
+    trd = ((trend or {}).get("coins") or {}).get(t.upper())
+    if trd:
+        out["trending"] = trd["rank"]
+    S = ((st or {}).get("coins") or {}).get(t)
+    if S and not S.get("none"):
+        out["stocktwits"] = {k: S.get(k) for k in ("bull", "bear", "bull_share", "posts_day", "posts_24h", "watchers",
+                                                   "sent_change", "vol_change")}
+        b, r = S.get("bull") or 0, S.get("bear") or 0
+        if b + r >= 4:
+            out["raw"]["st"] = (b + 1) / (b + r + 2)       # a few tagged posts say less than many
+    cid = (fdm or {}).get("id")
+    v = ((votes or {}).get("coins") or {}).get(cid) if cid else None
+    if v and v.get("up") is not None:
+        out["votes"] = round(v["up"])
+        out["raw"]["votes"] = v["up"]
+    A = ((ape or {}).get("coins") or {}).get(t.upper())
+    if A:
+        out["reddit"] = A
+    N = news_for(t, (fdm or {}).get("name"), feed)
+    if N and N.get("n"):
+        out["news"] = N
+        out["raw"]["news"] = N["tone"] * N["n"] / (N["n"] + 2)    # one headline counts for little
+    if sm and (sm[2] + sm[3]) >= 50_000:
+        share = sm[2] / (sm[2] + sm[3])
+        out["whales"] = round(share * 100)
+        out["raw"]["whales"] = 0.5 + (share - 0.5) * min(1.0, (sm[2] + sm[3]) / 1_000_000)   # small books count less
+    return out
+
+
+def sentiment_rank(all_sent, min_coins=5):
+    """Score every coin 0-100 against the other coins of the same scan: each source becomes a percentile (50 = a
+    typical coin today), weighted Stocktwits 35, top traders 25, CoinGecko votes 20, news 20. A coin needs two
+    sources for a score. Ranking matters because crypto crowds lean bullish on almost everything: in a live run 69%
+    of coins looked bullish on raw numbers."""
+    import bisect
+    pct = {}
+    for k in SENT_W:
+        vals = sorted(v["raw"][k] for v in all_sent.values() if k in v.get("raw", {}))
+        if len(vals) < min_coins:
+            continue
+        for t, v in all_sent.items():
+            x = v.get("raw", {}).get(k)
+            if x is None:
+                continue
+            lo, hi = bisect.bisect_left(vals, x), bisect.bisect_right(vals, x)
+            pct.setdefault(t, {})[k] = 100.0 * (lo + (hi - lo) / 2) / len(vals)
+    for t, v in all_sent.items():
+        p = pct.get(t, {})
+        v["parts"] = [[SENT_NAMES[k], round(p[k])] for k in SENT_W if k in p]
+        if len(p) >= 2:
+            v["score"] = round(sum(p[k] * SENT_W[k] for k in p) / sum(SENT_W[k] for k in p))
+            v["label"] = "Bullish" if v["score"] >= 65 else "Bearish" if v["score"] <= 35 else "Neutral"
+        else:
+            v["score"], v["label"] = None, None
+        v.pop("raw", None)
+    return all_sent
+
+
+def sentiment_checks(sent):
+    """Sentiment lines for a pick's checklist (information only: no free history to test them on)."""
+    out = []
+    S = sent.get("stocktwits")
+    if S and S.get("bull_share") is not None:
+        d = (f"{S['bull']} bullish vs {S['bear']} bearish posts ({S['bull_share'] * 100:.0f}% bullish), "
+             f"about {S['posts_day']:.1f} posts a day")
+        out.append(("st", "Traders on Stocktwits", None, 0, d, "Sentiment", False))
+    elif S:
+        out.append(("st", "Traders on Stocktwits", None, 0, f"Few tagged posts (about {S['posts_day']:.1f} posts a day)",
+                    "Sentiment", False))
+    else:
+        out.append(("st", "Traders on Stocktwits", None, 0, "No Stocktwits posts found", "Sentiment", False))
+    R = sent.get("reddit")
+    if R:
+        prev = R.get("prev")
+        ch = (f", {'up' if (R['mentions'] or 0) >= (prev or 0) else 'down'} from {prev} a day before" if prev is not None else "")
+        out.append(("reddit", "Reddit and 4chan buzz", None, 0,
+                    f"#{R['rank']} most mentioned crypto ({R['mentions']} mentions in 24h{ch})", "Sentiment", False))
+    else:
+        out.append(("reddit", "Reddit and 4chan buzz", None, 0, "Not among the most mentioned coins", "Sentiment", False))
+    N = sent.get("news")
+    if N and N.get("n"):
+        tone = "positive" if N["tone"] > 0.15 else "negative" if N["tone"] < -0.15 else "mixed"
+        out.append(("news", "News headlines", None, 0, f"{N['n']} headlines in 3 days, tone {tone}: “{N['top'][0]['title'][:90]}”",
+                    "Sentiment", False))
+    else:
+        out.append(("news", "News headlines", None, 0, "No headlines in the last 3 days", "Sentiment", False))
+    if sent.get("votes") is not None:
+        out.append(("votes", "CoinGecko community", None, 0, f"{sent['votes']}% bullish votes", "Sentiment", False))
+    out.append(("trend", "Trending searches", None, 0,
+                f"#{sent['trending']} most searched on CoinGecko right now" if sent.get("trending") else
+                "Not among CoinGecko's 15 most searched coins", "Sentiment", False))
+    return out
 
 
 def hourly(coin, src, n, now):
@@ -853,6 +1207,7 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
         btc_x = {"price": bc[-1], "ema50": e50, "up": bool(e50 and bc[-1] > e50),
                  "mom30": bc[-1] / bc[-31] - 1 if len(bc) > 30 else None, "mom7": bc[-1] / bc[-8] - 1}
     market = market_state(daily, btc_x)
+    market["fng"] = None
 
     # 1) swing checks on the last complete day
     swing = {}
@@ -886,7 +1241,20 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
     J["cg"] = cg
     if cg_state == "fresh":
         supply_update(J, cg, now)
+    trend = J["trend"] = cg_trending(J.get("trend"), now)
+    cand = [((cg or {}).get("coins") or {}).get(t, {}).get("id") for t in ranked[:30]]
+    votes = J["votes"] = cg_votes(cand, J.get("votes"), now, 25 if CG_KEY else 10)
+    st_list = list(dict.fromkeys(ranked[:25] + by_liq[:10]))
+    stw = J["st"] = stocktwits(st_list, J.get("st"), now)
+    ape = J["ape"] = apewisdom(J.get("ape"), now)
+    feed = J["news"] = news(J.get("news"), now)
+    fng = J["fng"] = fear_greed(J.get("fng"), now)
+    J.pop("lc", None)
     fund = {t: sc.funding_avg(data[t]["coin"]) for t in swing}
+
+    # free sentiment, ranked against the other coins of this scan
+    SENT = sentiment_rank({t: sentiment_of(t, ((cg or {}).get("coins") or {}).get(t), trend, votes, stw, ape, feed, smart.get(t))
+                           for t in swing})
 
     # 4) records
     sw_recs, day_recs = [], []
@@ -894,17 +1262,20 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
         coin, x = data[t]["coin"], s["x"]
         fdm = (cg or {}).get("coins", {}).get(t)
         liq = sc.liq_of(coin) or 0
+        sent = SENT[t]
         best = None
         for side in ("long", "short"):
             core = s[side]
             cr = s["cl"] if side == "long" else s["cs"]
             W = LONG_W if side == "long" else SHORT_W
-            ex = extra_checks(side, coin, smart.get(t), pos.get(t), fund.get(t), fdm, liq, supply_growth(J, t, now))
+            ex = extra_checks(side, coin, smart.get(t), pos.get(t), fund.get(t), fdm, liq,
+                              supply_growth(J, t, now)) + sentiment_checks(sent)
             plan = plan_of(side, x["price_now"], x["atr"] * x["price_now"] / x["price"], "swing")
             rec = record("swing", side, t, coin, core, cr, W, swing_explain(side, x, cr), ex, plan, x["price_now"],
                          {"chg24": round(x["price_now"] / data[t]["c4"][-6]["c"] - 1, 4) if len(data[t]["c4"]) > 6 else None,
                           "spark": spark([b["c"] for b in data[t]["cd"][-60:]]), "day": last_day,
-                          "atrp": round(x["atrp"], 4), "fund": fdm and {k: fdm.get(k) for k in ("mc", "rank", "ath_ch")}})
+                          "atrp": round(x["atrp"], 4), "fund": fdm and {k: fdm.get(k) for k in ("mc", "rank", "ath_ch")},
+                          "sentiment": sent})
             if best is None or rec["score"] > best["score"]:
                 best = rec
         sw_recs.append(best)
@@ -921,12 +1292,28 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
             ex = [e for e in extra_checks(side, coin, smart.get(t), pos.get(t), None, None, liq)
                   if e[0] in ("smart", "lev", "flush", "liq")] + [rsi_check(side, y["rsi1h"])]
             plan = plan_of(side, y["price"], y["atr"], "day")
-            rec = record("day", side, t, coin, core, cr, DAY_W, day_explain(side, y, cr, s[side]), ex, plan, y["price"],
+            rec = record("day", side, t, coin, core, cr, DAY_W, day_explain(side, y, cr, s[side]), ex + sentiment_checks(sent),
+                         plan, y["price"],
                          {"chg24": round(y["r24h"], 4), "spark": spark([b["c"] for b in c1[-48:]]), "hour": y["t"],
-                          "rsi1h": round(y["rsi1h"], 1) if y["rsi1h"] is not None else None})
+                          "rsi1h": round(y["rsi1h"], 1) if y["rsi1h"] is not None else None, "sentiment": sent})
             if bestd is None or rec["score"] > bestd["score"]:
                 bestd = rec
         day_recs.append(bestd)
+    # one sentiment snapshot per coin and day, kept for 400 days, so the free sentiment can be tested later
+    hist = J.setdefault("sent_hist", {})
+    day0 = now // DAY * DAY
+    for r in sw_recs:
+        se = r.get("sentiment") or {}
+        st_ = se.get("stocktwits") or {}
+        row = [day0, se.get("score"), st_.get("bull_share"), st_.get("posts_day"), (se.get("reddit") or {}).get("mentions"),
+               (se.get("news") or {}).get("n"), (se.get("news") or {}).get("tone"), se.get("votes"), se.get("whales"),
+               round(r["price"], 8)]
+        rows = hist.setdefault(r["coin"], [])
+        if rows and rows[-1][0] == day0:
+            rows[-1] = row
+        else:
+            rows.append(row)
+        hist[r["coin"]] = rows[-400:]
     sw_recs.sort(key=lambda r: (-r["score"], -r["liq"]))
     day_recs.sort(key=lambda r: (-r["score"], -r["liq"]))
     n = CFG["top_n"]
@@ -1035,6 +1422,7 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
 
     rec_sw = [t for t in J["closed"] if t["kind"] == "swing"]
     rec_day = [t for t in J["closed"] if t["kind"] == "day"]
+    market["fng"] = {k: (fng or {}).get(k) for k in ("value", "label")} if fng else None
     out = {
         "version": VERSION, "generated": now, "duration_s": round(time.time() - t0, 1),
         "next_scan_min": sc.CFG["schedule_every_min"], "day": last_day, "hour": last_hour,
@@ -1048,7 +1436,13 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
         "sources": {"smart": bool(smart), "smart_traders": (smart_meta or {}).get("read"),
                     "oi": sum(1 for v in pos.values() if v), "cg": cg_state,
                     "cg_time": (cg or {}).get("time"), "cg_coins": len((cg or {}).get("coins") or {}),
-                    "hourly": sum(1 for v in c1s.values() if v)},
+                    "hourly": sum(1 for v in c1s.values() if v), "cg_key": bool(CG_KEY),
+                    "stocktwits": sum(1 for v in ((stw or {}).get("coins") or {}).values() if not v.get("none")),
+                    "reddit": len((ape or {}).get("coins") or {}), "news": len((feed or {}).get("items") or []),
+                    "trending": [k for k, _ in sorted(((trend or {}).get("coins") or {}).items(),
+                                                      key=lambda kv: kv[1]["rank"])][:15]},
+        "scores": {r["coin"]: {"side": r["side"], "score": r["score"], "core": r["core"], "label": r["label"],
+                               "venues": r.get("venues"), "sentiment": r.get("sentiment")} for r in sw_recs},
         "record": {"swing": stats(rec_sw), "day": stats(rec_day),
                    "swing_long": stats([t for t in rec_sw if t["d"] > 0]),
                    "swing_short": stats([t for t in rec_sw if t["d"] < 0]),
@@ -1075,6 +1469,11 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
         if os.path.exists(idx) and not os.path.exists(os.path.join(out_dir, "radar.html")):
             shutil.copyfile(idx, os.path.join(out_dir, "radar.html"))
         shutil.copyfile(src, idx)
+    # the coin analyzer (runs in the browser and reads data/picks.json for the tested scores and sentiment)
+    for name in ("analyze.html", "analyze.js"):
+        p = os.path.join(here, name)
+        if os.path.exists(p):
+            shutil.copyfile(p, os.path.join(out_dir, name))
     log(f"done in {out['duration_s']}s: {len(sw_recs)} swing and {len(day_recs)} day-trade scores; "
         f"top swing {', '.join(r['coin'] + ' ' + r['side'] + ' ' + str(r['score']) for r in sw_recs[:3])}")
     return out
