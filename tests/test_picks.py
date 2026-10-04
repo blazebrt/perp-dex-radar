@@ -222,6 +222,98 @@ class Sentiment(unittest.TestCase):
         self.assertEqual(len(P.sentiment_checks(empty)), 4)
 
 
+class GeminiNotes(unittest.TestCase):
+    """AI desk notes and headline ratings with a fake Gemini: budget, caching, fallbacks, and nothing without a key."""
+
+    def setUp(self):
+        self.saved = (P.GEMINI_KEY, P.gemini_call, P.CFG["gemini_gap"])
+        P.GEMINI_KEY, P.CFG["gemini_gap"] = "test-key", 0.0
+        P.GEMINI_STATE.update(calls=0, errors=[], stopped=False)
+        self.calls = []
+        self.fail = {}
+        P.gemini_call = self.fake
+
+    def tearDown(self):
+        P.GEMINI_KEY, P.gemini_call, P.CFG["gemini_gap"] = self.saved
+        P.GEMINI_STATE.update(calls=0, errors=[], stopped=False)
+
+    def fake(self, model, system, prompt, max_tokens=2048, json_out=False, timeout=60):
+        import io
+        import urllib.error
+        self.calls.append(model)
+        if model in self.fail:
+            code = self.fail[model]
+            raise urllib.error.HTTPError("https://x", code, "err", {}, io.BytesIO(b'{"error": {"message": "nope"}}'))
+        if json_out:
+            return '[{"i": 0, "tone": 0.8}, {"i": 1, "tone": -1}, {"i": 7, "tone": 1}]'
+        return "## Bottom line\nA test note.\n\nNot financial advice."
+
+    @staticmethod
+    def recs(n=6, score=85.0):
+        out = []
+        for i in range(n):
+            out.append({"coin": f"C{i}", "kind": "swing", "side": "long" if i % 2 else "short", "score": score - i,
+                        "core": 80.0, "extra": 5.0, "label": "Ready", "setup": "Coiled bottom", "price": 1.0 + i,
+                        "chg24": 0.01, "why": "test", "plan": {"entry": 1.0, "stop": 0.9, "stop_pct": 0.1, "trail": 0.15,
+                                                                 "trail_k": 3.0, "days": 30, "r1": 1.1, "r2": 1.2, "r3": 1.3},
+                        "checks": [{"name": "RSI", "ok": 1.0, "pts": 20, "max": 20, "detail": "RSI 55"}],
+                        "extras": [{"name": "Funding", "group": "Smart money", "detail": "calm", "ok": None}],
+                        "sentiment": {"score": 60, "label": "Neutral", "parts": [["Stocktwits", 60]]}})
+        return out
+
+    def test_notes_are_capped_cached_and_refreshed(self):
+        J, R = {}, self.recs()
+        P.desk_notes(R, J, NOW_FIX, None, {"mood": "Mixed"})
+        self.assertEqual(len(self.calls), 3, "at most notes_per_run new notes a scan")
+        P.desk_notes(R, J, NOW_FIX + 3600, None, {})
+        self.assertEqual(len(self.calls), 5, "the rest of the top 5 the next scan")
+        self.assertEqual(sorted(J["notes"]), ["C0", "C1", "C2", "C3", "C4"])
+        P.desk_notes(R, J, NOW_FIX + 7200, None, {})
+        self.assertEqual(len(self.calls), 5, "unchanged picks keep their notes")
+        R[2]["score"] += 6
+        P.desk_notes(R, J, NOW_FIX + 7300, None, {})
+        self.assertEqual(len(self.calls), 6, "a pick that moved 5+ points gets a new note")
+        P.desk_notes(R, J, NOW_FIX + 14 * 3600, None, {})
+        self.assertEqual(len(self.calls), 9, "stale notes are rewritten, still 3 a scan")
+        self.assertIn("Bottom line", J["notes"]["C0"]["text"])
+        self.assertEqual(J["notes"]["C0"]["model"], P.GEMINI_NOTES_MODEL)
+
+    def test_quota_stops_the_run(self):
+        self.fail[P.GEMINI_NOTES_MODEL] = 429
+        J = {}
+        P.desk_notes(self.recs(), J, NOW_FIX, None, {})
+        self.assertEqual(self.calls, [P.GEMINI_NOTES_MODEL], "after a quota error no more requests this scan")
+        self.assertTrue(P.GEMINI_STATE["stopped"])
+        self.assertEqual(J["notes"], {})
+
+    def test_missing_model_falls_back_to_the_other(self):
+        self.fail[P.GEMINI_NOTES_MODEL] = 404
+        J = {}
+        P.desk_notes(self.recs(1), J, NOW_FIX, None, {})
+        self.assertEqual(self.calls, [P.GEMINI_NOTES_MODEL, P.GEMINI_FAST_MODEL])
+        self.assertEqual(J["notes"]["C0"]["model"], P.GEMINI_FAST_MODEL)
+
+    def test_headlines_rated_once_and_used(self):
+        feed = {"items": [{"t": NOW_FIX, "src": "CoinDesk", "title": "Bitcoin ETF inflows hit a record", "desc": ""},
+                          {"t": NOW_FIX, "src": "The Block", "title": "Bitcoin miners sell after the halving", "desc": ""}]}
+        P.news_ai(feed, NOW_FIX)
+        self.assertEqual([x.get("ai") for x in feed["items"]], [0.8, -1.0], "out-of-range answers are ignored")
+        btc = P.news_for("BTC", "Bitcoin", feed)
+        self.assertEqual(btc["ai"], 2)
+        self.assertAlmostEqual(btc["tone"], -0.1)
+        P.news_ai(feed, NOW_FIX + 3600)
+        self.assertEqual(len(self.calls), 1, "one batched request at most every few hours")
+
+    def test_nothing_without_a_key(self):
+        P.GEMINI_KEY = ""
+        J, feed = {}, {"items": [{"t": NOW_FIX, "src": "x", "title": "Bitcoin rallies", "desc": ""}]}
+        P.desk_notes(self.recs(), J, NOW_FIX, None, {})
+        P.news_ai(feed, NOW_FIX)
+        self.assertEqual(self.calls, [])
+        self.assertEqual(J["notes"], {})
+        self.assertNotIn("ai", feed["items"][0])
+
+
 class GateStats(unittest.TestCase):
     def test_seven_day_values(self):
         rows = [{"time": T0 + i * 14400, "open_interest_usd": 100.0 + i, "mark_price": 10.0 + 0.1 * i,
@@ -320,6 +412,8 @@ class EndToEnd(unittest.TestCase):
         P.CFG["gap_stocktwits"] = P.CFG["gap_coingecko"] = 0.0
         cls.old_get_text = P.get_text
         P.get_text = lambda url, timeout=30: RSS   # no real news sites in the tests
+        cls.old_gemini = P.GEMINI_KEY
+        P.GEMINI_KEY = ""                          # and no AI requests
         for run in ("s1", "s2"):
             d = os.path.join(cls.tmp, run, "data")
             os.makedirs(d)
@@ -337,6 +431,7 @@ class EndToEnd(unittest.TestCase):
         P.CFG["paper_swing_min"] = cls.restore
         P.CFG["gap_stocktwits"], P.CFG["gap_coingecko"] = cls.gaps
         P.get_text = cls.old_get_text
+        P.GEMINI_KEY = cls.old_gemini
         shutil.rmtree(cls.tmp, ignore_errors=True)
 
     def test_files_and_pages(self):
