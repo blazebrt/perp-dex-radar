@@ -75,6 +75,9 @@ jobs:
           # Optional: a free CoinGecko Demo key, added under Settings > Secrets and variables > Actions > New
           # repository secret (name COINGECKO_API_KEY). Without it the public CoinGecko API is used.
           COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
+          # Optional: a free Gemini key (Google AI Studio) for the AI desk notes on the top picks and the AI tone of
+          # the news headlines. Add it as a repository secret named GEMINI_API_KEY (the other names work too).
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || secrets.GEMINI_KEY || secrets.GEMINI || secrets.GOOGLE_API_KEY || secrets.GOOGLE_AI_KEY || secrets.GOOGLE_AI_STUDIO_KEY || secrets.GEMINI_API }}
         run: python picks.py --out site --pages-url "${{ steps.pages.outputs.base_url }}"
 
       - name: Keep the coin picks if they failed
