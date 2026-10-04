@@ -353,6 +353,7 @@ const fp = (x) => TA.fmtPrice(x);
 const pct = (x, d = 1) => x == null || !isFinite(x) ? "–" : (x >= 0 ? "+" : "") + (x * 100).toFixed(d) + "%";
 const money = (x) => x == null || !isFinite(x) ? "–" : "$" + Math.round(x).toLocaleString("en-US");
 const big = (x) => x == null || !isFinite(x) ? "–" : x >= 1e9 ? "$" + (x / 1e9).toFixed(2) + "B" : x >= 1e6 ? "$" + (x / 1e6).toFixed(1) + "M" : "$" + Math.round(x).toLocaleString("en-US");
+function agoS(t) { return ago(t * 1000); }
 function ago(ms) {
   const s = Math.max(0, (Date.now() - ms) / 1000);
   if (s < 60) return Math.round(s) + "s ago";
@@ -1033,9 +1034,19 @@ function aiModel(p) {
   const m = store.get("analyze_ai_model_" + p, ""), list = AI_PROVIDERS[p].models;
   return list.some(([id]) => id === m) ? m : list[0][0];
 }
+function scanNote() {
+  const sc = scanOf(S.coin);
+  return sc && sc.note && sc.note.text ? sc.note : null;
+}
 function renderAI(msg) {
-  const prov = aiProvider(), P = AI_PROVIDERS[prov], key = aiKey(prov);
+  const prov = aiProvider(), P = AI_PROVIDERS[prov], key = aiKey(prov), sn = scanNote();
   let h = '<h2>Trader\'s note <span class="small muted" style="font-weight:500">optional · written by AI from the numbers above</span></h2>';
+  if (sn) {
+    const sc = scanOf(S.coin);
+    h += '<div class="note info" style="margin:0 0 12px"><b>Desk note on the ' + esc(sc.side) + ' swing pick</b>, written by AI (' + esc(sn.model || "Gemini") + ') during the scan ' + agoS(sn.t) +
+      '. It covers the tested swing setup (days to weeks), not this ' + esc(TA.TF_LABEL[S.tf]) + ' chart.</div><div class="out" style="margin:0 0 14px">' + mdLite(sn.text) + '</div>' +
+      '<p class="small ink2" style="margin:0 0 6px">Want a note on this chart and timeframe instead? Use your own key below.</p>';
+  }
   if (!key) {
     h += '<p class="small ink2" style="margin:0">Add your own AI key to get a desk-style note on this setup: a Gemini key is free (Google\'s free tier), a Claude key costs about 1 to 3 cents a note. The key stays in this browser and is sent only to that company.</p>' + aiForm(prov);
   } else {
