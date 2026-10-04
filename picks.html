@@ -57,6 +57,8 @@ h3 { font-size: 15px; margin: 0; }
 .mood { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; padding: 14px 18px; }
 .mood .dotm { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
 .mood b { font-weight: 650; }
+.refresh { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; width: 100%; }
+.refresh .iconbtn:disabled { opacity: .6; cursor: progress; }
 .bar { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: end; padding: 12px 16px; margin-top: 10px; }
 .bar label { display: grid; gap: 3px; font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
 .bar input { font: inherit; font-size: 15px; color: var(--ink); background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; width: 120px; }
@@ -340,7 +342,11 @@ function renderMood() {
     '<div class="small ink2">BTC ' + px(b.price) + ' · 50-day EMA ' + px(b.ema50) + ' · 30 days ' + pct(b.mom30) + '</div>' +
     '<div class="small ink2">' + (m.above != null ? m.above + ' of ' + m.total + ' coins above their 50-day EMA' : "") + '</div>' +
     '<div class="small muted">Updated ' + ago(P.generated) + ' · ' + P.coins + ' coins scored · smart money ' + (s.smart ? "on (" + (s.smart_traders || 0) + " top traders)" : "off") +
-    ' · fundamentals ' + (s.cg_time ? "from " + ago(s.cg_time) : "unavailable") + '</div>';
+    ' · fundamentals ' + (s.cg_time ? "from " + ago(s.cg_time) : "unavailable") + '</div>' +
+    '<div class="refresh"><button class="iconbtn" id="refresh" type="button">⟳ Refresh now</button><span class="small muted" id="refreshMsg">' +
+    (ghOn() ? "Runs a new scan on your GitHub (about 3 minutes)." : 'GitHub runs the scan on its own schedule, often late. To refresh from here, connect GitHub once on the <a href="radar.html#studio">radar page</a> (Studio tab).') + '</span></div>';
+  const rb = $("#refresh");
+  if (rb) rb.addEventListener("click", refreshNow);
 }
 function renderKindNote() {
   let h = "";
@@ -438,6 +444,51 @@ function render() {
   renderMood(); renderKindNote(); renderPicks(); renderRecord();
   $("#ver").textContent = "Picks engine " + (P.version || "") + ".";
 }
+// ---------- refresh now: start a scan on GitHub with the connection saved on the radar page (this browser only)
+const GH = (() => {
+  let g = {};
+  try { g = JSON.parse(localStorage.getItem("radar.gh") || "{}") || {}; } catch (e) { g = {}; }
+  const m = location.hostname.match(/^([a-z0-9-]+)\.github\.io$/i), seg = location.pathname.split("/").filter(Boolean)[0];
+  return {token: g.token || "", owner: g.owner || (m ? m[1] : ""), repo: g.repo || (m ? (seg || m[1] + ".github.io") : ""), branch: g.branch || "main"};
+})();
+function ghOn() { return !!(GH.token && GH.owner && GH.repo); }
+function gh(path, opt) {
+  opt = opt || {};
+  const hd = {"Accept": "application/vnd.github+json", "Authorization": "Bearer " + GH.token, "X-GitHub-Api-Version": "2022-11-28"};
+  if (opt.body) hd["Content-Type"] = "application/json";
+  return fetch("https://api.github.com/repos/" + encodeURIComponent(GH.owner) + "/" + encodeURIComponent(GH.repo) + path,
+    {method: opt.method || "GET", headers: hd, body: opt.body ? JSON.stringify(opt.body) : undefined, cache: "no-store"});
+}
+function refreshMsg(t) { const m = $("#refreshMsg"); if (m) m.textContent = t; const b = $("#refresh"); if (b) b.disabled = /…/.test(t); }
+let REFRESHING = false;
+async function refreshNow() {
+  if (!ghOn()) { location.href = "radar.html#studio"; return; }
+  if (REFRESHING) return;
+  REFRESHING = true;
+  const t0 = Date.now(), before = P ? P.generated : 0;
+  try {
+    refreshMsg("Starting a scan…");
+    const r = await gh("/actions/workflows/scan.yml/dispatches", {method: "POST", body: {ref: GH.branch, inputs: {}}});
+    if (r.status !== 204) throw new Error(r.status === 401 ? "GitHub did not accept the saved token" : r.status === 403 ? "the saved token lacks Actions permission" : "GitHub answered " + r.status);
+    for (let i = 0; i < 90; i++) {
+      await new Promise((ok) => setTimeout(ok, 8000));
+      const s = Math.round((Date.now() - t0) / 1000);
+      try {
+        const q = await fetch("data/picks.json?ts=" + Date.now(), {cache: "no-store"});
+        if (q.ok) {
+          const j = await q.json();
+          if (j.generated > before && j.generated * 1000 >= t0 - 60000) { P = j; render(); refreshMsg("Updated just now."); REFRESHING = false; return; }
+        }
+      } catch (e) { /* keep waiting */ }
+      refreshMsg("Scanning… " + Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0") + " (the page updates by itself)");
+    }
+    refreshMsg("The scan is taking long; check Actions on GitHub.");
+  } catch (e) {
+    refreshMsg("Could not start the scan: " + e.message + ".");
+  }
+  REFRESHING = false;
+}
+
 async function load() {
   try {
     const r = await fetch("data/picks.json?ts=" + Date.now(), {cache: "no-store"});

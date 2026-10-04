@@ -35,7 +35,7 @@ import time
 import quant as q
 import scanner as sc
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 ENGINE = 1
 H = 3600
 B4 = 4 * H
@@ -641,10 +641,15 @@ def plan_of(side, price, atr_abs, kind):
     return {k: (float(f"{v:.8g}") if isinstance(v, float) else v) for k, v in out.items()}
 
 
+PROPER = ("Hyperliquid", "Bitcoin", "Gate.io", "CoinGecko")
+
+
 def lc(name):
-    """Lower-case the first letter of a check name unless it starts with an acronym (EMA, RSI, BTC)."""
+    """Lower-case the first letter of a check name, except acronyms (EMA, RSI) and names (Hyperliquid, Bitcoin)."""
     w = name.split(" ", 1)[0]
-    return name if (len(w) > 1 and w[:2].isupper()) else name[:1].lower() + name[1:]
+    if (len(w) > 1 and w[:2].isupper()) or w in PROPER:
+        return name
+    return name[:1].lower() + name[1:]
 
 
 def usd_short(x):
@@ -655,11 +660,11 @@ def summary(side, kind, label, checks, extras):
     """One plain sentence: what the setup is and the strongest reasons."""
     good = [lc(c["name"]) for c in checks if c["ok"] == 1][:3]
     bad = [lc(c["name"]) for c in checks if c["ok"] == 0][:2]
-    smart = [e for e in extras if e["ok"] is True and e["group"] == "Smart money"]
+    plus = [lc(e["name"]) for e in extras if e["ok"] is True and e["max"] > 0 and e["k"] != "liq"][:2]
     what = (SETUP[side] if kind == "swing" else ("Day long" if side == "long" else "Day short"))
     s = f"{what} ({label.lower()}): " + (", ".join(good) if good else "few checks pass")
-    if smart:
-        s += "; " + lc(smart[0]["name"]) + " agree"
+    if plus:
+        s += ". Also for it: " + ", ".join(plus)
     if bad:
         s += ". Missing: " + ", ".join(bad)
     return s + "."
