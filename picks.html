@@ -81,8 +81,8 @@ h3 { font-size: 15px; margin: 0; }
 .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 650; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--border); white-space: nowrap; color: var(--ink); }
 .pill.long { background: var(--long-wash); color: var(--long); border-color: transparent; }
 .pill.short { background: var(--short-wash); color: var(--short); border-color: transparent; }
-.pill.lab-Strong { background: var(--ink); color: var(--page); border-color: transparent; }
-.pill.lab-Ready { color: var(--good-text); }
+.pill.lab-Strong, .pill.lab-Best { background: var(--ink); color: var(--page); border-color: transparent; }
+.pill.lab-Ready, .pill.lab-Good { color: var(--good-text); }
 .pill.lab-Weak { color: var(--muted); }
 .ring { margin-left: auto; position: relative; width: 64px; height: 64px; flex: none; }
 .ring svg { width: 64px; height: 64px; transform: rotate(-90deg); }
@@ -281,9 +281,11 @@ function checksHtml(p) {
 function planHtml(p) {
   const pl = p.plan, a = acct(), r = riskPct();
   const riskUsd = a * r, size = riskUsd / pl.stop_pct, lev = size / a;
-  const sideWord = p.side === "long" ? "Buy" : "Sell short";
+  const ready = p.score >= ((P && P.settings) || {}).ready;
+  const sideWord = (p.side === "long" ? "Buy" : "Sell short") + (ready ? "" : " · not yet");
   const unit = p.kind === "swing" ? (pl.days + " days") : (pl.hours + " hours");
-  return '<div class="plan">' +
+  const wait = ready ? "" : '<div class="small" style="margin-top:10px;color:var(--half);font-weight:600">Not a trade yet: the score is below 80. Watch it; the plan below is what it would be now.</div>';
+  return wait + '<div class="plan">' +
     '<div><div class="l">' + sideWord + '</div><div class="v">' + px(pl.entry) + '</div><div class="s">price now</div></div>' +
     '<div><div class="l">Stop</div><div class="v">' + px(pl.stop) + '</div><div class="s">' + (p.side === "long" ? "−" : "+") + (pl.stop_pct * 100).toFixed(1) + '% away</div></div>' +
     '<div><div class="l">Targets</div><div class="v">' + px(pl.r2) + '</div><div class="s">+1R ' + px(pl.r1) + ' · +3R ' + px(pl.r3) + '</div></div>' +
@@ -291,10 +293,11 @@ function planHtml(p) {
     '</div><div class="small ink2" style="margin-top:6px">Exit rule (tested): keep the stop ' + px(pl.trail) + ' (' + pl.trail_k + ' ATR) from the best price reached, moving it only in your favour; close after ' + unit + ' at the latest. Targets are reference levels only.</div>';
 }
 function bandOf(p) {
+  // the tested numbers belong to the chart-setup score (the extra checks are live only)
   if (!R || p.kind !== "swing") return null;
   const t = (R.swing || {})[p.side];
   if (!t) return null;
-  return (t.bands || []).find((b) => p.score >= b.lo && p.score < b.hi) || null;
+  return (t.bands || []).find((b) => p.core >= b.lo && p.core < b.hi) || null;
 }
 function oddsHtml(p) {
   if (p.kind !== "swing") {
@@ -304,7 +307,7 @@ function oddsHtml(p) {
   if (!b) return "";
   const t = R.swing[p.side];
   const yrs = Object.entries(b.years || {}).map(([y, v]) => y + " " + pct(v.ret)).join(" · ");
-  return '<div class="odds"><b>Past results of ' + (p.side === "long" ? "longs" : "shorts") + ' scoring ' + b.lo + '–' + Math.min(100, b.hi - 1) + ':</b> ' +
+  return '<div class="odds"><b>Past results of ' + (p.side === "long" ? "longs" : "shorts") + ' with a chart score of ' + b.lo + '–' + Math.min(100, b.hi - 1) + ':</b> ' +
     pct(b.ret) + ' per trade on average after fees, ' + Math.round(b.win * 100) + '% winners (' + b.n.toLocaleString() + ' coin-days; by year ' + yrs + '). ' +
     (p.side === "long" ? 'Reached +50% within 30 days ' + Math.round(b.up50 * 100) + '% of the time, fell 30% ' + Math.round(b.dn30 * 100) + '% (every coin: ' + Math.round(t.base.up50 * 100) + '% and ' + Math.round(t.base.dn30 * 100) + '%).'
                        : 'The price fell 30% within 30 days ' + Math.round(b.dn30 * 100) + '% of the time (every coin: ' + Math.round(t.base.dn30 * 100) + '%).') + '</div>';
@@ -315,7 +318,7 @@ function pickCard(p, i) {
   return '<div class="card pick' + (i === 0 ? " first" : "") + '">' +
     '<div class="top"><div class="rank">#' + (i + 1) + '</div><div><div class="coin">' + esc(p.coin) + '<small>' + px(p.price) + ' · ' + pct(p.chg24) + ' 24h</small></div>' +
     '<div class="meta"><span class="pill ' + p.side + '">' + (p.side === "long" ? "LONG" : "SHORT") + '</span>' + setup +
-    '<span class="pill lab-' + esc(p.label) + '">' + esc(p.label) + '</span>' + venues + '</div></div>' + ring(p.score) + '</div>' +
+    '<span class="pill lab-' + esc(p.label.split(" ")[0]) + '">' + esc(p.label) + '</span>' + venues + '</div></div>' + ring(p.score) + '</div>' +
     '<p class="why">' + esc(p.why) + '</p>' +
     '<div class="pricebar"><span class="small muted">' + (p.kind === "swing" ? "60 days" : "48 hours") + '</span>' + spark(p.spark, p.side) + '</div>' +
     planHtml(p) + oddsHtml(p) +
@@ -392,7 +395,7 @@ function renderRecord() {
   for (const t of opens.slice(0, 30)) {
     rows.push('<tr><td>' + (t.kind === "swing" ? "Swing" : "Day") + ' <span class="muted small">' + timeOf(t.t_in) + '</span></td><td><b>' + esc(t.c) + '</b></td><td><span class="pill ' + (t.d > 0 ? "long" : "short") + '">' + (t.d > 0 ? "LONG" : "SHORT") + '</span></td>' +
       '<td class="num">' + Math.round(t.score) + '</td><td class="num">' + (t.px ? px(t.px) : '<span class="muted">next open</span>') + '</td><td class="num">' + px(t.last_px) + '</td>' +
-      '<td class="num ' + ((t.r || 0) >= 0 ? "pos" : "neg") + '">' + (t.r == null ? "–" : (t.r >= 0 ? "+" : "") + t.r.toFixed(2) + "R") + '</td><td class="small ink2">Open · stop ' + px(t.stop_now) + '</td></tr>');
+      '<td class="num ' + ((t.r || 0) >= 0 ? "pos" : "neg") + '">' + (t.r == null ? "–" : (t.r >= 0 ? "+" : "") + t.r.toFixed(2) + "R") + '</td><td class="small ink2">' + (t.stop_now ? 'Open · stop ' + px(t.stop_now) : 'Waiting for its first ' + (t.kind === "swing" ? "day" : "hour") + ' to close') + '</td></tr>');
   }
   if (opens.length > 30) rows.push('<tr><td colspan="8" class="small muted">… and ' + (opens.length - 30) + ' more open trades</td></tr>');
   for (const t of (r.closed || []).slice(-40).reverse()) {
