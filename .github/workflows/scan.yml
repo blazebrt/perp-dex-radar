@@ -53,9 +53,24 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python scanner.py --out site --pages-url "${{ steps.pages.outputs.base_url }}" $RESET
 
+      - name: Run the quant desk (long and short trend and momentum strategies)
+        id: quant
+        continue-on-error: true
+        run: python quant.py --out site --pages-url "${{ steps.pages.outputs.base_url }}"
+
+      - name: Keep the quant desk files if it failed
+        # A failed run must not drop the quant record from the site (the next run would start over).
+        if: steps.quant.outcome == 'failure'
+        run: |
+          mkdir -p site/data
+          for f in quant.json quant_journal.json quant_research.json; do
+            curl -fsS "${{ steps.pages.outputs.base_url }}/data/$f" -o "site/data/$f" || rm -f "site/data/$f"
+          done
+          cp quant.html site/ || true
+
       - name: Save a copy of the journal for review
-        # Replaces the journal-data branch with this scan's latest.json and journal.csv (one commit,
-        # no history), so the results can be read from the repository as well as from the site.
+        # Replaces the journal-data branch with this scan's latest.json, journal.csv and the quant desk's
+        # files (one commit, no history), so the results can be read from the repository as well.
         if: always()
         continue-on-error: true
         env:
@@ -67,7 +82,7 @@ jobs:
           test -f site/data/latest.json || exit 0
           export GIT_INDEX_FILE="$RUNNER_TEMP/journal.index"
           git read-tree --empty
-          for f in latest.json journal.csv; do
+          for f in latest.json journal.csv quant.json quant_journal.json; do
             if [ -f "site/data/$f" ]; then
               git update-index --add --cacheinfo "100644,$(git hash-object -w "site/data/$f"),$f"
             fi

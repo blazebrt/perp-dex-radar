@@ -1,0 +1,52 @@
+name: Market data
+
+# Downloads a year (1h candles) and three years (4h candles) of market history, funding rates and
+# futures statistics for the coins that trade on your DEXs, for strategy research. The files replace
+# the "market-data" branch (one commit, no history). Runs when a branch whose name starts with
+# "data" is pushed, or on demand. Nothing is published and the dashboard is not touched.
+
+on:
+  push:
+    branches: ["data*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: market-data
+  cancel-in-progress: true
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Download market history
+        continue-on-error: true
+        run: python tools/fetch_history.py --out md --coins 220 --h1-days 400 --h4-days 1100
+
+      - name: Save on the market-data branch
+        if: always()
+        env:
+          GIT_AUTHOR_NAME: perp-dex-radar
+          GIT_AUTHOR_EMAIL: actions@users.noreply.github.com
+          GIT_COMMITTER_NAME: perp-dex-radar
+          GIT_COMMITTER_EMAIL: actions@users.noreply.github.com
+        run: |
+          test -f md/universe.json || exit 1
+          du -sh md; ls md
+          export GIT_INDEX_FILE="$RUNNER_TEMP/md.index"
+          git read-tree --empty
+          (cd md && find . -type f | sed 's#^\./##' | sort) > "$RUNNER_TEMP/md_files.txt"
+          while read -r f; do
+            git update-index --add --cacheinfo "100644,$(git hash-object -w "md/$f"),$f"
+          done < "$RUNNER_TEMP/md_files.txt"
+          commit=$(git commit-tree "$(git write-tree)" -m "Market data $(date -u +%Y-%m-%dT%H:%MZ)")
+          git push --force origin "$commit:refs/heads/market-data"

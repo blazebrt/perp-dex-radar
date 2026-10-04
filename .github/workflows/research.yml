@@ -1,13 +1,13 @@
 name: Research
 
-# Runs on every push to a branch whose name starts with "v5" (and on demand): the tests, the
-# no-edge check, then a full scan of the new scanner.py AND of the one on main, each with a fresh
-# 30-day backtest on live exchange data. Nothing is published. The results replace the "research"
+# Runs on every push to a branch whose name starts with "v5" or "v6" (and on demand): the tests, the
+# no-edge check, a full scan of the new scanner.py AND of the one on main (each with a fresh 30-day
+# backtest on live exchange data), and one run of the quant desk. Nothing is published. The results replace the "research"
 # branch (one commit, no history) so they can be compared before main is changed.
 
 on:
   push:
-    branches: ["v5*"]
+    branches: ["v5*", "v6*"]
   workflow_dispatch:
 
 permissions:
@@ -48,6 +48,12 @@ jobs:
           python scanner.py --out out_new > research_scan_new.txt 2>&1 || true
           tail -15 research_scan_new.txt
 
+      - name: Quant desk on live exchange data (new journal, nothing published)
+        continue-on-error: true
+        run: |
+          python quant.py --out out_quant > research_quant.txt 2>&1 || true
+          tail -15 research_quant.txt
+
       - name: Scanner on main, same days, for comparison
         continue-on-error: true
         run: |
@@ -72,6 +78,7 @@ jobs:
               if [ -f "out_$v/data/$f" ]; then cp "out_$v/data/$f" "R/${v}_$f"; fi
             done
           done
+          if [ -f out_quant/data/quant.json ]; then cp out_quant/data/quant.json R/quant.json; fi
           echo "$GITHUB_REF_NAME $GITHUB_SHA $(date -u +%Y-%m-%dT%H:%MZ)" > R/run.txt
           export GIT_INDEX_FILE="$RUNNER_TEMP/research.index"
           git read-tree --empty
