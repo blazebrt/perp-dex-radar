@@ -26,7 +26,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 import scanner as sc  # noqa: E402
 
 GATE = "https://api.gateio.ws/api/v4/futures/usdt/contract_stats"
-CG = "https://api.coingecko.com/api/v3"
+CG_KEY = os.environ.get("COINGECKO_API_KEY", "").strip()
+CG_PRO = os.environ.get("COINGECKO_PLAN", "").strip().lower() == "pro"
+CG = "https://pro-api.coingecko.com/api/v3" if (CG_KEY and CG_PRO) else "https://api.coingecko.com/api/v3"
+
 STAT_FIELDS = ("lsr_taker", "lsr_account", "long_liq_usd", "short_liq_usd", "open_interest_usd",
                "top_lsr_account", "top_lsr_size", "mark_price")
 STEP = {"1d": 86400, "4h": 14400, "1h": 3600}
@@ -56,13 +59,18 @@ def wait(key, gap):
         time.sleep(nxt - t)
 
 
-def get(url, key, gap, tries=4, backoff=20.0):
+def get(url, key, gap, tries=4, backoff=20.0, headers=None):
     """GET JSON. Returns (data, None) or (None, 'error text with the body the server sent')."""
     last = None
+    if key == "cg" and CG_KEY:
+        url += ("&" if "?" in url else "?") + ("x_cg_pro_api_key=" if CG_PRO else "x_cg_demo_api_key=") + CG_KEY
+        gap = min(gap, 2.2)
     for i in range(tries):
         wait(key, gap)
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json"})
+            h = {"User-Agent": UA, "Accept": "application/json"}
+            h.update(headers or {})
+            req = urllib.request.Request(url, headers=h)
             with urllib.request.urlopen(req, timeout=40) as r:
                 return json.loads(r.read().decode("utf-8")), None
         except urllib.error.HTTPError as e:
