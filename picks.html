@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coin Picks · Perp DEX Radar</title>
+<meta name="description" content="Every coin on your perp DEXs scored 0-100 for swing and day trades, long or short, with the reasons, a trade plan and a paper record.">
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --surface-2: #f3f2ef; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --border: rgba(11, 11, 11, 0.10);
+  --long: #2a78d6; --short: #eb6834; --long-wash: rgba(42, 120, 214, 0.10); --short-wash: rgba(235, 104, 52, 0.10);
+  --good: #0ca30c; --good-text: #006300; --bad: #d03b3b; --warn: #fab219; --half: #b88300; --accent: #2a78d6;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --surface-2: #232321; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --border: rgba(255, 255, 255, 0.10);
+    --long: #3987e5; --short: #d95926; --long-wash: rgba(57, 135, 229, 0.14); --short-wash: rgba(217, 89, 38, 0.14);
+    --good-text: #0ca30c; --half: #c98500; --accent: #3987e5; --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --surface-2: #232321; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+  --grid: #2c2c2a; --border: rgba(255, 255, 255, 0.10);
+  --long: #3987e5; --short: #d95926; --long-wash: rgba(57, 135, 229, 0.14); --short-wash: rgba(217, 89, 38, 0.14);
+  --good-text: #0ca30c; --half: #c98500; --accent: #3987e5; --shadow: none;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: var(--page); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px 64px; }
+header.top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--page) 88%, transparent); backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--border); }
+header.top .wrap { display: flex; align-items: center; gap: 16px; padding-top: 12px; padding-bottom: 12px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 650; letter-spacing: -0.01em; }
+.brand .logo { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: var(--ink); color: var(--page); font-size: 14px; font-weight: 700; }
+.brand small { color: var(--muted); font-weight: 500; }
+header.top nav { margin-left: auto; display: flex; gap: 14px; align-items: center; font-size: 14px; }
+header.top nav a { color: var(--ink-2); }
+.iconbtn { border: 1px solid var(--border); background: var(--surface); color: var(--ink-2); border-radius: 8px; padding: 5px 9px; cursor: pointer; font: inherit; font-size: 13px; }
+h1 { font-size: 30px; line-height: 1.15; letter-spacing: -0.02em; margin: 28px 0 6px; }
+h2 { font-size: 20px; letter-spacing: -0.01em; margin: 0; }
+h3 { font-size: 15px; margin: 0; }
+.lede { color: var(--ink-2); max-width: 780px; margin: 0 0 16px; }
+.section { margin-top: 34px; }
+.section-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.section-head p { color: var(--ink-2); margin: 0; font-size: 14px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); padding: 18px; }
+.muted { color: var(--muted); } .ink2 { color: var(--ink-2); } .small { font-size: 13px; }
+.pos { color: var(--good-text); } .neg { color: var(--bad); }
+.mood { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; padding: 14px 18px; }
+.mood .dotm { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+.mood b { font-weight: 650; }
+.bar { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: end; padding: 12px 16px; margin-top: 10px; }
+.bar label { display: grid; gap: 3px; font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.bar input { font: inherit; font-size: 15px; color: var(--ink); background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; width: 120px; }
+.bar .hint { font-size: 13px; color: var(--ink-2); max-width: 560px; }
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 26px 0 0; }
+.tab { border: 1px solid var(--border); background: var(--surface); color: var(--ink-2); border-radius: 999px; padding: 8px 16px; cursor: pointer; font: inherit; font-size: 14px; font-weight: 600; }
+.tab.on { background: var(--ink); color: var(--page); border-color: transparent; }
+.chips { display: flex; gap: 6px; margin-left: auto; }
+.chip { border: 1px solid var(--border); background: transparent; color: var(--ink-2); border-radius: 8px; padding: 5px 11px; cursor: pointer; font: inherit; font-size: 13px; }
+.chip.on { background: var(--surface-2); color: var(--ink); font-weight: 650; }
+.note { border-left: 3px solid var(--warn); background: var(--surface-2); padding: 11px 14px; border-radius: 0 10px 10px 0; color: var(--ink-2); font-size: 14px; margin: 12px 0 0; }
+.note b { color: var(--ink); }
+.note.good { border-left-color: var(--good); }
+.grid5 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+.pick { position: relative; padding: 16px 18px 14px; }
+.pick.first { grid-column: 1 / -1; }
+.pick .top { display: flex; align-items: flex-start; gap: 12px; }
+.rank { font-size: 13px; color: var(--muted); font-weight: 650; min-width: 22px; padding-top: 6px; }
+.coin { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+.coin small { font-size: 13px; color: var(--muted); font-weight: 500; letter-spacing: 0; margin-left: 6px; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; align-items: center; }
+.pill { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 650; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--border); white-space: nowrap; color: var(--ink); }
+.pill.long { background: var(--long-wash); color: var(--long); border-color: transparent; }
+.pill.short { background: var(--short-wash); color: var(--short); border-color: transparent; }
+.pill.lab-Strong, .pill.lab-Best { background: var(--ink); color: var(--page); border-color: transparent; }
+.pill.lab-Ready, .pill.lab-Good { color: var(--good-text); }
+.pill.lab-Weak { color: var(--muted); }
+.ring { margin-left: auto; position: relative; width: 64px; height: 64px; flex: none; }
+.ring svg { width: 64px; height: 64px; transform: rotate(-90deg); }
+.ring .v { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 700; font-size: 20px; letter-spacing: -0.02em; }
+.ring .v small { display: block; font-size: 10px; color: var(--muted); font-weight: 600; margin-top: -6px; text-align: center; }
+.why { color: var(--ink-2); font-size: 14px; margin: 10px 0 0; }
+.pricebar { display: flex; align-items: center; gap: 12px; margin-top: 10px; font-variant-numeric: tabular-nums; }
+.pricebar svg { flex: 1; height: 34px; min-width: 60px; }
+.checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 18px; margin-top: 12px; }
+.checks .g { grid-column: 1 / -1; font-size: 11px; color: var(--muted); font-weight: 650; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 8px; display: flex; gap: 8px; }
+.ck { display: grid; grid-template-columns: 18px 1fr auto; gap: 6px; font-size: 13px; padding: 3px 0; border-bottom: 1px dashed var(--grid); }
+.ck .i { font-weight: 800; text-align: center; }
+.ck .i.y { color: var(--good); } .ck .i.h { color: var(--half); } .ck .i.n { color: var(--bad); } .ck .i.u { color: var(--muted); }
+.ck .t { color: var(--ink); }
+.ck .t span { display: block; color: var(--muted); font-size: 12px; line-height: 1.35; }
+.ck .p { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; white-space: nowrap; }
+.plan { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.plan div { background: var(--surface-2); border-radius: 10px; padding: 8px 10px; }
+.plan .l { font-size: 11px; color: var(--muted); font-weight: 650; text-transform: uppercase; letter-spacing: 0.04em; }
+.plan .v { font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.plan .s { font-size: 12px; color: var(--ink-2); }
+.odds { font-size: 13px; color: var(--ink-2); margin-top: 10px; }
+details.more { margin-top: 8px; }
+details.more summary { cursor: pointer; color: var(--accent); font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+th { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tablewrap { overflow-x: auto; }
+tr.rowx { cursor: pointer; }
+tr.rowx:hover { background: var(--surface-2); }
+tr.detail td { background: var(--surface-2); }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.tile { padding: 14px 16px; }
+.tile .label { font-size: 13px; color: var(--ink-2); }
+.tile .value { font-size: 26px; font-weight: 650; letter-spacing: -0.02em; margin-top: 2px; }
+.tile .sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.method p, .method li { color: var(--ink-2); font-size: 14px; }
+.foot { color: var(--muted); font-size: 13px; margin-top: 40px; border-top: 1px solid var(--border); padding-top: 16px; }
+.empty { padding: 26px; text-align: center; color: var(--ink-2); }
+@media (max-width: 900px) {
+  .grid5, .kpis { grid-template-columns: 1fr; }
+  .plan { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  h1 { font-size: 24px; }
+  .checks { grid-template-columns: 1fr; }
+  header.top nav .hide-s { display: none; }
+  .chips { margin-left: 0; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><div class="logo">P</div><div>Coin Picks <small>· Perp DEX Radar</small></div></div>
+    <nav>
+      <a href="#swing">Swing</a>
+      <a href="#record" class="hide-s">Track record</a>
+      <a href="#how" class="hide-s">How it works</a>
+      <a href="quant.html" class="hide-s">Quant desk</a>
+      <a href="radar.html" class="hide-s">15m radar</a>
+      <button class="iconbtn" id="theme" type="button" aria-label="Switch light or dark theme">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <h1>The best coins to trade right now</h1>
+  <p class="lede" id="lede">Every coin on your DEXs is scored 0 to 100 on 18 checks: the chart setup (tested on three years of data), smart money, funding, open interest, fundamentals and liquidity. The Top 5 and Top 10 are below, each with its reasons and a trade plan.</p>
+
+  <div class="card mood" id="mood"><span class="muted">Loading the latest scan…</span></div>
+
+  <div class="card bar">
+    <label>Your account ($)<input id="acct" type="number" min="10" step="10" value="500"></label>
+    <label>Risk per trade (%)<input id="risk" type="number" min="0.1" max="10" step="0.1" value="2"></label>
+    <div class="hint">Sizes on every pick: if the stop is hit you lose this share of the account (plus fees). The tests used 2%.</div>
+  </div>
+
+  <div class="tabs" id="swing">
+    <button class="tab on" data-kind="swing" type="button">Swing trades · days to weeks</button>
+    <button class="tab" data-kind="daytrade" type="button">Day trades · hours</button>
+    <div class="chips">
+      <button class="chip on" data-side="all" type="button">All</button>
+      <button class="chip" data-side="long" type="button">Longs</button>
+      <button class="chip" data-side="short" type="button">Shorts</button>
+    </div>
+  </div>
+  <div id="kindnote"></div>
+
+  <div class="section" style="margin-top:18px">
+    <div class="section-head"><h2 id="top5h">Top 5</h2><p id="top5p"></p></div>
+    <div class="grid5" id="top5"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h2>6 to 10</h2><p>Click a row for its checks and plan.</p></div>
+    <div class="card tablewrap" style="padding:6px 8px"><table>
+      <thead><tr><th>#</th><th>Coin</th><th>Side</th><th class="num">Score</th><th>Setup</th><th class="num">Stop</th><th>Why</th></tr></thead>
+      <tbody id="rest"></tbody>
+    </table></div>
+  </div>
+
+  <div class="section" id="record">
+    <div class="section-head"><h2>Track record (paper trades)</h2><p id="recp">Every swing pick that scores 80+ and every day pick that scores 85+ is traded on paper with the plan shown, after fees.</p></div>
+    <div class="kpis" id="reckpi"></div>
+    <div class="card tablewrap" style="padding:6px 8px;margin-top:12px"><table>
+      <thead><tr><th>Trade</th><th>Coin</th><th>Side</th><th class="num">Score</th><th class="num">Entry</th><th class="num">Now / exit</th><th class="num">Result</th><th>Status</th></tr></thead>
+      <tbody id="rectab"></tbody>
+    </table></div>
+  </div>
+
+  <div class="section method" id="how">
+    <div class="section-head"><h2>How good is the score?</h2><p>Three years of daily candles, every coin on your DEXs with $5M+ a day, every day.</p></div>
+    <div class="card" id="calib"><span class="muted">Loading the test results…</span></div>
+    <div class="card" style="margin-top:12px" id="acctsim"></div>
+    <div class="card" style="margin-top:12px" id="findings"></div>
+  </div>
+
+  <p class="foot">Educational tool, not financial advice. Scores describe how similar setups did in the past; they are not promises. Crypto perps can lose more than you expect: use the stop, size every trade by its risk, and never trade money you need. Data: MEXC and Gate.io candles, Hyperliquid leaderboard positions, Gate.io futures statistics, CoinGecko. <span id="ver"></span></p>
+</main>
+
+<script>
+"use strict";
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+let P = null, R = null, KIND = "swing", SIDE = "all";
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } }
+};
+
+// ---------- formatting
+function px(x) {
+  if (x == null || !isFinite(x)) return "–";
+  const a = Math.abs(x);
+  const d = a >= 1000 ? 1 : a >= 100 ? 2 : a >= 1 ? 4 : a >= 0.01 ? 5 : 8;
+  return "$" + Number(x).toLocaleString("en-US", {minimumFractionDigits: Math.min(d, 2), maximumFractionDigits: d});
+}
+const pct = (x, d = 1) => x == null || !isFinite(x) ? "–" : (x >= 0 ? "+" : "") + (x * 100).toFixed(d) + "%";
+const money = (x) => x == null || !isFinite(x) ? "–" : "$" + Math.round(x).toLocaleString("en-US");
+function ago(t) {
+  const s = Math.max(0, Date.now() / 1000 - t);
+  if (s < 90) return "just now";
+  if (s < 5400) return Math.round(s / 60) + " min ago";
+  if (s < 172800) return Math.round(s / 3600) + " h ago";
+  return Math.round(s / 86400) + " days ago";
+}
+const dateOf = (t) => new Date(t * 1000).toISOString().slice(0, 10);
+const timeOf = (t) => new Date(t * 1000).toISOString().slice(5, 16).replace("T", " ") + " UTC";
+function acct() { const v = parseFloat($("#acct").value); return isFinite(v) && v > 0 ? v : 500; }
+function riskPct() { const v = parseFloat($("#risk").value); return isFinite(v) && v > 0 ? v / 100 : 0.02; }
+
+// ---------- small pictures
+function ring(score) {
+  const r = 27, c = 2 * Math.PI * r, f = Math.max(0, Math.min(1, score / 100));
+  const col = score >= 80 ? "var(--good)" : score >= 60 ? "var(--half)" : "var(--muted)";
+  return '<div class="ring" role="img" aria-label="Score ' + Math.round(score) + ' of 100"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="' + r + '" fill="none" stroke="var(--grid)" stroke-width="6"/>' +
+    '<circle cx="32" cy="32" r="' + r + '" fill="none" stroke="' + col + '" stroke-width="6" stroke-linecap="round" stroke-dasharray="' + (c * f).toFixed(1) + ' ' + c.toFixed(1) + '"/></svg>' +
+    '<div class="v"><div>' + Math.round(score) + '<small>/100</small></div></div></div>';
+}
+function spark(vals, side) {
+  if (!vals || vals.length < 2) return "";
+  const w = 240, h = 34, n = vals.length;
+  const pts = vals.map((v, i) => (i / (n - 1) * w).toFixed(1) + "," + (h - 2 - v / 99 * (h - 4)).toFixed(1)).join(" ");
+  const col = side === "short" ? "var(--short)" : "var(--long)";
+  return '<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" aria-hidden="true"><polyline points="' + pts + '" fill="none" stroke="' + col + '" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>';
+}
+function icon(ok) {
+  if (ok === null || ok === undefined) return '<span class="i u" title="No data">–</span>';
+  if (ok === true || ok >= 1) return '<span class="i y" title="Passes">✓</span>';
+  if (ok === false || ok <= 0) return '<span class="i n" title="Fails">✗</span>';
+  return '<span class="i h" title="Partly">½</span>';
+}
+
+// ---------- one pick
+function checksHtml(p) {
+  let h = '<div class="checks">';
+  h += '<div class="g">Chart setup · tested · ' + Math.round(p.core) + ' of 100 points</div>';
+  for (const c of p.checks) {
+    h += '<div class="ck">' + icon(c.ok) + '<div class="t">' + esc(c.name) + '<span>' + esc(c.detail) + '</span></div><div class="p">' + (c.pts % 1 ? c.pts.toFixed(1) : c.pts) + '/' + c.max + '</div></div>';
+  }
+  const groups = {};
+  for (const e of p.extras) (groups[e.group] = groups[e.group] || []).push(e);
+  h += '<div class="g">Smart money, fundamentals, liquidity · live · ' + (p.extra >= 0 ? "+" : "") + p.extra + ' points</div>';
+  for (const g of Object.keys(groups)) {
+    for (const e of groups[g]) {
+      const pts = e.ok === true ? "+" + e.max : e.ok === false ? "−" + e.max : "0";
+      h += '<div class="ck">' + icon(e.ok) + '<div class="t">' + esc(e.name) + '<span>' + esc(g) + (e.tested ? ' · tested' : '') + ' · ' + esc(e.detail) + '</span></div><div class="p">' + (e.max ? pts : "info") + '</div></div>';
+    }
+  }
+  return h + '</div>';
+}
+function planHtml(p) {
+  const pl = p.plan, a = acct(), r = riskPct();
+  const riskUsd = a * r, size = riskUsd / pl.stop_pct, lev = size / a;
+  const ready = p.score >= ((P && P.settings) || {}).ready;
+  const sideWord = (p.side === "long" ? "Buy" : "Sell short") + (ready ? "" : " · not yet");
+  const unit = p.kind === "swing" ? (pl.days + " days") : (pl.hours + " hours");
+  const wait = ready ? "" : '<div class="small" style="margin-top:10px;color:var(--half);font-weight:600">Not a trade yet: the score is below 80. Watch it; the plan below is what it would be now.</div>';
+  return wait + '<div class="plan">' +
+    '<div><div class="l">' + sideWord + '</div><div class="v">' + px(pl.entry) + '</div><div class="s">price now</div></div>' +
+    '<div><div class="l">Stop</div><div class="v">' + px(pl.stop) + '</div><div class="s">' + (p.side === "long" ? "−" : "+") + (pl.stop_pct * 100).toFixed(1) + '% away</div></div>' +
+    '<div><div class="l">Targets</div><div class="v">' + px(pl.r2) + '</div><div class="s">+1R ' + px(pl.r1) + ' · +3R ' + px(pl.r3) + '</div></div>' +
+    '<div><div class="l">Your size</div><div class="v">' + money(size) + '</div><div class="s">' + lev.toFixed(1) + 'x · risk ' + money(riskUsd) + '</div></div>' +
+    '</div><div class="small ink2" style="margin-top:6px">Exit rule (tested): keep the stop ' + px(pl.trail) + ' (' + pl.trail_k + ' ATR) from the best price reached, moving it only in your favour; close after ' + unit + ' at the latest. Targets are reference levels only.</div>';
+}
+function bandOf(p) {
+  // the tested numbers belong to the chart-setup score (the extra checks are live only)
+  if (!R || p.kind !== "swing") return null;
+  const t = (R.swing || {})[p.side];
+  if (!t) return null;
+  return (t.bands || []).find((b) => p.core >= b.lo && p.core < b.hi) || null;
+}
+function oddsHtml(p) {
+  if (p.kind !== "swing") {
+    return '<div class="odds">Day trades have no tested edge after fees (see the note above). Use a limit order and keep the size small.</div>';
+  }
+  const b = bandOf(p);
+  if (!b) return "";
+  const t = R.swing[p.side];
+  const yrs = Object.entries(b.years || {}).map(([y, v]) => y + " " + pct(v.ret)).join(" · ");
+  return '<div class="odds"><b>Past results of ' + (p.side === "long" ? "longs" : "shorts") + ' with a chart score of ' + b.lo + '–' + Math.min(100, b.hi - 1) + ':</b> ' +
+    pct(b.ret) + ' per trade on average after fees, ' + Math.round(b.win * 100) + '% winners (' + b.n.toLocaleString() + ' coin-days; by year ' + yrs + '). ' +
+    (p.side === "long" ? 'Reached +50% within 30 days ' + Math.round(b.up50 * 100) + '% of the time, fell 30% ' + Math.round(b.dn30 * 100) + '% (every coin: ' + Math.round(t.base.up50 * 100) + '% and ' + Math.round(t.base.dn30 * 100) + '%).'
+                       : 'The price fell 30% within 30 days ' + Math.round(b.dn30 * 100) + '% of the time (every coin: ' + Math.round(t.base.dn30 * 100) + '%).') + '</div>';
+}
+function pickCard(p, i) {
+  const venues = p.venues ? '<span class="pill" title="Traded on">' + esc(p.venues) + '</span>' : "";
+  const setup = p.kind === "swing" ? '<span class="pill">' + esc(p.setup) + '</span>' : "";
+  return '<div class="card pick' + (i === 0 ? " first" : "") + '">' +
+    '<div class="top"><div class="rank">#' + (i + 1) + '</div><div><div class="coin">' + esc(p.coin) + '<small>' + px(p.price) + ' · ' + pct(p.chg24) + ' 24h</small></div>' +
+    '<div class="meta"><span class="pill ' + p.side + '">' + (p.side === "long" ? "LONG" : "SHORT") + '</span>' + setup +
+    '<span class="pill lab-' + esc(p.label.split(" ")[0]) + '">' + esc(p.label) + '</span>' + venues + '</div></div>' + ring(p.score) + '</div>' +
+    '<p class="why">' + esc(p.why) + '</p>' +
+    '<div class="pricebar"><span class="small muted">' + (p.kind === "swing" ? "60 days" : "48 hours") + '</span>' + spark(p.spark, p.side) + '</div>' +
+    planHtml(p) + oddsHtml(p) +
+    '<details class="more"' + (i === 0 ? " open" : "") + '><summary>All ' + (p.checks.length + p.extras.length) + ' checks</summary>' + checksHtml(p) + '</details>' +
+    '</div>';
+}
+
+// ---------- page
+function list() {
+  if (!P) return [];
+  const src = P[KIND] || {};
+  return (src[SIDE] || []).slice(0, 10);
+}
+function renderMood() {
+  const m = P.market || {}, b = m.btc || {};
+  const col = /Risk-on/.test(m.mood) ? "var(--good)" : /Risk-off/.test(m.mood) ? "var(--bad)" : "var(--warn)";
+  const s = P.sources || {};
+  $("#mood").innerHTML = '<div><span class="dotm" style="background:' + col + '"></span><b>' + esc((m.mood || "").split(":")[0]) + '</b> <span class="ink2">' + esc((m.mood || "").split(":").slice(1).join(":")) + '</span></div>' +
+    '<div class="small ink2">BTC ' + px(b.price) + ' · 50-day EMA ' + px(b.ema50) + ' · 30 days ' + pct(b.mom30) + '</div>' +
+    '<div class="small ink2">' + (m.above != null ? m.above + ' of ' + m.total + ' coins above their 50-day EMA' : "") + '</div>' +
+    '<div class="small muted">Updated ' + ago(P.generated) + ' · ' + P.coins + ' coins scored · smart money ' + (s.smart ? "on (" + (s.smart_traders || 0) + " top traders)" : "off") +
+    ' · fundamentals ' + (s.cg_time ? "from " + ago(s.cg_time) : "unavailable") + '</div>';
+}
+function renderKindNote() {
+  let h = "";
+  if (KIND === "swing") {
+    let t = "";
+    if (R && R.swing && R.swing.long.ready && R.swing.short.ready) {
+      const L = R.swing.long.ready, S = R.swing.short.ready, B = R.swing.long.base;
+      const yrs = (x) => Object.values(x.years || {}).filter((v) => v.ret > 0).length + " of " + Object.keys(x.years || {}).length;
+      t = ' Over ' + esc(R.period) + ', longs scoring 80+ made ' + pct(L.ret) + ' per trade after fees (positive in ' + yrs(L) + ' years) and shorts scoring 80+ made ' + pct(S.ret) +
+        ' (positive in ' + yrs(S) + '). Longs 80+ had about the same chance of a +50% month as any coin (' + Math.round(L.up50 * 100) + '% vs ' + Math.round(B.up50 * 100) + '%) and half the chance of a 30% fall (' + Math.round(L.dn30 * 100) + '% vs ' + Math.round(B.dn30 * 100) + '%).';
+    }
+    h = '<div class="note good"><b>Tested.</b> Swing picks hold for days to weeks with a wide stop.' + t + ' Trade only "Ready" (80+) and "Strong" (90+) picks; lower scores show what is setting up.</div>';
+  } else {
+    h = '<div class="note"><b>No tested edge.</b> In a one-year test on hourly candles, every way of picking day trades lost money after fees and slippage (the best selection still lost about 0.06% per trade). These are the coins with the best conditions for a day trade right now: trend aligned on the daily, 4-hour and 1-hour charts, not chasing a spike, calm and liquid. If you trade them, use limit orders and small size. The swing list is where the tested edge is.</div>';
+  }
+  $("#kindnote").innerHTML = h;
+}
+function renderPicks() {
+  const L = list();
+  const ready = L.filter((p) => p.score >= (P.settings || {}).ready).length;
+  $("#top5h").textContent = "Top 5 " + (KIND === "swing" ? "swing" : "day") + " trades" + (SIDE === "all" ? "" : SIDE === "long" ? " · longs" : " · shorts");
+  $("#top5p").textContent = ready ? ready + " of these 10 are ready (score 80+)." : "No setup is ready (80+) right now: these are the closest. Waiting is a position too.";
+  $("#top5").innerHTML = L.length ? L.slice(0, 5).map(pickCard).join("") : '<div class="card empty">No coins scored yet.</div>';
+  const rest = L.slice(5, 10);
+  $("#rest").innerHTML = rest.length ? rest.map((p, i) => '<tr class="rowx" data-i="' + (i + 5) + '"><td class="muted">' + (i + 6) + '</td><td><b>' + esc(p.coin) + '</b> <span class="muted small">' + px(p.price) + '</span></td>' +
+    '<td><span class="pill ' + p.side + '">' + (p.side === "long" ? "LONG" : "SHORT") + '</span></td><td class="num"><b>' + Math.round(p.score) + '</b></td>' +
+    '<td>' + esc(p.kind === "swing" ? p.setup : (p.side === "long" ? "Day long" : "Day short")) + ' <span class="muted small">' + esc(p.label) + '</span></td>' +
+    '<td class="num">' + (p.plan.stop_pct * 100).toFixed(1) + '%</td><td class="small ink2">' + esc(p.why) + '</td></tr>').join("")
+    : '<tr><td colspan="7" class="empty">Nothing more to show.</td></tr>';
+  document.querySelectorAll("tr.rowx").forEach((tr) => tr.addEventListener("click", () => {
+    const nx = tr.nextElementSibling;
+    if (nx && nx.classList.contains("detail")) { nx.remove(); return; }
+    const p = L[+tr.dataset.i];
+    const d = document.createElement("tr");
+    d.className = "detail";
+    d.innerHTML = '<td colspan="7">' + planHtml(p) + oddsHtml(p) + checksHtml(p) + '</td>';
+    tr.after(d);
+  }));
+}
+function statTile(label, st, sub) {
+  if (!st || !st.n) return '<div class="card tile"><div class="label">' + esc(label) + '</div><div class="value muted">–</div><div class="sub">' + esc(sub || "No closed trades yet") + '</div></div>';
+  return '<div class="card tile"><div class="label">' + esc(label) + '</div><div class="value ' + (st.avg >= 0 ? "pos" : "neg") + '">' + (st.avg >= 0 ? "+" : "") + st.avg.toFixed(2) + 'R</div>' +
+    '<div class="sub">' + st.n + ' trades · ' + Math.round(st.wr * 100) + '% winners · ' + pct(st.avg_ret, 2) + ' per trade</div></div>';
+}
+function renderRecord() {
+  const r = P.record || {};
+  const since = r.since ? " since " + dateOf(r.since) : "";
+  $("#reckpi").innerHTML = statTile("Swing picks" + since, r.swing) + statTile("Swing longs", r.swing_long) + statTile("Swing shorts", r.swing_short) +
+    statTile("Day picks", r.day, "No closed day trades yet");
+  const rows = [];
+  const opens = (r.open || []).slice().sort((a, b) => b.t_in - a.t_in);
+  for (const t of opens.slice(0, 30)) {
+    rows.push('<tr><td>' + (t.kind === "swing" ? "Swing" : "Day") + ' <span class="muted small">' + timeOf(t.t_in) + '</span></td><td><b>' + esc(t.c) + '</b></td><td><span class="pill ' + (t.d > 0 ? "long" : "short") + '">' + (t.d > 0 ? "LONG" : "SHORT") + '</span></td>' +
+      '<td class="num">' + Math.round(t.score) + '</td><td class="num">' + (t.px ? px(t.px) : '<span class="muted">next open</span>') + '</td><td class="num">' + px(t.last_px) + '</td>' +
+      '<td class="num ' + ((t.r || 0) >= 0 ? "pos" : "neg") + '">' + (t.r == null ? "–" : (t.r >= 0 ? "+" : "") + t.r.toFixed(2) + "R") + '</td><td class="small ink2">' + (t.stop_now ? 'Open · stop ' + px(t.stop_now) : 'Waiting for its first ' + (t.kind === "swing" ? "day" : "hour") + ' to close') + '</td></tr>');
+  }
+  if (opens.length > 30) rows.push('<tr><td colspan="8" class="small muted">… and ' + (opens.length - 30) + ' more open trades</td></tr>');
+  for (const t of (r.closed || []).slice(-40).reverse()) {
+    rows.push('<tr><td>' + (t.kind === "swing" ? "Swing" : "Day") + ' <span class="muted small">' + timeOf(t.t_in) + '</span></td><td><b>' + esc(t.c) + '</b></td><td><span class="pill ' + (t.d > 0 ? "long" : "short") + '">' + (t.d > 0 ? "LONG" : "SHORT") + '</span></td>' +
+      '<td class="num">' + Math.round(t.score) + '</td><td class="num">' + px(t.px) + '</td><td class="num muted">' + (t.t_out ? timeOf(t.t_out) : "") + '</td>' +
+      '<td class="num ' + (t.r >= 0 ? "pos" : "neg") + '">' + (t.r >= 0 ? "+" : "") + t.r.toFixed(2) + 'R <span class="muted small">' + pct(t.ret) + '</span></td><td class="small ink2">Closed</td></tr>');
+  }
+  $("#rectab").innerHTML = rows.length ? rows.join("") : '<tr><td colspan="8" class="empty">The first paper trades open when a pick reaches the paper-trade score.</td></tr>';
+}
+function renderResearch() {
+  if (!R) { $("#calib").innerHTML = '<span class="muted">Test results not found.</span>'; return; }
+  let h = '<h3>Average result per swing trade by score</h3><p class="small ink2">Each coin and day of ' + esc(R.period) + ', traded with the plan on the cards (enter at the next daily open, stop 2 ATR, trail 3 ATR, 30 days at most), after fees and slippage. ' +
+    'Every coin, every day, as a comparison: longs ' + pct(R.swing.long.base.ret) + ', shorts ' + pct(R.swing.short.base.ret) + ' per trade.</p>';
+  for (const side of ["long", "short"]) {
+    const t = R.swing[side], yrs = Object.keys(t.bands[0].years || {});
+    h += '<div class="tablewrap"><table><thead><tr><th>' + (side === "long" ? "Long score (coiled bottom)" : "Short score (downtrend bounce)") + '</th><th class="num">Coin-days</th><th class="num">Per trade</th><th class="num">Winners</th>' +
+      yrs.map((y) => '<th class="num">' + y + '</th>').join("") + '<th class="num">' + (side === "long" ? "+50% in 30d" : "−30% in 30d") + '</th></tr></thead><tbody>';
+    for (const b of t.bands.slice().reverse()) {
+      h += '<tr><td><b>' + b.lo + '–' + Math.min(100, b.hi - 1) + '</b></td><td class="num">' + b.n.toLocaleString() + '</td><td class="num ' + (b.ret >= 0 ? "pos" : "neg") + '"><b>' + pct(b.ret) + '</b></td><td class="num">' + Math.round(b.win * 100) + '%</td>' +
+        yrs.map((y) => '<td class="num ' + ((b.years[y] || {}).ret >= 0 ? "pos" : "neg") + '">' + pct((b.years[y] || {}).ret) + '</td>').join("") +
+        '<td class="num">' + Math.round((side === "long" ? b.up50 : b.dn30) * 100) + '%</td></tr>';
+    }
+    h += '</tbody></table></div>';
+  }
+  $("#calib").innerHTML = h;
+  const A = R.account || [];
+  if (A.length) {
+    let a = '<h3>What it could have done to an account</h3><p class="small ink2">' + esc(R.account_note || "") + '</p><div class="tablewrap"><table><thead><tr><th>Rules</th><th class="num">$500 became</th><th class="num">Worst drop</th><th class="num">Trades</th><th>Each year</th></tr></thead><tbody>';
+    for (const x of A) {
+      a += '<tr><td>' + esc(x.label) + '</td><td class="num"><b>' + money(500 * x.end) + '</b></td><td class="num neg">' + pct(x.dd, 0) + '</td><td class="num">' + x.trades + '</td><td class="small ink2">' +
+        Object.entries(x.years).map(([y, v]) => y + " " + (v >= 1 ? "+" : "") + Math.round((v - 1) * 100) + "%").join(" · ") + '</td></tr>';
+    }
+    a += '</tbody></table></div>';
+    $("#acctsim").innerHTML = a;
+  }
+  $("#findings").innerHTML = '<h3>What the tests found</h3><ul>' + (R.findings || []).map((f) => '<li>' + esc(f) + '</li>').join("") + '</ul>';
+}
+function render() {
+  if (!P) return;
+  renderMood(); renderKindNote(); renderPicks(); renderRecord();
+  $("#ver").textContent = "Picks engine " + (P.version || "") + ".";
+}
+async function load() {
+  try {
+    const r = await fetch("data/picks.json?ts=" + Date.now(), {cache: "no-store"});
+    if (!r.ok) throw new Error(r.status);
+    P = await r.json();
+  } catch (e) {
+    $("#mood").innerHTML = '<span class="neg">The picks are not published yet (' + esc(e.message) + '). They appear after the next scan.</span>';
+  }
+  if (!R) {
+    try { const r = await fetch("data/picks_research.json", {cache: "no-store"}); if (r.ok) R = await r.json(); } catch (e) { R = null; }
+    renderResearch();
+  }
+  render();
+}
+document.querySelectorAll(".tab").forEach((b) => b.addEventListener("click", () => {
+  KIND = b.dataset.kind;
+  document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("on", x === b));
+  store.set("picks_kind", KIND); render();
+}));
+document.querySelectorAll(".chip").forEach((b) => b.addEventListener("click", () => {
+  SIDE = b.dataset.side;
+  document.querySelectorAll(".chip").forEach((x) => x.classList.toggle("on", x === b));
+  store.set("picks_side", SIDE); render();
+}));
+for (const id of ["acct", "risk"]) {
+  const el = $("#" + id);
+  el.value = store.get("picks_" + id, el.value);
+  el.addEventListener("input", () => { store.set("picks_" + id, el.value); render(); });
+}
+(function initPrefs() {
+  const k = store.get("picks_kind", "swing"), s = store.get("picks_side", "all");
+  const tb = document.querySelector('.tab[data-kind="' + k + '"]'); if (tb) tb.click();
+  const cb = document.querySelector('.chip[data-side="' + s + '"]'); if (cb) cb.click();
+  const th = store.get("picks_theme", "");
+  if (th) document.documentElement.dataset.theme = th;
+})();
+$("#theme").addEventListener("click", () => {
+  const dark = document.documentElement.dataset.theme ? document.documentElement.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  document.documentElement.dataset.theme = dark ? "light" : "dark";
+  store.set("picks_theme", document.documentElement.dataset.theme);
+});
+load();
+setInterval(load, 5 * 60 * 1000);
+</script>
+</body>
+</html>

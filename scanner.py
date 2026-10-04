@@ -5003,6 +5003,8 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
         "user_strategies": [dict(u, spec_id=(f"RULE~{u.get('id')}" if u.get("kind") == "rule" else
                                              f"{u.get('base')}~{u.get('id')}")) for u in user_raw],
         "smart": {k: smart[k] for k in ("traders", "read", "positions", "min_account")} if smart else None,
+        "smart_coins": {c: [a["long_n"], a["short_n"], a["long_usd"], a["short_usd"], a.get("d_net")]
+                        for c, a in smc.items()},
         "coverage": {"coins": len(coins), "crypto": len(crypto), "scanned": len(s1), "nodata": sorted(nodata),
                      "tradfi": tradfi, "deep": len(A), "setups": len({x["t"] for x in sigs}), "signals": len(sigs),
                      "positioning": sum(1 for v in POS.values() if v), "sources": src_count,

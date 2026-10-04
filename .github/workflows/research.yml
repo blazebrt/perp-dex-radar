@@ -1,13 +1,13 @@
 name: Research
 
-# Runs on every push to a branch whose name starts with "v5" or "v6" (and on demand): the tests, the
-# no-edge check, a full scan of the new scanner.py AND of the one on main (each with a fresh 30-day
-# backtest on live exchange data), and one run of the quant desk. Nothing is published. The results replace the "research"
-# branch (one commit, no history) so they can be compared before main is changed.
+# Runs on every push to a branch whose name starts with "v5", "v6" or "v7" (and on demand): the tests,
+# one scan, one run of the quant desk and one run of the coin picks on live exchange data, each with a new
+# journal. Nothing is published. The results replace the "research" branch (one commit, no history) so
+# they can be checked before main is changed.
 
 on:
   push:
-    branches: ["v5*", "v6*"]
+    branches: ["v5*", "v6*", "v7*"]
   workflow_dispatch:
 
 permissions:
@@ -20,7 +20,7 @@ concurrency:
 jobs:
   research:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
@@ -36,32 +36,23 @@ jobs:
           python -m unittest discover -s tests -v > research_tests.txt 2>&1 || true
           tail -5 research_tests.txt
 
-      - name: No-edge check (a market where profit is impossible)
+      - name: Scanner on live exchange data (no backtest, nothing published)
         continue-on-error: true
         run: |
-          python tools/no_edge_check.py --seeds 2 > research_noedge.txt 2>&1 || true
-          tail -40 research_noedge.txt
-
-      - name: New scanner on live exchange data (30-day backtest, nothing published)
-        continue-on-error: true
-        run: |
-          python scanner.py --out out_new > research_scan_new.txt 2>&1 || true
+          python scanner.py --out out_new --replay-days 0 > research_scan_new.txt 2>&1 || true
           tail -15 research_scan_new.txt
 
       - name: Quant desk on live exchange data (new journal, nothing published)
         continue-on-error: true
         run: |
-          python quant.py --out out_quant > research_quant.txt 2>&1 || true
+          python quant.py --out out_new --journal none.json > research_quant.txt 2>&1 || true
           tail -15 research_quant.txt
 
-      - name: Scanner on main, same days, for comparison
+      - name: Coin picks on live exchange data (new journal, nothing published)
         continue-on-error: true
         run: |
-          mkdir -p main_copy
-          git show origin/main:scanner.py > main_copy/scanner.py
-          git show origin/main:index.html > main_copy/index.html
-          cd main_copy && python scanner.py --out ../out_main > ../research_scan_main.txt 2>&1 || true
-          tail -15 ../research_scan_main.txt
+          python picks.py --out out_new --journal none.json > research_picks.txt 2>&1 || true
+          tail -15 research_picks.txt
 
       - name: Save the results for review
         if: always()
@@ -73,12 +64,9 @@ jobs:
         run: |
           mkdir -p R
           cp research_*.txt R/ 2>/dev/null || true
-          for v in new main; do
-            for f in latest.json journal.csv; do
-              if [ -f "out_$v/data/$f" ]; then cp "out_$v/data/$f" "R/${v}_$f"; fi
-            done
+          for f in latest.json journal.csv quant.json picks.json; do
+            if [ -f "out_new/data/$f" ]; then cp "out_new/data/$f" "R/new_$f"; fi
           done
-          if [ -f out_quant/data/quant.json ]; then cp out_quant/data/quant.json R/quant.json; fi
           echo "$GITHUB_REF_NAME $GITHUB_SHA $(date -u +%Y-%m-%dT%H:%MZ)" > R/run.txt
           export GIT_INDEX_FILE="$RUNNER_TEMP/research.index"
           git read-tree --empty

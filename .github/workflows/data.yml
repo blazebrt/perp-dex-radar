@@ -1,7 +1,8 @@
 name: Market data
 
-# Downloads a year (1h candles) and three years (4h candles) of market history, funding rates and
-# futures statistics for the coins that trade on your DEXs, for strategy research. The files replace
+# Downloads a year (1h candles) and three years (4h candles) of market history, funding rates,
+# futures statistics (open interest, long/short ratios, liquidations) and fundamentals (CoinGecko
+# market cap, supply and all-time high) for the coins that trade on your DEXs, for research. The files replace
 # the "market-data" branch (one commit, no history). Runs when a branch whose name starts with
 # "data" is pushed, or on demand. Nothing is published and the dashboard is not touched.
 
@@ -31,6 +32,11 @@ jobs:
       - name: Download market history
         continue-on-error: true
         run: python tools/fetch_history.py --out md --coins 220 --h1-days 400 --h4-days 1100
+
+      - name: Download futures statistics and fundamentals
+        continue-on-error: true
+        timeout-minutes: 75
+        run: python tools/fetch_extra.py --out md --days 365
 
       - name: Save on the market-data branch
         if: always()
