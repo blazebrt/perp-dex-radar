@@ -64,6 +64,11 @@ CFG = {
     "keep_closed": 600,
     "gap_stocktwits": 1.2,      # seconds between Stocktwits requests (about 200 an hour are allowed)
     "gap_coingecko": 3.0,       # seconds between CoinGecko requests without a key (2.2 with one)
+    "notes_top": 5,             # AI desk notes for this many top swing picks (needs the GEMINI_API_KEY secret)
+    "notes_every_h": 12,        # a note is rewritten after this long, or when its pick's side or score changes
+    "notes_per_run": 3,         # new notes per scan at most: the free tier allows few requests a day
+    "news_ai_every_h": 3,       # headline tone by Gemini at most this often (one batched request)
+    "gemini_gap": 7.0,          # seconds between Gemini requests
 }
 
 LONG_W = {"near_low": 25, "rsi": 20, "squeeze": 15, "tight": 10, "calm": 10, "mom30": 5, "higher_low": 5,
@@ -501,6 +506,11 @@ CG_MARKETS = CG_BASE + "/coins/markets?vs_currency=usd&order=market_cap_desc&per
 ST_STREAM = "https://api.stocktwits.com/api/2/streams/symbol/{sym}.X.json"
 APE = "https://apewisdom.io/api/v1.0/filter/all-crypto/page/{page}"
 FNG = "https://api.alternative.me/fng/?limit=1"
+GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
+GEMINI_NOTES_MODEL = os.environ.get("GEMINI_MODEL", "").strip() or "gemini-3.8-flash"
+GEMINI_FAST_MODEL = os.environ.get("GEMINI_FAST_MODEL", "").strip() or "gemini-3.5-flash-lite"
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+GEMINI_STATE = {"calls": 0, "errors": [], "stopped": False}
 NEWS_FEEDS = (("CoinDesk", "https://www.coindesk.com/arc/outboundfeeds/rss/"),
               ("Cointelegraph", "https://cointelegraph.com/rss"),
               ("The Block", "https://www.theblock.co/rss.xml"),
@@ -737,7 +747,7 @@ def news(cached, now):
             items.append({"t": t, "src": src, "title": title[:200], "desc": re.sub(r"\s+", " ", desc)[:300],
                           "link": link[:300] if link.startswith("https://") else ""})
     items.sort(key=lambda x: -x["t"])
-    return {"time": now, "items": items[:400]}
+    return {"time": now, "items": items[:400], "ai_time": (cached or {}).get("ai_time")}
 
 
 def news_for(t, name, feed):
@@ -758,15 +768,20 @@ def news_for(t, name, feed):
     for x in (feed or {}).get("items") or []:
         text = x["title"] + " " + x["desc"]
         if any(p.search(text) for p in pats):
-            words = re.findall(r"[a-z\-]+", x["title"].lower())
-            pos = sum(1 for w in words if w in POS_WORDS)
-            neg = sum(1 for w in words if w in NEG_WORDS)
+            if x.get("ai") is not None:      # rated by Gemini (news_ai)
+                tone = x["ai"]
+            else:
+                words = re.findall(r"[a-z\-]+", x["title"].lower())
+                pos = sum(1 for w in words if w in POS_WORDS)
+                neg = sum(1 for w in words if w in NEG_WORDS)
+                tone = (pos - neg) / (pos + neg) if (pos + neg) else 0.0
             hits.append({"t": x["t"], "src": x["src"], "title": x["title"], "link": x.get("link") or "",
-                         "tone": (pos - neg) / (pos + neg) if (pos + neg) else 0.0})
+                         "tone": tone, "ai": x.get("ai") is not None})
     if not hits:
         return {"n": 0}
     hits.sort(key=lambda h: -h["t"])
-    return {"n": len(hits), "tone": round(sum(h["tone"] for h in hits) / len(hits), 2), "top": hits[:3]}
+    return {"n": len(hits), "tone": round(sum(h["tone"] for h in hits) / len(hits), 2), "top": hits[:3],
+            "ai": sum(1 for h in hits if h["ai"])}
 
 
 def fear_greed(cached, now):
@@ -779,6 +794,158 @@ def fear_greed(cached, now):
     except Exception as e:  # noqa: BLE001
         sc.note_error(f"Fear & Greed: {type(e).__name__} {getattr(e, 'code', '')}")
         return cached
+
+
+# --------------------------------------------------------------------------- Gemini (optional, GEMINI_API_KEY secret)
+def gemini_call(model, system, prompt, max_tokens=2048, json_out=False, timeout=60):
+    """One Gemini request with the GEMINI_API_KEY secret (sent in a header, never in the URL). Returns the text."""
+    import urllib.request
+    body = {"contents": [{"role": "user", "parts": [{"text": prompt}]}],
+            "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.3}}
+    if system:
+        body["systemInstruction"] = {"parts": [{"text": system}]}
+    if json_out:
+        body["generationConfig"]["responseMimeType"] = "application/json"
+    req = urllib.request.Request(GEMINI_URL.format(model=model), data=json.dumps(body).encode(),
+                                 headers={"Content-Type": "application/json", "x-goog-api-key": GEMINI_KEY,
+                                          "User-Agent": sc.UA})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        d = json.loads(r.read().decode("utf-8"))
+    c = (d.get("candidates") or [{}])[0]
+    text = "".join(p.get("text", "") for p in ((c.get("content") or {}).get("parts") or []) if not p.get("thought"))
+    if not text.strip():
+        raise ValueError(f"empty answer ({c.get('finishReason')})")
+    return text
+
+
+def gemini(kind, system, prompt, **kw):
+    """gemini_call within the run's limits: (model, text) or None. Tries the other model when one is not available
+    to the key, and stops asking for the rest of the run after a quota, key or access error."""
+    import urllib.error
+    G = GEMINI_STATE
+    if not GEMINI_KEY or G["stopped"]:
+        return None
+    order = (GEMINI_NOTES_MODEL, GEMINI_FAST_MODEL) if kind == "notes" else (GEMINI_FAST_MODEL, GEMINI_NOTES_MODEL)
+    for m in dict.fromkeys(order):
+        sc.throttle_key("gemini", CFG["gemini_gap"])
+        G["calls"] += 1
+        try:
+            return m, gemini_call(m, system, prompt, **kw)
+        except urllib.error.HTTPError as e:
+            try:
+                body = e.read().decode("utf-8", "replace")[:300]
+            except Exception:  # noqa: BLE001
+                body = ""
+            G["errors"].append(f"{m}: HTTP {e.code}")
+            if e.code == 404 or (e.code == 400 and "not found" in body.lower()):
+                continue                       # this model is not open to the key: try the other one
+            if e.code in (401, 403, 429) or "API key" in body or "API_KEY" in body:
+                G["stopped"] = True            # quota used up, or the key is wrong: try again next scan
+            return None
+        except Exception as e:  # noqa: BLE001
+            G["errors"].append(f"{m}: {type(e).__name__}")
+            return None
+    return None
+
+
+NOTE_SYSTEM = (
+    "You are a senior crypto derivatives trader with 30 years of experience. Write a short desk note on one coin pick "
+    "for a trader deciding today. Use ONLY the facts in the JSON; never invent prices, news or numbers. The score comes "
+    "from rules tested on three years of data, and 'record' is how past picks with this score did after fees. The exits "
+    "are fixed by that test: the stop, the trailing stop and the time limit in 'plan'; the R targets are reference "
+    "levels only. Plain English, short sentences, no hype, no emojis. Markdown with these sections: '## Bottom line' "
+    "(two sentences), '## Why it scores' (3 or 4 bullets: the strongest checks that pass, and what is missing), "
+    "'## Risks' (2 or 3 bullets, including any conflict with sentiment, positioning or the market mood), "
+    "'## How to trade it' (2 or 3 bullets with the entry, the stop, the trailing stop and the time limit). At most "
+    "220 words. End with the line: Not financial advice.")
+
+NEWS_SYSTEM = (
+    "You rate crypto news headlines for traders. For each numbered headline give its likely effect on the price of the "
+    "coin or coins it is about: -1 clearly bearish, -0.5 somewhat bearish, 0 neutral or unclear, 0.5 somewhat bullish, "
+    "1 clearly bullish. Judge only from the headline. Answer with JSON only: a list of objects "
+    "{\"i\": <headline number>, \"tone\": <number>}.")
+
+
+def note_payload(r, research, market):
+    """What the desk note may use: the pick's checks, plan, tested record, sentiment and the market mood."""
+    band = None
+    t = ((research or {}).get("swing") or {}).get(r["side"]) if r["kind"] == "swing" else None
+    if t:
+        band = next((b for b in t.get("bands", []) if b["lo"] <= r["core"] < b["hi"]), None)
+    se = r.get("sentiment") or {}
+    plan = r.get("plan") or {}
+    return {
+        "coin": r["coin"], "trade": "swing trade, days to weeks" if r["kind"] == "swing" else "day trade, hours",
+        "side": r["side"], "score": r["score"], "tested_chart_score": r["core"], "live_extra_points": r["extra"],
+        "label": r["label"], "setup": r.get("setup"), "price": r["price"], "change_24h": r.get("chg24"),
+        "summary": r.get("why"),
+        "checks": [{"name": c["name"], "passes": c["ok"], "points": c["pts"], "of": c["max"], "detail": c["detail"]}
+                   for c in r.get("checks", [])],
+        "extra_checks": [{"name": e["name"], "group": e["group"], "detail": e["detail"],
+                          "counts": "for" if e["ok"] is True else "against" if e["ok"] is False else "information"}
+                         for e in r.get("extras", [])],
+        "plan": {k: plan.get(k) for k in ("entry", "stop", "stop_pct", "trail", "trail_k", "days", "hours", "r1", "r2", "r3")},
+        "record": band and {"per_trade_after_fees": band.get("ret"), "winners": band.get("win"), "trades": band.get("n")},
+        "sentiment": {"score": se.get("score"), "label": se.get("label"), "parts": se.get("parts"),
+                      "headlines": [h["title"] for h in ((se.get("news") or {}).get("top") or [])]},
+        "market": {"mood": (market or {}).get("mood"), "fear_greed": (market or {}).get("fng")},
+    }
+
+
+def desk_notes(recs, J, now, research, market):
+    """Gemini desk notes for the top swing picks, kept in the journal. A note is rewritten only when its pick is new,
+    changes side or moves 5+ points, or after notes_every_h hours; at most notes_per_run new notes a scan."""
+    N = J.setdefault("notes", {})
+    if GEMINI_KEY:
+        made = 0
+        for r in recs[:CFG["notes_top"]]:
+            old = N.get(r["coin"])
+            if old and old.get("side") == r["side"] and abs(old.get("score", 0) - r["score"]) < 5 \
+                    and now - old.get("t", 0) < CFG["notes_every_h"] * H:
+                continue
+            if made >= CFG["notes_per_run"] or GEMINI_STATE["stopped"]:
+                break
+            res = gemini("notes", NOTE_SYSTEM, "Write the desk note for this pick.\n\n" +
+                         json.dumps(note_payload(r, research, market), default=str), max_tokens=2048)
+            if res:
+                N[r["coin"]] = {"t": now, "side": r["side"], "score": r["score"], "model": res[0],
+                                "text": res[1].strip()[:3000]}
+                made += 1
+    top = {r["coin"] for r in recs[:CFG["notes_top"] * 2]}
+    for c in list(N):
+        if c not in top and now - N[c].get("t", 0) > DAY:
+            N.pop(c)
+    return N
+
+
+def news_ai(feed, now):
+    """Gemini's tone for headlines that have none yet: one batched request at most every news_ai_every_h hours.
+    Headlines it does not rate keep the word-list tone."""
+    if not GEMINI_KEY or not feed or GEMINI_STATE["stopped"]:
+        return feed
+    if now - (feed.get("ai_time") or 0) < CFG["news_ai_every_h"] * H:
+        return feed
+    todo = [x for x in feed.get("items") or [] if x.get("ai") is None][:60]
+    if not todo:
+        return feed
+    feed["ai_time"] = now
+    res = gemini("fast", NEWS_SYSTEM, "Headlines:\n" + "\n".join(f"{i}. {x['title']}" for i, x in enumerate(todo)),
+                 max_tokens=4096, json_out=True)
+    if not res:
+        return feed
+    try:
+        rows = json.loads(res[1].strip().removeprefix("```json").removesuffix("```"))
+    except ValueError:
+        GEMINI_STATE["errors"].append("headline ratings: not JSON")
+        return feed
+    for row in rows if isinstance(rows, list) else []:
+        try:
+            i, tone = int(row["i"]), float(row["tone"])
+        except (KeyError, TypeError, ValueError):
+            continue
+        if 0 <= i < len(todo):
+            todo[i]["ai"] = max(-1.0, min(1.0, tone))
+    return feed
 
 
 SENT_W = {"st": 35, "whales": 25, "votes": 20, "news": 20}
@@ -1247,8 +1414,10 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
     st_list = list(dict.fromkeys(ranked[:25] + by_liq[:10]))
     stw = J["st"] = stocktwits(st_list, J.get("st"), now)
     ape = J["ape"] = apewisdom(J.get("ape"), now)
-    feed = J["news"] = news(J.get("news"), now)
+    GEMINI_STATE.update(calls=0, errors=[], stopped=False)
+    feed = J["news"] = news_ai(news(J.get("news"), now), now)
     fng = J["fng"] = fear_greed(J.get("fng"), now)
+    market["fng"] = {k: (fng or {}).get(k) for k in ("value", "label")} if fng else None
     J.pop("lc", None)
     fund = {t: sc.funding_avg(data[t]["coin"]) for t in swing}
 
@@ -1316,6 +1485,18 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
         hist[r["coin"]] = rows[-400:]
     sw_recs.sort(key=lambda r: (-r["score"], -r["liq"]))
     day_recs.sort(key=lambda r: (-r["score"], -r["liq"]))
+    # AI desk notes for the top swing picks (only with the GEMINI_API_KEY secret)
+    rp0 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "picks_research.json")
+    try:
+        with open(rp0) as fh:
+            research = json.load(fh)
+    except (OSError, ValueError):
+        research = None
+    notes = desk_notes(sw_recs, J, now, research, market)
+    for r in sw_recs:
+        n = notes.get(r["coin"])
+        if n and n.get("side") == r["side"]:
+            r["note"] = {k: n.get(k) for k in ("t", "model", "text")}
     n = CFG["top_n"]
     swing_out = {"all": sw_recs[:n], "long": [r for r in sw_recs if r["side"] == "long"][:n],
                  "short": [r for r in sw_recs if r["side"] == "short"][:n]}
@@ -1422,7 +1603,6 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
 
     rec_sw = [t for t in J["closed"] if t["kind"] == "swing"]
     rec_day = [t for t in J["closed"] if t["kind"] == "day"]
-    market["fng"] = {k: (fng or {}).get(k) for k in ("value", "label")} if fng else None
     out = {
         "version": VERSION, "generated": now, "duration_s": round(time.time() - t0, 1),
         "next_scan_min": sc.CFG["schedule_every_min"], "day": last_day, "hour": last_hour,
@@ -1440,9 +1620,13 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
                     "stocktwits": sum(1 for v in ((stw or {}).get("coins") or {}).values() if not v.get("none")),
                     "reddit": len((ape or {}).get("coins") or {}), "news": len((feed or {}).get("items") or []),
                     "trending": [k for k, _ in sorted(((trend or {}).get("coins") or {}).items(),
-                                                      key=lambda kv: kv[1]["rank"])][:15]},
+                                                      key=lambda kv: kv[1]["rank"])][:15],
+                    "gemini": {"key": bool(GEMINI_KEY), "calls": GEMINI_STATE["calls"], "notes": len(notes),
+                               "rated": sum(1 for x in (feed or {}).get("items") or [] if x.get("ai") is not None),
+                               "errors": GEMINI_STATE["errors"][:6]}},
         "scores": {r["coin"]: {"side": r["side"], "score": r["score"], "core": r["core"], "label": r["label"],
-                               "venues": r.get("venues"), "sentiment": r.get("sentiment")} for r in sw_recs},
+                               "venues": r.get("venues"), "sentiment": r.get("sentiment"), "note": r.get("note")}
+                   for r in sw_recs},
         "record": {"swing": stats(rec_sw), "day": stats(rec_day),
                    "swing_long": stats([t for t in rec_sw if t["d"] > 0]),
                    "swing_short": stats([t for t in rec_sw if t["d"] < 0]),

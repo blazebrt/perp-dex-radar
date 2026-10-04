@@ -126,6 +126,19 @@ A free Demo key makes it faster and more reliable:
 3. The next scan uses it: the market card on the front page then says "(your CoinGecko key)". Never paste the
    key into a chat or a file in the repository.
 
+**Optional: a free Gemini key for AI desk notes.** With a Gemini key from [Google AI Studio](https://aistudio.google.com)
+(free tier) saved as a repository secret named `GEMINI_API_KEY` (same place as the CoinGecko key), each scan:
+
+- writes a short desk note on each of the top 5 swing picks (Gemini 3.8 Flash, falling back to 3.5 Flash-Lite),
+  shown on the pick cards and in the analyzer. A note is rewritten only when its pick changes side, moves 5+ points
+  or is 12 hours old, at most 3 a scan;
+- rates the tone of new news headlines in one batched request at most every 3 hours (instead of the word list).
+
+That keeps it to a few dozen requests a day. Google does not publish fixed free-tier limits (AI Studio shows yours);
+when a limit is reached the scan keeps the last notes, uses the word list for headlines and tries again next scan.
+The note in the analyzer for any coin and timeframe uses a key you save in your browser instead (Gemini or Claude),
+because a page cannot read repository secrets.
+
 ## Quant desk (version 6): long and short, tested on three years
 
 `quant.html` is a second dashboard for slower trades that go **long or short**. 24 strategies were built and tested
