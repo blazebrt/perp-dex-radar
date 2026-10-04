@@ -68,9 +68,26 @@ jobs:
           done
           cp quant.html site/ || true
 
+      - name: Run the coin picks (swing and day-trade scores with their reasons)
+        id: picks
+        continue-on-error: true
+        run: python picks.py --out site --pages-url "${{ steps.pages.outputs.base_url }}"
+
+      - name: Keep the coin picks if they failed
+        # A failed run must not drop the picks record from the site; the picks page stays the front page
+        # and the 15-minute radar stays at radar.html.
+        if: steps.picks.outcome == 'failure'
+        run: |
+          mkdir -p site/data
+          for f in picks.json picks_journal.json picks_research.json; do
+            curl -fsS "${{ steps.pages.outputs.base_url }}/data/$f" -o "site/data/$f" || rm -f "site/data/$f"
+          done
+          if [ ! -f site/radar.html ]; then cp site/index.html site/radar.html; fi
+          cp picks.html site/index.html || true
+
       - name: Save a copy of the journal for review
         # Replaces the journal-data branch with this scan's latest.json, journal.csv and the quant desk's
-        # files (one commit, no history), so the results can be read from the repository as well.
+        # and coin picks' files (one commit, no history), so the results can be read from the repository.
         if: always()
         continue-on-error: true
         env:
@@ -82,7 +99,7 @@ jobs:
           test -f site/data/latest.json || exit 0
           export GIT_INDEX_FILE="$RUNNER_TEMP/journal.index"
           git read-tree --empty
-          for f in latest.json journal.csv quant.json quant_journal.json; do
+          for f in latest.json journal.csv quant.json quant_journal.json picks.json picks_journal.json; do
             if [ -f "site/data/$f" ]; then
               git update-index --add --cacheinfo "100644,$(git hash-object -w "site/data/$f"),$f"
             fi
