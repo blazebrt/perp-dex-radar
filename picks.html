@@ -327,7 +327,7 @@ function sentPill(p) {
   const se = p.sentiment;
   if (!se || se.score == null) return "";
   const col = se.score >= 60 ? "var(--long)" : se.score <= 40 ? "var(--short)" : "var(--ink-2)";
-  return '<span class="pill" title="Free social sentiment (Stocktwits, CoinGecko votes, news, Hyperliquid top traders). Shown for context, not part of the score." style="color:' + col + '">Sentiment ' + se.score + '</span>';
+  return '<span class="pill" title="Free sentiment (Stocktwits, Hyperliquid top traders, CoinGecko votes, news), ranked against the other coins in this scan: 50 is a typical coin. Shown for context, not part of the score." style="color:' + col + '">Sentiment ' + se.score + '</span>';
 }
 function anaLink(p) {
   if (!/^[A-Za-z0-9]+$/.test(p.coin)) return "";   // tickers the exchanges do not list by name

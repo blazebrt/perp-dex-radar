@@ -98,7 +98,10 @@ says the plan is risk control, not a reason to trade. Use the analyzer for the e
 swing score for the decision.
 
 **Free sentiment.** Each scan adds a 0-100 sentiment score per coin from free sources only (X/Twitter has no free
-access in 2026, and scraping it is against its rules):
+access in 2026, and scraping it is against its rules). Crypto crowds lean bullish on almost everything (in a live
+run 69% of coins looked bullish on the raw numbers), so each source is ranked against the other coins of the same
+scan and 50 means a typical coin today. Small samples are pulled toward neutral, and a coin needs two sources for a
+score:
 
 | Source | What it gives | Weight in the score |
 |---|---|---|

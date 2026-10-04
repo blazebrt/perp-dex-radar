@@ -545,13 +545,8 @@ async function liveSentiment(sym, meta) {
     })(),
   ];
   await Promise.all(jobs.map((j) => j.catch(() => null)));
-  if (meta && meta.votes != null) {
-    out.votes = Math.round(meta.votes);
-    out.parts.push(["CoinGecko votes", out.votes]);
-    out.score = out.votes;
-    out.label = out.score >= 60 ? "Bullish" : out.score <= 40 ? "Bearish" : "Neutral";
-  }
-  return out;
+  if (meta && meta.votes != null) out.votes = Math.round(meta.votes);
+  return out;   // coins outside the scan are not ranked, so they get no score
 }
 async function fetchFng() {
   try {
@@ -647,7 +642,10 @@ function liveBar() {
 // ------------------------------------------------------------------ rendering
 function renderAll(keepRange) {
   if (!S.all || !S.all[S.tf]) return;
-  renderHead(); renderAlign(); renderEvidence(); renderChart(keepRange); renderPlan(); renderRead(); renderScore(); renderChecks(); renderSent(); renderAI();
+  // one section failing (odd data from a source) must not take the rest of the page down
+  for (const f of [renderHead, renderAlign, renderEvidence, () => renderChart(keepRange), renderPlan, renderRead, renderScore, renderChecks, renderSent, renderAI]) {
+    try { f(); } catch (e) { console.error("render", e); }
+  }
 }
 function A() { return S.all[S.tf]; }
 function vClass(a) { return a.side || "wait"; }
@@ -990,9 +988,10 @@ function renderSent() {
   if (!se) {
     h += '<p class="small muted" style="margin:0">Loading…</p>';
   } else {
-    h += '<div class="sentop">' + sring(se.score) + '<div><b>' + esc(se.label || "Not enough data") + '</b><div class="small ink2">' +
-      (se.partial ? "This coin is not in your DEX scan, so only the sources a browser can reach are shown (CoinGecko votes, Reddit buzz)." :
-        "From the scan: Stocktwits, CoinGecko votes, news tone and Hyperliquid top traders" + (se.parts && se.parts.length ? " (" + se.parts.map((p) => p[0] + " " + p[1]).join(", ") + ")" : "") + ".") + '</div></div></div>';
+    h += '<div class="sentop">' + sring(se.score) + '<div><b>' + esc(se.label || (se.partial ? "Not ranked" : "Not enough data")) + '</b><div class="small ink2">' +
+      (se.partial ? "This coin is not in your DEX scan, so it has no ranked score. What a browser can see is below." :
+        se.score == null ? "Fewer than two free sources cover this coin, so there is no score" + ((se.parts || []).length ? " (" + se.parts.map((p) => p[0] + " " + p[1]).join(", ") + ")" : "") + "." :
+        "Ranked against the other coins in today's scan: 50 is a typical coin." + ((se.parts || []).length ? " " + se.parts.map((p) => p[0] + " " + p[1]).join(", ") + "." : "")) + '</div></div></div>';
     const row = (k, v) => v ? '<div class="srow"><span class="k">' + k + '</span><span>' + v + '</span></div>' : "";
     const st = se.stocktwits;
     h += row("Stocktwits", st ? (st.bull_share != null ? '<b>' + Math.round(st.bull_share * 100) + '% bullish</b> (' + st.bull + ' bullish, ' + st.bear + ' bearish posts)' : "Few tagged posts") +
@@ -1009,7 +1008,7 @@ function renderSent() {
     h += row("Top traders", se.whales != null ? "Hyperliquid's top traders are " + se.whales + "% long" : "");
   }
   if (fng && fng.value != null) h += '<div class="srow"><span class="k">Fear & Greed</span><span><b>' + fng.value + '</b> ' + esc(fng.label || "") + ' (whole market)</span></div>';
-  h += '<p class="small muted" style="margin:10px 0 0">Free sources only: X (Twitter) data has no free access in 2026, and Stocktwits is the closest free equivalent. Sentiment is not part of the tested score; a strong reading moves the call by 4 points at most.</p>';
+  h += '<p class="small muted" style="margin:10px 0 0">Free sources only: X (Twitter) data has no free access in 2026, and Stocktwits is the closest free equivalent. Crypto crowds lean bullish on almost everything, so each source is ranked against the other coins instead of read as is. Sentiment is not part of the tested score; a strong reading moves the call by 4 points at most.</p>';
   $("#sent").innerHTML = h;
 }
 

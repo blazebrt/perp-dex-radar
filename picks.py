@@ -781,13 +781,16 @@ def fear_greed(cached, now):
         return cached
 
 
+SENT_W = {"st": 35, "whales": 25, "votes": 20, "news": 20}
+SENT_NAMES = {"st": "Stocktwits", "whales": "Hyperliquid top traders", "votes": "CoinGecko votes", "news": "News tone"}
+
+
 def sentiment_of(t, fdm, trend, votes, st, ape, feed, sm):
-    """A free 0-100 sentiment score per coin (above 60 leans bullish, below 40 bearish) and what it is made of:
-    Stocktwits bullish share, CoinGecko community votes, news tone and the Hyperliquid top traders' long share;
-    trending and buzz are shown next to it. Not part of the tested score (no free history to test it on)."""
-    out = {"score": None, "parts": [], "trending": None, "stocktwits": None, "reddit": None, "news": None,
-           "votes": None, "whales": None}
-    parts = []
+    """The free sentiment inputs of one coin: Stocktwits bullish share, CoinGecko community votes, news tone and the
+    Hyperliquid top traders' long share (each kept as a raw value for sentiment_rank), plus trending and Reddit
+    buzz shown next to them. Small samples are pulled toward neutral. Not part of the tested score."""
+    out = {"score": None, "label": None, "parts": [], "trending": None, "stocktwits": None, "reddit": None,
+           "news": None, "votes": None, "whales": None, "raw": {}}
     trd = ((trend or {}).get("coins") or {}).get(t.upper())
     if trd:
         out["trending"] = trd["rank"]
@@ -795,31 +798,55 @@ def sentiment_of(t, fdm, trend, votes, st, ape, feed, sm):
     if S and not S.get("none"):
         out["stocktwits"] = {k: S.get(k) for k in ("bull", "bear", "bull_share", "posts_day", "posts_24h", "watchers",
                                                    "sent_change", "vol_change")}
-        if S.get("bull_share") is not None:
-            parts.append(("Stocktwits", S["bull_share"] * 100, 35))
+        b, r = S.get("bull") or 0, S.get("bear") or 0
+        if b + r >= 4:
+            out["raw"]["st"] = (b + 1) / (b + r + 2)       # a few tagged posts say less than many
     cid = (fdm or {}).get("id")
     v = ((votes or {}).get("coins") or {}).get(cid) if cid else None
     if v and v.get("up") is not None:
         out["votes"] = round(v["up"])
-        parts.append(("CoinGecko votes", v["up"], 20))
+        out["raw"]["votes"] = v["up"]
     A = ((ape or {}).get("coins") or {}).get(t.upper())
     if A:
         out["reddit"] = A
     N = news_for(t, (fdm or {}).get("name"), feed)
     if N and N.get("n"):
         out["news"] = N
-        parts.append(("News tone", (N["tone"] + 1) * 50, 20 if N["n"] >= 2 else 10))
+        out["raw"]["news"] = N["tone"] * N["n"] / (N["n"] + 2)    # one headline counts for little
     if sm and (sm[2] + sm[3]) >= 50_000:
         share = sm[2] / (sm[2] + sm[3])
         out["whales"] = round(share * 100)
-        parts.append(("Hyperliquid top traders long", share * 100, 25))
-    if parts:
-        w = sum(p[2] for p in parts)
-        out["score"] = round(sum(p[1] * p[2] for p in parts) / w)
-        out["parts"] = [[p[0], round(p[1])] for p in parts]
-    out["label"] = (None if out["score"] is None else "Bullish" if out["score"] >= 60 else
-                    "Bearish" if out["score"] <= 40 else "Neutral")
+        out["raw"]["whales"] = 0.5 + (share - 0.5) * min(1.0, (sm[2] + sm[3]) / 1_000_000)   # small books count less
     return out
+
+
+def sentiment_rank(all_sent, min_coins=5):
+    """Score every coin 0-100 against the other coins of the same scan: each source becomes a percentile (50 = a
+    typical coin today), weighted Stocktwits 35, top traders 25, CoinGecko votes 20, news 20. A coin needs two
+    sources for a score. Ranking matters because crypto crowds lean bullish on almost everything: in a live run 69%
+    of coins looked bullish on raw numbers."""
+    import bisect
+    pct = {}
+    for k in SENT_W:
+        vals = sorted(v["raw"][k] for v in all_sent.values() if k in v.get("raw", {}))
+        if len(vals) < min_coins:
+            continue
+        for t, v in all_sent.items():
+            x = v.get("raw", {}).get(k)
+            if x is None:
+                continue
+            lo, hi = bisect.bisect_left(vals, x), bisect.bisect_right(vals, x)
+            pct.setdefault(t, {})[k] = 100.0 * (lo + (hi - lo) / 2) / len(vals)
+    for t, v in all_sent.items():
+        p = pct.get(t, {})
+        v["parts"] = [[SENT_NAMES[k], round(p[k])] for k in SENT_W if k in p]
+        if len(p) >= 2:
+            v["score"] = round(sum(p[k] * SENT_W[k] for k in p) / sum(SENT_W[k] for k in p))
+            v["label"] = "Bullish" if v["score"] >= 65 else "Bearish" if v["score"] <= 35 else "Neutral"
+        else:
+            v["score"], v["label"] = None, None
+        v.pop("raw", None)
+    return all_sent
 
 
 def sentiment_checks(sent):
@@ -1225,13 +1252,17 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
     J.pop("lc", None)
     fund = {t: sc.funding_avg(data[t]["coin"]) for t in swing}
 
+    # free sentiment, ranked against the other coins of this scan
+    SENT = sentiment_rank({t: sentiment_of(t, ((cg or {}).get("coins") or {}).get(t), trend, votes, stw, ape, feed, smart.get(t))
+                           for t in swing})
+
     # 4) records
     sw_recs, day_recs = [], []
     for t, s in swing.items():
         coin, x = data[t]["coin"], s["x"]
         fdm = (cg or {}).get("coins", {}).get(t)
         liq = sc.liq_of(coin) or 0
-        sent = sentiment_of(t, fdm, trend, votes, stw, ape, feed, smart.get(t))
+        sent = SENT[t]
         best = None
         for side in ("long", "short"):
             core = s[side]
