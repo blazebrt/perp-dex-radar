@@ -194,15 +194,30 @@ class Sentiment(unittest.TestCase):
         self.assertLess(btc["tone"], 0)
         self.assertIsNone(P.news_for("NEAR", None, feed), "NEAR as a word is too common to match by ticker")
 
-    def test_combined_score(self):
-        st = {"coins": {"XPL": {"t": NOW_FIX, "bull": 9, "bear": 1, "bull_share": 0.9, "posts_day": 3}}}
-        s = P.sentiment_of("XPL", {"id": "plasma", "name": "Plasma"}, {"coins": {"XPL": {"rank": 2}}},
-                           {"coins": {"plasma": {"t": NOW_FIX, "up": 70}}}, st, None, None, [3, 1, 900_000, 100_000, None])
-        self.assertEqual(s["trending"], 2)
-        self.assertEqual(s["label"], "Bullish")
-        self.assertEqual([p[0] for p in s["parts"]], ["Stocktwits", "CoinGecko votes", "Hyperliquid top traders long"])
-        self.assertTrue(60 < s["score"] <= 100)
+    def test_combined_score_is_ranked_against_the_other_coins(self):
+        st = {"coins": {
+            "AAA": {"t": NOW_FIX, "bull": 30, "bear": 2, "posts_day": 20},
+            "BBB": {"t": NOW_FIX, "bull": 10, "bear": 10, "posts_day": 5},
+            "CCC": {"t": NOW_FIX, "bull": 2, "bear": 12, "posts_day": 3},
+            "DDD": {"t": NOW_FIX, "bull": 15, "bear": 5, "posts_day": 8},
+            "EEE": {"t": NOW_FIX, "bull": 3, "bear": 1, "posts_day": 1},
+            "FFF": {"t": NOW_FIX, "bull": 1, "bear": 1, "posts_day": 1}}}
+        sm = {"AAA": [3, 1, 900_000, 100_000, None], "BBB": [1, 1, 300_000, 300_000, None],
+              "CCC": [1, 3, 100_000, 900_000, None], "DDD": [2, 1, 500_000, 200_000, None],
+              "EEE": [1, 0, 30_000, 0, None], "FFF": [1, 1, 400_000, 100_000, None]}
+        sents = {t: P.sentiment_of(t, None, {"coins": {"AAA": {"rank": 2}}}, None, st, None, None, sm[t]) for t in sm}
+        P.sentiment_rank(sents)
+        self.assertEqual(sents["AAA"]["trending"], 2)
+        self.assertGreater(sents["AAA"]["score"], sents["BBB"]["score"])
+        self.assertGreater(sents["BBB"]["score"], sents["CCC"]["score"])
+        self.assertEqual(sents["AAA"]["label"], "Bullish")
+        self.assertEqual(sents["CCC"]["label"], "Bearish")
+        self.assertEqual([p[0] for p in sents["AAA"]["parts"]], ["Stocktwits", "Hyperliquid top traders"])
+        self.assertIsNone(sents["EEE"]["score"], "one source (top traders under $50k) is not enough for a score")
+        self.assertIsNone(sents["FFF"]["score"], "two tagged posts are not a Stocktwits reading")
+        self.assertTrue(all("raw" not in v for v in sents.values()))
         empty = P.sentiment_of("ABC", None, None, None, None, None, None, None)
+        P.sentiment_rank({"ABC": empty})
         self.assertIsNone(empty["score"])
         self.assertEqual(len(P.sentiment_checks(empty)), 4)
 
@@ -303,6 +318,8 @@ class EndToEnd(unittest.TestCase):
         cls.restore = old_min
         cls.gaps = (P.CFG["gap_stocktwits"], P.CFG["gap_coingecko"])
         P.CFG["gap_stocktwits"] = P.CFG["gap_coingecko"] = 0.0
+        cls.old_get_text = P.get_text
+        P.get_text = lambda url, timeout=30: RSS   # no real news sites in the tests
         for run in ("s1", "s2"):
             d = os.path.join(cls.tmp, run, "data")
             os.makedirs(d)
@@ -319,6 +336,7 @@ class EndToEnd(unittest.TestCase):
         sc.FETCH = cls.old
         P.CFG["paper_swing_min"] = cls.restore
         P.CFG["gap_stocktwits"], P.CFG["gap_coingecko"] = cls.gaps
+        P.get_text = cls.old_get_text
         shutil.rmtree(cls.tmp, ignore_errors=True)
 
     def test_files_and_pages(self):
