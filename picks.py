@@ -60,7 +60,7 @@ CFG = {
     "day": {"stop_k": 1.5, "trail_k": 2.5, "min_stop": 0.015, "max_stop": 0.06, "hours": 24},
     "paper_swing_min": 80,      # swing picks with this score or more are paper traded
     "paper_day_min": 85,        # day picks with this score or more are paper traded
-    "paper_day_max_new": 5,     # new day paper trades per scan at most
+    "paper_day_max_new": 3,     # new day paper trades per closed hour at most
     "keep_closed": 600,
 }
 
@@ -361,7 +361,7 @@ def extra_checks(side, coin, sm, pos, fund8h, fdm, liq):
         ok = (net > 0 and lu >= 1.5 * su) if L else (net < 0 and su >= 1.5 * lu)
         bad = (net < 0 and su >= 1.5 * lu) if L else (net > 0 and lu >= 1.5 * su)
         out.append(("smart", "Hyperliquid top traders", True if ok else False if bad else None, 3,
-                    f"{ln} long (${lu / 1e3:,.0f}k) vs {sn} short (${su / 1e3:,.0f}k)", "Smart money"))
+                    f"{ln} long ({usd_short(lu)}) vs {sn} short ({usd_short(su)})", "Smart money"))
     else:
         out.append(("smart", "Hyperliquid top traders", None, 3, "No big positions from the top traders", "Smart money"))
     # Gate.io: open interest and the top traders' long/short ratio over the last hours
@@ -452,11 +452,11 @@ def extra_points(ex):
     return max(-CFG["extra_max"], min(CFG["extra_max"], s))
 
 
-def label_of(score):
+def label_of(score, kind="swing"):
     if score >= CFG["strong"]:
-        return "Strong"
+        return "Strong" if kind == "swing" else "Best conditions"
     if score >= CFG["ready"]:
-        return "Ready"
+        return "Ready" if kind == "swing" else "Good conditions"
     if score >= CFG["watch"]:
         return "Setting up"
     return "Weak"
@@ -553,15 +553,25 @@ def plan_of(side, price, atr_abs, kind):
     return {k: (float(f"{v:.8g}") if isinstance(v, float) else v) for k, v in out.items()}
 
 
+def lc(name):
+    """Lower-case the first letter of a check name unless it starts with an acronym (EMA, RSI, BTC)."""
+    w = name.split(" ", 1)[0]
+    return name if (len(w) > 1 and w[:2].isupper()) else name[:1].lower() + name[1:]
+
+
+def usd_short(x):
+    return f"${x / 1e6:,.1f}M" if x >= 1e6 else f"${x / 1e3:,.0f}k"
+
+
 def summary(side, kind, label, checks, extras):
     """One plain sentence: what the setup is and the strongest reasons."""
-    good = [c["name"].lower() for c in checks if c["ok"] == 1][:3]
-    bad = [c["name"].lower() for c in checks if c["ok"] == 0][:2]
+    good = [lc(c["name"]) for c in checks if c["ok"] == 1][:3]
+    bad = [lc(c["name"]) for c in checks if c["ok"] == 0][:2]
     smart = [e for e in extras if e["ok"] is True and e["group"] == "Smart money"]
     what = (SETUP[side] if kind == "swing" else ("Day long" if side == "long" else "Day short"))
     s = f"{what} ({label.lower()}): " + (", ".join(good) if good else "few checks pass")
     if smart:
-        s += "; " + smart[0]["name"].lower() + " agree"
+        s += "; " + lc(smart[0]["name"]) + " agree"
     if bad:
         s += ". Missing: " + ", ".join(bad)
     return s + "."
@@ -577,7 +587,7 @@ def record(kind, side, coin_t, coin, core, credits, weights, lines, extras, plan
            "detail": d, "group": g, "tested": False} for k, t, ok, p, d, g in extras]
     adj = extra_points(extras)
     final = max(0.0, min(100.0, core + adj))
-    lab = label_of(final)
+    lab = label_of(final, kind)
     venues = " ".join(sc.DEX_CODE[d] for d in sc.DEXES if d in (coin.get("venues") or {}))
     return {"coin": coin_t, "kind": kind, "side": side, "score": round(final, 1), "core": round(core, 1),
             "extra": round(adj, 1), "label": lab, "setup": SETUP[side] if kind == "swing" else None,
