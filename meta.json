@@ -1,0 +1,2361 @@
+{
+ "coins": {
+  "2Z": {
+   "1h": {
+    "first": 1759406400,
+    "last": 1791097200,
+    "n": 8804,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "2Z_USDT"
+   },
+   "4h": {
+    "first": 1759406400,
+    "last": 1791086400,
+    "n": 2201,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "2Z_USDT"
+   },
+   "fund_mexc": 2223
+  },
+  "AAVE": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "AAVE_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "AAVE_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 1200
+  },
+  "ADA": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ADA_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ADA_USDT"
+   },
+   "fund_mexc": 1200
+  },
+  "AERO": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "AERO_USDT"
+   },
+   "4h": {
+    "first": 1721030400,
+    "last": 1791086400,
+    "n": 4866,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "AERO_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "AI": {
+   "1h": null,
+   "4h": null,
+   "fund_mexc": 1447
+  },
+  "AIN": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "AIN_USDT"
+   },
+   "4h": {
+    "first": 1751702400,
+    "last": 1791086400,
+    "n": 2736,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "AIN_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "ALGO": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ALGO_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ALGO_USDT"
+   },
+   "fund_mexc": 1200
+  },
+  "APE": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "APE_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "APE_USDT"
+   },
+   "fund_mexc": 1200
+  },
+  "APEX": {
+   "1h": {
+    "first": 1758963600,
+    "last": 1791097200,
+    "n": 8927,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "APEX_USDT"
+   },
+   "4h": {
+    "first": 1758960000,
+    "last": 1791086400,
+    "n": 2232,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "APEX_USDT"
+   },
+   "fund_mexc": 2231
+  },
+  "APT": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "APT_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "APT_USDT"
+   },
+   "fund_mexc": 1200
+  },
+  "AR": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "AR_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "AR_USDT"
+   },
+   "fund_mexc": 1200
+  },
+  "ARB": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ARB_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ARB_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 1200
+  },
+  "ASTER": {
+   "1h": {
+    "first": 1758250800,
+    "last": 1791097200,
+    "n": 9125,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ASTER_USDT"
+   },
+   "4h": {
+    "first": 1758240000,
+    "last": 1791086400,
+    "n": 2282,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ASTER_USDT"
+   },
+   "fund_mexc": 2281
+  },
+  "ATH": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ATH_USDT"
+   },
+   "4h": {
+    "first": 1718265600,
+    "last": 1791086400,
+    "n": 5058,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ATH_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "ATOM": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ATOM_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ATOM_USDT"
+   },
+   "fund_mexc": 1200
+  },
+  "AVAX": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "AVAX_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "AVAX_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 1200
+  },
+  "AVNT": {
+   "1h": {
+    "first": 1757422800,
+    "last": 1791097200,
+    "n": 9355,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "AVNT_USDT"
+   },
+   "4h": {
+    "first": 1757419200,
+    "last": 1791086400,
+    "n": 2339,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "AVNT_USDT"
+   },
+   "fund_mexc": 2338
+  },
+  "AXS": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "AXS_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "AXS_USDT"
+   },
+   "fund_mexc": 2135
+  },
+  "B3": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "B3_USDT"
+   },
+   "4h": {
+    "first": 1739188800,
+    "last": 1791086400,
+    "n": 3605,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "B3_USDT"
+   },
+   "fund_mexc": 2856
+  },
+  "BCH": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "BCH_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "BCH_USDT"
+   },
+   "fund_mexc": 1200
+  },
+  "BNB": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "BNB_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "BNB_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 1200
+  },
+  "BONK": {
+   "1h": {
+    "first": 1756537200,
+    "last": 1791097200,
+    "n": 9601,
+    "scale": 1.0,
+    "src": "gate",
+    "sym": "BONK_USDT"
+   },
+   "4h": {
+    "first": 1696046400,
+    "last": 1791086400,
+    "n": 6601,
+    "scale": 1.0,
+    "src": "gate",
+    "sym": "BONK_USDT"
+   },
+   "fund_mexc": 0
+  },
+  "BTC": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "BTC_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "BTC_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 1200
+  },
+  "BTW": {
+   "1h": {
+    "first": 1780581600,
+    "last": 1791097200,
+    "n": 2922,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "BTW_USDT"
+   },
+   "4h": {
+    "first": 1772438400,
+    "last": 1791086400,
+    "n": 1151,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "BTW_USDT"
+   },
+   "fund_mexc": 1149
+  },
+  "BULLA": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "BULLA_USDT"
+   },
+   "4h": {
+    "first": 1749196800,
+    "last": 1791086400,
+    "n": 2910,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "BULLA_USDT"
+   },
+   "fund_mexc": 2583
+  },
+  "CAKE": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "CAKE_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "CAKE_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "CASHCAT": {
+   "1h": {
+    "first": 1783519200,
+    "last": 1791097200,
+    "n": 2106,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "CASHCAT_USDT"
+   },
+   "4h": {
+    "first": 1783512000,
+    "last": 1791086400,
+    "n": 527,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "CASHCAT_USDT"
+   },
+   "fund_mexc": 526
+  },
+  "CC": {
+   "1h": {
+    "first": 1761912000,
+    "last": 1791097200,
+    "n": 8108,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "CC_USDT"
+   },
+   "4h": {
+    "first": 1761912000,
+    "last": 1791086400,
+    "n": 2027,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "CC_USDT"
+   },
+   "fund_mexc": 2026
+  },
+  "CHIP": {
+   "1h": {
+    "first": 1776322800,
+    "last": 1791097200,
+    "n": 4105,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "CHIP_USDT"
+   },
+   "4h": {
+    "first": 1776312000,
+    "last": 1791086400,
+    "n": 1027,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "CHIP_USDT"
+   },
+   "fund_mexc": 1026
+  },
+  "CRV": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "CRV_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "CRV_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 1200
+  },
+  "DOGE": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "DOGE_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "DOGE_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 1200
+  },
+  "DOT": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "DOT_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "DOT_USDT"
+   },
+   "fund_mexc": 1200
+  },
+  "EIGEN": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "EIGEN_USDT"
+   },
+   "4h": {
+    "first": 1727755200,
+    "last": 1791086400,
+    "n": 4399,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "EIGEN_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "ENA": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ENA_USDT"
+   },
+   "4h": {
+    "first": 1712044800,
+    "last": 1791086400,
+    "n": 5490,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ENA_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 2400
+  },
+  "ETH": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ETH_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ETH_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 1200
+  },
+  "ETHFI": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ETHFI_USDT"
+   },
+   "4h": {
+    "first": 1710763200,
+    "last": 1791086400,
+    "n": 5579,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ETHFI_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "FARTCOIN": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "FARTCOIN_USDT"
+   },
+   "4h": {
+    "first": 1729814400,
+    "last": 1791086400,
+    "n": 4256,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "FARTCOIN_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "FET": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "FET_USDT"
+   },
+   "4h": {
+    "first": 1696046400,
+    "last": 1791086400,
+    "n": 6601,
+    "scale": 1.0,
+    "src": "gate",
+    "sym": "FET_USDT"
+   },
+   "fund_mexc": 1200
+  },
+  "FIL": {
+   "1h": {
+    "first": 1756537200,
+    "last": 1791097200,
+    "n": 9601,
+    "scale": 1.0,
+    "src": "gate",
+    "sym": "FIL_USDT"
+   },
+   "4h": {
+    "first": 1696046400,
+    "last": 1791086400,
+    "n": 6601,
+    "scale": 1.0,
+    "src": "gate",
+    "sym": "FIL_USDT"
+   },
+   "fund_mexc": 0
+  },
+  "GALA": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "GALA_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "GALA_USDT"
+   },
+   "fund_mexc": 1200
+  },
+  "GRAM": {
+   "1h": {
+    "first": 1781532000,
+    "last": 1791097200,
+    "n": 2658,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "GRAM_USDT"
+   },
+   "4h": {
+    "first": 1781524800,
+    "last": 1791086400,
+    "n": 665,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "GRAM_USDT"
+   },
+   "fund_mexc": 664
+  },
+  "GRASS": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "GRASS_USDT"
+   },
+   "4h": {
+    "first": 1730116800,
+    "last": 1791086400,
+    "n": 4235,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "GRASS_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "HBAR": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "HBAR_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "HBAR_USDT"
+   },
+   "fund_mexc": 1200
+  },
+  "HUMA": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "HUMA_USDT"
+   },
+   "4h": {
+    "first": 1748246400,
+    "last": 1791086400,
+    "n": 2976,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "HUMA_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "HYPE": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "HYPE_USDT"
+   },
+   "4h": {
+    "first": 1734595200,
+    "last": 1791086400,
+    "n": 3924,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "HYPE_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 2333
+  },
+  "ICP": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ICP_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ICP_USDT"
+   },
+   "fund_mexc": 1200
+  },
+  "IMX": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "IMX_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "IMX_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "INIT": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "INIT_USDT"
+   },
+   "4h": {
+    "first": 1744776000,
+    "last": 1791086400,
+    "n": 3217,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "INIT_USDT"
+   },
+   "fund_mexc": 2458
+  },
+  "INJ": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "INJ_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "INJ_USDT"
+   },
+   "fund_mexc": 1200
+  },
+  "IO": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "IO_USDT"
+   },
+   "4h": {
+    "first": 1718107200,
+    "last": 1791086400,
+    "n": 5069,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "IO_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "JTO": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "JTO_USDT"
+   },
+   "4h": {
+    "first": 1701964800,
+    "last": 1791086400,
+    "n": 6190,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "JTO_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "JUP": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "JUP_USDT"
+   },
+   "4h": {
+    "first": 1706716800,
+    "last": 1791086400,
+    "n": 5860,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "JUP_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "KAITO": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "KAITO_USDT"
+   },
+   "4h": {
+    "first": 1740052800,
+    "last": 1791086400,
+    "n": 3545,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "KAITO_USDT"
+   },
+   "fund_mexc": 2625
+  },
+  "LDO": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "LDO_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "LDO_USDT"
+   },
+   "fund_mexc": 1200
+  },
+  "LINK": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "LINK_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "LINK_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 1200
+  },
+  "LIT": {
+   "1h": {
+    "first": 1766422800,
+    "last": 1791097200,
+    "n": 6855,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "LIT_USDT"
+   },
+   "4h": {
+    "first": 1766419200,
+    "last": 1791086400,
+    "n": 1714,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "LIT_USDT"
+   },
+   "fund_hl": 6856,
+   "fund_mexc": 1850
+  },
+  "LTC": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "LTC_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "LTC_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 1200
+  },
+  "LYN": {
+   "1h": {
+    "first": 1759734000,
+    "last": 1791097200,
+    "n": 8713,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "LYN_USDT"
+   },
+   "4h": {
+    "first": 1759723200,
+    "last": 1791086400,
+    "n": 2179,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "LYN_USDT"
+   },
+   "fund_mexc": 2680
+  },
+  "MAGMA": {
+   "1h": {
+    "first": 1765879200,
+    "last": 1791097200,
+    "n": 7006,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "MAGMA_USDT"
+   },
+   "4h": {
+    "first": 1765872000,
+    "last": 1791086400,
+    "n": 1752,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "MAGMA_USDT"
+   },
+   "fund_mexc": 1751
+  },
+  "MARSCOIN": {
+   "1h": {
+    "first": 1785416400,
+    "last": 1791097200,
+    "n": 1579,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "MARSCOIN_USDT"
+   },
+   "4h": {
+    "first": 1785412800,
+    "last": 1791086400,
+    "n": 395,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "MARSCOIN_USDT"
+   },
+   "fund_mexc": 394
+  },
+  "MEGA": {
+   "1h": {
+    "first": 1761148800,
+    "last": 1791097200,
+    "n": 8320,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "MEGA_USDT"
+   },
+   "4h": {
+    "first": 1761148800,
+    "last": 1791086400,
+    "n": 2080,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "MEGA_USDT"
+   },
+   "fund_mexc": 5388
+  },
+  "MERL": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "MERL_USDT"
+   },
+   "4h": {
+    "first": 1713513600,
+    "last": 1791086400,
+    "n": 5388,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "MERL_USDT"
+   },
+   "fund_mexc": 2662
+  },
+  "MET": {
+   "1h": {
+    "first": 1760094000,
+    "last": 1791097200,
+    "n": 8613,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "MET_USDT"
+   },
+   "4h": {
+    "first": 1760083200,
+    "last": 1791086400,
+    "n": 2154,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "MET_USDT"
+   },
+   "fund_mexc": 2153
+  },
+  "MINA": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "MINA_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "MINA_USDT"
+   },
+   "fund_mexc": 1234
+  },
+  "MNT": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "MNT_USDT"
+   },
+   "4h": {
+    "first": 1707883200,
+    "last": 1791086400,
+    "n": 5779,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "MNT_USDT"
+   },
+   "fund_mexc": 1200
+  },
+  "MON": {
+   "1h": {
+    "first": 1760097600,
+    "last": 1791097200,
+    "n": 8612,
+    "scale": 1.0,
+    "src": "gate",
+    "sym": "MON_USDT"
+   },
+   "4h": {
+    "first": 1760097600,
+    "last": 1791086400,
+    "n": 2153,
+    "scale": 1.0,
+    "src": "gate",
+    "sym": "MON_USDT"
+   },
+   "fund_hl": 8667,
+   "fund_mexc": 0
+  },
+  "MOONSHOT": {
+   "1h": {
+    "first": 1790060400,
+    "last": 1791097200,
+    "n": 289,
+    "scale": 1.0,
+    "src": "gate",
+    "sym": "MOONSHOT_USDT"
+   },
+   "4h": {
+    "first": 1790049600,
+    "last": 1791086400,
+    "n": 73,
+    "scale": 1.0,
+    "src": "gate",
+    "sym": "MOONSHOT_USDT"
+   },
+   "fund_mexc": 0
+  },
+  "MORPHO": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "MORPHO_USDT"
+   },
+   "4h": {
+    "first": 1732176000,
+    "last": 1791086400,
+    "n": 4092,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "MORPHO_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "MOVE": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "MOVE_USDT"
+   },
+   "4h": {
+    "first": 1733745600,
+    "last": 1791086400,
+    "n": 3983,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "MOVE_USDT"
+   },
+   "fund_mexc": 2436
+  },
+  "MOVR": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "MOVR_USDT"
+   },
+   "4h": {
+    "first": 1700740800,
+    "last": 1791086400,
+    "n": 6275,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "MOVR_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "NEAR": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "NEAR_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "NEAR_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 1200
+  },
+  "NIGHT": {
+   "1h": {
+    "first": 1765270800,
+    "last": 1791097200,
+    "n": 7175,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "NIGHT_USDT"
+   },
+   "4h": {
+    "first": 1765267200,
+    "last": 1791086400,
+    "n": 1794,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "NIGHT_USDT"
+   },
+   "fund_mexc": 1811
+  },
+  "NIL": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "NIL_USDT"
+   },
+   "4h": {
+    "first": 1742803200,
+    "last": 1791086400,
+    "n": 3354,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "NIL_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "ONDO": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ONDO_USDT"
+   },
+   "4h": {
+    "first": 1705752000,
+    "last": 1791086400,
+    "n": 5927,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ONDO_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 2400
+  },
+  "ONE": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ONE_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ONE_USDT"
+   },
+   "fund_mexc": 1466
+  },
+  "OP": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "OP_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "OP_USDT"
+   },
+   "fund_mexc": 1200
+  },
+  "PENDLE": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "PENDLE_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "PENDLE_USDT"
+   },
+   "fund_mexc": 1200
+  },
+  "PENGU": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "PENGU_USDT"
+   },
+   "4h": {
+    "first": 1734436800,
+    "last": 1791086400,
+    "n": 3935,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "PENGU_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "PEPE": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "PEPE_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "PEPE_USDT"
+   },
+   "fund_mexc": 1200
+  },
+  "PLAY": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "PLAY_USDT"
+   },
+   "4h": {
+    "first": 1753948800,
+    "last": 1791086400,
+    "n": 2580,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "PLAY_USDT"
+   },
+   "fund_mexc": 2428
+  },
+  "POL": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "POL_USDT"
+   },
+   "4h": {
+    "first": 1725422400,
+    "last": 1791086400,
+    "n": 4561,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "POL_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "PONS": {
+   "1h": {
+    "first": 1784106000,
+    "last": 1791097200,
+    "n": 1943,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "PONS_USDT"
+   },
+   "4h": {
+    "first": 1784102400,
+    "last": 1791086400,
+    "n": 486,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "PONS_USDT"
+   },
+   "fund_hl": 820,
+   "fund_mexc": 485
+  },
+  "PUMP": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "PUMPFUN_USDT"
+   },
+   "4h": {
+    "first": 1752120000,
+    "last": 1791086400,
+    "n": 2707,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "PUMPFUN_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 2400
+  },
+  "RENDER": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "RENDER_USDT"
+   },
+   "4h": {
+    "first": 1721980800,
+    "last": 1791086400,
+    "n": 4800,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "RENDER_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "RESOLV": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "RESOLV_USDT"
+   },
+   "4h": {
+    "first": 1749556800,
+    "last": 1791086400,
+    "n": 2885,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "RESOLV_USDT"
+   },
+   "fund_mexc": 3177
+  },
+  "RUNE": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "RUNE_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "RUNE_USDT"
+   },
+   "fund_mexc": 1200
+  },
+  "S": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "S_USDT"
+   },
+   "4h": {
+    "first": 1736481600,
+    "last": 1791086400,
+    "n": 3793,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "S_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "SAGA": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "SAGA_USDT"
+   },
+   "4h": {
+    "first": 1712649600,
+    "last": 1791086400,
+    "n": 5448,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "SAGA_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "SAND": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "SAND_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "SAND_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 1200
+  },
+  "SEI": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "SEI_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "SEI_USDT"
+   },
+   "fund_mexc": 1200
+  },
+  "SKHYNIXUSD": {
+   "1h": null,
+   "4h": null,
+   "fund_mexc": 0
+  },
+  "SKY": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "SKY_USDT"
+   },
+   "4h": {
+    "first": 1755648000,
+    "last": 1791086400,
+    "n": 2462,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "SKY_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "SOL": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "SOL_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "SOL_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 1200
+  },
+  "SPX": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "SPX_USDT"
+   },
+   "4h": {
+    "first": 1730188800,
+    "last": 1791086400,
+    "n": 4230,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "SPX_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "STONK": {
+   "1h": {
+    "first": 1788706800,
+    "last": 1791097200,
+    "n": 665,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "STONK_USDT"
+   },
+   "4h": {
+    "first": 1788696000,
+    "last": 1791086400,
+    "n": 167,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "STONK_USDT"
+   },
+   "fund_mexc": 292
+  },
+  "STRK": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "STRK_USDT"
+   },
+   "4h": {
+    "first": 1708430400,
+    "last": 1791086400,
+    "n": 5741,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "STRK_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 2400
+  },
+  "STX": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "STX_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "STX_USDT"
+   },
+   "fund_mexc": 1200
+  },
+  "SUI": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "SUI_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "SUI_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 1200
+  },
+  "SUPER": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "SUPER_USDT"
+   },
+   "4h": {
+    "first": 1700740800,
+    "last": 1791086400,
+    "n": 6275,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "SUPER_USDT"
+   },
+   "fund_mexc": 3864
+  },
+  "SYRUP": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "SYRUP_USDT"
+   },
+   "4h": {
+    "first": 1733097600,
+    "last": 1791086400,
+    "n": 4028,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "SYRUP_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "TAO": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "TAO_USDT"
+   },
+   "4h": {
+    "first": 1706673600,
+    "last": 1791086400,
+    "n": 5863,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "TAO_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 2400
+  },
+  "TIA": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "TIA_USDT"
+   },
+   "4h": {
+    "first": 1698768000,
+    "last": 1791086400,
+    "n": 6412,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "TIA_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "TRUMP": {
+   "1h": {
+    "first": 1756537200,
+    "last": 1791097200,
+    "n": 9601,
+    "scale": 1.0,
+    "src": "gate",
+    "sym": "TRUMP_USDT"
+   },
+   "4h": {
+    "first": 1737187200,
+    "last": 1791086400,
+    "n": 3744,
+    "scale": 1.0,
+    "src": "gate",
+    "sym": "TRUMP_USDT"
+   },
+   "fund_mexc": 312
+  },
+  "TRX": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "TRX_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "TRX_USDT"
+   },
+   "fund_mexc": 1200
+  },
+  "UNI": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "UNI_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "UNI_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 1200
+  },
+  "UP": {
+   "1h": {
+    "first": 1773396000,
+    "last": 1791097200,
+    "n": 4918,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "UP_USDT"
+   },
+   "4h": {
+    "first": 1773388800,
+    "last": 1791086400,
+    "n": 1230,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "UP_USDT"
+   },
+   "fund_mexc": 1229
+  },
+  "US": {
+   "1h": {
+    "first": 1765454400,
+    "last": 1791097200,
+    "n": 7124,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "US_USDT"
+   },
+   "4h": {
+    "first": 1765454400,
+    "last": 1791086400,
+    "n": 1781,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "US_USDT"
+   },
+   "fund_mexc": 1780
+  },
+  "USELESS": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "USELESS_USDT"
+   },
+   "4h": {
+    "first": 1747022400,
+    "last": 1791086400,
+    "n": 3061,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "USELESS_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "VIRTUAL": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "VIRTUAL_USDT"
+   },
+   "4h": {
+    "first": 1730448000,
+    "last": 1791086400,
+    "n": 4212,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "VIRTUAL_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "VVV": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "VVV_USDT"
+   },
+   "4h": {
+    "first": 1738022400,
+    "last": 1791086400,
+    "n": 3686,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "VVV_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "W": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "W_USDT"
+   },
+   "4h": {
+    "first": 1712145600,
+    "last": 1791086400,
+    "n": 5483,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "W_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "WIF": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "WIF_USDT"
+   },
+   "4h": {
+    "first": 1704974400,
+    "last": 1791086400,
+    "n": 5981,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "WIF_USDT"
+   },
+   "fund_mexc": 2400
+  },
+  "WLD": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "WLD_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "WLD_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 1200
+  },
+  "XLM": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "XLM_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "XLM_USDT"
+   },
+   "fund_mexc": 1200
+  },
+  "XMR": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "XMR_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "XMR_USDT"
+   },
+   "fund_hl": 6287,
+   "fund_mexc": 1200
+  },
+  "XPL": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "XPL_USDT"
+   },
+   "4h": {
+    "first": 1755849600,
+    "last": 1791086400,
+    "n": 2448,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "XPL_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 2400
+  },
+  "XRP": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "XRP_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "XRP_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 1200
+  },
+  "ZAMA": {
+   "1h": {
+    "first": 1767949200,
+    "last": 1791097200,
+    "n": 6431,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ZAMA_USDT"
+   },
+   "4h": {
+    "first": 1767945600,
+    "last": 1791086400,
+    "n": 1608,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ZAMA_USDT"
+   },
+   "fund_mexc": 1607
+  },
+  "ZEC": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ZEC_USDT"
+   },
+   "4h": {
+    "first": 1696060800,
+    "last": 1791086400,
+    "n": 6600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ZEC_USDT"
+   },
+   "fund_hl": 8802,
+   "fund_mexc": 1200
+  },
+  "ZK": {
+   "1h": {
+    "first": 1756537200,
+    "last": 1791097200,
+    "n": 9601,
+    "scale": 1.0,
+    "src": "gate",
+    "sym": "ZK_USDT"
+   },
+   "4h": {
+    "first": 1718611200,
+    "last": 1791086400,
+    "n": 5034,
+    "scale": 1.0,
+    "src": "gate",
+    "sym": "ZK_USDT"
+   },
+   "fund_mexc": 0
+  },
+  "ZRO": {
+   "1h": {
+    "first": 1756540800,
+    "last": 1791097200,
+    "n": 9600,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ZRO_USDT"
+   },
+   "4h": {
+    "first": 1718884800,
+    "last": 1791086400,
+    "n": 5015,
+    "scale": 1.0,
+    "src": "mexc",
+    "sym": "ZRO_USDT"
+   },
+   "fund_hl": 9600,
+   "fund_mexc": 2400
+  },
+  "\u725b\u6765": {
+   "1h": {
+    "first": 1787040000,
+    "last": 1791097200,
+    "n": 1128,
+    "scale": 1.0,
+    "src": "gate",
+    "sym": "\u725b\u6765_USDT"
+   },
+   "4h": {
+    "first": 1787040000,
+    "last": 1791086400,
+    "n": 282,
+    "scale": 1.0,
+    "src": "gate",
+    "sym": "\u725b\u6765_USDT"
+   },
+   "fund_mexc": 0
+  },
+  "\u9f99\u867e": {
+   "1h": {
+    "first": 1773136800,
+    "last": 1791097200,
+    "n": 4990,
+    "scale": 1.0,
+    "src": "gate",
+    "sym": "\u9f99\u867e_USDT"
+   },
+   "4h": {
+    "first": 1773129600,
+    "last": 1791086400,
+    "n": 1248,
+    "scale": 1.0,
+    "src": "gate",
+    "sym": "\u9f99\u867e_USDT"
+   },
+   "fund_mexc": 0
+  }
+ },
+ "errors": [
+  "AI 4h mexc: price does not match the DEX price (different asset?)"
+ ],
+ "finished": 1791101088,
+ "scanner_errors": [
+  "MEME: Aster price 0.01630 differs from the main market (0.000612); left out",
+  "PURR: Extended price 12.285 differs from the main market (0.1719); left out",
+  "US500: Lighter price 7,729.7 differs from the main market (770.94); left out",
+  "US500: Paradex price 7,729.6 differs from the main market (770.94); left out",
+  "QNT: Extended price 46.545 differs from the main market (264.70); left out",
+  "BB: Variational price 0.009611 differs from the main market (9.2756); left out",
+  "BB: Aster price 0.009560 differs from the main market (9.2756); left out",
+  "CAT: Aster price 2.196e-06 differs from the main market (850.06); left out",
+  "PRL: Aster price 0.1164 differs from the main market (1.0604); left out",
+  "PRL: Extended price 0.1162 differs from the main market (1.0604); left out",
+  "XIAOMI: Extended price 24.231 differs from the main market (3.0843); left out"
+ ],
+ "started": 1791099097
+}

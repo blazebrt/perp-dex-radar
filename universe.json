@@ -1,0 +1,5368 @@
+{
+ "time": 1791099099,
+ "min_vol": 300000,
+ "trade_dexes": [
+  "hyperliquid",
+  "lighter",
+  "aster",
+  "variational"
+ ],
+ "dex_status": {
+  "hyperliquid": {
+   "ok": true,
+   "markets": 178,
+   "crypto": 177
+  },
+  "variational": {
+   "ok": true,
+   "markets": 561,
+   "crypto": 437
+  },
+  "aster": {
+   "ok": true,
+   "markets": 590,
+   "crypto": 482
+  },
+  "edgex": {
+   "ok": true,
+   "markets": 11,
+   "crypto": 9
+  },
+  "lighter": {
+   "ok": true,
+   "markets": 211,
+   "crypto": 131
+  },
+  "dydx": {
+   "ok": true,
+   "markets": 73,
+   "crypto": 70
+  },
+  "paradex": {
+   "ok": true,
+   "markets": 63,
+   "crypto": 41
+  },
+  "extended": {
+   "ok": true,
+   "markets": 326,
+   "crypto": 193
+  }
+ },
+ "coins": [
+  {
+   "t": "BTC",
+   "name": "Bitcoin",
+   "trade_vol": 419802347.19943994,
+   "best_vol": 419802347.19943994,
+   "ref_price": 84912.0,
+   "venues": {
+    "hyperliquid": {
+     "sym": "BTC",
+     "mult": 1.0,
+     "vol": 419802347.19943994,
+     "oi": 3155660786.40096,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "BTC",
+     "mult": 1.0,
+     "vol": 334649957.714847,
+     "oi": 219273321.42579728,
+     "funding8h": 6.951963470319634e-05
+    },
+    "aster": {
+     "sym": "BTCUSDT",
+     "mult": 1.0,
+     "vol": 127307018.31,
+     "oi": null,
+     "funding8h": 6.284e-05
+    },
+    "edgex": {
+     "sym": "BTCUSD",
+     "mult": 1.0,
+     "vol": null,
+     "oi": null,
+     "funding8h": null
+    },
+    "lighter": {
+     "sym": "BTC",
+     "mult": 1.0,
+     "vol": 207126617.041103,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "BTC-USD",
+     "mult": 1.0,
+     "vol": 787081.2092,
+     "oi": 16735284.27146855,
+     "funding8h": -7.61290322580648e-06
+    },
+    "paradex": {
+     "sym": "BTC-USD-PERP",
+     "mult": 1.0,
+     "vol": 721314.9646979999,
+     "oi": 7390517.897568966,
+     "funding8h": 8.983734831e-05
+    },
+    "extended": {
+     "sym": "BTC-USD",
+     "mult": 1.0,
+     "vol": 58341952.1922,
+     "oi": 39432095.815838,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "ETH",
+   "name": "Ethereum",
+   "trade_vol": 245921936.259736,
+   "best_vol": 245921936.259736,
+   "ref_price": 2691.8,
+   "venues": {
+    "hyperliquid": {
+     "sym": "ETH",
+     "mult": 1.0,
+     "vol": 157326242.0793,
+     "oi": 3228235691.937959,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "ETH",
+     "mult": 1.0,
+     "vol": 245921936.259736,
+     "oi": 154887932.2380784,
+     "funding8h": 9.664748858447489e-05
+    },
+    "aster": {
+     "sym": "ETHUSDT",
+     "mult": 1.0,
+     "vol": 80540584.84,
+     "oi": null,
+     "funding8h": 7.571e-05
+    },
+    "edgex": {
+     "sym": "ETHUSD",
+     "mult": 1.0,
+     "vol": null,
+     "oi": null,
+     "funding8h": null
+    },
+    "lighter": {
+     "sym": "ETH",
+     "mult": 1.0,
+     "vol": 99507860.748859,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "ETH-USD",
+     "mult": 1.0,
+     "vol": 471756.2401,
+     "oi": 12158606.41978298,
+     "funding8h": -6.03225806451616e-06
+    },
+    "paradex": {
+     "sym": "ETH-USD-PERP",
+     "mult": 1.0,
+     "vol": 2966278.587585999,
+     "oi": 11173645.718656354,
+     "funding8h": 8.757258497e-05
+    },
+    "extended": {
+     "sym": "ETH-USD",
+     "mult": 1.0,
+     "vol": 9712595.7916,
+     "oi": 28156381.754151,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "ZEC",
+   "name": "Zcash",
+   "trade_vol": 169718638.23199958,
+   "best_vol": 169718638.23199958,
+   "ref_price": 1331.2,
+   "venues": {
+    "hyperliquid": {
+     "sym": "ZEC",
+     "mult": 1.0,
+     "vol": 169718638.23199958,
+     "oi": 568603283.4559997,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "ZEC",
+     "mult": 1.0,
+     "vol": 9347409.762939,
+     "oi": 36959841.2791303,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "ZECUSDT",
+     "mult": 1.0,
+     "vol": 20029257.69,
+     "oi": null,
+     "funding8h": 0.00026913
+    },
+    "edgex": {
+     "sym": "ZECUSD",
+     "mult": 1.0,
+     "vol": null,
+     "oi": null,
+     "funding8h": null
+    },
+    "lighter": {
+     "sym": "ZEC",
+     "mult": 1.0,
+     "vol": 21758977.455215998,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "ZEC-USD",
+     "mult": 1.0,
+     "vol": 23880.962,
+     "oi": 243019.07790054296,
+     "funding8h": 0.0
+    },
+    "paradex": {
+     "sym": "ZEC-USD-PERP",
+     "mult": 1.0,
+     "vol": 1727.830062,
+     "oi": 74455.38703900621,
+     "funding8h": 0.0001000111169
+    },
+    "extended": {
+     "sym": "ZEC-USD",
+     "mult": 1.0,
+     "vol": 2366095.6024,
+     "oi": 2177836.804,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "PUMP",
+   "name": "Pump.fun",
+   "trade_vol": 155768366.26043403,
+   "best_vol": 155768366.26043403,
+   "ref_price": 0.006402,
+   "venues": {
+    "hyperliquid": {
+     "sym": "PUMP",
+     "mult": 1.0,
+     "vol": 155768366.26043403,
+     "oi": 325124399.112612,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "PUMPFUN",
+     "mult": 1.0,
+     "vol": 10089256.119134,
+     "oi": 9200531.40253354,
+     "funding8h": 9.999908675799086e-05
+    },
+    "aster": {
+     "sym": "PUMPUSDT",
+     "mult": 1.0,
+     "vol": 2621148.99,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "PUMP",
+     "mult": 1.0,
+     "vol": 8441995.44234,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "PUMP-USD",
+     "mult": 1.0,
+     "vol": 5769.1344,
+     "oi": 29959.222061600998,
+     "funding8h": 0.0
+    },
+    "paradex": {
+     "sym": "PUMP-USD-PERP",
+     "mult": 1.0,
+     "vol": 112.6005386,
+     "oi": 50608.69844624,
+     "funding8h": 9.985787597e-05
+    },
+    "extended": {
+     "sym": "PUMP-USD",
+     "mult": 1.0,
+     "vol": 4015383.3464,
+     "oi": 5452702.549879,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "HYPE",
+   "name": "Hyperliquid",
+   "trade_vol": 130259949.39090014,
+   "best_vol": 130259949.39090014,
+   "ref_price": 89.732,
+   "venues": {
+    "hyperliquid": {
+     "sym": "HYPE",
+     "mult": 1.0,
+     "vol": 130259949.39090014,
+     "oi": 1826507113.8019195,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "HYPE",
+     "mult": 1.0,
+     "vol": 25115170.667895,
+     "oi": 28276488.359434273,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "HYPEUSDT",
+     "mult": 1.0,
+     "vol": 11884461.67,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "edgex": {
+     "sym": "HYPEUSD",
+     "mult": 1.0,
+     "vol": null,
+     "oi": null,
+     "funding8h": null
+    },
+    "lighter": {
+     "sym": "HYPE",
+     "mult": 1.0,
+     "vol": 15413334.362212,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "HYPE-USD",
+     "mult": 1.0,
+     "vol": 22912.9379,
+     "oi": 100240.103909299,
+     "funding8h": 0.00012838709677419352
+    },
+    "paradex": {
+     "sym": "HYPE-USD-PERP",
+     "mult": 1.0,
+     "vol": 23886.515199999998,
+     "oi": 260375.80904599998,
+     "funding8h": 9.923908346e-05
+    },
+    "extended": {
+     "sym": "HYPE-USD",
+     "mult": 1.0,
+     "vol": 18143622.6327,
+     "oi": 14873823.803844,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "SOL",
+   "name": "Solana",
+   "trade_vol": 100699984.50281,
+   "best_vol": 100699984.50281,
+   "ref_price": 120.97,
+   "venues": {
+    "hyperliquid": {
+     "sym": "SOL",
+     "mult": 1.0,
+     "vol": 52804913.61359999,
+     "oi": 662298253.799,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "SOL",
+     "mult": 1.0,
+     "vol": 100699984.50281,
+     "oi": 51772057.14427535,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "SOLUSDT",
+     "mult": 1.0,
+     "vol": 41400814.38,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "edgex": {
+     "sym": "SOLUSD",
+     "mult": 1.0,
+     "vol": null,
+     "oi": null,
+     "funding8h": null
+    },
+    "lighter": {
+     "sym": "SOL",
+     "mult": 1.0,
+     "vol": 22907709.274452,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "SOL-USD",
+     "mult": 1.0,
+     "vol": 546070.98,
+     "oi": 3489673.88257124,
+     "funding8h": 0.0
+    },
+    "paradex": {
+     "sym": "SOL-USD-PERP",
+     "mult": 1.0,
+     "vol": 24139.58916,
+     "oi": 444504.4125370188,
+     "funding8h": 9.818989845e-05
+    },
+    "extended": {
+     "sym": "SOL-USD",
+     "mult": 1.0,
+     "vol": 9607901.2736,
+     "oi": 8031341.243201,
+     "funding8h": 7.2e-05
+    }
+   }
+  },
+  {
+   "t": "NEAR",
+   "name": "NEAR Protocol",
+   "trade_vol": 76408767.84856007,
+   "best_vol": 76408767.84856007,
+   "ref_price": 4.783,
+   "venues": {
+    "hyperliquid": {
+     "sym": "NEAR",
+     "mult": 1.0,
+     "vol": 76408767.84856007,
+     "oi": 334780739.93872,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "NEAR",
+     "mult": 1.0,
+     "vol": 4842049.061447,
+     "oi": 12059849.37202393,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "NEARUSDT",
+     "mult": 1.0,
+     "vol": 1270022.64,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "lighter": {
+     "sym": "NEAR",
+     "mult": 1.0,
+     "vol": 3399968.345162,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "NEAR-USD",
+     "mult": 1.0,
+     "vol": 4366.746,
+     "oi": 100851.95045330601,
+     "funding8h": 0.0
+    },
+    "paradex": {
+     "sym": "NEAR-USD-PERP",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 35023.876206684,
+     "funding8h": 9.927393579e-05
+    },
+    "extended": {
+     "sym": "NEAR-USD",
+     "mult": 1.0,
+     "vol": 1501047.1068,
+     "oi": 3337351.446433,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "SAND",
+   "name": "The Sandbox",
+   "trade_vol": 66130823.653924055,
+   "best_vol": 66130823.653924055,
+   "ref_price": 0.07639821999999999,
+   "venues": {
+    "hyperliquid": {
+     "sym": "SAND",
+     "mult": 1.0,
+     "vol": 66130823.653924055,
+     "oi": 13029589.65154,
+     "funding8h": -0.0022074616
+    },
+    "variational": {
+     "sym": "SAND",
+     "mult": 1.0,
+     "vol": 4260478.220497,
+     "oi": 747819.1070867557,
+     "funding8h": -0.002180462100456621
+    },
+    "aster": {
+     "sym": "SANDUSDT",
+     "mult": 1.0,
+     "vol": 3500850.81,
+     "oi": null,
+     "funding8h": -0.00185155
+    },
+    "extended": {
+     "sym": "SAND-USD",
+     "mult": 1.0,
+     "vol": 1937710.75188,
+     "oi": 799957.510576,
+     "funding8h": -0.001832
+    }
+   }
+  },
+  {
+   "t": "ZRO",
+   "name": "LayerZero",
+   "trade_vol": 49728062.78385997,
+   "best_vol": 49728062.78385997,
+   "ref_price": 2.0222,
+   "venues": {
+    "hyperliquid": {
+     "sym": "ZRO",
+     "mult": 1.0,
+     "vol": 49728062.78385997,
+     "oi": 99364694.18384,
+     "funding8h": 0.0003701496
+    },
+    "variational": {
+     "sym": "ZRO",
+     "mult": 1.0,
+     "vol": 2706733.142315,
+     "oi": 4476284.9780963,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "ZROUSDT",
+     "mult": 1.0,
+     "vol": 145914.99,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "ZRO",
+     "mult": 1.0,
+     "vol": 3374367.545735,
+     "oi": null,
+     "funding8h": null
+    },
+    "extended": {
+     "sym": "ZRO-USD",
+     "mult": 1.0,
+     "vol": 1488418.9106,
+     "oi": 1403295.59246,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "WLD",
+   "name": "Worldcoin",
+   "trade_vol": 44816855.35748403,
+   "best_vol": 44816855.35748403,
+   "ref_price": 0.588036785365734,
+   "venues": {
+    "hyperliquid": {
+     "sym": "WLD",
+     "mult": 1.0,
+     "vol": 44816855.35748403,
+     "oi": 90201624.97234999,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "WLD",
+     "mult": 1.0,
+     "vol": 3717156.927325,
+     "oi": 4581697.591303912,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "WLDUSDT",
+     "mult": 1.0,
+     "vol": 1147725.27,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "lighter": {
+     "sym": "WLD",
+     "mult": 1.0,
+     "vol": 3579875.4374510003,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "WLD-USD",
+     "mult": 1.0,
+     "vol": 8851.4064,
+     "oi": 199501.866085418,
+     "funding8h": 0.0
+    },
+    "extended": {
+     "sym": "WLD-USD",
+     "mult": 1.0,
+     "vol": 728382.1188,
+     "oi": 218976.403011,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "LIT",
+   "name": "Lighter",
+   "trade_vol": 34570798.063499995,
+   "best_vol": 34570798.063499995,
+   "ref_price": 3.616602173,
+   "venues": {
+    "hyperliquid": {
+     "sym": "LIT",
+     "mult": 1.0,
+     "vol": 34570798.063499995,
+     "oi": 180403258.5222,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "LIGHTER",
+     "mult": 1.0,
+     "vol": 5167804.158565,
+     "oi": 7595938.991580885,
+     "funding8h": -8.872876712328767e-05
+    },
+    "aster": {
+     "sym": "LITUSDT",
+     "mult": 1.0,
+     "vol": 582355.31,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "LIT",
+     "mult": 1.0,
+     "vol": 14532185.116133,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "LIT-USD",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 26039.5356456,
+     "funding8h": 0.0
+    },
+    "paradex": {
+     "sym": "LIT-USD-PERP",
+     "mult": 1.0,
+     "vol": 185.5,
+     "oi": 16120.8449658,
+     "funding8h": 7.937341252e-05
+    },
+    "extended": {
+     "sym": "LIT-USD",
+     "mult": 1.0,
+     "vol": 1564063.5678,
+     "oi": 2947108.060546,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "XRP",
+   "name": "XRP",
+   "trade_vol": 24941883.1866,
+   "best_vol": 24941883.1866,
+   "ref_price": 1.493221,
+   "venues": {
+    "hyperliquid": {
+     "sym": "XRP",
+     "mult": 1.0,
+     "vol": 24941883.1866,
+     "oi": 294860819.8872,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "XRP",
+     "mult": 1.0,
+     "vol": 3157651.888621,
+     "oi": 6467410.985527521,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "XRPUSDT",
+     "mult": 1.0,
+     "vol": 11118919.49,
+     "oi": null,
+     "funding8h": 7.692e-05
+    },
+    "lighter": {
+     "sym": "XRP",
+     "mult": 1.0,
+     "vol": 2888851.995907,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "XRP-USD",
+     "mult": 1.0,
+     "vol": 54514.95,
+     "oi": 888354.48896208,
+     "funding8h": -0.0001572258064516129
+    },
+    "paradex": {
+     "sym": "XRP-USD-PERP",
+     "mult": 1.0,
+     "vol": 22456.13489,
+     "oi": 29322.443684100002,
+     "funding8h": 9.24074103e-05
+    },
+    "extended": {
+     "sym": "XRP-USD",
+     "mult": 1.0,
+     "vol": 5471591.05,
+     "oi": 2446513.043389,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "SUI",
+   "name": "Sui",
+   "trade_vol": 20215384.363750003,
+   "best_vol": 20215384.363750003,
+   "ref_price": 1.1751,
+   "venues": {
+    "hyperliquid": {
+     "sym": "SUI",
+     "mult": 1.0,
+     "vol": 20215384.363750003,
+     "oi": 93641997.09409998,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "SUI",
+     "mult": 1.0,
+     "vol": 464082.712823,
+     "oi": 2080993.6922361157,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "SUIUSDT",
+     "mult": 1.0,
+     "vol": 1037490.57,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "lighter": {
+     "sym": "SUI",
+     "mult": 1.0,
+     "vol": 409590.908391,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "SUI-USD",
+     "mult": 1.0,
+     "vol": 4429.304,
+     "oi": 104717.66822847001,
+     "funding8h": 0.0
+    },
+    "paradex": {
+     "sym": "SUI-USD-PERP",
+     "mult": 1.0,
+     "vol": 598.2946,
+     "oi": 8071.15184974,
+     "funding8h": 9.980567921e-05
+    },
+    "extended": {
+     "sym": "SUI-USD",
+     "mult": 1.0,
+     "vol": 675237.192,
+     "oi": 1290589.444211,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "ENA",
+   "name": "Ethena",
+   "trade_vol": 19263864.389429994,
+   "best_vol": 19263864.389429994,
+   "ref_price": 0.2377,
+   "venues": {
+    "hyperliquid": {
+     "sym": "ENA",
+     "mult": 1.0,
+     "vol": 19263864.389429994,
+     "oi": 148647636.9009,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "ENA",
+     "mult": 1.0,
+     "vol": 2309702.096744,
+     "oi": 6706721.311362308,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "ENAUSDT",
+     "mult": 1.0,
+     "vol": 260062.4,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "ENA",
+     "mult": 1.0,
+     "vol": 1438931.93868,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "ENA-USD",
+     "mult": 1.0,
+     "vol": 19738.0235,
+     "oi": 172763.09538855,
+     "funding8h": 0.00034483870967741935
+    },
+    "paradex": {
+     "sym": "ENA-USD-PERP",
+     "mult": 1.0,
+     "vol": 34.0918,
+     "oi": 50701.29902376,
+     "funding8h": 9.902802537e-05
+    },
+    "extended": {
+     "sym": "ENA-USD",
+     "mult": 1.0,
+     "vol": 1456172.4046,
+     "oi": 1214415.352114,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "UNI",
+   "name": "Uniswap",
+   "trade_vol": 18516581.84335999,
+   "best_vol": 18516581.84335999,
+   "ref_price": 9.0157,
+   "venues": {
+    "hyperliquid": {
+     "sym": "UNI",
+     "mult": 1.0,
+     "vol": 18516581.84335999,
+     "oi": 89235685.61700003,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "UNI",
+     "mult": 1.0,
+     "vol": 2237321.211194,
+     "oi": 4183715.1127771605,
+     "funding8h": -5.189680365296804e-05
+    },
+    "aster": {
+     "sym": "UNIUSDT",
+     "mult": 1.0,
+     "vol": 1138531.25,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "edgex": {
+     "sym": "UNIUSD",
+     "mult": 1.0,
+     "vol": null,
+     "oi": null,
+     "funding8h": null
+    },
+    "lighter": {
+     "sym": "UNI",
+     "mult": 1.0,
+     "vol": 1505988.563868,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "UNI-USD",
+     "mult": 1.0,
+     "vol": 14270.3943,
+     "oi": 79711.67383137,
+     "funding8h": 0.0
+    },
+    "paradex": {
+     "sym": "UNI-USD-PERP",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 32151.306959016005,
+     "funding8h": 9.995115487e-05
+    },
+    "extended": {
+     "sym": "UNI-USD",
+     "mult": 1.0,
+     "vol": 2567965.73828,
+     "oi": 352016.079342,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "ASTER",
+   "name": "Aster",
+   "trade_vol": 17221721.16,
+   "best_vol": 17221721.16,
+   "ref_price": 0.714341949275,
+   "venues": {
+    "hyperliquid": {
+     "sym": "ASTER",
+     "mult": 1.0,
+     "vol": 4331214.469580001,
+     "oi": 27082484.85696,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "ASTER",
+     "mult": 1.0,
+     "vol": 106777.50835,
+     "oi": 2541337.368183341,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "ASTERUSDT",
+     "mult": 1.0,
+     "vol": 17221721.16,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "ASTER",
+     "mult": 1.0,
+     "vol": 96767.649248,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "ASTER-USD",
+     "mult": 1.0,
+     "vol": 13655.5365,
+     "oi": 8956.80131801,
+     "funding8h": 0.0
+    },
+    "extended": {
+     "sym": "ASTER-USD",
+     "mult": 1.0,
+     "vol": 33373.1002,
+     "oi": 386963.178891,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "PONS",
+   "name": "Pons",
+   "trade_vol": 15816873.651270006,
+   "best_vol": 15816873.651270006,
+   "ref_price": 0.42217,
+   "venues": {
+    "hyperliquid": {
+     "sym": "PONS",
+     "mult": 1.0,
+     "vol": 15816873.651270006,
+     "oi": 50972281.46486,
+     "funding8h": 0.0008793584
+    },
+    "variational": {
+     "sym": "PONS",
+     "mult": 1.0,
+     "vol": 1177706.465225,
+     "oi": 1823265.0708675587,
+     "funding8h": 0.00020632237442922376
+    },
+    "aster": {
+     "sym": "PONSUSDT",
+     "mult": 1.0,
+     "vol": 861132.72,
+     "oi": null,
+     "funding8h": 0.00021478
+    },
+    "lighter": {
+     "sym": "PONS",
+     "mult": 1.0,
+     "vol": 1527061.778455,
+     "oi": null,
+     "funding8h": null
+    },
+    "extended": {
+     "sym": "PONS-USD",
+     "mult": 1.0,
+     "vol": 99124.2924,
+     "oi": 95730.194284,
+     "funding8h": 0.000504
+    }
+   }
+  },
+  {
+   "t": "BNB",
+   "name": "BNB",
+   "trade_vol": 15565447.933337,
+   "best_vol": 15565447.933337,
+   "ref_price": 787.8212178,
+   "venues": {
+    "hyperliquid": {
+     "sym": "BNB",
+     "mult": 1.0,
+     "vol": 8130610.740240004,
+     "oi": 49013128.64616,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "BNB",
+     "mult": 1.0,
+     "vol": 15565447.933337,
+     "oi": 6312468.696286587,
+     "funding8h": 9.025662100456621e-05
+    },
+    "aster": {
+     "sym": "BNBUSDT",
+     "mult": 1.0,
+     "vol": 9177170.28,
+     "oi": null,
+     "funding8h": 3.47e-05
+    },
+    "edgex": {
+     "sym": "BNBUSD",
+     "mult": 1.0,
+     "vol": null,
+     "oi": null,
+     "funding8h": null
+    },
+    "lighter": {
+     "sym": "BNB",
+     "mult": 1.0,
+     "vol": 2422086.294075,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "BNB-USD",
+     "mult": 1.0,
+     "vol": 46349.8756,
+     "oi": 148717.011284106,
+     "funding8h": 0.0006411290322580644
+    },
+    "paradex": {
+     "sym": "BNB-USD-PERP",
+     "mult": 1.0,
+     "vol": 3443657.2177400016,
+     "oi": 54367.67396672342,
+     "funding8h": 9.999998702e-05
+    },
+    "extended": {
+     "sym": "BNB-USD",
+     "mult": 1.0,
+     "vol": 15107230.7136,
+     "oi": 2364774.782311,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "ONDO",
+   "name": "Ondo",
+   "trade_vol": 15417419.0097,
+   "best_vol": 15417419.0097,
+   "ref_price": 0.4941,
+   "venues": {
+    "hyperliquid": {
+     "sym": "ONDO",
+     "mult": 1.0,
+     "vol": 15417419.0097,
+     "oi": 59318145.7176,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "ONDO",
+     "mult": 1.0,
+     "vol": 1178836.43862,
+     "oi": 1849678.3720709325,
+     "funding8h": -3.778721461187214e-05
+    },
+    "aster": {
+     "sym": "ONDOUSDT",
+     "mult": 1.0,
+     "vol": 437387.91,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "ONDO",
+     "mult": 1.0,
+     "vol": 399974.41756,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "ONDO-USD",
+     "mult": 1.0,
+     "vol": 2641.8182,
+     "oi": 278073.571055605,
+     "funding8h": 0.0028737741935483873
+    },
+    "paradex": {
+     "sym": "ONDO-USD-PERP",
+     "mult": 1.0,
+     "vol": 1714.18471,
+     "oi": 19881.535542288002,
+     "funding8h": 9.854240742e-05
+    },
+    "extended": {
+     "sym": "ONDO-USD",
+     "mult": 1.0,
+     "vol": 157620.5808,
+     "oi": 301597.472144,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "STRK",
+   "name": "Starknet",
+   "trade_vol": 14180034.343403008,
+   "best_vol": 14180034.343403008,
+   "ref_price": 0.0538743431939646,
+   "venues": {
+    "hyperliquid": {
+     "sym": "STRK",
+     "mult": 1.0,
+     "vol": 14180034.343403008,
+     "oi": 11536196.93842,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "STRK",
+     "mult": 1.0,
+     "vol": 3366145.383281,
+     "oi": 1538359.0406527314,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "STRKUSDT",
+     "mult": 1.0,
+     "vol": 542654.27,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "STRK",
+     "mult": 1.0,
+     "vol": 468738.39327099995,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "STRK-USD",
+     "mult": 1.0,
+     "vol": 4965.63961,
+     "oi": 24938.855687493,
+     "funding8h": 0.0
+    },
+    "paradex": {
+     "sym": "STRK-USD-PERP",
+     "mult": 1.0,
+     "vol": 6870.063179999999,
+     "oi": 19531.66164708,
+     "funding8h": 9.498036807e-05
+    },
+    "extended": {
+     "sym": "STRK-USD",
+     "mult": 1.0,
+     "vol": 217091.9514,
+     "oi": 207597.871835,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "MOONSHOT",
+   "name": null,
+   "trade_vol": 12059845.7,
+   "best_vol": 12059845.7,
+   "ref_price": 67.76,
+   "venues": {
+    "aster": {
+     "sym": "MOONSHOTUSD1",
+     "mult": 1.0,
+     "vol": 12059845.7,
+     "oi": null,
+     "funding8h": -0.00023514
+    }
+   }
+  },
+  {
+   "t": "MON",
+   "name": "Monad",
+   "trade_vol": 11312823.130633991,
+   "best_vol": 11312823.130633991,
+   "ref_price": 0.03446138155493673,
+   "venues": {
+    "hyperliquid": {
+     "sym": "MON",
+     "mult": 1.0,
+     "vol": 11312823.130633991,
+     "oi": 66217531.50830399,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "MON",
+     "mult": 1.0,
+     "vol": 593934.25085,
+     "oi": 2579304.1084286147,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "MONUSDT",
+     "mult": 1.0,
+     "vol": 95814.13,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "MON",
+     "mult": 1.0,
+     "vol": 536895.6153909999,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "MON-USD",
+     "mult": 1.0,
+     "vol": 15.4505,
+     "oi": 17203.2264,
+     "funding8h": 0.0001
+    },
+    "paradex": {
+     "sym": "MON-USD-PERP",
+     "mult": 1.0,
+     "vol": 50.342467,
+     "oi": 10454.19291252,
+     "funding8h": 0.00010000104425
+    },
+    "extended": {
+     "sym": "MON-USD",
+     "mult": 1.0,
+     "vol": 109979.993,
+     "oi": 161104.395288,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "ARB",
+   "name": "Arbitrum",
+   "trade_vol": 10641411.790082997,
+   "best_vol": 10641411.790082997,
+   "ref_price": 0.20091791450000002,
+   "venues": {
+    "hyperliquid": {
+     "sym": "ARB",
+     "mult": 1.0,
+     "vol": 10641411.790082997,
+     "oi": 23964807.402592,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "ARB",
+     "mult": 1.0,
+     "vol": 200346.684585,
+     "oi": 885900.4453032434,
+     "funding8h": 1.4136986301369862e-06
+    },
+    "aster": {
+     "sym": "ARBUSDT",
+     "mult": 1.0,
+     "vol": 407232.58,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "lighter": {
+     "sym": "ARB",
+     "mult": 1.0,
+     "vol": 698587.991655,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "ARB-USD",
+     "mult": 1.0,
+     "vol": 253.56588,
+     "oi": 51573.056832954004,
+     "funding8h": 0.0
+    },
+    "extended": {
+     "sym": "ARB-USD",
+     "mult": 1.0,
+     "vol": 16063.228,
+     "oi": 246262.661791,
+     "funding8h": -2.4e-05
+    }
+   }
+  },
+  {
+   "t": "AAVE",
+   "name": "Aave",
+   "trade_vol": 10474461.1674,
+   "best_vol": 10474461.1674,
+   "ref_price": 182.493,
+   "venues": {
+    "hyperliquid": {
+     "sym": "AAVE",
+     "mult": 1.0,
+     "vol": 10474461.1674,
+     "oi": 86708801.86465201,
+     "funding8h": 3.36696e-05
+    },
+    "variational": {
+     "sym": "AAVE",
+     "mult": 1.0,
+     "vol": 1365910.380167,
+     "oi": 5010131.32562881,
+     "funding8h": 6.9579908675799085e-06
+    },
+    "aster": {
+     "sym": "AAVEUSDT",
+     "mult": 1.0,
+     "vol": 411710.09,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "lighter": {
+     "sym": "AAVE",
+     "mult": 1.0,
+     "vol": 581670.822738,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "AAVE-USD",
+     "mult": 1.0,
+     "vol": 309.979,
+     "oi": 116039.53053121,
+     "funding8h": 0.0
+    },
+    "paradex": {
+     "sym": "AAVE-USD-PERP",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 15384.2284854946,
+     "funding8h": 3.43574767e-05
+    },
+    "extended": {
+     "sym": "AAVE-USD",
+     "mult": 1.0,
+     "vol": 2254244.101,
+     "oi": 1220159.790673,
+     "funding8h": -8.8e-05
+    }
+   }
+  },
+  {
+   "t": "XMR",
+   "name": "Monero",
+   "trade_vol": 9956576.77554,
+   "best_vol": 9956576.77554,
+   "ref_price": 551.72,
+   "venues": {
+    "hyperliquid": {
+     "sym": "XMR",
+     "mult": 1.0,
+     "vol": 9956576.77554,
+     "oi": 74051031.88536,
+     "funding8h": 0.0004546248
+    },
+    "variational": {
+     "sym": "XMR",
+     "mult": 1.0,
+     "vol": 509894.259923,
+     "oi": 4550039.881509437,
+     "funding8h": 0.00027680182648401824
+    },
+    "aster": {
+     "sym": "XMRUSDT",
+     "mult": 1.0,
+     "vol": 249100.04,
+     "oi": null,
+     "funding8h": 0.00013574
+    },
+    "lighter": {
+     "sym": "XMR",
+     "mult": 1.0,
+     "vol": 717033.365789,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "XMR-USD",
+     "mult": 1.0,
+     "vol": 3394.5868,
+     "oi": 122739.08441843999,
+     "funding8h": 0.0007651290322580645
+    },
+    "paradex": {
+     "sym": "XMR-USD-PERP",
+     "mult": 1.0,
+     "vol": 822.165,
+     "oi": 8497.8401086123,
+     "funding8h": 0.00035180145364
+    },
+    "extended": {
+     "sym": "XMR-USD",
+     "mult": 1.0,
+     "vol": 1017848.162,
+     "oi": 2529266.749429,
+     "funding8h": 0.000416
+    }
+   }
+  },
+  {
+   "t": "AIN",
+   "name": null,
+   "trade_vol": 9552951.45,
+   "best_vol": 9552951.45,
+   "ref_price": 0.05396,
+   "venues": {
+    "aster": {
+     "sym": "AINUSDT",
+     "mult": 1.0,
+     "vol": 9552951.45,
+     "oi": null,
+     "funding8h": 0.00210535
+    }
+   }
+  },
+  {
+   "t": "AVAX",
+   "name": "Avalanche",
+   "trade_vol": 9514977.00343,
+   "best_vol": 9514977.00343,
+   "ref_price": 10.982,
+   "venues": {
+    "hyperliquid": {
+     "sym": "AVAX",
+     "mult": 1.0,
+     "vol": 9514977.00343,
+     "oi": 41554423.818900004,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "AVAX",
+     "mult": 1.0,
+     "vol": 703704.112724,
+     "oi": 2706085.9670874556,
+     "funding8h": 2.2877625570776256e-05
+    },
+    "aster": {
+     "sym": "AVAXUSDT",
+     "mult": 1.0,
+     "vol": 98943.52,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "lighter": {
+     "sym": "AVAX",
+     "mult": 1.0,
+     "vol": 329290.818013,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "AVAX-USD",
+     "mult": 1.0,
+     "vol": 809.1327,
+     "oi": 88733.116524571,
+     "funding8h": 0.0
+    },
+    "paradex": {
+     "sym": "AVAX-USD-PERP",
+     "mult": 1.0,
+     "vol": 7850.184929999999,
+     "oi": 22304.2434499008,
+     "funding8h": 8.362574679e-05
+    },
+    "extended": {
+     "sym": "AVAX-USD",
+     "mult": 1.0,
+     "vol": 262319.5804,
+     "oi": 483655.526257,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "TAO",
+   "name": "Bittensor",
+   "trade_vol": 9481167.696210006,
+   "best_vol": 9481167.696210006,
+   "ref_price": 303.94,
+   "venues": {
+    "hyperliquid": {
+     "sym": "TAO",
+     "mult": 1.0,
+     "vol": 9481167.696210006,
+     "oi": 72503290.839,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "TAO",
+     "mult": 1.0,
+     "vol": 916282.317286,
+     "oi": 3288205.320989296,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "TAOUSDT",
+     "mult": 1.0,
+     "vol": 372059.07,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "TAO",
+     "mult": 1.0,
+     "vol": 432624.09882,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "TAO-USD",
+     "mult": 1.0,
+     "vol": 5589.1686,
+     "oi": 87081.21186744001,
+     "funding8h": 0.0003512258064516129
+    },
+    "paradex": {
+     "sym": "TAO-USD-PERP",
+     "mult": 1.0,
+     "vol": 36.58,
+     "oi": 13533.5310044766,
+     "funding8h": 9.9999593e-05
+    },
+    "extended": {
+     "sym": "TAO-USD",
+     "mult": 1.0,
+     "vol": 166052.6722,
+     "oi": 796613.979294,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "XPL",
+   "name": "Plasma",
+   "trade_vol": 9121276.714385,
+   "best_vol": 9121276.714385,
+   "ref_price": 0.09559000000000001,
+   "venues": {
+    "hyperliquid": {
+     "sym": "XPL",
+     "mult": 1.0,
+     "vol": 9121276.714385,
+     "oi": 93763081.872072,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "XPL",
+     "mult": 1.0,
+     "vol": 1527828.950392,
+     "oi": 3635612.005880384,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "XPLUSDT",
+     "mult": 1.0,
+     "vol": 132820.6,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "XPL",
+     "mult": 1.0,
+     "vol": 1054823.446093,
+     "oi": null,
+     "funding8h": null
+    },
+    "paradex": {
+     "sym": "XPL-USD-PERP",
+     "mult": 1.0,
+     "vol": 114.03099999999999,
+     "oi": 18528.02472572,
+     "funding8h": 9.660838873e-05
+    },
+    "extended": {
+     "sym": "XPL-USD",
+     "mult": 1.0,
+     "vol": 924573.1458,
+     "oi": 567505.127217,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "DOGE",
+   "name": "Dogecoin",
+   "trade_vol": 7307209.063789003,
+   "best_vol": 7307209.063789003,
+   "ref_price": 0.09299,
+   "venues": {
+    "hyperliquid": {
+     "sym": "DOGE",
+     "mult": 1.0,
+     "vol": 7307209.063789003,
+     "oi": 99147667.05606,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "DOGE",
+     "mult": 1.0,
+     "vol": 426141.67843,
+     "oi": 1855477.5787352338,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "DOGEUSDT",
+     "mult": 1.0,
+     "vol": 5224402.53,
+     "oi": null,
+     "funding8h": -2.501e-05
+    },
+    "lighter": {
+     "sym": "DOGE",
+     "mult": 1.0,
+     "vol": 153696.222856,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "DOGE-USD",
+     "mult": 1.0,
+     "vol": 7328.744,
+     "oi": 204418.032195996,
+     "funding8h": 4.74193548387096e-06
+    },
+    "paradex": {
+     "sym": "DOGE-USD-PERP",
+     "mult": 1.0,
+     "vol": 301.87449000000004,
+     "oi": 12962.22241986,
+     "funding8h": 9.807779498e-05
+    },
+    "extended": {
+     "sym": "DOGE-USD",
+     "mult": 1.0,
+     "vol": 717870.9856,
+     "oi": 412545.34728,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "LTC",
+   "name": "Litecoin",
+   "trade_vol": 6549532.88491,
+   "best_vol": 6549532.88491,
+   "ref_price": 70.41225465,
+   "venues": {
+    "hyperliquid": {
+     "sym": "LTC",
+     "mult": 1.0,
+     "vol": 6549532.88491,
+     "oi": 48455377.03024,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "LTC",
+     "mult": 1.0,
+     "vol": 1022106.230321,
+     "oi": 5634188.163544829,
+     "funding8h": 1.4326940639269407e-05
+    },
+    "aster": {
+     "sym": "LTCUSDT",
+     "mult": 1.0,
+     "vol": 219232.58,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "lighter": {
+     "sym": "LTC",
+     "mult": 1.0,
+     "vol": 220896.397053,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "LTC-USD",
+     "mult": 1.0,
+     "vol": 7079.312,
+     "oi": 476261.44922713493,
+     "funding8h": 0.000353
+    },
+    "paradex": {
+     "sym": "LTC-USD-PERP",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 15101.190307604698,
+     "funding8h": 9.991365538e-05
+    },
+    "extended": {
+     "sym": "LTC-USD",
+     "mult": 1.0,
+     "vol": 87934.092,
+     "oi": 995913.847297,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "CRV",
+   "name": "Curve DAO",
+   "trade_vol": 6462068.4236779995,
+   "best_vol": 6462068.4236779995,
+   "ref_price": 0.3741700645378365,
+   "venues": {
+    "hyperliquid": {
+     "sym": "CRV",
+     "mult": 1.0,
+     "vol": 6462068.4236779995,
+     "oi": 26489339.293092,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "CRV",
+     "mult": 1.0,
+     "vol": 195239.561514,
+     "oi": 1539141.9576444475,
+     "funding8h": -3.0284018264840185e-05
+    },
+    "aster": {
+     "sym": "CRVUSDT",
+     "mult": 1.0,
+     "vol": 74949.35,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "lighter": {
+     "sym": "CRV",
+     "mult": 1.0,
+     "vol": 53759.425962,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "CRV-USD",
+     "mult": 1.0,
+     "vol": 3647.475,
+     "oi": 47409.680254463994,
+     "funding8h": 0.0
+    },
+    "extended": {
+     "sym": "CRV-USD",
+     "mult": 1.0,
+     "vol": 49958.05652,
+     "oi": 257073.709066,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "LINK",
+   "name": "Chainlink",
+   "trade_vol": 6119644.933200004,
+   "best_vol": 6119644.933200004,
+   "ref_price": 13.97751,
+   "venues": {
+    "hyperliquid": {
+     "sym": "LINK",
+     "mult": 1.0,
+     "vol": 6119644.933200004,
+     "oi": 83685515.1616,
+     "funding8h": 7.012e-05
+    },
+    "variational": {
+     "sym": "LINK",
+     "mult": 1.0,
+     "vol": 483224.97469,
+     "oi": 2324267.7626649197,
+     "funding8h": -1.8470319634703197e-05
+    },
+    "aster": {
+     "sym": "LINKUSDT",
+     "mult": 1.0,
+     "vol": 386094.81,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "lighter": {
+     "sym": "LINK",
+     "mult": 1.0,
+     "vol": 726852.551284,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "LINK-USD",
+     "mult": 1.0,
+     "vol": 26040.683,
+     "oi": 379556.226800007,
+     "funding8h": 0.0
+    },
+    "paradex": {
+     "sym": "LINK-USD-PERP",
+     "mult": 1.0,
+     "vol": 116.35739999999998,
+     "oi": 27678.2130486318,
+     "funding8h": 7.28711036e-05
+    },
+    "extended": {
+     "sym": "LINK-USD",
+     "mult": 1.0,
+     "vol": 424387.838,
+     "oi": 624824.966507,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "FARTCOIN",
+   "name": "Fartcoin",
+   "trade_vol": 6069737.973247996,
+   "best_vol": 6069737.973247996,
+   "ref_price": 0.17941,
+   "venues": {
+    "hyperliquid": {
+     "sym": "FARTCOIN",
+     "mult": 1.0,
+     "vol": 6069737.973247996,
+     "oi": 37152996.58172,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "FARTCOIN",
+     "mult": 1.0,
+     "vol": 144227.82464,
+     "oi": 813414.891468396,
+     "funding8h": 0.00012398995433789955
+    },
+    "aster": {
+     "sym": "FARTCOINUSDT",
+     "mult": 1.0,
+     "vol": 15644.53,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "FARTCOIN",
+     "mult": 1.0,
+     "vol": 1684312.913028,
+     "oi": null,
+     "funding8h": null
+    },
+    "extended": {
+     "sym": "FARTCOIN-USD",
+     "mult": 1.0,
+     "vol": 65911.27524,
+     "oi": 199694.718078,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "AERO",
+   "name": "Aerodrome Finance",
+   "trade_vol": 5154003.437970001,
+   "best_vol": 5154003.437970001,
+   "ref_price": 0.84245,
+   "venues": {
+    "hyperliquid": {
+     "sym": "AERO",
+     "mult": 1.0,
+     "vol": 5154003.437970001,
+     "oi": 34548782.85144,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "AERO",
+     "mult": 1.0,
+     "vol": 572572.84985,
+     "oi": 2595820.4679408656,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "AEROUSDT",
+     "mult": 1.0,
+     "vol": 112307.04,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "AERO",
+     "mult": 1.0,
+     "vol": 681146.924801,
+     "oi": null,
+     "funding8h": null
+    },
+    "extended": {
+     "sym": "AERO-USD",
+     "mult": 1.0,
+     "vol": 89985.48154,
+     "oi": 312248.963932,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "\u9f99\u867e",
+   "name": null,
+   "trade_vol": 4738632.99,
+   "best_vol": 4738632.99,
+   "ref_price": 0.0452,
+   "venues": {
+    "aster": {
+     "sym": "\u9f99\u867eUSDT",
+     "mult": 1.0,
+     "vol": 4738632.99,
+     "oi": null,
+     "funding8h": 0.00048631
+    }
+   }
+  },
+  {
+   "t": "USELESS",
+   "name": "Useless Coin",
+   "trade_vol": 4677611.7186,
+   "best_vol": 4677611.7186,
+   "ref_price": 0.240991,
+   "venues": {
+    "hyperliquid": {
+     "sym": "USELESS",
+     "mult": 1.0,
+     "vol": 4677611.7186,
+     "oi": 11878160.092692,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "USELESS",
+     "mult": 1.0,
+     "vol": 938562.156231,
+     "oi": 1260829.0518795524,
+     "funding8h": 0.0002363917808219178
+    },
+    "aster": {
+     "sym": "USELESSUSDT",
+     "mult": 1.0,
+     "vol": 158475.31,
+     "oi": null,
+     "funding8h": 8.657e-05
+    },
+    "lighter": {
+     "sym": "USELESS",
+     "mult": 1.0,
+     "vol": 249685.034392,
+     "oi": null,
+     "funding8h": null
+    },
+    "extended": {
+     "sym": "USELESS-USD",
+     "mult": 1.0,
+     "vol": 10238.76896,
+     "oi": 174877.504474,
+     "funding8h": 0.000176
+    }
+   }
+  },
+  {
+   "t": "VVV",
+   "name": "Venice Token",
+   "trade_vol": 3996746.998900002,
+   "best_vol": 3996746.998900002,
+   "ref_price": 27.778934474999502,
+   "venues": {
+    "hyperliquid": {
+     "sym": "VVV",
+     "mult": 1.0,
+     "vol": 3996746.998900002,
+     "oi": 65867564.21606399,
+     "funding8h": 0.0001331048
+    },
+    "variational": {
+     "sym": "VVV",
+     "mult": 1.0,
+     "vol": 115446.679243,
+     "oi": 1985097.806119958,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "VVVUSDT",
+     "mult": 1.0,
+     "vol": 56459.39,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "VVV",
+     "mult": 1.0,
+     "vol": 1826727.387435,
+     "oi": null,
+     "funding8h": null
+    },
+    "paradex": {
+     "sym": "VVV-USD-PERP",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 4271.0309092154,
+     "funding8h": 0.00014015566661
+    },
+    "extended": {
+     "sym": "VVV-USD",
+     "mult": 1.0,
+     "vol": 95422.21106,
+     "oi": 289083.597516,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "PEPE",
+   "name": "Pepe",
+   "trade_vol": 3987020.3336889995,
+   "best_vol": 3987020.3336889995,
+   "ref_price": 4.2815290318e-06,
+   "venues": {
+    "hyperliquid": {
+     "sym": "kPEPE",
+     "mult": 1000.0,
+     "vol": 3987020.3336889995,
+     "oi": 31270877.169324,
+     "funding8h": -5.1464e-05
+    },
+    "variational": {
+     "sym": "1000PEPE",
+     "mult": 1000.0,
+     "vol": 363897.081017,
+     "oi": 598086.7214413487,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "1000PEPEUSDT",
+     "mult": 1000.0,
+     "vol": 655704.36,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "lighter": {
+     "sym": "1000PEPE",
+     "mult": 1000.0,
+     "vol": 172071.222261,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "PEPE-USD",
+     "mult": 1.0,
+     "vol": 1072.357,
+     "oi": 17126.1161272,
+     "funding8h": 0.0
+    },
+    "paradex": {
+     "sym": "kPEPE-USD-PERP",
+     "mult": 1000.0,
+     "vol": 0.0,
+     "oi": 4805.823713600001,
+     "funding8h": -2.87183197e-06
+    },
+    "extended": {
+     "sym": "1000PEPE-USD",
+     "mult": 1000.0,
+     "vol": 36715.3104,
+     "oi": 143692.13496,
+     "funding8h": -8.8e-05
+    }
+   }
+  },
+  {
+   "t": "GRASS",
+   "name": "Grass",
+   "trade_vol": 3942239.830014,
+   "best_vol": 3942239.830014,
+   "ref_price": 0.74869,
+   "venues": {
+    "hyperliquid": {
+     "sym": "GRASS",
+     "mult": 1.0,
+     "vol": 3942239.830014,
+     "oi": 39139880.30711,
+     "funding8h": 0.0002074184
+    },
+    "variational": {
+     "sym": "GRASS",
+     "mult": 1.0,
+     "vol": 44888.70292,
+     "oi": 3063926.9594932534,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "GRASSUSDT",
+     "mult": 1.0,
+     "vol": 181852.17,
+     "oi": null,
+     "funding8h": 0.00027779
+    },
+    "lighter": {
+     "sym": "GRASS",
+     "mult": 1.0,
+     "vol": 72833.446333,
+     "oi": null,
+     "funding8h": null
+    },
+    "extended": {
+     "sym": "GRASS-USD",
+     "mult": 1.0,
+     "vol": 27036.956,
+     "oi": 261972.167709,
+     "funding8h": 0.000368
+    }
+   }
+  },
+  {
+   "t": "CASHCAT",
+   "name": "Cash Cat",
+   "trade_vol": 3269690.587999998,
+   "best_vol": 3269690.587999998,
+   "ref_price": 0.166189610929,
+   "venues": {
+    "hyperliquid": {
+     "sym": "CASHCAT",
+     "mult": 1.0,
+     "vol": 3269690.587999998,
+     "oi": 37275929.998799995,
+     "funding8h": 0.0002523472
+    },
+    "variational": {
+     "sym": "CASHCAT",
+     "mult": 1.0,
+     "vol": 177712.229509,
+     "oi": 1031638.5119302474,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "CASHCATUSDT",
+     "mult": 1.0,
+     "vol": 302893.44,
+     "oi": null,
+     "funding8h": 0.00013027
+    },
+    "lighter": {
+     "sym": "CASHCAT",
+     "mult": 1.0,
+     "vol": 532680.974706,
+     "oi": null,
+     "funding8h": null
+    },
+    "extended": {
+     "sym": "CASHCAT-USD",
+     "mult": 1.0,
+     "vol": 154217.608,
+     "oi": 425051.255715,
+     "funding8h": 0.000936
+    }
+   }
+  },
+  {
+   "t": "ADA",
+   "name": "Cardano",
+   "trade_vol": 3243920.0608599987,
+   "best_vol": 3243920.0608599987,
+   "ref_price": 0.2446,
+   "venues": {
+    "hyperliquid": {
+     "sym": "ADA",
+     "mult": 1.0,
+     "vol": 3243920.0608599987,
+     "oi": 39177921.5048,
+     "funding8h": -0.0002449632
+    },
+    "variational": {
+     "sym": "ADA",
+     "mult": 1.0,
+     "vol": 155091.87447,
+     "oi": 2793664.8745181756,
+     "funding8h": 6.179543378995434e-05
+    },
+    "aster": {
+     "sym": "ADAUSDT",
+     "mult": 1.0,
+     "vol": 621624.0,
+     "oi": null,
+     "funding8h": 2.141e-05
+    },
+    "lighter": {
+     "sym": "ADA",
+     "mult": 1.0,
+     "vol": 148325.510864,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "ADA-USD",
+     "mult": 1.0,
+     "vol": 4824.975,
+     "oi": 206499.00605623098,
+     "funding8h": 3.06451612903224e-06
+    },
+    "paradex": {
+     "sym": "ADA-USD-PERP",
+     "mult": 1.0,
+     "vol": 171.14,
+     "oi": 18870.052957120002,
+     "funding8h": -7.511257447e-05
+    },
+    "extended": {
+     "sym": "ADA-USD",
+     "mult": 1.0,
+     "vol": 234717.3362,
+     "oi": 767666.247542,
+     "funding8h": 6.4e-05
+    }
+   }
+  },
+  {
+   "t": "GRAM",
+   "name": "Gram",
+   "trade_vol": 2919829.3253000006,
+   "best_vol": 2919829.3253000006,
+   "ref_price": 1.529,
+   "venues": {
+    "hyperliquid": {
+     "sym": "GRAM",
+     "mult": 1.0,
+     "vol": 2919829.3253000006,
+     "oi": 45313881.5268,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "GRAMUSDT",
+     "mult": 1.0,
+     "vol": 56081.11,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "GRAM",
+     "mult": 1.0,
+     "vol": 758851.147706,
+     "oi": null,
+     "funding8h": null
+    },
+    "paradex": {
+     "sym": "GRAM-USD-PERP",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 1922.10727018,
+     "funding8h": 9.999505052e-05
+    },
+    "extended": {
+     "sym": "GRAM-USD",
+     "mult": 1.0,
+     "vol": 333.9244,
+     "oi": 831808.762229,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "TRUMP",
+   "name": "Official Trump",
+   "trade_vol": 2813718.440409999,
+   "best_vol": 2813718.440409999,
+   "ref_price": 2.0431,
+   "venues": {
+    "hyperliquid": {
+     "sym": "TRUMP",
+     "mult": 1.0,
+     "vol": 2813718.440409999,
+     "oi": 11816738.35438,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "TRUMP",
+     "mult": 1.0,
+     "vol": 122667.454297,
+     "oi": 556968.7614800446,
+     "funding8h": -0.00016192237442922374
+    },
+    "aster": {
+     "sym": "TRUMPUSDT",
+     "mult": 1.0,
+     "vol": 124714.99,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "TRUMP",
+     "mult": 1.0,
+     "vol": 76059.257833,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "TRUMP-USD",
+     "mult": 1.0,
+     "vol": 502.43247,
+     "oi": 26071.412252938,
+     "funding8h": 0.0
+    },
+    "paradex": {
+     "sym": "TRUMP-USD-PERP",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 4711.033058300401,
+     "funding8h": 7.016699663e-05
+    },
+    "extended": {
+     "sym": "TRUMP-USD",
+     "mult": 1.0,
+     "vol": 33429.952,
+     "oi": 84322.628457,
+     "funding8h": -7.2e-05
+    }
+   }
+  },
+  {
+   "t": "ICP",
+   "name": "Internet Computer",
+   "trade_vol": 2598173.1669599996,
+   "best_vol": 2598173.1669599996,
+   "ref_price": 3.3687,
+   "venues": {
+    "hyperliquid": {
+     "sym": "ICP",
+     "mult": 1.0,
+     "vol": 2598173.1669599996,
+     "oi": 4124243.98672,
+     "funding8h": -0.0002528256
+    },
+    "variational": {
+     "sym": "ICP",
+     "mult": 1.0,
+     "vol": 63908.268631,
+     "oi": 1495106.8889566595,
+     "funding8h": -0.0002559013698630137
+    },
+    "aster": {
+     "sym": "ICPUSDT",
+     "mult": 1.0,
+     "vol": 416241.64,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "lighter": {
+     "sym": "ICP",
+     "mult": 1.0,
+     "vol": 84020.690163,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "ICP-USD",
+     "mult": 1.0,
+     "vol": 6050.74872,
+     "oi": 82887.576663276,
+     "funding8h": 0.0
+    },
+    "extended": {
+     "sym": "ICP-USD",
+     "mult": 1.0,
+     "vol": 6133.1228,
+     "oi": 16825.674787,
+     "funding8h": 1.6e-05
+    }
+   }
+  },
+  {
+   "t": "LYN",
+   "name": "Everlyn AI",
+   "trade_vol": 2496611.35,
+   "best_vol": 2496611.35,
+   "ref_price": 0.027552555,
+   "venues": {
+    "aster": {
+     "sym": "LYNUSDT",
+     "mult": 1.0,
+     "vol": 2496611.35,
+     "oi": null,
+     "funding8h": 0.00016588
+    },
+    "extended": {
+     "sym": "LYN-USD",
+     "mult": 1.0,
+     "vol": 975.7188,
+     "oi": 4218.5925,
+     "funding8h": 0.000136
+    }
+   }
+  },
+  {
+   "t": "BCH",
+   "name": "Bitcoin Cash",
+   "trade_vol": 2325969.72117,
+   "best_vol": 2325969.72117,
+   "ref_price": 318.31600000000003,
+   "venues": {
+    "hyperliquid": {
+     "sym": "BCH",
+     "mult": 1.0,
+     "vol": 2325969.72117,
+     "oi": 10051564.84272,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "BCH",
+     "mult": 1.0,
+     "vol": 319171.370635,
+     "oi": 222140.8042635523,
+     "funding8h": 4.573059360730594e-05
+    },
+    "aster": {
+     "sym": "BCHUSDT",
+     "mult": 1.0,
+     "vol": 127272.56,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "edgex": {
+     "sym": "BCHUSD",
+     "mult": 1.0,
+     "vol": null,
+     "oi": null,
+     "funding8h": null
+    },
+    "lighter": {
+     "sym": "BCH",
+     "mult": 1.0,
+     "vol": 81080.984845,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "BCH-USD",
+     "mult": 1.0,
+     "vol": 58.23,
+     "oi": 9864.00354487,
+     "funding8h": 8.92903225806452e-05
+    },
+    "extended": {
+     "sym": "BCH-USD",
+     "mult": 1.0,
+     "vol": 37074.79798,
+     "oi": 122083.915029,
+     "funding8h": 6.4e-05
+    }
+   }
+  },
+  {
+   "t": "AR",
+   "name": "Arweave",
+   "trade_vol": 2193158.457003999,
+   "best_vol": 2193158.457003999,
+   "ref_price": 4.45348257705561,
+   "venues": {
+    "hyperliquid": {
+     "sym": "AR",
+     "mult": 1.0,
+     "vol": 2193158.457003999,
+     "oi": 3877583.010016,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "AR",
+     "mult": 1.0,
+     "vol": 106857.557245,
+     "oi": 186376.02698116697,
+     "funding8h": -0.0001206420091324201
+    },
+    "aster": {
+     "sym": "ARUSDT",
+     "mult": 1.0,
+     "vol": 142278.34,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "extended": {
+     "sym": "AR-USD",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 37549.837391,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "SYRUP",
+   "name": "Maple Finance",
+   "trade_vol": 2161059.203099999,
+   "best_vol": 2161059.203099999,
+   "ref_price": 0.254975,
+   "venues": {
+    "hyperliquid": {
+     "sym": "SYRUP",
+     "mult": 1.0,
+     "vol": 2161059.203099999,
+     "oi": 9848906.22456,
+     "funding8h": 0.0003720792
+    },
+    "variational": {
+     "sym": "SYRUP",
+     "mult": 1.0,
+     "vol": 189194.521242,
+     "oi": 390781.7089205633,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "SYRUPUSDT",
+     "mult": 1.0,
+     "vol": 9676.26,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "SYRUP",
+     "mult": 1.0,
+     "vol": 44666.140482,
+     "oi": null,
+     "funding8h": null
+    }
+   }
+  },
+  {
+   "t": "INJ",
+   "name": "Injective",
+   "trade_vol": 2159065.984579999,
+   "best_vol": 2159065.984579999,
+   "ref_price": 7.568,
+   "venues": {
+    "hyperliquid": {
+     "sym": "INJ",
+     "mult": 1.0,
+     "vol": 2159065.984579999,
+     "oi": 8316590.3772,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "INJ",
+     "mult": 1.0,
+     "vol": 162033.055374,
+     "oi": 334755.8813524578,
+     "funding8h": -6.025753424657534e-05
+    },
+    "aster": {
+     "sym": "INJUSDT",
+     "mult": 1.0,
+     "vol": 135895.78,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "dydx": {
+     "sym": "INJ-USD",
+     "mult": 1.0,
+     "vol": 2113.7883,
+     "oi": 92006.945306145,
+     "funding8h": 0.0
+    },
+    "extended": {
+     "sym": "INJ-USD",
+     "mult": 1.0,
+     "vol": 16943.20032,
+     "oi": 54159.030773,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "PENGU",
+   "name": "Pudgy Penguins",
+   "trade_vol": 2150690.446327,
+   "best_vol": 2150690.446327,
+   "ref_price": 0.00924249169,
+   "venues": {
+    "hyperliquid": {
+     "sym": "PENGU",
+     "mult": 1.0,
+     "vol": 2150690.446327,
+     "oi": 13700171.435207998,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "PENGU",
+     "mult": 1.0,
+     "vol": 600926.271443,
+     "oi": 624847.1635278297,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "PENGUUSDT",
+     "mult": 1.0,
+     "vol": 147060.21,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "PENGU",
+     "mult": 1.0,
+     "vol": 80754.393641,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "PENGU-USD",
+     "mult": 1.0,
+     "vol": 6506.7898,
+     "oi": 4046.140323764,
+     "funding8h": 0.0
+    },
+    "extended": {
+     "sym": "PENGU-USD",
+     "mult": 1.0,
+     "vol": 735.5888,
+     "oi": 137942.541543,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "PENDLE",
+   "name": "Pendle",
+   "trade_vol": 2138463.7647,
+   "best_vol": 2138463.7647,
+   "ref_price": 2.4778,
+   "venues": {
+    "hyperliquid": {
+     "sym": "PENDLE",
+     "mult": 1.0,
+     "vol": 2138463.7647,
+     "oi": 15873700.6014,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "PENDLE",
+     "mult": 1.0,
+     "vol": 106611.302011,
+     "oi": 550399.0915453878,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "PENDLEUSDT",
+     "mult": 1.0,
+     "vol": 65323.83,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "lighter": {
+     "sym": "PENDLE",
+     "mult": 1.0,
+     "vol": 56295.315113,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "PENDLE-USD",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 10932.389847344,
+     "funding8h": 0.0
+    },
+    "paradex": {
+     "sym": "PENDLE-USD-PERP",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 30997.443276179998,
+     "funding8h": 9.994973713e-05
+    },
+    "extended": {
+     "sym": "PENDLE-USD",
+     "mult": 1.0,
+     "vol": 181667.365,
+     "oi": 152909.518731,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "JTO",
+   "name": "Jito",
+   "trade_vol": 2065604.5732900016,
+   "best_vol": 2065604.5732900016,
+   "ref_price": 0.56082,
+   "venues": {
+    "hyperliquid": {
+     "sym": "JTO",
+     "mult": 1.0,
+     "vol": 2065604.5732900016,
+     "oi": 6926673.2386799995,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "JTO",
+     "mult": 1.0,
+     "vol": 226356.71995,
+     "oi": 647088.0245074262,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "JTOUSDT",
+     "mult": 1.0,
+     "vol": 139158.99,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "JTO",
+     "mult": 1.0,
+     "vol": 249707.459836,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "JTO-USD",
+     "mult": 1.0,
+     "vol": 12267.5203,
+     "oi": 9120.40874227,
+     "funding8h": 0.0
+    },
+    "paradex": {
+     "sym": "JTO-USD-PERP",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 590.41955944,
+     "funding8h": 3.14560732e-06
+    },
+    "extended": {
+     "sym": "JTO-USD",
+     "mult": 1.0,
+     "vol": 9887.138,
+     "oi": 566083.518172,
+     "funding8h": -2.4e-05
+    }
+   }
+  },
+  {
+   "t": "MORPHO",
+   "name": "Morpho",
+   "trade_vol": 2026621.6369899982,
+   "best_vol": 2026621.6369899982,
+   "ref_price": 2.7167073724758897,
+   "venues": {
+    "hyperliquid": {
+     "sym": "MORPHO",
+     "mult": 1.0,
+     "vol": 2026621.6369899982,
+     "oi": 8605907.925999999,
+     "funding8h": 0.0002519944
+    },
+    "variational": {
+     "sym": "MORPHO",
+     "mult": 1.0,
+     "vol": 130776.988812,
+     "oi": 539860.8546082661,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "MORPHOUSDT",
+     "mult": 1.0,
+     "vol": 77783.89,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "MORPHO",
+     "mult": 1.0,
+     "vol": 355720.427586,
+     "oi": null,
+     "funding8h": null
+    },
+    "paradex": {
+     "sym": "MORPHO-USD-PERP",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 5407.102957518,
+     "funding8h": 0.00010000021138
+    },
+    "extended": {
+     "sym": "MORPHO-USD",
+     "mult": 1.0,
+     "vol": 30430.7016,
+     "oi": 182536.296321,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "SKY",
+   "name": "Sky",
+   "trade_vol": 1935114.2773179992,
+   "best_vol": 1935114.2773179992,
+   "ref_price": 0.09607845659205785,
+   "venues": {
+    "hyperliquid": {
+     "sym": "SKY",
+     "mult": 1.0,
+     "vol": 1935114.2773179992,
+     "oi": 8919060.145192,
+     "funding8h": 0.0008332
+    },
+    "variational": {
+     "sym": "SKY",
+     "mult": 1.0,
+     "vol": 470210.19327,
+     "oi": 1187871.842586528,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "SKYUSDT",
+     "mult": 1.0,
+     "vol": 141592.35,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "SKY",
+     "mult": 1.0,
+     "vol": 269261.61021,
+     "oi": null,
+     "funding8h": null
+    }
+   }
+  },
+  {
+   "t": "VIRTUAL",
+   "name": "Virtuals Protocol",
+   "trade_vol": 1882664.6426340002,
+   "best_vol": 1882664.6426340002,
+   "ref_price": 0.7912,
+   "venues": {
+    "hyperliquid": {
+     "sym": "VIRTUAL",
+     "mult": 1.0,
+     "vol": 1882664.6426340002,
+     "oi": 8931603.569184,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "VIRTUAL",
+     "mult": 1.0,
+     "vol": 346287.79329,
+     "oi": 696663.224960379,
+     "funding8h": -0.00010598995433789954
+    },
+    "aster": {
+     "sym": "VIRTUALUSDT",
+     "mult": 1.0,
+     "vol": 86147.91,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "VIRTUAL",
+     "mult": 1.0,
+     "vol": 41674.675326,
+     "oi": null,
+     "funding8h": null
+    },
+    "extended": {
+     "sym": "VIRTUAL-USD",
+     "mult": 1.0,
+     "vol": 27709.53398,
+     "oi": 73334.341415,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "JUP",
+   "name": "Jupiter",
+   "trade_vol": 1769058.5505000006,
+   "best_vol": 1769058.5505000006,
+   "ref_price": 0.33042,
+   "venues": {
+    "hyperliquid": {
+     "sym": "JUP",
+     "mult": 1.0,
+     "vol": 1769058.5505000006,
+     "oi": 15147372.053599998,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "JUP",
+     "mult": 1.0,
+     "vol": 338390.39817,
+     "oi": 739706.486418926,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "JUPUSDT",
+     "mult": 1.0,
+     "vol": 74963.33,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "JUP",
+     "mult": 1.0,
+     "vol": 120343.848816,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "JUP-USD",
+     "mult": 1.0,
+     "vol": 3808.026,
+     "oi": 35280.437295213,
+     "funding8h": 0.00017016129032258065
+    },
+    "paradex": {
+     "sym": "JUP-USD-PERP",
+     "mult": 1.0,
+     "vol": 675.04305,
+     "oi": 16018.886515029999,
+     "funding8h": 5.559099969e-05
+    },
+    "extended": {
+     "sym": "JUP-USD",
+     "mult": 1.0,
+     "vol": 83328.2068,
+     "oi": 2222292.038685,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "BTW",
+   "name": "Bitway",
+   "trade_vol": 1683411.43,
+   "best_vol": 1683411.43,
+   "ref_price": 0.96473742954,
+   "venues": {
+    "aster": {
+     "sym": "BTWUSDT",
+     "mult": 1.0,
+     "vol": 1683411.43,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "extended": {
+     "sym": "BTW-USD",
+     "mult": 1.0,
+     "vol": 38182.0804,
+     "oi": 33545.988918,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "TIA",
+   "name": "Celestia",
+   "trade_vol": 1591877.089953,
+   "best_vol": 1591877.089953,
+   "ref_price": 0.47902429,
+   "venues": {
+    "hyperliquid": {
+     "sym": "TIA",
+     "mult": 1.0,
+     "vol": 1591877.089953,
+     "oi": 7854595.833110001,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "TIA",
+     "mult": 1.0,
+     "vol": 82486.03028,
+     "oi": 273035.5421960695,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "TIAUSDT",
+     "mult": 1.0,
+     "vol": 106005.21,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "TIA",
+     "mult": 1.0,
+     "vol": 445689.284363,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "TIA-USD",
+     "mult": 1.0,
+     "vol": 9114.70616,
+     "oi": 55742.239572996,
+     "funding8h": 1.80967741935484e-05
+    },
+    "extended": {
+     "sym": "TIA-USD",
+     "mult": 1.0,
+     "vol": 214532.965,
+     "oi": 90315.206454,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "HBAR",
+   "name": "Hedera",
+   "trade_vol": 1578707.9479900002,
+   "best_vol": 1578707.9479900002,
+   "ref_price": 0.102055945,
+   "venues": {
+    "hyperliquid": {
+     "sym": "HBAR",
+     "mult": 1.0,
+     "vol": 1578707.9479900002,
+     "oi": 13917564.8554,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "HBAR",
+     "mult": 1.0,
+     "vol": 244523.35537,
+     "oi": 412956.0203078679,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "HBARUSDT",
+     "mult": 1.0,
+     "vol": 17640.15,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "lighter": {
+     "sym": "HBAR",
+     "mult": 1.0,
+     "vol": 83139.491843,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "HBAR-USD",
+     "mult": 1.0,
+     "vol": 286.5459,
+     "oi": 34963.000446322,
+     "funding8h": 0.0001816774193548387
+    },
+    "extended": {
+     "sym": "HBAR-USD",
+     "mult": 1.0,
+     "vol": 5933.48988,
+     "oi": 64863.882535,
+     "funding8h": -5.6e-05
+    }
+   }
+  },
+  {
+   "t": "CC",
+   "name": "Canton",
+   "trade_vol": 1572333.83435,
+   "best_vol": 1572333.83435,
+   "ref_price": 0.12368,
+   "venues": {
+    "hyperliquid": {
+     "sym": "CC",
+     "mult": 1.0,
+     "vol": 1572333.83435,
+     "oi": 7059939.35872,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "CC",
+     "mult": 1.0,
+     "vol": 88861.99541,
+     "oi": 617738.2860809617,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "CCUSDT",
+     "mult": 1.0,
+     "vol": 45592.55,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "CC",
+     "mult": 1.0,
+     "vol": 148860.099153,
+     "oi": null,
+     "funding8h": null
+    },
+    "paradex": {
+     "sym": "CC-USD-PERP",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 1442.2489696,
+     "funding8h": 9.949995906e-05
+    }
+   }
+  },
+  {
+   "t": "SEI",
+   "name": "Sei",
+   "trade_vol": 1559755.8277689999,
+   "best_vol": 1559755.8277689999,
+   "ref_price": 0.0716060613,
+   "venues": {
+    "hyperliquid": {
+     "sym": "SEI",
+     "mult": 1.0,
+     "vol": 1559755.8277689999,
+     "oi": 5106518.466162,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "SEI",
+     "mult": 1.0,
+     "vol": 115541.91037,
+     "oi": 453665.4036696147,
+     "funding8h": -0.0003424100456621005
+    },
+    "aster": {
+     "sym": "SEIUSDT",
+     "mult": 1.0,
+     "vol": 60793.15,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "lighter": {
+     "sym": "SEI",
+     "mult": 1.0,
+     "vol": 36810.431016,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "SEI-USD",
+     "mult": 1.0,
+     "vol": 4833.7674,
+     "oi": 129210.46892840599,
+     "funding8h": 0.0007711935483870968
+    },
+    "extended": {
+     "sym": "SEI-USD",
+     "mult": 1.0,
+     "vol": 3796.2382,
+     "oi": 73573.182741,
+     "funding8h": 0.0
+    }
+   }
+  },
+  {
+   "t": "BONK",
+   "name": "1000BONK",
+   "trade_vol": 1538714.5139509998,
+   "best_vol": 1538714.5139509998,
+   "ref_price": 3.8525e-06,
+   "venues": {
+    "hyperliquid": {
+     "sym": "kBONK",
+     "mult": 1000.0,
+     "vol": 1538714.5139509998,
+     "oi": 15037323.429952001,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "1000BONK",
+     "mult": 1000.0,
+     "vol": 49981.656054,
+     "oi": 108248.01294774047,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "1000BONKUSDT",
+     "mult": 1000.0,
+     "vol": 28157.02,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "1000BONK",
+     "mult": 1000.0,
+     "vol": 33921.445492,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "BONK-USD",
+     "mult": 1.0,
+     "vol": 5185.4423,
+     "oi": 11529.595000000001,
+     "funding8h": 0.0
+    },
+    "extended": {
+     "sym": "1000BONK-USD",
+     "mult": 1000.0,
+     "vol": 52672.4472,
+     "oi": 56604.494277,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "AXS",
+   "name": "Axie Infinity",
+   "trade_vol": 1485720.5202999997,
+   "best_vol": 1485720.5202999997,
+   "ref_price": 1.4133,
+   "venues": {
+    "hyperliquid": {
+     "sym": "AXS",
+     "mult": 1.0,
+     "vol": 1485720.5202999997,
+     "oi": 788595.97128,
+     "funding8h": -0.000654208
+    },
+    "variational": {
+     "sym": "AXS",
+     "mult": 1.0,
+     "vol": 519179.469146,
+     "oi": 469219.0577069408,
+     "funding8h": -0.0009583917808219178
+    },
+    "aster": {
+     "sym": "AXSUSDT",
+     "mult": 1.0,
+     "vol": 156345.97,
+     "oi": null,
+     "funding8h": -0.00033221
+    },
+    "lighter": {
+     "sym": "AXS",
+     "mult": 1.0,
+     "vol": 9438.202044,
+     "oi": null,
+     "funding8h": null
+    },
+    "extended": {
+     "sym": "AXS-USD",
+     "mult": 1.0,
+     "vol": 628.70472,
+     "oi": 25554.159561,
+     "funding8h": -0.001192
+    }
+   }
+  },
+  {
+   "t": "DOT",
+   "name": "Polkadot",
+   "trade_vol": 1463764.7227999994,
+   "best_vol": 1463764.7227999994,
+   "ref_price": 1.183044909,
+   "venues": {
+    "hyperliquid": {
+     "sym": "DOT",
+     "mult": 1.0,
+     "vol": 1463764.7227999994,
+     "oi": 5465203.96216,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "DOT",
+     "mult": 1.0,
+     "vol": 77527.576844,
+     "oi": 666989.2004789497,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "DOTUSDT",
+     "mult": 1.0,
+     "vol": 228166.18,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "lighter": {
+     "sym": "DOT",
+     "mult": 1.0,
+     "vol": 81993.536808,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "DOT-USD",
+     "mult": 1.0,
+     "vol": 3589.792,
+     "oi": 140398.574918794,
+     "funding8h": 0.0
+    },
+    "extended": {
+     "sym": "DOT-USD",
+     "mult": 1.0,
+     "vol": 4190.50014,
+     "oi": 26412.586794,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "ETHFI",
+   "name": "Ether.fi",
+   "trade_vol": 1328631.5051799999,
+   "best_vol": 1328631.5051799999,
+   "ref_price": 0.72480572,
+   "venues": {
+    "hyperliquid": {
+     "sym": "ETHFI",
+     "mult": 1.0,
+     "vol": 1328631.5051799999,
+     "oi": 18570252.446464002,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "ETHFI",
+     "mult": 1.0,
+     "vol": 408422.37663,
+     "oi": 1791072.2138975405,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "ETHFIUSDT",
+     "mult": 1.0,
+     "vol": 67732.21,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "ETHFI",
+     "mult": 1.0,
+     "vol": 790583.470003,
+     "oi": null,
+     "funding8h": null
+    },
+    "paradex": {
+     "sym": "ETHFI-USD-PERP",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 6082.167898727999,
+     "funding8h": 9.582607753e-05
+    },
+    "extended": {
+     "sym": "ETHFI-USD",
+     "mult": 1.0,
+     "vol": 34276.2572,
+     "oi": 85139.651652,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "APT",
+   "name": "Aptos",
+   "trade_vol": 1314707.385209,
+   "best_vol": 1314707.385209,
+   "ref_price": 0.792,
+   "venues": {
+    "hyperliquid": {
+     "sym": "APT",
+     "mult": 1.0,
+     "vol": 1314707.385209,
+     "oi": 4895319.6501400005,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "APT",
+     "mult": 1.0,
+     "vol": 15580.684992,
+     "oi": 938026.9620649838,
+     "funding8h": -0.00022053881278538814
+    },
+    "aster": {
+     "sym": "APTUSDT",
+     "mult": 1.0,
+     "vol": 60335.58,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "lighter": {
+     "sym": "APT",
+     "mult": 1.0,
+     "vol": 55950.83088,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "APT-USD",
+     "mult": 1.0,
+     "vol": 3020.9762,
+     "oi": 50212.806953743,
+     "funding8h": 0.00019112903225806447
+    },
+    "extended": {
+     "sym": "APT-USD",
+     "mult": 1.0,
+     "vol": 8850.2696,
+     "oi": 143842.359152,
+     "funding8h": -2.4e-05
+    }
+   }
+  },
+  {
+   "t": "2Z",
+   "name": "DoubleZero",
+   "trade_vol": 1244432.1547170002,
+   "best_vol": 1244432.1547170002,
+   "ref_price": 0.0455365,
+   "venues": {
+    "hyperliquid": {
+     "sym": "2Z",
+     "mult": 1.0,
+     "vol": 1244432.1547170002,
+     "oi": 3188842.3568740003,
+     "funding8h": -0.0025410896
+    },
+    "variational": {
+     "sym": "2Z",
+     "mult": 1.0,
+     "vol": 98836.06338,
+     "oi": 170883.4223436538,
+     "funding8h": -0.0022220520547945205
+    },
+    "aster": {
+     "sym": "2ZUSDT",
+     "mult": 1.0,
+     "vol": 113321.2,
+     "oi": null,
+     "funding8h": -0.00097668
+    },
+    "lighter": {
+     "sym": "2Z",
+     "mult": 1.0,
+     "vol": 18527.144536,
+     "oi": null,
+     "funding8h": null
+    }
+   }
+  },
+  {
+   "t": "MEGA",
+   "name": "MegaETH",
+   "trade_vol": 1232849.0750830001,
+   "best_vol": 1232849.0750830001,
+   "ref_price": 0.049653560749,
+   "venues": {
+    "hyperliquid": {
+     "sym": "MEGA",
+     "mult": 1.0,
+     "vol": 1232849.0750830001,
+     "oi": 10075394.16585,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "MEGA",
+     "mult": 1.0,
+     "vol": 82236.76325,
+     "oi": 170149.41543337947,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "MEGAUSDT",
+     "mult": 1.0,
+     "vol": 23187.33,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "MEGA",
+     "mult": 1.0,
+     "vol": 39701.302446,
+     "oi": null,
+     "funding8h": null
+    },
+    "extended": {
+     "sym": "MEGA-USD",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 176685.146005,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "ONE",
+   "name": "Harmony",
+   "trade_vol": 1228586.53,
+   "best_vol": 1228586.53,
+   "ref_price": 0.0023960492625774293,
+   "venues": {
+    "variational": {
+     "sym": "ONE",
+     "mult": 1.0,
+     "vol": 168492.992106,
+     "oi": 23873.491875253098,
+     "funding8h": -0.013813561643835617
+    },
+    "aster": {
+     "sym": "ONEUSDT",
+     "mult": 1.0,
+     "vol": 1228586.53,
+     "oi": null,
+     "funding8h": -0.00670547
+    }
+   }
+  },
+  {
+   "t": "SUPER",
+   "name": "SuperVerse",
+   "trade_vol": 1216507.1550200006,
+   "best_vol": 1216507.1550200006,
+   "ref_price": 0.25356418818524057,
+   "venues": {
+    "hyperliquid": {
+     "sym": "SUPER",
+     "mult": 1.0,
+     "vol": 1216507.1550200006,
+     "oi": 1019011.6162,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "SUPER",
+     "mult": 1.0,
+     "vol": 248171.115556,
+     "oi": 121589.6252773459,
+     "funding8h": 0.0001
+    }
+   }
+  },
+  {
+   "t": "NIL",
+   "name": "Nillion",
+   "trade_vol": 1211407.9812280003,
+   "best_vol": 1211407.9812280003,
+   "ref_price": 0.0874604080446553,
+   "venues": {
+    "hyperliquid": {
+     "sym": "NIL",
+     "mult": 1.0,
+     "vol": 1211407.9812280003,
+     "oi": 8203853.0546200005,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "NIL",
+     "mult": 1.0,
+     "vol": 122307.03323,
+     "oi": 549113.3467005962,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "NILUSDT",
+     "mult": 1.0,
+     "vol": 33863.33,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "extended": {
+     "sym": "NIL-USD",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 4173.487631,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "MAGMA",
+   "name": "Magma Finance",
+   "trade_vol": 1202723.46,
+   "best_vol": 1202723.46,
+   "ref_price": 0.2310257422970588,
+   "venues": {
+    "variational": {
+     "sym": "MAGMA",
+     "mult": 1.0,
+     "vol": 146037.056548,
+     "oi": 28472.816617255186,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "MAGMAUSDT",
+     "mult": 1.0,
+     "vol": 1202723.46,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "extended": {
+     "sym": "MAGMA-USD",
+     "mult": 1.0,
+     "vol": 14940.2382,
+     "oi": 2939.271772,
+     "funding8h": -8.8e-05
+    }
+   }
+  },
+  {
+   "t": "TRX",
+   "name": "TRON",
+   "trade_vol": 1162044.0917999998,
+   "best_vol": 1162044.0917999998,
+   "ref_price": 0.33507,
+   "venues": {
+    "hyperliquid": {
+     "sym": "TRX",
+     "mult": 1.0,
+     "vol": 1162044.0917999998,
+     "oi": 13706646.4337,
+     "funding8h": 4.86488e-05
+    },
+    "variational": {
+     "sym": "TRX",
+     "mult": 1.0,
+     "vol": 47402.97561,
+     "oi": 492694.6612795656,
+     "funding8h": -0.00030993698630136986
+    },
+    "aster": {
+     "sym": "TRXUSDT",
+     "mult": 1.0,
+     "vol": 20007.18,
+     "oi": null,
+     "funding8h": -0.00022758
+    },
+    "lighter": {
+     "sym": "TRX",
+     "mult": 1.0,
+     "vol": 59457.544913,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "TRX-USD",
+     "mult": 1.0,
+     "vol": 20234.677,
+     "oi": 203932.50100000002,
+     "funding8h": 0.0
+    },
+    "paradex": {
+     "sym": "TRX-USD-PERP",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 8932.450016336,
+     "funding8h": -0.00011902422848
+    },
+    "extended": {
+     "sym": "TRX-USD",
+     "mult": 1.0,
+     "vol": 64941.5212,
+     "oi": 273414.952608,
+     "funding8h": -0.000392
+    }
+   }
+  },
+  {
+   "t": "HUMA",
+   "name": "Huma Finance",
+   "trade_vol": 1147099.97,
+   "best_vol": 1147099.97,
+   "ref_price": 0.03424920521345259,
+   "venues": {
+    "variational": {
+     "sym": "HUMA",
+     "mult": 1.0,
+     "vol": 21.99684,
+     "oi": 2685.2163912789165,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "HUMAUSDT",
+     "mult": 1.0,
+     "vol": 1147099.97,
+     "oi": null,
+     "funding8h": 5e-05
+    }
+   }
+  },
+  {
+   "t": "LDO",
+   "name": "Lido DAO",
+   "trade_vol": 1143666.7795330007,
+   "best_vol": 1143666.7795330007,
+   "ref_price": 0.456749757,
+   "venues": {
+    "hyperliquid": {
+     "sym": "LDO",
+     "mult": 1.0,
+     "vol": 1143666.7795330007,
+     "oi": 12831589.656342,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "LDO",
+     "mult": 1.0,
+     "vol": 94403.23749,
+     "oi": 304242.69609691016,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "LDOUSDT",
+     "mult": 1.0,
+     "vol": 3998.41,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "lighter": {
+     "sym": "LDO",
+     "mult": 1.0,
+     "vol": 222855.47766499998,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "LDO-USD",
+     "mult": 1.0,
+     "vol": 7762.1607,
+     "oi": 30504.489271002,
+     "funding8h": 0.0
+    },
+    "paradex": {
+     "sym": "LDO-USD-PERP",
+     "mult": 1.0,
+     "vol": 2149.7242,
+     "oi": 2822.586663942,
+     "funding8h": 9.508234836e-05
+    },
+    "extended": {
+     "sym": "LDO-USD",
+     "mult": 1.0,
+     "vol": 23748.1862,
+     "oi": 515565.654217,
+     "funding8h": 8e-05
+    }
+   }
+  },
+  {
+   "t": "ALGO",
+   "name": "Algorand",
+   "trade_vol": 1133833.66228,
+   "best_vol": 1133833.66228,
+   "ref_price": 0.12946477,
+   "venues": {
+    "hyperliquid": {
+     "sym": "ALGO",
+     "mult": 1.0,
+     "vol": 1133833.66228,
+     "oi": 4957430.367760001,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "ALGO",
+     "mult": 1.0,
+     "vol": 92557.70811,
+     "oi": 166537.10081041485,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "ALGOUSDT",
+     "mult": 1.0,
+     "vol": 69072.72,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "dydx": {
+     "sym": "ALGO-USD",
+     "mult": 1.0,
+     "vol": 4704.0558,
+     "oi": 182807.90703430498,
+     "funding8h": 0.0002457741935483871
+    },
+    "extended": {
+     "sym": "ALGO-USD",
+     "mult": 1.0,
+     "vol": 1362.11712,
+     "oi": 9904.39902,
+     "funding8h": -2.4e-05
+    }
+   }
+  },
+  {
+   "t": "FET",
+   "name": "Artificial Superintelligence Alliance",
+   "trade_vol": 1096208.6065499994,
+   "best_vol": 1096208.6065499994,
+   "ref_price": 0.22243,
+   "venues": {
+    "hyperliquid": {
+     "sym": "FET",
+     "mult": 1.0,
+     "vol": 1096208.6065499994,
+     "oi": 12076692.248879999,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "FET",
+     "mult": 1.0,
+     "vol": 31904.81073,
+     "oi": 372287.20298825233,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "FETUSDT",
+     "mult": 1.0,
+     "vol": 58570.92,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "extended": {
+     "sym": "FET-USD",
+     "mult": 1.0,
+     "vol": 5928.7588,
+     "oi": 41175.422285,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "UP",
+   "name": null,
+   "trade_vol": 1062013.9,
+   "best_vol": 1062013.9,
+   "ref_price": 0.2084,
+   "venues": {
+    "aster": {
+     "sym": "UPUSDT",
+     "mult": 1.0,
+     "vol": 1062013.9,
+     "oi": null,
+     "funding8h": -0.00084957
+    }
+   }
+  },
+  {
+   "t": "NIGHT",
+   "name": null,
+   "trade_vol": 1035843.3,
+   "best_vol": 1035843.3,
+   "ref_price": 0.04876,
+   "venues": {
+    "aster": {
+     "sym": "NIGHTUSDT",
+     "mult": 1.0,
+     "vol": 1035843.3,
+     "oi": null,
+     "funding8h": 5e-05
+    }
+   }
+  },
+  {
+   "t": "XLM",
+   "name": "Stellar",
+   "trade_vol": 1000434.6202400002,
+   "best_vol": 1000434.6202400002,
+   "ref_price": 0.215425,
+   "venues": {
+    "hyperliquid": {
+     "sym": "XLM",
+     "mult": 1.0,
+     "vol": 1000434.6202400002,
+     "oi": 18882654.6179,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "XLM",
+     "mult": 1.0,
+     "vol": 6844.41791,
+     "oi": 433524.4957439469,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "XLMUSDT",
+     "mult": 1.0,
+     "vol": 61499.13,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "lighter": {
+     "sym": "XLM",
+     "mult": 1.0,
+     "vol": 18374.400359,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "XLM-USD",
+     "mult": 1.0,
+     "vol": 13062.724,
+     "oi": 20852.377256925,
+     "funding8h": 1.274193548387096e-05
+    },
+    "extended": {
+     "sym": "XLM-USD",
+     "mult": 1.0,
+     "vol": 6977.8994,
+     "oi": 130939.168406,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "STX",
+   "name": "Stacks",
+   "trade_vol": 962678.0466219998,
+   "best_vol": 962678.0466219998,
+   "ref_price": 0.37027055866634007,
+   "venues": {
+    "hyperliquid": {
+     "sym": "STX",
+     "mult": 1.0,
+     "vol": 962678.0466219998,
+     "oi": 1510167.725724,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "STX",
+     "mult": 1.0,
+     "vol": 111398.02182,
+     "oi": 872468.1253108425,
+     "funding8h": -1.3809132420091325e-05
+    },
+    "aster": {
+     "sym": "STXUSDT",
+     "mult": 1.0,
+     "vol": 33517.61,
+     "oi": null,
+     "funding8h": 5.56e-05
+    },
+    "extended": {
+     "sym": "STX-USD",
+     "mult": 1.0,
+     "vol": 1540.392,
+     "oi": 250896.2061,
+     "funding8h": 3.2e-05
+    }
+   }
+  },
+  {
+   "t": "MINA",
+   "name": "Mina Protocol",
+   "trade_vol": 946907.6251799997,
+   "best_vol": 946907.6251799997,
+   "ref_price": 0.16673870743571925,
+   "venues": {
+    "hyperliquid": {
+     "sym": "MINA",
+     "mult": 1.0,
+     "vol": 946907.6251799997,
+     "oi": 3457383.924,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "MINA",
+     "mult": 1.0,
+     "vol": 11467.8007,
+     "oi": 552698.4642502539,
+     "funding8h": 0.0001
+    }
+   }
+  },
+  {
+   "t": "OP",
+   "name": "Optimism",
+   "trade_vol": 928269.6903599997,
+   "best_vol": 928269.6903599997,
+   "ref_price": 0.13405262499999998,
+   "venues": {
+    "hyperliquid": {
+     "sym": "OP",
+     "mult": 1.0,
+     "vol": 928269.6903599997,
+     "oi": 3523563.5909320004,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "OP",
+     "mult": 1.0,
+     "vol": 48053.51513,
+     "oi": 182013.709647487,
+     "funding8h": -4.3454794520547946e-05
+    },
+    "aster": {
+     "sym": "OPUSDT",
+     "mult": 1.0,
+     "vol": 13937.74,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "lighter": {
+     "sym": "OP",
+     "mult": 1.0,
+     "vol": 109789.58810200001,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "OP-USD",
+     "mult": 1.0,
+     "vol": 1.58952,
+     "oi": 41407.670564,
+     "funding8h": 0.0
+    },
+    "extended": {
+     "sym": "OP-USD",
+     "mult": 1.0,
+     "vol": 27802.8922,
+     "oi": 45736.968754,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "RESOLV",
+   "name": null,
+   "trade_vol": 846806.8186530004,
+   "best_vol": 846806.8186530004,
+   "ref_price": 0.0195255,
+   "venues": {
+    "hyperliquid": {
+     "sym": "RESOLV",
+     "mult": 1.0,
+     "vol": 846806.8186530004,
+     "oi": 1488273.778188,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "RESOLVUSDT",
+     "mult": 1.0,
+     "vol": 145077.12,
+     "oi": null,
+     "funding8h": 5e-05
+    }
+   }
+  },
+  {
+   "t": "BULLA",
+   "name": null,
+   "trade_vol": 841467.31,
+   "best_vol": 841467.31,
+   "ref_price": 0.079655,
+   "venues": {
+    "aster": {
+     "sym": "BULLAUSDT",
+     "mult": 1.0,
+     "vol": 841467.31,
+     "oi": null,
+     "funding8h": 5e-05
+    }
+   }
+  },
+  {
+   "t": "W",
+   "name": "Wormhole",
+   "trade_vol": 838622.3376470001,
+   "best_vol": 838622.3376470001,
+   "ref_price": 0.01462199,
+   "venues": {
+    "hyperliquid": {
+     "sym": "W",
+     "mult": 1.0,
+     "vol": 838622.3376470001,
+     "oi": 7450675.572656,
+     "funding8h": 0.0006020376
+    },
+    "variational": {
+     "sym": "W",
+     "mult": 1.0,
+     "vol": 41850.51107,
+     "oi": 98930.49544677808,
+     "funding8h": 0.0001
+    },
+    "extended": {
+     "sym": "W-USD",
+     "mult": 1.0,
+     "vol": 386.316,
+     "oi": 30917.5454,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "SAGA",
+   "name": "Saga",
+   "trade_vol": 809327.2616679999,
+   "best_vol": 809327.2616679999,
+   "ref_price": 0.022654455,
+   "venues": {
+    "hyperliquid": {
+     "sym": "SAGA",
+     "mult": 1.0,
+     "vol": 809327.2616679999,
+     "oi": 1601093.14352,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "SAGA",
+     "mult": 1.0,
+     "vol": 5555.28866,
+     "oi": 7447.218270081644,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "SAGAUSDT",
+     "mult": 1.0,
+     "vol": 31156.72,
+     "oi": null,
+     "funding8h": -0.00014232
+    },
+    "extended": {
+     "sym": "SAGA-USD",
+     "mult": 1.0,
+     "vol": 1022.868,
+     "oi": 10013.51139,
+     "funding8h": 3.2e-05
+    }
+   }
+  },
+  {
+   "t": "MET",
+   "name": "Meteora",
+   "trade_vol": 750333.3364600001,
+   "best_vol": 750333.3364600001,
+   "ref_price": 0.30948375295593966,
+   "venues": {
+    "hyperliquid": {
+     "sym": "MET",
+     "mult": 1.0,
+     "vol": 750333.3364600001,
+     "oi": 4617049.76928,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "METEORA",
+     "mult": 1.0,
+     "vol": 62416.91506,
+     "oi": 453429.18130396307,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "METUSDT",
+     "mult": 1.0,
+     "vol": 34157.56,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "MET",
+     "mult": 1.0,
+     "vol": 41697.714501,
+     "oi": null,
+     "funding8h": null
+    }
+   }
+  },
+  {
+   "t": "WIF",
+   "name": "dogwifhat",
+   "trade_vol": 729996.6927600001,
+   "best_vol": 729996.6927600001,
+   "ref_price": 0.247962601,
+   "venues": {
+    "hyperliquid": {
+     "sym": "WIF",
+     "mult": 1.0,
+     "vol": 729996.6927600001,
+     "oi": 7451487.621,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "WIF",
+     "mult": 1.0,
+     "vol": 32942.89177,
+     "oi": 104966.34949930258,
+     "funding8h": -0.0002484931506849315
+    },
+    "aster": {
+     "sym": "WIFUSDT",
+     "mult": 1.0,
+     "vol": 19591.27,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "WIF",
+     "mult": 1.0,
+     "vol": 45752.29195,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "WIF-USD",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 15953.48462067,
+     "funding8h": 0.0
+    },
+    "extended": {
+     "sym": "WIF-USD",
+     "mult": 1.0,
+     "vol": 253.4436,
+     "oi": 103247.483649,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "KAITO",
+   "name": "KAITO",
+   "trade_vol": 728552.2824799999,
+   "best_vol": 728552.2824799999,
+   "ref_price": 0.34745675554066824,
+   "venues": {
+    "hyperliquid": {
+     "sym": "KAITO",
+     "mult": 1.0,
+     "vol": 728552.2824799999,
+     "oi": 2221659.90208,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "KAITO",
+     "mult": 1.0,
+     "vol": 17244.73883,
+     "oi": 85740.68646992066,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "KAITOUSDT",
+     "mult": 1.0,
+     "vol": 60166.89,
+     "oi": null,
+     "funding8h": 1.205e-05
+    },
+    "lighter": {
+     "sym": "KAITO",
+     "mult": 1.0,
+     "vol": 26763.294761,
+     "oi": null,
+     "funding8h": null
+    },
+    "paradex": {
+     "sym": "KAITO-USD-PERP",
+     "mult": 1.0,
+     "vol": 529.6922,
+     "oi": 2520.6699365639997,
+     "funding8h": 9.951959091e-05
+    },
+    "extended": {
+     "sym": "KAITO-USD",
+     "mult": 1.0,
+     "vol": 55306.7514,
+     "oi": 118499.604314,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "MOVR",
+   "name": "Moonriver",
+   "trade_vol": 710667.688497,
+   "best_vol": 710667.688497,
+   "ref_price": 1.8608,
+   "venues": {
+    "variational": {
+     "sym": "MOVR",
+     "mult": 1.0,
+     "vol": 710667.688497,
+     "oi": 36395.828109048554,
+     "funding8h": 8.804566210045662e-06
+    },
+    "aster": {
+     "sym": "MOVRUSDT",
+     "mult": 1.0,
+     "vol": 450907.25,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "extended": {
+     "sym": "MOVR-USD",
+     "mult": 1.0,
+     "vol": 16780.1928,
+     "oi": 6885.922391,
+     "funding8h": -6.4e-05
+    }
+   }
+  },
+  {
+   "t": "\u725b\u6765",
+   "name": null,
+   "trade_vol": 673749.92,
+   "best_vol": 673749.92,
+   "ref_price": 0.0825,
+   "venues": {
+    "aster": {
+     "sym": "\u725b\u6765USDT",
+     "mult": 1.0,
+     "vol": 673749.92,
+     "oi": null,
+     "funding8h": 5e-05
+    }
+   }
+  },
+  {
+   "t": "IMX",
+   "name": "Immutable",
+   "trade_vol": 642913.1063230005,
+   "best_vol": 642913.1063230005,
+   "ref_price": 0.190865638,
+   "venues": {
+    "hyperliquid": {
+     "sym": "IMX",
+     "mult": 1.0,
+     "vol": 642913.1063230005,
+     "oi": 5681380.741632001,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "IMX",
+     "mult": 1.0,
+     "vol": 231281.104991,
+     "oi": 573856.891226421,
+     "funding8h": -0.0013954356164383563
+    },
+    "dydx": {
+     "sym": "IMX-USD",
+     "mult": 1.0,
+     "vol": 5897.69217,
+     "oi": 26653.622884148,
+     "funding8h": 1.832258064516128e-05
+    }
+   }
+  },
+  {
+   "t": "ZK",
+   "name": "ZKsync",
+   "trade_vol": 641908.1274729999,
+   "best_vol": 641908.1274729999,
+   "ref_price": 0.013263500000000001,
+   "venues": {
+    "hyperliquid": {
+     "sym": "ZK",
+     "mult": 1.0,
+     "vol": 641908.1274729999,
+     "oi": 910859.74727,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "ZK",
+     "mult": 1.0,
+     "vol": 107623.0638,
+     "oi": 131432.03352847951,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "ZKUSDT",
+     "mult": 1.0,
+     "vol": 12927.62,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "ZK",
+     "mult": 1.0,
+     "vol": 5329.757409,
+     "oi": null,
+     "funding8h": null
+    }
+   }
+  },
+  {
+   "t": "IO",
+   "name": "io.net",
+   "trade_vol": 625169.1808830001,
+   "best_vol": 625169.1808830001,
+   "ref_price": 0.17676430999999998,
+   "venues": {
+    "hyperliquid": {
+     "sym": "IO",
+     "mult": 1.0,
+     "vol": 625169.1808830001,
+     "oi": 1097149.991688,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "IO",
+     "mult": 1.0,
+     "vol": 19028.30246,
+     "oi": 50336.058141895104,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "IOUSDT",
+     "mult": 1.0,
+     "vol": 30740.28,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "extended": {
+     "sym": "IO-USD",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 1869.154211,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "APEX",
+   "name": "APEX",
+   "trade_vol": 592218.2373899999,
+   "best_vol": 592218.2373899999,
+   "ref_price": 0.23641,
+   "venues": {
+    "hyperliquid": {
+     "sym": "APEX",
+     "mult": 1.0,
+     "vol": 592218.2373899999,
+     "oi": 2244521.93072,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "APEX",
+     "mult": 1.0,
+     "vol": 1353.91712,
+     "oi": 10234.555601661825,
+     "funding8h": 0.0001
+    },
+    "lighter": {
+     "sym": "APEX",
+     "mult": 1.0,
+     "vol": 493.04039,
+     "oi": null,
+     "funding8h": null
+    }
+   }
+  },
+  {
+   "t": "RENDER",
+   "name": "Render",
+   "trade_vol": 583773.92977,
+   "best_vol": 583773.92977,
+   "ref_price": 1.95141,
+   "venues": {
+    "hyperliquid": {
+     "sym": "RENDER",
+     "mult": 1.0,
+     "vol": 583773.92977,
+     "oi": 3372287.0410440005,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "RENDER",
+     "mult": 1.0,
+     "vol": 85469.284725,
+     "oi": 330509.294543073,
+     "funding8h": -0.000254551598173516
+    },
+    "aster": {
+     "sym": "RENDERUSDT",
+     "mult": 1.0,
+     "vol": 64147.14,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "dydx": {
+     "sym": "RENDER-USD",
+     "mult": 1.0,
+     "vol": 5130.638,
+     "oi": 18318.1249,
+     "funding8h": 6.316129032258063e-05
+    },
+    "extended": {
+     "sym": "RENDER-USD",
+     "mult": 1.0,
+     "vol": 24468.157,
+     "oi": 53702.216728,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "EIGEN",
+   "name": "EigenCloud (prev. EigenLayer)",
+   "trade_vol": 566182.5717640001,
+   "best_vol": 566182.5717640001,
+   "ref_price": 0.26226123094650133,
+   "venues": {
+    "hyperliquid": {
+     "sym": "EIGEN",
+     "mult": 1.0,
+     "vol": 566182.5717640001,
+     "oi": 4093030.7085200003,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "EIGEN",
+     "mult": 1.0,
+     "vol": 81718.16269,
+     "oi": 251960.2991529889,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "EIGENUSDT",
+     "mult": 1.0,
+     "vol": 15024.02,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "EIGEN",
+     "mult": 1.0,
+     "vol": 78238.848992,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "EIGEN-USD",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 2351.6717910310003,
+     "funding8h": 0.0
+    },
+    "extended": {
+     "sym": "EIGEN-USD",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 110917.306794,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "CHIP",
+   "name": "CHIP",
+   "trade_vol": 546666.294194,
+   "best_vol": 546666.294194,
+   "ref_price": 0.0453852345503722,
+   "venues": {
+    "hyperliquid": {
+     "sym": "CHIP",
+     "mult": 1.0,
+     "vol": 546666.294194,
+     "oi": 12054757.65996,
+     "funding8h": 0.0003780648
+    },
+    "variational": {
+     "sym": "CHIP",
+     "mult": 1.0,
+     "vol": 109942.53753,
+     "oi": 1048113.3868943772,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "CHIPUSDT",
+     "mult": 1.0,
+     "vol": 44010.39,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "CHIP",
+     "mult": 1.0,
+     "vol": 67858.623091,
+     "oi": null,
+     "funding8h": null
+    },
+    "extended": {
+     "sym": "CHIP-USD",
+     "mult": 1.0,
+     "vol": 1326.15294,
+     "oi": 235871.517513,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "SKHYNIXUSD",
+   "name": null,
+   "trade_vol": 536293.845915,
+   "best_vol": 536293.845915,
+   "ref_price": 1371.923,
+   "venues": {
+    "lighter": {
+     "sym": "SKHYNIXUSD",
+     "mult": 1.0,
+     "vol": 536293.845915,
+     "oi": null,
+     "funding8h": null
+    }
+   }
+  },
+  {
+   "t": "ZAMA",
+   "name": "Zama",
+   "trade_vol": 511265.52,
+   "best_vol": 511265.52,
+   "ref_price": 0.08901532326605704,
+   "venues": {
+    "variational": {
+     "sym": "ZAMA",
+     "mult": 1.0,
+     "vol": 382190.986861,
+     "oi": 706822.3112823153,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "ZAMAUSDT",
+     "mult": 1.0,
+     "vol": 511265.52,
+     "oi": null,
+     "funding8h": 5e-05
+    }
+   }
+  },
+  {
+   "t": "STONK",
+   "name": null,
+   "trade_vol": 500746.25836,
+   "best_vol": 500746.25836,
+   "ref_price": 0.19892500000000002,
+   "venues": {
+    "aster": {
+     "sym": "STONKUSDT",
+     "mult": 1.0,
+     "vol": 284101.84,
+     "oi": null,
+     "funding8h": 8.934e-05
+    },
+    "lighter": {
+     "sym": "STONK",
+     "mult": 1.0,
+     "vol": 500746.25836,
+     "oi": null,
+     "funding8h": null
+    }
+   }
+  },
+  {
+   "t": "ATH",
+   "name": "Aethir",
+   "trade_vol": 488360.61,
+   "best_vol": 488360.61,
+   "ref_price": 0.008292,
+   "venues": {
+    "variational": {
+     "sym": "ATH",
+     "mult": 1.0,
+     "vol": 147007.429068,
+     "oi": 251997.59362466942,
+     "funding8h": -0.0008371716894977169
+    },
+    "aster": {
+     "sym": "ATHUSDT",
+     "mult": 1.0,
+     "vol": 488360.61,
+     "oi": null,
+     "funding8h": -0.0002861
+    },
+    "dydx": {
+     "sym": "ATH-USD",
+     "mult": 1.0,
+     "vol": 353.2157,
+     "oi": 1115.146592846,
+     "funding8h": 0.0
+    }
+   }
+  },
+  {
+   "t": "ATOM",
+   "name": "Cosmos Hub",
+   "trade_vol": 479643.66762,
+   "best_vol": 479643.66762,
+   "ref_price": 1.744808071,
+   "venues": {
+    "hyperliquid": {
+     "sym": "ATOM",
+     "mult": 1.0,
+     "vol": 479643.66762,
+     "oi": 2798174.0131940003,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "ATOM",
+     "mult": 1.0,
+     "vol": 37757.857911,
+     "oi": 570822.4167642397,
+     "funding8h": -2.8292237442922375e-06
+    },
+    "aster": {
+     "sym": "ATOMUSDT",
+     "mult": 1.0,
+     "vol": 17747.54,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "dydx": {
+     "sym": "ATOM-USD",
+     "mult": 1.0,
+     "vol": 4568.291,
+     "oi": 56845.84695318,
+     "funding8h": 0.0
+    },
+    "extended": {
+     "sym": "ATOM-USD",
+     "mult": 1.0,
+     "vol": 763.0246,
+     "oi": 12409.784201,
+     "funding8h": 1.6e-05
+    }
+   }
+  },
+  {
+   "t": "SPX",
+   "name": "SPX6900",
+   "trade_vol": 466962.352084,
+   "best_vol": 466962.352084,
+   "ref_price": 0.44152,
+   "venues": {
+    "hyperliquid": {
+     "sym": "SPX",
+     "mult": 1.0,
+     "vol": 466962.352084,
+     "oi": 8079933.7975360025,
+     "funding8h": 0.0004678888
+    },
+    "variational": {
+     "sym": "SPX",
+     "mult": 1.0,
+     "vol": 28642.64385,
+     "oi": 804116.937561556,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "SPXUSDT",
+     "mult": 1.0,
+     "vol": 69415.83,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "SPX",
+     "mult": 1.0,
+     "vol": 107757.28865,
+     "oi": null,
+     "funding8h": null
+    },
+    "extended": {
+     "sym": "SPX-USD",
+     "mult": 1.0,
+     "vol": 3006.97588,
+     "oi": 55997.65168,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "FIL",
+   "name": "Filecoin",
+   "trade_vol": 462567.8942600001,
+   "best_vol": 462567.8942600001,
+   "ref_price": 1.0591549754999998,
+   "venues": {
+    "hyperliquid": {
+     "sym": "FIL",
+     "mult": 1.0,
+     "vol": 462567.8942600001,
+     "oi": 8287157.351059999,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "FIL",
+     "mult": 1.0,
+     "vol": 42161.995609,
+     "oi": 720386.6618095101,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "FILUSDT",
+     "mult": 1.0,
+     "vol": 89446.29,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "lighter": {
+     "sym": "FIL",
+     "mult": 1.0,
+     "vol": 18812.746523,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "FIL-USD",
+     "mult": 1.0,
+     "vol": 4131.2387,
+     "oi": 56190.028690599,
+     "funding8h": 0.0
+    },
+    "extended": {
+     "sym": "FIL-USD",
+     "mult": 1.0,
+     "vol": 112434.01758,
+     "oi": 748074.28747,
+     "funding8h": 0.0
+    }
+   }
+  },
+  {
+   "t": "MERL",
+   "name": "Merlin Chain",
+   "trade_vol": 432182.955511,
+   "best_vol": 432182.955511,
+   "ref_price": 0.03111173326800686,
+   "venues": {
+    "hyperliquid": {
+     "sym": "MERL",
+     "mult": 1.0,
+     "vol": 432182.955511,
+     "oi": 581064.615908,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "MERL",
+     "mult": 1.0,
+     "vol": 9862.84428,
+     "oi": 22202.197944215855,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "MERLUSDT",
+     "mult": 1.0,
+     "vol": 20548.95,
+     "oi": null,
+     "funding8h": 5e-05
+    }
+   }
+  },
+  {
+   "t": "US",
+   "name": "Talus",
+   "trade_vol": 418369.23,
+   "best_vol": 418369.23,
+   "ref_price": 0.0191529889361617,
+   "venues": {
+    "variational": {
+     "sym": "US",
+     "mult": 1.0,
+     "vol": 10224.892022,
+     "oi": 65729.11919248478,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "USUSDT",
+     "mult": 1.0,
+     "vol": 418369.23,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "extended": {
+     "sym": "US-USD",
+     "mult": 1.0,
+     "vol": 45661.9654,
+     "oi": 5477.85715,
+     "funding8h": -0.000176
+    }
+   }
+  },
+  {
+   "t": "APE",
+   "name": "ApeCoin",
+   "trade_vol": 408084.135067,
+   "best_vol": 408084.135067,
+   "ref_price": 0.1692322306157854,
+   "venues": {
+    "hyperliquid": {
+     "sym": "APE",
+     "mult": 1.0,
+     "vol": 408084.135067,
+     "oi": 1890891.968976,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "APE",
+     "mult": 1.0,
+     "vol": 25479.97634,
+     "oi": 13886.29482504337,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "APEUSDT",
+     "mult": 1.0,
+     "vol": 73685.58,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "dydx": {
+     "sym": "APE-USD",
+     "mult": 1.0,
+     "vol": 12.11528,
+     "oi": 10607.711630622,
+     "funding8h": 0.0
+    },
+    "extended": {
+     "sym": "APE-USD",
+     "mult": 1.0,
+     "vol": 778.3688,
+     "oi": 1970.704147,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "PLAY",
+   "name": "PlaysOut",
+   "trade_vol": 383697.14,
+   "best_vol": 383697.14,
+   "ref_price": 0.029611520000000002,
+   "venues": {
+    "aster": {
+     "sym": "PLAYUSDT",
+     "mult": 1.0,
+     "vol": 383697.14,
+     "oi": null,
+     "funding8h": 7.399e-05
+    },
+    "extended": {
+     "sym": "PLAY-USD",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 2639.02967,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "CAKE",
+   "name": "PancakeSwap",
+   "trade_vol": 365417.4865200001,
+   "best_vol": 365417.4865200001,
+   "ref_price": 2.521235270296619,
+   "venues": {
+    "hyperliquid": {
+     "sym": "CAKE",
+     "mult": 1.0,
+     "vol": 365417.4865200001,
+     "oi": 2780317.3632,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "CAKE",
+     "mult": 1.0,
+     "vol": 11252.830019,
+     "oi": 143137.53348898364,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "CAKEUSDT",
+     "mult": 1.0,
+     "vol": 100771.41,
+     "oi": null,
+     "funding8h": 5e-05
+    }
+   }
+  },
+  {
+   "t": "RUNE",
+   "name": "THORChain",
+   "trade_vol": 361125.4192620001,
+   "best_vol": 361125.4192620001,
+   "ref_price": 0.753267316,
+   "venues": {
+    "hyperliquid": {
+     "sym": "RUNE",
+     "mult": 1.0,
+     "vol": 361125.4192620001,
+     "oi": 2118548.491716,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "RUNE",
+     "mult": 1.0,
+     "vol": 92198.51368,
+     "oi": 229750.3867093955,
+     "funding8h": 0.0001
+    },
+    "dydx": {
+     "sym": "RUNE-USD",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 34353.243401192,
+     "funding8h": 0.00010112903225806448
+    },
+    "extended": {
+     "sym": "RUNE-USD",
+     "mult": 1.0,
+     "vol": 25048.7194,
+     "oi": 23399.452468,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "S",
+   "name": "Sonic",
+   "trade_vol": 359284.4124269999,
+   "best_vol": 359284.4124269999,
+   "ref_price": 0.041353,
+   "venues": {
+    "hyperliquid": {
+     "sym": "S",
+     "mult": 1.0,
+     "vol": 359284.4124269999,
+     "oi": 767360.32802,
+     "funding8h": -7.74088e-05
+    },
+    "variational": {
+     "sym": "S",
+     "mult": 1.0,
+     "vol": 16444.26556,
+     "oi": 656167.5118112598,
+     "funding8h": 1.8478538812785386e-05
+    },
+    "aster": {
+     "sym": "SUSDT",
+     "mult": 1.0,
+     "vol": 23546.55,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "S",
+     "mult": 1.0,
+     "vol": 7870.696271,
+     "oi": null,
+     "funding8h": null
+    },
+    "extended": {
+     "sym": "S-USD",
+     "mult": 1.0,
+     "vol": 785.1516,
+     "oi": 239224.119355,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "GALA",
+   "name": "GALA",
+   "trade_vol": 358209.819956,
+   "best_vol": 358209.819956,
+   "ref_price": 0.002709,
+   "venues": {
+    "hyperliquid": {
+     "sym": "GALA",
+     "mult": 1.0,
+     "vol": 358209.819956,
+     "oi": 559987.650376,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "GALA",
+     "mult": 1.0,
+     "vol": 59939.90766,
+     "oi": 39531.41949095345,
+     "funding8h": -0.00017987214611872145
+    },
+    "aster": {
+     "sym": "GALAUSDT",
+     "mult": 1.0,
+     "vol": 8105.85,
+     "oi": null,
+     "funding8h": 0.0001
+    },
+    "extended": {
+     "sym": "GALA-USD",
+     "mult": 1.0,
+     "vol": 511.8,
+     "oi": 5377.13472,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "POL",
+   "name": "POL (ex-MATIC)",
+   "trade_vol": 348855.6908699999,
+   "best_vol": 348855.6908699999,
+   "ref_price": 0.108776,
+   "venues": {
+    "hyperliquid": {
+     "sym": "POL",
+     "mult": 1.0,
+     "vol": 348855.6908699999,
+     "oi": 6965792.80364,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "POL",
+     "mult": 1.0,
+     "vol": 76612.32634,
+     "oi": 377129.2787857277,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "POLUSDT",
+     "mult": 1.0,
+     "vol": 40592.91,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "POL",
+     "mult": 1.0,
+     "vol": 18975.494197,
+     "oi": null,
+     "funding8h": null
+    },
+    "dydx": {
+     "sym": "POL-USD",
+     "mult": 1.0,
+     "vol": 11831.7935,
+     "oi": 5846.911999999999,
+     "funding8h": 0.0
+    },
+    "extended": {
+     "sym": "POL-USD",
+     "mult": 1.0,
+     "vol": 27880.31142,
+     "oi": 160205.666378,
+     "funding8h": -2.4e-05
+    }
+   }
+  },
+  {
+   "t": "INIT",
+   "name": "Initia",
+   "trade_vol": 340862.4829200001,
+   "best_vol": 340862.4829200001,
+   "ref_price": 0.11162,
+   "venues": {
+    "hyperliquid": {
+     "sym": "INIT",
+     "mult": 1.0,
+     "vol": 340862.4829200001,
+     "oi": 310198.6772,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "INIT",
+     "mult": 1.0,
+     "vol": 36943.44085,
+     "oi": 46314.888526704715,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "INITUSDT",
+     "mult": 1.0,
+     "vol": 16507.31,
+     "oi": null,
+     "funding8h": 5e-05
+    }
+   }
+  },
+  {
+   "t": "AVNT",
+   "name": "Avantis",
+   "trade_vol": 335979.12517,
+   "best_vol": 335979.12517,
+   "ref_price": 0.12835,
+   "venues": {
+    "hyperliquid": {
+     "sym": "AVNT",
+     "mult": 1.0,
+     "vol": 335979.12517,
+     "oi": 1030810.3885600001,
+     "funding8h": 0.0001
+    },
+    "variational": {
+     "sym": "AVNT",
+     "mult": 1.0,
+     "vol": 22759.51859,
+     "oi": 24875.20655331191,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "AVNTUSDT",
+     "mult": 1.0,
+     "vol": 5061.21,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "lighter": {
+     "sym": "AVNT",
+     "mult": 1.0,
+     "vol": 29388.068303,
+     "oi": null,
+     "funding8h": null
+    },
+    "extended": {
+     "sym": "AVNT-USD",
+     "mult": 1.0,
+     "vol": 6119.0932,
+     "oi": 16737.135256,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "AI",
+   "name": null,
+   "trade_vol": 333589.46,
+   "best_vol": 333589.46,
+   "ref_price": 0.134435,
+   "venues": {
+    "aster": {
+     "sym": "AIUSDT",
+     "mult": 1.0,
+     "vol": 333589.46,
+     "oi": null,
+     "funding8h": 6.185e-05
+    },
+    "lighter": {
+     "sym": "AI",
+     "mult": 1.0,
+     "vol": 162855.880152,
+     "oi": null,
+     "funding8h": null
+    }
+   }
+  },
+  {
+   "t": "MNT",
+   "name": "Mantle",
+   "trade_vol": 326592.226542,
+   "best_vol": 326592.226542,
+   "ref_price": 0.64696,
+   "venues": {
+    "hyperliquid": {
+     "sym": "MNT",
+     "mult": 1.0,
+     "vol": 326592.226542,
+     "oi": 7099644.278468,
+     "funding8h": 0.0001290424
+    },
+    "variational": {
+     "sym": "MNT",
+     "mult": 1.0,
+     "vol": 189512.9549,
+     "oi": 328692.68592957756,
+     "funding8h": -4.290410958904109e-06
+    },
+    "lighter": {
+     "sym": "MNT",
+     "mult": 1.0,
+     "vol": 20068.374962,
+     "oi": null,
+     "funding8h": null
+    }
+   }
+  },
+  {
+   "t": "B3",
+   "name": "B3 (Base)",
+   "trade_vol": 313531.508935,
+   "best_vol": 313531.508935,
+   "ref_price": 0.0008261821828707985,
+   "venues": {
+    "variational": {
+     "sym": "B3",
+     "mult": 1.0,
+     "vol": 313531.508935,
+     "oi": 10556.917319681432,
+     "funding8h": -0.0018703397260273972
+    },
+    "aster": {
+     "sym": "B3USDT",
+     "mult": 1.0,
+     "vol": 181.72,
+     "oi": null,
+     "funding8h": 1.25e-05
+    }
+   }
+  },
+  {
+   "t": "MOVE",
+   "name": "Movement",
+   "trade_vol": 309032.92956,
+   "best_vol": 309032.92956,
+   "ref_price": 0.010189549818694035,
+   "venues": {
+    "hyperliquid": {
+     "sym": "MOVE",
+     "mult": 1.0,
+     "vol": 309032.92956,
+     "oi": 478138.76676,
+     "funding8h": 1.29096e-05
+    },
+    "variational": {
+     "sym": "MOVE",
+     "mult": 1.0,
+     "vol": 8077.235386,
+     "oi": 7249.998775728547,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "MOVEUSDT",
+     "mult": 1.0,
+     "vol": 16654.99,
+     "oi": null,
+     "funding8h": 5e-05
+    },
+    "extended": {
+     "sym": "MOVE-USD",
+     "mult": 1.0,
+     "vol": 0.0,
+     "oi": 2910.018384,
+     "funding8h": 0.000104
+    }
+   }
+  },
+  {
+   "t": "MARSCOIN",
+   "name": "MarsCoin",
+   "trade_vol": 304643.38,
+   "best_vol": 304643.38,
+   "ref_price": 0.1106541851855555,
+   "venues": {
+    "variational": {
+     "sym": "MARSCOIN",
+     "mult": 1.0,
+     "vol": 70008.02243,
+     "oi": 51996.62688217736,
+     "funding8h": 0.0001
+    },
+    "aster": {
+     "sym": "MARSCOINUSDT",
+     "mult": 1.0,
+     "vol": 304643.38,
+     "oi": null,
+     "funding8h": 5e-05
+    }
+   }
+  }
+ ]
+}
