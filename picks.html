@@ -273,7 +273,7 @@ function checksHtml(p) {
   for (const g of Object.keys(groups)) {
     for (const e of groups[g]) {
       const pts = e.ok === true ? "+" + e.max : e.ok === false ? "−" + e.max : "0";
-      h += '<div class="ck">' + icon(e.ok) + '<div class="t">' + esc(e.name) + '<span>' + esc(g) + ' · ' + esc(e.detail) + '</span></div><div class="p">' + pts + '</div></div>';
+      h += '<div class="ck">' + icon(e.ok) + '<div class="t">' + esc(e.name) + '<span>' + esc(g) + (e.tested ? ' · tested' : '') + ' · ' + esc(e.detail) + '</span></div><div class="p">' + (e.max ? pts : "info") + '</div></div>';
     }
   }
   return h + '</div>';

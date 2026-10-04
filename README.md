@@ -26,9 +26,15 @@ Each swing pick shows 18 checks with a tick or a cross and the actual number beh
 | Group | Checks | Weight |
 |---|---|---|
 | Chart setup (tested) | Long "coiled bottom": near the 90-day low, daily RSI back above 45, Bollinger squeeze, tight 90-day range, calm daily moves, up over 30 days, higher low, Bitcoin above its 50-day EMA, volume waking up. Short "downtrend bounce": below the 50-day EMA, down over 30 days, bounced (RSI above 50), not on its low, lower high, 4-hour trend down, weaker than Bitcoin, heavier selling volume, below the 30-day VWAP | 100 points |
-| Smart money (live) | Hyperliquid top traders' positions, Gate.io open interest and top-trader long/short ratio, funding on your DEXs | up to ±10 points together with the next two rows |
-| Fundamentals (live, CoinGecko) | Market cap, share of supply unlocked, distance from the all-time high, volume against market cap | |
+| Smart money (live) | Hyperliquid top traders' positions; Gate.io open interest over 7 days (leverage piling in), liquidations over 3 days (longs flushed out) and top traders' long/short ratio; funding on your DEXs | up to ±10 points together with the next two rows |
+| Fundamentals (live, CoinGecko) | Supply unlocks (30-day growth of the circulating supply), volume against market cap, market cap, distance from the all-time high | |
 | Liquidity | Daily volume on your DEXs | |
+
+The extra checks follow what the history showed where it exists (futures statistics since April 2026, a year
+of CoinGecko and funding data): longs did worse when open interest jumped 5%+ in a week while the price rose
+(+0.09R per trade against +0.39R) and when unlocks added 2%+ supply in a month (-0.13R against +0.03R); the same
+unlocks helped shorts, and shorts did worse when funding was above 0.01% per 8 hours (-0.05R against +0.18R).
+The Hyperliquid top traders have no history to test, so they only nudge the score (±2).
 
 **How good is it?** Tested on every coin with $5M+ a day, every day from late 2023 to October 2026, trading the
 plan on the card (enter at the next daily open, stop 2 daily ATRs away, trail 3 ATRs behind the best price, out
@@ -36,16 +42,16 @@ after 30 days at the latest, after fees and slippage):
 
 | Score | Longs per trade | Longs winners | Shorts per trade | Shorts winners |
 |---|---|---|---|---|
-| 90 to 100 | +4.4% | 55% | +4.9% | 52% |
-| 80 to 89 | +2.8% | 46% | +2.9% | 47% |
-| 70 to 79 | +2.3% | 41% | +2.9% | 50% |
-| 60 to 69 | -0.1% | 36% | +2.0% | 45% |
-| every coin, every day | -1.5% | 34% | +0.8% | 42% |
+| 90 to 100 | +4.4% | 55% | +5.1% | 53% |
+| 80 to 89 | +2.8% | 46% | +2.5% | 47% |
+| 70 to 79 | +2.3% | 41% | +2.6% | 50% |
+| 60 to 69 | -0.3% | 36% | +2.0% | 45% |
+| every coin, every day | -1.6% | 34% | +0.7% | 42% |
 
 Scores of 80+ made money in each of 2024, 2025 and 2026 on both sides. Longs scoring 80+ had about the same
 chance of a +50% month as any coin (14% vs 15%) and half the chance of a 30% fall (16% vs 29%). Taking every
-90+ pick, long and short, with up to 5 open at once and 2% risk each turned $500 into about $1,100 from January
-2024 to September 2026 (worst drop 23%); with 3% risk about $1,500 (worst drop 33%).
+90+ pick, long and short, with up to 5 open at once and 2% risk each turned $500 into about $1,190 from January
+2024 to September 2026 (worst drop 21%); with 3% risk about $1,700 (worst drop 30%).
 
 What did **not** work: buying a coin only because it is near its low (it lost money unless the turn had started);
 picking the 2x months in advance (WLD in May 2026 and NIL in April 2026 never scored above 65 before their runs:
@@ -139,6 +145,7 @@ Nothing runs on your computer.
 | `picks.py` | The coin picks: every coin scored for swing and day trades with its reasons, plans and a paper record (standard library only) |
 | `picks.html` | The coin picks page, published as the front page (`index.html`; the radar moves to `radar.html`) |
 | `picks_research.json` | The test results behind the scores, shown on the picks page (`tools/research/picks_export.py`) |
+| `picks_seed.json` | The last 45 days of each coin's circulating supply, so the unlock check works from the first run |
 | `.github/workflows/scan.yml` | The schedule and the publish step (runs `scanner.py`, then `quant.py`, then `picks.py`) |
 | `.github/workflows/backtest.yml` | Strategy tests started from the Studio tab |
 | `.github/workflows/research.yml` | Tests a `v5...` / `v6...` / `v7...` branch on live exchange data (nothing published) |

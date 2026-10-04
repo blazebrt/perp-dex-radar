@@ -48,7 +48,7 @@ CFG = {
     "bars_4h": 1000,            # 4-hour candles per coin (about 166 days)
     "bars_1h": 220,             # hourly candles per coin for the day-trade checks
     "day_coins": 50,            # coins that get the hourly checks (most liquid + best swing scores)
-    "stats_coins": 40,          # coins that get the Gate.io open-interest check
+    "stats_coins": 40,          # coins that get the Gate.io open-interest and liquidation checks
     "cg_every_h": 6,            # CoinGecko fundamentals are refreshed this often (hours)
     "cg_pages": 4,              # CoinGecko market pages of 250 coins
     "top_n": 10,                # picks per list
@@ -349,102 +349,127 @@ def day_explain(side, y, cr, swing_score):
 
 
 # --------------------------------------------------------------------------- extra checks (live only)
-def extra_checks(side, coin, sm, pos, fund8h, fdm, liq):
-    """Smart money, derivatives, fundamentals and liquidity. Each: (key, title, ok, points, detail, group).
-    ok: True / False / None (no data). Points are added when ok is True and taken off when it is False."""
+def extra_checks(side, coin, sm, gs, fund8h, fdm, liq, supply_growth=None):
+    """Smart money, derivatives, fundamentals and liquidity. Each: (key, title, ok, points, detail, group, tested).
+    ok: True / False / None (no data or information only). Points are added when ok is True and taken off when
+    it is False. 'tested' marks the checks that held up on past data (futures statistics since April 2026,
+    CoinGecko and funding over the last year); the others are shown for information or as a small nudge."""
     L = side == "long"
     out = []
-    # Hyperliquid top traders (scanner.py reads their open positions)
+    # Hyperliquid top traders (scanner.py reads their open positions): no history to test, a small nudge
     if sm and (sm[2] + sm[3]) >= 50_000:
         ln, sn, lu, su = sm[0], sm[1], sm[2], sm[3]
         net = lu - su
         ok = (net > 0 and lu >= 1.5 * su) if L else (net < 0 and su >= 1.5 * lu)
         bad = (net < 0 and su >= 1.5 * lu) if L else (net > 0 and lu >= 1.5 * su)
-        out.append(("smart", "Hyperliquid top traders", True if ok else False if bad else None, 3,
-                    f"{ln} long ({usd_short(lu)}) vs {sn} short ({usd_short(su)})", "Smart money"))
+        out.append(("smart", "Hyperliquid top traders agree", True if ok else False if bad else None, 2,
+                    f"{ln} long ({usd_short(lu)}) vs {sn} short ({usd_short(su)})", "Smart money", False))
     else:
-        out.append(("smart", "Hyperliquid top traders", None, 3, "No big positions from the top traders", "Smart money"))
-    # Gate.io: open interest and the top traders' long/short ratio over the last hours
-    if pos and pos.get("oi_ch") is not None and pos.get("px_ch") is not None:
-        oi, px = pos["oi_ch"], pos["px_ch"]
-        ok = oi >= 0.03 and (px >= -0.005 if L else px <= 0.005)
-        bad = oi >= 0.03 and (px < -0.02 if L else px > 0.02)
-        out.append(("oi", "Open interest building", True if ok else False if bad else None, 2,
-                    f"Open interest {fmt_pct(oi, 1)}, price {fmt_pct(px, 1)} in {pos.get('hours') or 0:.0f}h", "Smart money"))
+        out.append(("smart", "Hyperliquid top traders agree", None, 2, "No big positions from the top traders",
+                    "Smart money", False))
+    # Gate.io open interest over 7 days: leverage piling in while the price rises made longs worse
+    if gs and gs.get("oi7") is not None and gs.get("px7") is not None:
+        pile = gs["oi7"] >= 0.05 and gs["px7"] > 0
+        d = f"Open interest {fmt_pct(gs['oi7'])} and price {fmt_pct(gs['px7'])} in 7 days"
+        if L:
+            out.append(("lev", "No leverage pile-up", not pile, 2, d + (" (leverage piling into the rise)" if pile else ""),
+                        "Smart money", True))
+        else:
+            out.append(("lev", "Leverage piling into longs", True if pile else None, 0, d + " (information)",
+                        "Smart money", False))
     else:
-        out.append(("oi", "Open interest building", None, 2, "No open-interest data", "Smart money"))
-    if pos and pos.get("top_size0") and pos.get("top_size1"):
-        ch = pos["top_size1"] / pos["top_size0"] - 1
-        ok = ch >= 0.03 if L else ch <= -0.03
-        bad = ch <= -0.03 if L else ch >= 0.03
-        out.append(("top", "Top traders adding " + ("longs" if L else "shorts"), True if ok else False if bad else None, 2,
-                    f"Gate.io top-trader long/short ratio {pos['top_size0']:.2f} -> {pos['top_size1']:.2f}", "Smart money"))
+        out.append(("lev", "No leverage pile-up" if L else "Leverage piling into longs", None, 2 if L else 0,
+                    "No open-interest data", "Smart money", L))
+    # liquidations over 3 days: after longs were flushed out, longs did better
+    if gs and gs.get("liq3") is not None:
+        flushed = gs["liq3"] >= 0.6
+        d = f"Longs were {gs['liq3'] * 100:.0f}% of liquidations in 3 days"
+        out.append(("flush", "Longs already flushed out" if L else "Longs flushed out (information)",
+                    (True if flushed else None) if L else None, 1 if L else 0, d, "Smart money", L))
     else:
-        out.append(("top", "Top traders adding " + ("longs" if L else "shorts"), None, 2, "No top-trader data",
-                    "Smart money"))
-    # funding on your DEXs
+        out.append(("flush", "Longs already flushed out" if L else "Longs flushed out (information)", None,
+                    1 if L else 0, "No liquidation data", "Smart money", L))
+    if gs and gs.get("top7") is not None:
+        out.append(("top", "Top traders' long/short ratio (information)", None, 0,
+                    f"Gate.io top traders {gs['top0']:.2f} -> {gs['top1']:.2f} in 7 days", "Smart money", False))
+    # funding on your DEXs: very high funding made shorts worse (hype squeezes); for longs it was mixed
     if fund8h is not None:
-        ok = fund8h <= 0.0001 if L else fund8h >= 0.0
-        bad = fund8h >= 0.0003 if L else fund8h <= -0.0002
-        out.append(("funding", "Funding not crowded" if L else "Longs paying funding", True if ok else False if bad else None,
-                    2, f"{fund8h * 100:+.4f}% per 8 hours on your DEXs", "Smart money"))
+        d = f"{fund8h * 100:+.4f}% per 8 hours on your DEXs"
+        if L:
+            out.append(("funding", "Funding (information)", None, 0, d, "Smart money", False))
+        else:
+            out.append(("funding", "No funding frenzy", True if fund8h <= 0.0001 else False if fund8h >= 0.0003 else None,
+                        2, d + " (shorts did better when funding was 0.01% or less)", "Smart money", True))
     else:
-        out.append(("funding", "Funding not crowded" if L else "Longs paying funding", None, 2, "No funding data",
-                    "Smart money"))
-    # fundamentals (CoinGecko)
-    if fdm:
-        mc, fdv, circ, tot, ath_ch, vol, rank = (fdm.get(k) for k in ("mc", "fdv", "circ", "total", "ath_ch", "vol", "rank"))
-        if mc:
-            ok = mc >= 100e6
-            out.append(("mcap", "Established market cap", ok, 1,
-                        f"Market cap ${mc / 1e6:,.0f}M" + (f" (#{rank})" if rank else ""), "Fundamentals"))
+        out.append(("funding", "Funding (information)" if L else "No funding frenzy", None, 0 if L else 2,
+                    "No funding data", "Smart money", not L))
+    # supply unlocks: coins whose supply grew 2%+ in 30 days were worse longs and better shorts
+    if supply_growth is not None:
+        g = supply_growth
+        d = f"Circulating supply {fmt_pct(g, 1)} in 30 days"
+        if L:
+            out.append(("supply", "No unlock pressure", True if g < 0.005 else False if g >= 0.02 else None, 2, d,
+                        "Fundamentals", True))
         else:
-            out.append(("mcap", "Established market cap", None, 1, "Market cap unknown", "Fundamentals"))
-        share = (circ / tot) if (circ and tot) else ((mc / fdv) if (mc and fdv) else None)
-        if share:
-            ok = share >= 0.5 if L else share < 0.5
-            bad = share < 0.3 if L else share >= 0.8
-            out.append(("supply", "Most supply unlocked" if L else "Unlocks still to come", True if ok else False if bad else None,
-                        2, f"{share * 100:.0f}% of the supply is circulating", "Fundamentals"))
-        else:
-            out.append(("supply", "Most supply unlocked" if L else "Unlocks still to come", None, 2,
-                        "Supply data unknown", "Fundamentals"))
-        if ath_ch is not None:
-            dd = -ath_ch / 100.0
-            out.append(("ath", "Far below its all-time high" if L else "Far below its all-time high (weak coin)",
-                        dd >= 0.6, 1, f"{dd * 100:.0f}% below the all-time high", "Fundamentals"))
-        else:
-            out.append(("ath", "Far below its all-time high", None, 1, "All-time high unknown", "Fundamentals"))
-        if vol and mc:
-            t = vol / mc
-            out.append(("turnover", "Healthy trading interest", 0.03 <= t <= 1.0, 1,
-                        f"24h volume is {t * 100:.0f}% of the market cap (healthy: 3% to 100%)", "Fundamentals"))
-        else:
-            out.append(("turnover", "Healthy trading interest", None, 1, "Volume / market cap unknown", "Fundamentals"))
+            out.append(("supply", "Unlocks adding supply", True if g >= 0.02 else None, 2, d, "Fundamentals", True))
     else:
-        for k, t, p in (("mcap", "Established market cap", 1), ("supply", "Most supply unlocked" if L else "Unlocks still to come", 2),
-                        ("ath", "Far below its all-time high", 1), ("turnover", "Healthy trading interest", 1)):
-            out.append((k, t, None, p, "No CoinGecko data for this coin", "Fundamentals"))
-    out.append(("liq", "Liquid on your DEXs", True if liq >= 5e6 else None if liq >= CFG["min_dex_vol"] else False, 1,
-                f"${liq / 1e6:,.1f}M traded in 24h on your DEXs", "Liquidity"))
+        share = None
+        if fdm:
+            circ, tot, mc, fdv = fdm.get("circ"), fdm.get("total"), fdm.get("mc"), fdm.get("fdv")
+            share = (circ / tot) if (circ and tot) else ((mc / fdv) if (mc and fdv) else None)
+        out.append(("supply", "No unlock pressure" if L else "Unlocks adding supply", None, 2,
+                    (f"{share * 100:.0f}% of the supply is circulating; 30-day supply growth not known yet" if share
+                     else "Supply data unknown"), "Fundamentals", True))
+    # fundamentals from CoinGecko
+    mc = (fdm or {}).get("mc")
+    vol = (fdm or {}).get("vol")
+    if mc and vol:
+        t = vol / mc
+        d = f"24h volume is {t * 100:.0f}% of the market cap"
+        if L:
+            out.append(("turnover", "Not overheated", True if t <= 0.10 else False if t > 0.25 else None, 1,
+                        d + " (longs did better at 10% or less)", "Fundamentals", True))
+        else:
+            out.append(("turnover", "Trading interest (information)", None, 0, d, "Fundamentals", False))
+    else:
+        out.append(("turnover", "Not overheated" if L else "Trading interest (information)", None, 1 if L else 0,
+                    "Volume / market cap unknown", "Fundamentals", L))
+    rank = (fdm or {}).get("rank")
+    out.append(("mcap", "Market cap (information)", None, 0,
+                (f"${mc / 1e6:,.0f}M" + (f" (#{rank})" if rank else "")) if mc else "Market cap unknown",
+                "Fundamentals", False))
+    ath_ch = (fdm or {}).get("ath_ch")
+    if ath_ch is not None:
+        dd = -ath_ch / 100.0
+        if L:
+            out.append(("ath", "Distance from the all-time high (information)", None, 0,
+                        f"{dd * 100:.0f}% below the all-time high", "Fundamentals", False))
+        else:
+            out.append(("ath", "Far below its all-time high (weak coin)", True if dd >= 0.6 else None, 1,
+                        f"{dd * 100:.0f}% below the all-time high", "Fundamentals", True))
+    else:
+        out.append(("ath", "Distance from the all-time high" if L else "Far below its all-time high (weak coin)", None,
+                    0 if L else 1, "All-time high unknown", "Fundamentals", not L))
+    out.append(("liq", "Liquid on your DEXs", True if liq >= 5e6 else None, 1,
+                f"${liq / 1e6:,.1f}M traded in 24h on your DEXs (lower costs at $5M+)", "Liquidity", False))
     return out
 
 
 def rsi_check(side, r):
     """Hourly RSI not stretched in the trade's direction (an extra check for day trades)."""
     if r is None:
-        return ("rsi1h", "1-hour RSI not stretched", None, 1, "No hourly RSI", "Timing")
+        return ("rsi1h", "1-hour RSI not stretched", None, 1, "No hourly RSI", "Timing", False)
     if side == "long":
         ok, bad = 40 <= r <= 70, r > 80
     else:
         ok, bad = 30 <= r <= 60, r < 20
     return ("rsi1h", "1-hour RSI not stretched", True if ok else False if bad else None, 1,
-            f"1h RSI {r:.0f} (wanted: " + ("40 to 70)" if side == "long" else "30 to 60)"), "Timing")
+            f"1h RSI {r:.0f} (wanted: " + ("40 to 70)" if side == "long" else "30 to 60)"), "Timing", False)
 
 
 def extra_points(ex):
     s = 0.0
-    for _, _, ok, p, _, _ in ex:
+    for _, _, ok, p, _, _, _ in ex:
         if ok is True:
             s += p
         elif ok is False:
@@ -526,6 +551,69 @@ def hourly(coin, src, n, now):
     return rows[-n:]
 
 
+GATE_STATS7 = "https://api.gateio.ws/api/v4/futures/usdt/contract_stats?contract={sym}&interval=4h&limit=45"
+
+
+def gate_stats7(t):
+    """Open interest, price and the top traders' ratio over 7 days, and the long share of liquidations over
+    3 days, from Gate.io futures statistics (4-hour buckets)."""
+    if sc.BREAKERS["gate_stats"].open:
+        return None
+    try:
+        d = sc.FETCH(GATE_STATS7.format(sym=sc.exchange_symbol("gate", t)))
+        sc.BREAKERS["gate_stats"].ok()
+    except Exception as e:  # noqa: BLE001
+        if sc.is_hard_failure(e):
+            sc.BREAKERS["gate_stats"].fail()
+            sc.note_error(f"gate stats {t}: {e}")
+        return None
+    rows = sorted([x for x in (d or []) if isinstance(x, dict) and "time" in x], key=lambda x: int(x["time"]))
+    if len(rows) < 20:
+        return None
+    a, b = rows[max(0, len(rows) - 43)], rows[-1]
+    oi0, oi1 = sc.fnum(a.get("open_interest_usd")), sc.fnum(b.get("open_interest_usd"))
+    p0, p1 = sc.fnum(a.get("mark_price")), sc.fnum(b.get("mark_price"))
+    t0, t1 = sc.fnum(a.get("top_lsr_size")), sc.fnum(b.get("top_lsr_size"))
+    ll = sum(sc.fnum(x.get("long_liq_usd"), 0.0) or 0.0 for x in rows[-18:])
+    sl = sum(sc.fnum(x.get("short_liq_usd"), 0.0) or 0.0 for x in rows[-18:])
+    return {"oi7": (oi1 / oi0 - 1) if (oi0 and oi1) else None, "px7": (p1 / p0 - 1) if (p0 and p1) else None,
+            "liq3": ll / (ll + sl) if (ll + sl) > 0 else None, "top0": t0, "top1": t1,
+            "top7": (t1 / t0 - 1) if (t0 and t1) else None, "days": (int(b["time"]) - int(a["time"])) / DAY}
+
+
+def supply_update(J, cg, now):
+    """Keep a daily snapshot of every coin's circulating supply (CoinGecko) for the 30-day supply growth.
+    A new journal starts from picks_seed.json (the last weeks of the research data)."""
+    S = J.setdefault("supply", {})
+    if not S:
+        p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "picks_seed.json")
+        if os.path.exists(p):
+            with open(p) as fh:
+                S.update((json.load(fh) or {}).get("supply") or {})
+    day = now // DAY * DAY
+    for t, f in ((cg or {}).get("coins") or {}).items():
+        c = f.get("circ")
+        if not c:
+            continue
+        rows = S.setdefault(t, [])
+        if rows and rows[-1][0] == day:
+            rows[-1][1] = c
+        else:
+            rows.append([day, c])
+        S[t] = [r for r in rows if r[0] >= day - 45 * DAY]
+
+
+def supply_growth(J, t, now):
+    rows = (J.get("supply") or {}).get(t) or []
+    if len(rows) < 2:
+        return None
+    day = now // DAY * DAY
+    old = [r for r in rows if day - 35 * DAY <= r[0] <= day - 27 * DAY]
+    if not old or not rows[-1][1] or not old[0][1] or rows[-1][0] < day - 2 * DAY:
+        return None
+    return rows[-1][1] / old[0][1] - 1
+
+
 def read_smart(out_dir):
     """Hyperliquid top traders per coin, from the scan that ran just before (data/latest.json)."""
     p = os.path.join(out_dir, "data", "latest.json")
@@ -584,7 +672,7 @@ def record(kind, side, coin_t, coin, core, credits, weights, lines, extras, plan
         checks.append({"k": key, "name": title, "ok": cr, "pts": round(weights[key] * cr, 1), "max": weights[key],
                        "detail": detail, "group": "Setup", "tested": True})
     ex = [{"k": k, "name": t, "ok": ok, "pts": p if ok is True else (-p if ok is False else 0), "max": p,
-           "detail": d, "group": g, "tested": False} for k, t, ok, p, d, g in extras]
+           "detail": d, "group": g, "tested": tested} for k, t, ok, p, d, g, tested in extras]
     adj = extra_points(extras)
     final = max(0.0, min(100.0, core + adj))
     lab = label_of(final, kind)
@@ -788,9 +876,11 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
     smart, smart_meta = read_smart(out_dir)
     ranked = sorted(swing, key=lambda t: -max(swing[t]["long"], swing[t]["short"]))
     stat_set = set(ranked[: CFG["stats_coins"]]) | set(by_liq[:10])
-    pos = sc.parallel(sc.fetch_positioning, sorted(stat_set), workers=4)
+    pos = sc.parallel(gate_stats7, sorted(stat_set), workers=4)
     cg, cg_state = coingecko([data[t]["coin"] for t in swing], J.get("cg"), now)
     J["cg"] = cg
+    if cg_state == "fresh":
+        supply_update(J, cg, now)
     fund = {t: sc.funding_avg(data[t]["coin"]) for t in swing}
 
     # 4) records
@@ -804,7 +894,7 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
             core = s[side]
             cr = s["cl"] if side == "long" else s["cs"]
             W = LONG_W if side == "long" else SHORT_W
-            ex = extra_checks(side, coin, smart.get(t), pos.get(t), fund.get(t), fdm, liq)
+            ex = extra_checks(side, coin, smart.get(t), pos.get(t), fund.get(t), fdm, liq, supply_growth(J, t, now))
             plan = plan_of(side, x["price_now"], x["atr"] * x["price_now"] / x["price"], "swing")
             rec = record("swing", side, t, coin, core, cr, W, swing_explain(side, x, cr), ex, plan, x["price_now"],
                          {"chg24": round(x["price_now"] / data[t]["c4"][-6]["c"] - 1, 4) if len(data[t]["c4"]) > 6 else None,
@@ -824,7 +914,7 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
             cr = day_checks(side, y, s[side])
             core = points(cr, DAY_W)
             ex = [e for e in extra_checks(side, coin, smart.get(t), pos.get(t), None, None, liq)
-                  if e[0] in ("smart", "oi", "top", "liq")] + [rsi_check(side, y["rsi1h"])]
+                  if e[0] in ("smart", "lev", "flush", "liq")] + [rsi_check(side, y["rsi1h"])]
             plan = plan_of(side, y["price"], y["atr"], "day")
             rec = record("day", side, t, coin, core, cr, DAY_W, day_explain(side, y, cr, s[side]), ex, plan, y["price"],
                          {"chg24": round(y["r24h"], 4), "spark": spark([b["c"] for b in c1[-48:]]), "hour": y["t"],
