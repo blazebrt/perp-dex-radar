@@ -45,12 +45,16 @@ class FakeExchange:
             self.c15[coin] = out
         self.vol24 = {c: rng.uniform(1.5e6, 4e7) for c in self.coins}
         self.calls = 0
+        self._agg = {}
 
     # ---- responses
     def _candles(self, coin, tf, start, end):
         c = self.c15[coin]
-        if tf == "1h":
-            c = sc.agg_tf(c, 3600)
+        if tf in ("1h", "4h"):
+            key = (coin, tf)
+            if key not in self._agg:
+                self._agg[key] = sc.agg_tf(c, 3600 if tf == "1h" else 14400)
+            c = self._agg[key]
         return [x for x in c if start <= x["t"] <= end]
 
     def fetch(self, url, body=None, timeout=25):
@@ -61,11 +65,22 @@ class FakeExchange:
             coin = sym.replace("_USDT", "")
             if coin not in self.c15:
                 raise sc.HttpError(400, "unknown symbol")
-            tf = {"Min15": "15m", "Min60": "1h"}[q["interval"][0]]
-            rows = self._candles(coin, tf, int(q["start"][0]), int(q["end"][0]))
+            tf = {"Min15": "15m", "Min60": "1h", "Hour4": "4h"}[q["interval"][0]]
+            rows = self._candles(coin, tf, int(q["start"][0]), int(q["end"][0]))[-2000:]
             return {"success": True, "data": {"time": [x["t"] for x in rows], "open": [x["o"] for x in rows],
                                               "high": [x["h"] for x in rows], "low": [x["l"] for x in rows],
                                               "close": [x["c"] for x in rows], "amount": [x["qv"] for x in rows]}}
+        if url.startswith("https://contract.mexc.com/api/v1/contract/funding_rate/history"):
+            q = urllib.parse.parse_qs(url.split("?", 1)[1])
+            coin = q["symbol"][0].replace("_USDT", "")
+            if coin not in self.c15:
+                raise sc.HttpError(400, "unknown symbol")
+            page, size = int(q["page_num"][0]), int(q["page_size"][0])
+            first = self.c15[coin][0]["t"]
+            ts = list(range((self.now // 28800) * 28800, first, -28800))
+            chunk = ts[(page - 1) * size: page * size]
+            return {"success": True, "data": {"totalPage": (len(ts) + size - 1) // size, "resultList": [
+                {"symbol": q["symbol"][0], "fundingRate": 0.0001, "settleTime": t * 1000} for t in chunk]}}
         if url == sc.VAR_STATS:
             return {"listings": [{"ticker": c, "name": c, "mark_price": self.c15[c][-1]["c"],
                                   "volume_24h": self.vol24[c], "funding_rate": 0.05,

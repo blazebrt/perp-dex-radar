@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quant Desk · Perp DEX Radar</title>
+<meta name="description" content="Long and short trend and momentum strategies for perp DEXs, tested on one and three years of data, with live paper trading and a growth planner.">
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --surface-2: #f3f2ef;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --border: rgba(11, 11, 11, 0.10);
+  --s1: #2a78d6;
+  --s2: #eb6834;
+  --s3: #1baf7a;
+  --s4: #eda100;
+  --s1-wash: rgba(42, 120, 214, 0.10);
+  --s2-wash: rgba(235, 104, 52, 0.10);
+  --good: #0ca30c;
+  --good-text: #006300;
+  --bad: #d03b3b;
+  --warn: #fab219;
+  --accent: #2a78d6;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --surface-2: #232321;
+    --ink: #ffffff;
+    --ink-2: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --border: rgba(255, 255, 255, 0.10);
+    --s1: #3987e5;
+    --s2: #d95926;
+    --s3: #199e70;
+    --s4: #c98500;
+    --s1-wash: rgba(57, 135, 229, 0.14);
+    --s2-wash: rgba(217, 89, 38, 0.14);
+    --good-text: #0ca30c;
+    --accent: #3987e5;
+    --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --surface-2: #232321;
+  --ink: #ffffff;
+  --ink-2: #c3c2b7;
+  --muted: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --border: rgba(255, 255, 255, 0.10);
+  --s1: #3987e5;
+  --s2: #d95926;
+  --s3: #199e70;
+  --s4: #c98500;
+  --s1-wash: rgba(57, 135, 229, 0.14);
+  --s2-wash: rgba(217, 89, 38, 0.14);
+  --good-text: #0ca30c;
+  --accent: #3987e5;
+  --shadow: none;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--page);
+  color: var(--ink);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px 64px; }
+header.top {
+  position: sticky; top: 0; z-index: 20;
+  background: color-mix(in srgb, var(--page) 88%, transparent);
+  backdrop-filter: saturate(1.4) blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+header.top .wrap { display: flex; align-items: center; gap: 16px; padding-top: 12px; padding-bottom: 12px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 650; letter-spacing: -0.01em; }
+.brand .logo {
+  width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center;
+  background: var(--ink); color: var(--page); font-size: 14px; font-weight: 700;
+}
+.brand small { color: var(--muted); font-weight: 500; }
+header.top nav { margin-left: auto; display: flex; gap: 14px; align-items: center; font-size: 14px; }
+header.top nav a { color: var(--ink-2); }
+.iconbtn {
+  border: 1px solid var(--border); background: var(--surface); color: var(--ink-2);
+  border-radius: 8px; padding: 5px 9px; cursor: pointer; font: inherit; font-size: 13px;
+}
+.iconbtn:hover { color: var(--ink); }
+h1 { font-size: 30px; line-height: 1.15; letter-spacing: -0.02em; margin: 32px 0 6px; }
+h2 { font-size: 20px; letter-spacing: -0.01em; margin: 0; }
+h3 { font-size: 15px; margin: 0; }
+.lede { color: var(--ink-2); max-width: 760px; margin: 0 0 20px; }
+.section { margin-top: 36px; }
+.section-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.section-head p { color: var(--ink-2); margin: 0; font-size: 14px; }
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  box-shadow: var(--shadow); padding: 18px;
+}
+.controls {
+  display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: end;
+  padding: 14px 18px; margin-top: 8px;
+}
+.controls label { display: grid; gap: 4px; font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.controls input, .controls select {
+  font: inherit; font-size: 15px; color: var(--ink); background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; min-width: 120px;
+}
+.controls .hint { font-size: 13px; color: var(--ink-2); max-width: 520px; }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.tile { padding: 16px 18px; }
+.tile .label { font-size: 13px; color: var(--ink-2); }
+.tile .value { font-size: 28px; font-weight: 650; letter-spacing: -0.02em; margin-top: 2px; }
+.tile .sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.hero { display: grid; grid-template-columns: 1.3fr 1fr; gap: 12px; }
+.hero .big { font-size: 52px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; margin: 6px 0 8px; }
+.pos { color: var(--good-text); }
+.neg { color: var(--bad); }
+.pill {
+  display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 650;
+  padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); white-space: nowrap;
+  color: var(--ink);
+}
+.pill .dot { width: 8px; height: 8px; border-radius: 50%; }
+.pill.long .dot { background: var(--s1); }
+.pill.short .dot { background: var(--s2); }
+.pill.new { background: var(--ink); color: var(--page); border-color: transparent; }
+.pill.live { color: var(--good-text); }
+.pill.live .dot { background: var(--good); }
+.pill.rej .dot { background: var(--muted); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+th { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+tbody tr:hover { background: var(--surface-2); }
+.tablewrap { overflow-x: auto; }
+.muted { color: var(--muted); }
+.ink2 { color: var(--ink-2); }
+.small { font-size: 13px; }
+.strats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.strat h3 { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.strat p { color: var(--ink-2); font-size: 14px; margin: 8px 0 12px; min-height: 84px; }
+.statgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 12px; margin-top: 10px; }
+.statgrid div { font-size: 12px; color: var(--muted); }
+.statgrid b { display: block; font-size: 16px; color: var(--ink); font-weight: 650; }
+.spark { width: 100%; height: 56px; display: block; margin-top: 8px; }
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart .tip {
+  position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 8px 10px; font-size: 13px; box-shadow: 0 6px 24px rgba(0,0,0,.12);
+  min-width: 150px; opacity: 0; transition: opacity .08s; z-index: 5;
+}
+.chart .tip .t { color: var(--muted); font-size: 12px; margin-bottom: 4px; }
+.chart .tip .row { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.chart .tip .row span.k { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); }
+.chart .tip .row span.k i { width: 14px; height: 2px; border-radius: 2px; display: inline-block; }
+.chart .tip .row b { font-variant-numeric: tabular-nums; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--ink-2); margin: 4px 0 10px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 16px; height: 2px; border-radius: 2px; display: inline-block; }
+details.tv { margin-top: 10px; }
+details.tv summary { cursor: pointer; color: var(--ink-2); font-size: 13px; }
+.two { display: grid; grid-template-columns: 1.15fr 1fr; gap: 12px; }
+.planner-out { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 10px 0 4px; }
+.planner-out div { background: var(--surface-2); border-radius: 10px; padding: 10px 12px; }
+.planner-out div .l { font-size: 12px; color: var(--ink-2); }
+.planner-out div .v { font-size: 22px; font-weight: 650; letter-spacing: -0.02em; }
+.callout {
+  border-left: 3px solid var(--warn); background: var(--surface-2); padding: 12px 14px; border-radius: 0 10px 10px 0;
+  color: var(--ink-2); font-size: 14px; margin: 12px 0 0;
+}
+.callout b { color: var(--ink); }
+.toggle { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; color: var(--ink-2); cursor: pointer; }
+.empty { padding: 26px; text-align: center; color: var(--ink-2); }
+.why { color: var(--ink-2); font-size: 13px; max-width: 520px; }
+.foot { color: var(--muted); font-size: 13px; margin-top: 40px; border-top: 1px solid var(--border); padding-top: 16px; }
+.method h3 { margin-top: 14px; }
+.method p, .method li { color: var(--ink-2); font-size: 14px; }
+@media (max-width: 960px) {
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .strats, .two, .hero { grid-template-columns: 1fr; }
+  .planner-out { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .strat p { min-height: 0; }
+}
+@media (max-width: 560px) {
+  h1 { font-size: 24px; }
+  .hero .big { font-size: 40px; }
+  header.top nav .hide-s { display: none; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><div class="logo">Q</div><div>Quant Desk <small>· Perp DEX Radar</small></div></div>
+    <nav>
+      <a class="hide-s" href="#signals">Signals</a>
+      <a class="hide-s" href="#strategies">Strategies</a>
+      <a class="hide-s" href="#planner">Growth planner</a>
+      <a href="index.html">15m radar</a>
+      <button class="iconbtn" id="theme" type="button" aria-label="Switch between light and dark"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="display:block"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <h1>Long and short, only what survived a 3-year test</h1>
+  <p class="lede" id="lede">Loading…</p>
+
+  <div class="card controls" role="group" aria-label="Your account">
+    <label>Account size ($)<input id="acct" type="number" min="10" step="10" inputmode="decimal"></label>
+    <label>Risk per trade<select id="risk"></select></label>
+    <div class="hint" id="riskhint"></div>
+  </div>
+
+  <section class="section">
+    <div class="hero">
+      <div class="card">
+        <div class="ink2 small">Open paper positions right now</div>
+        <div class="big" id="heroOpen">–</div>
+        <div class="ink2 small" id="heroOpenSub"></div>
+      </div>
+      <div class="card">
+        <div class="ink2 small">Market</div>
+        <div id="market" style="margin-top:8px"></div>
+      </div>
+    </div>
+    <div class="kpis" style="margin-top:12px" id="kpis"></div>
+  </section>
+
+  <section class="section" id="signals">
+    <div class="section-head"><h2>Signals and open positions</h2><p id="sigNote"></p></div>
+    <div class="card" style="padding:6px 8px">
+      <div class="tablewrap"><table id="openTable"></table></div>
+    </div>
+  </section>
+
+  <section class="section" id="strategies">
+    <div class="section-head"><h2>Strategies that went live</h2><p>24 strategies were built and tested on real data, long and short. These 3 passed.</p></div>
+    <div class="strats" id="strats"></div>
+  </section>
+
+  <section class="section" id="planner">
+    <div class="section-head"><h2>Growth planner</h2><p id="plannerNote"></p></div>
+    <div class="two">
+      <div class="card">
+        <h3 id="pTitle">Two years from now</h3>
+        <div class="planner-out" id="pOut"></div>
+        <label class="toggle"><input type="checkbox" id="haircut"> Assume live results are only half as good as the backtest</label>
+        <div class="callout" id="pCallout"></div>
+        <details class="tv"><summary>Show every risk level as a table</summary><div class="tablewrap"><table id="pTable"></table></div></details>
+      </div>
+      <div class="card">
+        <h3>Chance of $1M vs chance of losing almost everything</h3>
+        <div class="legend" id="pLegend"></div>
+        <div class="chart" id="pChart"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h3>What the account would have done (real history, three years)</h3>
+      <p class="ink2 small" style="margin:6px 0 0" id="accNote"></p>
+      <div class="legend" id="accLegend"></div>
+      <div class="chart" id="accChart"></div>
+      <details class="tv"><summary>Show as a table</summary><div class="tablewrap"><table id="accTable"></table></div></details>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><h2>Live record</h2><p>Paper trades since this desk started, after fees, slippage and funding.</p></div>
+    <div class="card" style="padding:6px 8px"><div class="tablewrap"><table id="closedTable"></table></div></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><h2>Every strategy tested</h2><p>The honest list: what was tried, what it earned and why it was rejected.</p></div>
+    <div class="card" style="padding:6px 8px"><div class="tablewrap"><table id="allTable"></table></div></div>
+  </section>
+
+  <section class="section method">
+    <div class="section-head"><h2>How this was tested</h2></div>
+    <div class="card" id="method"></div>
+  </section>
+
+  <div class="foot" id="foot"></div>
+</main>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("qd_" + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem("qd_" + k, JSON.stringify(v)); } catch (e) { /* private mode */ } },
+};
+const RISKS = [0.0025, 0.005, 0.0075, 0.01, 0.015, 0.02, 0.03, 0.05, 0.075, 0.1];
+const NAMES = { TSMOM: "Daily trend rider", TREND_EMA: "4-hour trend crossover", XSMOM: "Momentum rotation" };
+let Q = null, R = null;
+
+// ------------------------------------------------------------------ formatting
+const fmtUsd = (x) => {
+  if (x === null || x === undefined || !isFinite(x)) return "–";
+  const a = Math.abs(x);
+  if (a >= 1e6) return "$" + (x / 1e6).toFixed(a >= 1e7 ? 1 : 2) + "M";
+  if (a >= 1e4) return "$" + (x / 1e3).toFixed(0) + "K";
+  if (a >= 1e3) return "$" + (x / 1e3).toFixed(1) + "K";
+  if (a >= 100) return "$" + x.toFixed(0);
+  return "$" + x.toFixed(2);
+};
+const fmtPrice = (x) => {
+  if (!x && x !== 0) return "–";
+  const a = Math.abs(x);
+  const d = a >= 1000 ? 1 : a >= 100 ? 2 : a >= 10 ? 3 : a >= 1 ? 4 : a >= 0.1 ? 5 : a >= 0.01 ? 6 : 8;
+  return x.toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
+};
+const pct = (x, d = 1) => (x === null || x === undefined || !isFinite(x)) ? "–" : (x * 100).toFixed(d) + "%";
+const sgn = (x, d = 2) => {
+  if (x === null || x === undefined || !isFinite(x)) return "–";
+  if (Math.abs(x) < 0.5 * Math.pow(10, -d)) return (0).toFixed(d);
+  return (x >= 0 ? "+" : "−") + Math.abs(x).toFixed(d);
+};
+const tone = (x) => (x === null || x === undefined || !isFinite(x) || Math.abs(x) < 0.005) ? "" : x > 0 ? "pos" : "neg";
+const prob = (p) => {
+  if (p === null || p === undefined) return "–";
+  if (p === 0) return "0%";
+  if (p < 0.001) return "<0.1%";
+  if (p < 0.01) return (p * 100).toFixed(1) + "%";
+  if (p > 0.995 && p < 1) return ">99%";
+  return Math.round(p * 100) + "%";
+};
+const dt = (ts) => new Date(ts * 1000).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+const dshort = (ts) => new Date(ts * 1000).toLocaleDateString(undefined, { month: "short", year: "2-digit" });
+const el = (tag, attrs = {}, kids = []) => {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") e.className = v; else if (k === "text") e.textContent = v; else e.setAttribute(k, v);
+  }
+  for (const k of [].concat(kids)) if (k !== null && k !== undefined) e.append(k.nodeType ? k : document.createTextNode(String(k)));
+  return e;
+};
+const cssVar = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+// ------------------------------------------------------------------ theme
+(function initTheme() {
+  const t = store.get("theme", null);
+  if (t) document.documentElement.setAttribute("data-theme", t);
+  $("theme").addEventListener("click", () => {
+    const cur = document.documentElement.getAttribute("data-theme") ||
+      (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    const next = cur === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    store.set("theme", next);
+    renderCharts();
+  });
+})();
+
+// ------------------------------------------------------------------ account controls
+function account() { const v = parseFloat($("acct").value); return isFinite(v) && v > 0 ? v : 500; }
+function risk() { return parseFloat($("risk").value) || 0.005; }
+function initControls() {
+  const sel = $("risk");
+  for (const r of RISKS) sel.append(el("option", { value: r, text: (r * 100).toFixed(r < 0.01 ? 2 : 1).replace(/\.?0+$/, "") + "% of the account" }));
+  $("acct").value = store.get("acct", (Q && Q.settings && Q.settings.account) || 500);
+  sel.value = String(store.get("risk", 0.0075));
+  if (!sel.value) sel.value = "0.0075";
+  const changed = () => { store.set("acct", account()); store.set("risk", risk()); renderAll(); };
+  $("acct").addEventListener("input", changed);
+  sel.addEventListener("change", changed);
+  $("haircut").checked = store.get("haircut", false);
+  $("haircut").addEventListener("change", () => { store.set("haircut", $("haircut").checked); renderPlanner(); });
+}
+
+// ------------------------------------------------------------------ position size
+function sizeFor(entry, stopPct) {
+  const A = account(), f = risk();
+  const riskUsd = A * f;
+  const notional = riskUsd / stopPct;
+  return { riskUsd, notional, lev: notional / A, qty: entry ? notional / entry : null };
+}
+
+// ------------------------------------------------------------------ renderers
+function renderHeader() {
+  const P = R && R.portfolio;
+  const ok = R ? Object.values(R.strategies).filter((s) => s.verdict === "live").length : 3;
+  const tested = R ? Object.keys(R.strategies).length : 24;
+  $("lede").textContent = `${tested} strategies were built and tested on a year of hourly data and three years of 4-hour data from the coins that trade on your DEXs, long and short, after fees, slippage and funding. ${ok} passed. They are traded on paper here on every scan, and the growth planner shows what different risk levels would have done.`;
+  const A = account(), f = risk();
+  const k = P ? P.kelly : null;
+  $("riskhint").textContent = `Each trade risks ${fmtUsd(A * f)} (the loss if its stop is hit). ` +
+    (k ? `Maximum-growth risk from the backtest is about ${pct(k, 1)} per trade; half of it (${pct(k / 2, 2)}) keeps the chance of losing 90% near zero.` : "");
+}
+
+function renderMarket() {
+  const m = Q && Q.market;
+  const box = $("market");
+  box.textContent = "";
+  if (!m || !m.btc) { box.append(el("div", { class: "ink2 small", text: "Waiting for the first scan of the quant desk." })); return; }
+  const b = m.btc;
+  const trend = b.trend === "up" ? "Uptrend" : b.trend === "down" ? "Downtrend" : "Mixed";
+  box.append(el("div", { style: "font-size:24px;font-weight:650" }, [`BTC ${trend}`]));
+  box.append(el("div", { class: "ink2 small" }, [`30 days ${sgn(b.r30 * 100, 1)}% · 7 days ${sgn(b.r7 * 100, 1)}% · price ${b.price > b.ema50 ? "above" : "below"} its 50-day EMA`]));
+  const tot = (m.above_ema50 || 0) + (m.below_ema50 || 0);
+  if (tot) box.append(el("div", { class: "ink2 small", style: "margin-top:6px" }, [`${m.above_ema50} of ${tot} coins above their 50-day EMA`]));
+  box.append(el("div", { class: "muted small", style: "margin-top:6px" }, ["The strategies go long or short with each coin's own trend, so they do not need the market to go up."]));
+}
+
+function renderKpis() {
+  const box = $("kpis");
+  box.textContent = "";
+  const P = R && R.portfolio;
+  const live = Q && Q.live_all;
+  const tiles = [];
+  tiles.push(["Backtest, 3 years", P ? sgn(P.all_trades.avg) + "R" : "–", P ? `per trade after costs · ${P.all_trades.n.toLocaleString()} trades` : ""]);
+  tiles.push(["Better than random entries", P ? sgn(P.all_trades.edge) + "R" : "–", P ? `± ${P.all_trades.edge_se.toFixed(2)}R per trade (same moments, random coins)` : ""]);
+  tiles.push(["Return / swings (Sharpe)", P ? P.sharpe.toFixed(2) : "–", "a year, all three strategies together"]);
+  tiles.push(["Live paper record", live && live.n ? sgn(live.sum, 1) + "R" : "0 trades", live && live.n ? `${live.n} closed · ${pct(live.wr, 0)} winners · avg ${sgn(live.avg)}R` : "builds up from the first scan"]);
+  for (const [l, v, s] of tiles) box.append(el("div", { class: "card tile" }, [el("div", { class: "label", text: l }), el("div", { class: "value", text: v }), el("div", { class: "sub", text: s })]));
+}
+
+function renderOpen() {
+  const t = $("openTable");
+  t.textContent = "";
+  const open = (Q && Q.open) || [];
+  const fresh = new Set(((Q && Q.signals) || []).map((s) => `${s.c}-${s.s}-${s.t}`));
+  $("heroOpen").textContent = open.length;
+  const longs = open.filter((x) => x.d > 0).length;
+  $("heroOpenSub").textContent = open.length ? `${longs} long · ${open.length - longs} short · ${fresh.size} new this scan` : "None right now.";
+  $("sigNote").textContent = "Sizes use your account and risk above. Orders: enter at market, place the stop, move it as the trailing stop moves.";
+  const head = el("tr", {}, ["Coin", "Side", "Strategy", "Entered", "Entry", "Stop now", "P&L", "Your size", "Exit by"].map((h, i) => el("th", { class: i >= 4 && i <= 7 ? "num" : "", text: h })));
+  t.append(el("thead", {}, head));
+  const body = el("tbody");
+  if (!open.length) {
+    body.append(el("tr", {}, el("td", { colspan: 9, class: "empty", text: "No open positions. New signals come after the 4-hour closes (00, 04, 08, 12, 16 and 20 UTC) and the daily close (00 UTC)." })));
+  }
+  open.sort((a, b) => b.t_in - a.t_in);
+  for (const x of open) {
+    const res = x.res || {};
+    const sz = sizeFor(x.px, x.stop_pct);
+    const stopNow = res.stop_now || x.stop;
+    const last = res.last_px;
+    const dist = last && stopNow ? Math.abs(last - stopNow) / last : null;
+    const side = el("span", { class: "pill " + (x.d > 0 ? "long" : "short") }, [el("span", { class: "dot" }), x.d > 0 ? "Long" : "Short"]);
+    const coin = el("td", {}, [el("b", { text: x.c })]);
+    if (fresh.has(`${x.c}-${x.s}-${x.t_in}`)) coin.append(" ", el("span", { class: "pill new", text: "NEW" }));
+    const pnl = res.r === undefined || res.r === null ? "–" : sgn(res.r) + "R";
+    const pnlTd = el("td", { class: "num " + tone(res.r) }, [pnl, el("div", { class: "muted small", text: last && x.px ? sgn((x.d * (last - x.px) / x.px) * 100, 1) + "%" : "" })]);
+    const small = sz.notional < 10 ? el("div", { class: "neg small", text: "below the $10 minimum order" }) : null;
+    body.append(el("tr", {}, [
+      coin, el("td", {}, side), el("td", { class: "ink2", text: NAMES[x.s] || x.s }),
+      el("td", { class: "ink2", text: dt(x.t_in) }),
+      el("td", { class: "num", text: x.px ? fmtPrice(x.px) : "next open" }),
+      el("td", { class: "num" }, [stopNow ? fmtPrice(stopNow) : "–", el("div", { class: "muted small", text: dist ? pct(dist, 1) + " away" + (x.trail_pct ? " · trailing" : "") : "" })]),
+      pnlTd,
+      el("td", { class: "num" }, [fmtUsd(sz.notional), el("div", { class: "muted small", text: `risk ${fmtUsd(sz.riskUsd)} · ${sz.lev.toFixed(2)}×` }), small]),
+      el("td", { class: "ink2 small", text: dt(x.t_in + x.hold_h * 3600) }),
+    ]));
+  }
+  t.append(body);
+}
+
+function sparkline(svgParent, values) {
+  const W = 300, Hh = 56, pad = 3;
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${Hh}`);
+  svg.setAttribute("class", "spark");
+  svg.setAttribute("preserveAspectRatio", "none");
+  svg.setAttribute("aria-hidden", "true");
+  if (!values || values.length < 2) { svgParent.append(svg); return; }
+  const lo = Math.min(0, ...values), hi = Math.max(0, ...values);
+  const x = (i) => pad + (i / (values.length - 1)) * (W - 2 * pad);
+  const y = (v) => Hh - pad - ((v - lo) / (hi - lo || 1)) * (Hh - 2 * pad);
+  const zero = document.createElementNS(svg.namespaceURI, "line");
+  zero.setAttribute("x1", pad); zero.setAttribute("x2", W - pad); zero.setAttribute("y1", y(0)); zero.setAttribute("y2", y(0));
+  zero.setAttribute("stroke", "var(--axis)"); zero.setAttribute("stroke-width", "1"); zero.setAttribute("vector-effect", "non-scaling-stroke");
+  svg.append(zero);
+  const area = document.createElementNS(svg.namespaceURI, "path");
+  let d = `M${x(0)},${y(0)}`;
+  values.forEach((v, i) => { d += ` L${x(i)},${y(v)}`; });
+  d += ` L${x(values.length - 1)},${y(0)} Z`;
+  area.setAttribute("d", d); area.setAttribute("fill", "var(--s1-wash)");
+  svg.append(area);
+  const line = document.createElementNS(svg.namespaceURI, "path");
+  line.setAttribute("d", values.map((v, i) => `${i ? "L" : "M"}${x(i)},${y(v)}`).join(" "));
+  line.setAttribute("fill", "none"); line.setAttribute("stroke", "var(--s1)"); line.setAttribute("stroke-width", "2");
+  line.setAttribute("stroke-linejoin", "round"); line.setAttribute("vector-effect", "non-scaling-stroke");
+  svg.append(line);
+  svgParent.append(svg);
+}
+
+function renderStrats() {
+  const box = $("strats");
+  box.textContent = "";
+  if (!R) return;
+  for (const [sid, s] of Object.entries(R.strategies)) {
+    if (s.verdict !== "live") continue;
+    const live = (Q && Q.live && Q.live[sid]) || { n: 0 };
+    const desc = (Q && Q.strategies && Q.strategies[sid] && Q.strategies[sid].desc) || s.desc;
+    const y3 = s.three_year || {}, y1 = s.one_year || {};
+    const card = el("div", { class: "card strat" }, [
+      el("h3", {}, [s.name, el("span", { class: "pill live" }, [el("span", { class: "dot" }), "Live"])]),
+      el("div", { class: "muted small", text: `${s.tf === "1d" ? "Daily bars" : "4-hour bars"} · long and short · ${s.family}` }),
+      el("p", { text: desc }),
+    ]);
+    const g = el("div", { class: "statgrid" });
+    const cell = (l, v, cls = "") => el("div", {}, [l, el("b", { class: cls, text: v })]);
+    g.append(cell("3 years / trade", sgn(y3.avg) + "R", tone(y3.avg)));
+    g.append(cell("Last year / trade", sgn(y1.avg) + "R", tone(y1.avg)));
+    g.append(cell("vs random", sgn(y3.edge) + "R"));
+    g.append(cell("Winners", pct(y3.wr, 0)));
+    g.append(cell("Profit factor", y3.pf ? y3.pf.toFixed(2) : "–"));
+    g.append(cell("Worst run", y3.maxdd ? "−" + y3.maxdd.toFixed(0) + "R" : "–"));
+    card.append(g);
+    const sp = el("div", {});
+    sparkline(sp, s.curve_3y || s.curve_1y);
+    card.append(sp);
+    card.append(el("div", { class: "muted small", text: `Profit in R over three years (${(y3.n || 0).toLocaleString()} trades) · live so far: ${live.n ? `${live.n} trades, ${sgn(live.sum, 1)}R` : "no closed trades yet"} · open now: ${(Q && Q.strategies && Q.strategies[sid] && Q.strategies[sid].open) || 0}` }));
+    box.append(card);
+  }
+}
+
+function plannerRows() {
+  const P = R && R.portfolio;
+  if (!P) return [];
+  return P.planner[$("haircut").checked ? "0.5" : "0.0"] || [];
+}
+
+function renderPlanner() {
+  const rows = plannerRows();
+  const A = account();
+  const f = risk();
+  const row = rows.find((r) => Math.abs(r.risk - f) < 1e-9) || rows[0];
+  const mult = A / ((R && R.portfolio && R.portfolio.start) || 500);
+  $("plannerNote").textContent = "Thousands of two-year paths built from real 5-day stretches of the three strategies' trades.";
+  $("pTitle").textContent = `Two years from now, risking ${pct(f, f < 0.01 ? 2 : 1)} per trade on ${fmtUsd(A)}`;
+  const out = $("pOut");
+  out.textContent = "";
+  if (!row) return;
+  const box = (l, v, cls = "") => el("div", {}, [el("div", { class: "l", text: l }), el("div", { class: "v " + cls, text: v })]);
+  out.append(box("Typical result (median)", fmtUsd(row.median * mult)));
+  out.append(box("Bad case (1 in 10)", fmtUsd(row.p10 * mult)));
+  out.append(box("Good case (1 in 10)", fmtUsd(row.p90 * mult)));
+  out.append(box("Chance of a loss", prob(row.p_loss), row.p_loss > 0.3 ? "neg" : ""));
+  out.append(box(`Reach ${fmtUsd(20 * A)}`, prob(row.p_10000)));
+  out.append(box(`Reach ${fmtUsd(200 * A)}`, prob(row.p_100000)));
+  out.append(box(`Reach ${fmtUsd(2000 * A)}`, prob(row.p_1000000)));
+  out.append(box("Lose 90% or more", prob(row.p_ruin), row.p_ruin > 0.05 ? "neg" : ""));
+  const k = R.portfolio.kelly;
+  const c = $("pCallout");
+  c.textContent = "";
+  c.append(el("b", { text: "The honest read: " }));
+  c.append(`At this level the account drops 50% at some point in ${prob(row.p_dd50)} of the paths. `);
+  c.append(`$${A.toLocaleString()} to ${fmtUsd(2000 * A)} in two years is a long shot at any risk level. Growth peaks near ${pct(k, 1)} per trade (the maximum-growth level); above it, extra risk mostly raises the chance of losing everything while the typical result shrinks. ${pct(k / 2, 2)} per trade (half of the maximum) is the most aggressive level that keeps a 90% loss very unlikely. Past results do not guarantee future ones.`);
+  // table
+  const t = $("pTable");
+  t.textContent = "";
+  t.append(el("thead", {}, el("tr", {}, ["Risk / trade", "Median", "Bad case", "Good case", `${fmtUsd(20 * A)}+`, `${fmtUsd(200 * A)}+`, `${fmtUsd(2000 * A)}+`, "−50% on the way", "Lose 90%"].map((h, i) => el("th", { class: i ? "num" : "", text: h })))));
+  const tb = el("tbody");
+  for (const r of rows) {
+    tb.append(el("tr", { style: Math.abs(r.risk - f) < 1e-9 ? "background:var(--surface-2)" : "" }, [
+      el("td", { text: pct(r.risk, r.risk < 0.01 ? 2 : 1) }), el("td", { class: "num", text: fmtUsd(r.median * mult) }),
+      el("td", { class: "num", text: fmtUsd(r.p10 * mult) }), el("td", { class: "num", text: fmtUsd(r.p90 * mult) }),
+      el("td", { class: "num", text: prob(r.p_10000) }), el("td", { class: "num", text: prob(r.p_100000) }),
+      el("td", { class: "num", text: prob(r.p_1000000) }), el("td", { class: "num", text: prob(r.p_dd50) }),
+      el("td", { class: "num", text: prob(r.p_ruin) }),
+    ]));
+  }
+  t.append(tb);
+  renderPlannerChart();
+}
+
+// ------------------------------------------------------------------ line chart (one y axis, crosshair tooltip)
+function lineChart(host, opts) {
+  host.textContent = "";
+  const W = Math.max(320, host.clientWidth || 600), Hh = opts.height || 280;
+  const m = { l: 56, r: opts.endLabels ? 74 : 16, t: 12, b: 30 };
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${Hh}`);
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", opts.label || "chart");
+  const xs = opts.x; // array of x values (numbers)
+  const all = opts.series.flatMap((s) => s.values.filter((v) => v !== null && isFinite(v)));
+  let lo = opts.yMin !== undefined ? opts.yMin : Math.min(...all), hi = opts.yMax !== undefined ? opts.yMax : Math.max(...all);
+  const T = opts.log ? (v) => Math.log10(Math.max(v, 1e-9)) : (v) => v;
+  let tlo = T(lo), thi = T(hi);
+  if (thi - tlo < 1e-9) { thi += 1; tlo -= 1; }
+  const px = (i) => m.l + (i / (xs.length - 1)) * (W - m.l - m.r);
+  const py = (v) => m.t + (1 - (T(v) - tlo) / (thi - tlo)) * (Hh - m.t - m.b);
+  const g = (tag, attrs) => { const e = document.createElementNS(svgNS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); return e; };
+  // grid + y ticks
+  const ticks = opts.yTicks || [];
+  for (const v of ticks) {
+    if (T(v) < tlo - 1e-9 || T(v) > thi + 1e-9) continue;
+    svg.append(g("line", { x1: m.l, x2: W - m.r, y1: py(v), y2: py(v), stroke: "var(--grid)", "stroke-width": 1 }));
+    const tx = g("text", { x: m.l - 8, y: py(v) + 4, "text-anchor": "end", fill: "var(--muted)", "font-size": 11 });
+    tx.textContent = opts.yFmt(v);
+    svg.append(tx);
+  }
+  // x labels
+  const xl = opts.xLabels || [];
+  for (const [i, lab] of xl) {
+    const tx = g("text", { x: px(i), y: Hh - 8, "text-anchor": "middle", fill: "var(--muted)", "font-size": 11 });
+    tx.textContent = lab;
+    svg.append(tx);
+  }
+  svg.append(g("line", { x1: m.l, x2: W - m.r, y1: Hh - m.b, y2: Hh - m.b, stroke: "var(--axis)", "stroke-width": 1 }));
+  // series
+  for (const s of opts.series) {
+    let d = "";
+    s.values.forEach((v, i) => { if (v === null || !isFinite(v)) return; d += (d ? " L" : "M") + px(i).toFixed(1) + "," + py(v).toFixed(1); });
+    svg.append(g("path", { d, fill: "none", stroke: s.color, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+    if (opts.markers) s.values.forEach((v, i) => svg.append(g("circle", { cx: px(i), cy: py(v), r: 4, fill: s.color, stroke: "var(--surface)", "stroke-width": 2 })));
+  }
+  // end labels (text in ink, mark beside it carries the color)
+  if (opts.endLabels) {
+    const ends = opts.series.map((s) => ({ s, v: s.values[s.values.length - 1] })).filter((e) => e.v !== null && isFinite(e.v));
+    ends.sort((a, b) => py(a.v) - py(b.v));
+    let lastY = -1e9;
+    for (const e of ends) {
+      let y = py(e.v);
+      if (y - lastY < 14) y = lastY + 14;
+      lastY = y;
+      svg.append(g("circle", { cx: px(xs.length - 1), cy: py(e.v), r: 4, fill: e.s.color, stroke: "var(--surface)", "stroke-width": 2 }));
+      const tx = g("text", { x: W - m.r + 8, y: y + 4, fill: "var(--ink-2)", "font-size": 12, "font-weight": 600 });
+      tx.textContent = opts.endFmt(e.v);
+      svg.append(tx);
+    }
+  }
+  // highlight (selected x)
+  if (opts.highlight !== undefined && opts.highlight >= 0) {
+    svg.append(g("line", { x1: px(opts.highlight), x2: px(opts.highlight), y1: m.t, y2: Hh - m.b, stroke: "var(--axis)", "stroke-width": 1 }));
+  }
+  // crosshair + tooltip
+  const cross = g("line", { x1: 0, x2: 0, y1: m.t, y2: Hh - m.b, stroke: "var(--muted)", "stroke-width": 1, opacity: 0 });
+  svg.append(cross);
+  const hit = g("rect", { x: m.l, y: m.t, width: W - m.l - m.r, height: Hh - m.t - m.b, fill: "transparent", tabindex: 0 });
+  svg.append(hit);
+  host.append(svg);
+  const tip = el("div", { class: "tip", role: "status" });
+  host.append(tip);
+  const show = (i) => {
+    i = Math.max(0, Math.min(xs.length - 1, i));
+    cross.setAttribute("x1", px(i)); cross.setAttribute("x2", px(i)); cross.setAttribute("opacity", 1);
+    tip.textContent = "";
+    tip.append(el("div", { class: "t", text: opts.xFmt(xs[i]) }));
+    for (const s of opts.series) {
+      const k = el("span", { class: "k" }, [el("i", { style: `background:${s.color}` }), s.name]);
+      tip.append(el("div", { class: "row" }, [el("b", { text: opts.tipFmt(s.values[i]) }), k]));
+    }
+    const rect = host.getBoundingClientRect();
+    const sx = rect.width / W;
+    let left = px(i) * sx + 12;
+    if (left + 190 > rect.width) left = px(i) * sx - 200;
+    tip.style.left = Math.max(0, left) + "px";
+    tip.style.top = (m.t * sx + 4) + "px";
+    tip.style.opacity = 1;
+  };
+  const idxFrom = (ev) => {
+    const rect = svg.getBoundingClientRect();
+    const xv = (ev.clientX - rect.left) * (W / rect.width);
+    return Math.round(((xv - m.l) / (W - m.l - m.r)) * (xs.length - 1));
+  };
+  hit.addEventListener("pointermove", (ev) => show(idxFrom(ev)));
+  hit.addEventListener("pointerleave", () => { tip.style.opacity = 0; cross.setAttribute("opacity", 0); });
+  let kb = xs.length - 1;
+  hit.addEventListener("focus", () => show(kb));
+  hit.addEventListener("blur", () => { tip.style.opacity = 0; cross.setAttribute("opacity", 0); });
+  hit.addEventListener("keydown", (ev) => {
+    if (ev.key === "ArrowLeft") { kb = Math.max(0, kb - 1); show(kb); ev.preventDefault(); }
+    if (ev.key === "ArrowRight") { kb = Math.min(xs.length - 1, kb + 1); show(kb); ev.preventDefault(); }
+  });
+}
+
+function legend(host, items) {
+  host.textContent = "";
+  for (const [name, color] of items) host.append(el("span", {}, [el("i", { style: `background:${color}` }), name]));
+}
+
+function renderPlannerChart() {
+  const rows = plannerRows();
+  if (!rows.length) return;
+  const A = account();
+  const c1 = cssVar("--s1"), c2 = cssVar("--s2");
+  legend($("pLegend"), [[`Reach ${fmtUsd(2000 * A)} in 2 years`, c1], ["Lose 90% or more", c2]]);
+  const f = risk();
+  lineChart($("pChart"), {
+    label: "Chance of reaching 2000 times the account and of losing 90%, by risk per trade",
+    x: rows.map((r) => r.risk),
+    series: [{ name: `Reach ${fmtUsd(2000 * A)}`, color: c1, values: rows.map((r) => r.p_1000000 * 100) },
+             { name: "Lose 90%+", color: c2, values: rows.map((r) => r.p_ruin * 100) }],
+    yMin: 0, yMax: 100, yTicks: [0, 25, 50, 75, 100], yFmt: (v) => v + "%",
+    xLabels: rows.map((r, i) => [i, (r.risk * 100).toFixed(r.risk < 0.01 ? 2 : 1).replace(/\.?0+$/, "") + "%"]).filter((_, i) => i % 1 === 0),
+    xFmt: (x) => `Risk ${(x * 100).toFixed(x < 0.01 ? 2 : 1)}% per trade`,
+    tipFmt: (v) => (v < 0.1 && v > 0 ? "<0.1" : v.toFixed(v < 10 ? 1 : 0)) + "%",
+    markers: true, highlight: rows.findIndex((r) => Math.abs(r.risk - f) < 1e-9), height: 260,
+  });
+}
+
+function renderAccount() {
+  const P = R && R.portfolio;
+  if (!P) return;
+  const A = account();
+  const mult = A / (P.start || 500);
+  const pick = P.accounts.filter((a) => [0.0025, 0.005, 0.01, 0.02].some((r) => Math.abs(a.risk - r) < 1e-9));
+  const colors = [cssVar("--s1"), cssVar("--s3"), cssVar("--s4"), cssVar("--s2")];
+  const w0 = R.window_3y[0];
+  const n = Math.max(...pick.map((a) => a.curve.length));
+  const xs = Array.from({ length: n }, (_, i) => w0 + i * 7 * 86400);
+  const series = pick.map((a, k) => ({ name: `${(a.risk * 100).toFixed(a.risk < 0.01 ? 2 : 0).replace(/\.?0+$/, "")}% risk`, color: colors[k], values: a.curve.map((v) => v * mult) }));
+  legend($("accLegend"), series.map((s) => [s.name, s.color]));
+  const best = P.accounts.reduce((a, b) => (b.final > a.final ? b : a));
+  $("accNote").textContent = `${fmtUsd(A)} started on ${new Date(w0 * 1000).toLocaleDateString(undefined, { month: "short", year: "numeric" })}, all three strategies, up to 60 positions at once. Too much risk per trade backfires: the ${pct(best.risk, best.risk < 0.01 ? 2 : 0)} line ends highest; at 2% the drawdowns (worst ${pct(P.accounts.find((a) => Math.abs(a.risk - 0.02) < 1e-9).maxdd, 0)}) eat the gains.`;
+  const lo = Math.min(...series.flatMap((s) => s.values)), hi = Math.max(...series.flatMap((s) => s.values));
+  const ticks = [];
+  for (let e = Math.floor(Math.log10(lo)); e <= Math.ceil(Math.log10(hi)); e++) for (const k of [1, 2, 5]) ticks.push(k * Math.pow(10, e));
+  const months = [];
+  let lastM = -1;
+  xs.forEach((x, i) => { const d = new Date(x * 1000); const k = d.getFullYear() * 12 + d.getMonth(); if (d.getMonth() % 6 === 0 && k !== lastM) { months.push([i, dshort(x)]); lastM = k; } });
+  lineChart($("accChart"), {
+    label: "Account value over three years at four risk levels", x: xs, series, log: true, yMin: lo * 0.9, yMax: hi * 1.1,
+    yTicks: ticks, yFmt: fmtUsd, xLabels: months, xFmt: (x) => "Week of " + new Date(x * 1000).toLocaleDateString(),
+    tipFmt: fmtUsd, endLabels: true, endFmt: fmtUsd, height: 300,
+  });
+  const t = $("accTable");
+  t.textContent = "";
+  t.append(el("thead", {}, el("tr", {}, ["Risk / trade", "End value", "Multiple", "Worst drop", "Trades"].map((h, i) => el("th", { class: i ? "num" : "", text: h })))));
+  const tb = el("tbody");
+  for (const a of P.accounts) tb.append(el("tr", {}, [el("td", { text: pct(a.risk, a.risk < 0.01 ? 2 : 0) }), el("td", { class: "num", text: fmtUsd(a.final * mult) }),
+    el("td", { class: "num", text: a.multiple.toFixed(2) + "×" }), el("td", { class: "num", text: "−" + pct(a.maxdd, 0) }), el("td", { class: "num", text: a.taken.toLocaleString() })]));
+  t.append(tb);
+}
+
+function renderClosed() {
+  const t = $("closedTable");
+  t.textContent = "";
+  const rows = ((Q && Q.closed) || []).slice().reverse().slice(0, 60);
+  t.append(el("thead", {}, el("tr", {}, ["Coin", "Side", "Strategy", "Entered", "Closed", "Exit", "Result"].map((h, i) => el("th", { class: i === 6 ? "num" : "", text: h })))));
+  const tb = el("tbody");
+  if (!rows.length) tb.append(el("tr", {}, el("td", { colspan: 7, class: "empty", text: "No closed paper trades yet. Trend trades often run for days or weeks." })));
+  const why = { stop: "stop", trail: "trailing stop", time: "time limit", gap: "gap through the stop" };
+  for (const x of rows) {
+    const side = el("span", { class: "pill " + (x.d > 0 ? "long" : "short") }, [el("span", { class: "dot" }), x.d > 0 ? "Long" : "Short"]);
+    tb.append(el("tr", {}, [el("td", {}, el("b", { text: x.c })), el("td", {}, side), el("td", { class: "ink2", text: NAMES[x.s] || x.s }),
+      el("td", { class: "ink2", text: dt(x.t_in) }), el("td", { class: "ink2", text: x.t_out ? dt(x.t_out) : "–" }),
+      el("td", { class: "ink2", text: why[(x.res || {}).state] || "" }),
+      el("td", { class: "num " + tone(x.r), text: sgn(x.r) + "R" })]));
+  }
+  t.append(tb);
+}
+
+function renderAll_tested() {
+  const t = $("allTable");
+  t.textContent = "";
+  if (!R) return;
+  t.append(el("thead", {}, el("tr", {}, ["Strategy", "Bars", "Last year / trade", "3 years / trade", "Trades (1y)", "vs random", "Verdict"].map((h, i) => el("th", { class: i >= 2 && i <= 5 ? "num" : "", text: h })))));
+  const tb = el("tbody");
+  const entries = Object.entries(R.strategies).sort((a, b) => (a[1].verdict === "live" ? -1 : 0) - (b[1].verdict === "live" ? -1 : 0) || ((b[1].three_year || b[1].one_year || {}).avg || -9) - ((a[1].three_year || a[1].one_year || {}).avg || -9));
+  for (const [sid, s] of entries) {
+    const y1 = s.one_year || {}, y3 = s.three_year || {};
+    const v = s.verdict === "live" ? el("span", { class: "pill live" }, [el("span", { class: "dot" }), "Live"]) : el("span", { class: "pill rej" }, [el("span", { class: "dot" }), "Rejected"]);
+    tb.append(el("tr", {}, [
+      el("td", {}, [el("b", { text: s.name }), el("div", { class: "why", text: s.desc })]),
+      el("td", { class: "ink2", text: s.tf }),
+      el("td", { class: "num " + tone(y1.avg), text: y1.n ? sgn(y1.avg) + "R" : "–" }),
+      el("td", { class: "num " + tone(y3.avg), text: y3.n ? sgn(y3.avg) + "R" : "–" }),
+      el("td", { class: "num", text: (y1.n || 0).toLocaleString() }),
+      el("td", { class: "num", text: y3.edge !== undefined && y3.edge !== null ? sgn(y3.edge) + "R" : (y1.edge !== undefined && y1.edge !== null ? sgn(y1.edge) + "R" : "–") }),
+      el("td", {}, [v, el("div", { class: "why", text: s.why })]),
+    ]));
+  }
+  t.append(tb);
+}
+
+function renderMethod() {
+  const b = $("method");
+  b.textContent = "";
+  if (!R) return;
+  const d = (ts) => new Date(ts * 1000).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+  const items = [
+    ["Data", `Hourly candles for ${R.coins_1y} coins that trade on your DEXs (${d(R.window_1y[0])} to ${d(R.window_1y[1])}) and 4-hour candles for ${R.coins_3y} coins back to ${d(R.window_3y[0])}, from MEXC futures (Gate.io where MEXC has none), with MEXC funding history. A coin is only traded after 30 days of history and with $5M+ a day of volume.`],
+    ["Costs", `Every trade pays a 0.045% taker fee each way, slippage by liquidity (0.05% for coins with $1M+ a day on your DEXs, more for thinner ones) and funding while it is held (longs pay positive funding, shorts receive it).`],
+    ["No peeking", `Signals use closed bars only and are entered at the open of the next hour. A bar that touches both the stop and the target counts as a loss, trailing stops move only at the close of a bar, and gaps through a stop exit at the open. The live desk runs the same code: its signals match the research engine trade for trade.`],
+    ["Honest yardstick", `Each trade is compared with a random twin: the same order, same direction and same exits, on a random other coin at the same moment. A strategy only counts if it beats its twins, not just a rising or falling market.`],
+    ["Out of sample", `The last year was split into the first 8 months and the last 4; the three live strategies made money in both, and again over three years on 4-hour data. Their settings are textbook defaults, not tuned to this data; changing them a little keeps them positive (all 18 trend-rider variants and 96% of 135 crossover variants were positive over three years).`],
+    ["What can still go wrong", `Today's coin list is used for the past, so coins that were delisted are missing. Trend strategies lose in sideways markets (2025 was flat to slightly negative) and rely on a few big winners. Live results usually fall short of backtests; the planner's 'half as good' switch shows that case. This is research and paper trading, not financial advice.`],
+  ];
+  for (const [h, p] of items) { b.append(el("h3", { text: h })); b.append(el("p", { text: p })); }
+}
+
+function renderFoot() {
+  const parts = [];
+  if (Q) parts.push(`Last scan ${dt(Q.generated)} · ${Q.coins} coins checked · quant desk ${Q.version}`);
+  if (R) parts.push(`research of ${new Date(R.generated * 1000).toLocaleDateString()}`);
+  parts.push("Paper trading only. Not financial advice: only risk money you can afford to lose.");
+  $("foot").textContent = parts.join(" · ");
+}
+
+function renderCharts() { renderPlannerChart(); renderAccount(); }
+function renderAll() {
+  renderHeader(); renderMarket(); renderKpis(); renderOpen(); renderStrats(); renderPlanner(); renderAccount();
+  renderClosed(); renderAll_tested(); renderMethod(); renderFoot();
+}
+
+async function load() {
+  const get = async (p) => { try { const r = await fetch(p + "?ts=" + Date.now(), { cache: "no-store" }); return r.ok ? await r.json() : null; } catch (e) { return null; } };
+  [Q, R] = await Promise.all([get("data/quant.json"), get("data/quant_research.json")]);
+  initControls();
+  renderAll();
+  let rt = null;
+  addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(renderCharts, 150); });
+  setInterval(async () => { const q = await get("data/quant.json"); if (q && (!Q || q.generated !== Q.generated)) { Q = q; renderAll(); } }, 5 * 60 * 1000);
+}
+load();
+</script>
+</body>
+</html>

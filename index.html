@@ -416,6 +416,8 @@ td.tags{white-space:normal;min-width:160px;text-align:left;font-size:12px;color:
 .pt{display:block;text-align:left;font:inherit;font-size:13.5px;background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:8px 12px;color:var(--ink);cursor:pointer}
 .tr-d{margin-top:10px}
 .scanbtn{flex:none;font:inherit;font-size:13px;font-weight:700;border:0;border-radius:999px;padding:6px 12px;background:var(--accent);color:#fff;cursor:pointer;white-space:nowrap}
+.qlink{flex:none;font-size:13px;font-weight:700;border:1px solid var(--accent);border-radius:999px;padding:5px 12px;color:var(--accent);text-decoration:none;white-space:nowrap}
+.qlink:hover{background:var(--accent);color:#fff}
 .scanbtn.busy{background:var(--sunk);color:var(--ink2);cursor:default}
 @media (max-width:520px){.nx{display:none}.scanbtn{padding:5px 10px;font-size:12.5px}}
 /* tabs */
@@ -460,6 +462,7 @@ details[open]>summary.plan-h{margin-bottom:8px}
       <span><span class="dot" id="dot"></span><span class="bn">Scan </span><b id="scanTime">loading</b> <span id="scanAgo"></span></span>
       <span class="nx">Next <b id="nextIn">-</b></span>
     </div>
+    <a class="qlink" href="quant.html" title="Long and short strategies that passed a 3-year test">Quant desk</a>
     <button type="button" class="scanbtn" id="scanBtn" title="Scan the whole market now">⟳ Scan now</button>
   </div>
   <nav class="tabs" role="tablist" aria-label="Sections">
@@ -826,7 +829,7 @@ function renderPicks(){
 function emptyPicks(){
   var J=D.journal||{},R=J.rules||{},S=J.strategies||[],passed=S.filter(function(s){return s.status==="passed"}).length;
   if(D.gate&&D.gate.closed)return 'No picks: standing aside because '+esc(D.gate.why)+'. Long setups lose more often in this tape, so signals are paper-traded only.';
-  if(!passed)return 'No picks: no strategy has proven an edge yet. A strategy is published only after '+(R.pass_min_live||40)+' live paper trades on '+(R.pass_min_days||10)+'+ days that make money after costs and beat random entries taken at the same moments. Until then every signal is paper-traded so the record builds up (Strategies tab).';
+  if(!passed)return 'No picks: no strategy has proven an edge yet. A strategy is published only after '+(R.pass_min_live||40)+' live paper trades on '+(R.pass_min_days||10)+'+ days that make money after costs and beat random entries taken at the same moments. Until then every signal is paper-traded so the record builds up (Strategies tab). For long and short trades from the strategies that passed a 3-year test, open the <a href="quant.html">Quant desk</a>.';
   return 'No setup from a proven strategy reached a final score of '+((D.settings&&D.settings.min_pick_score)||50)+' on this scan.';
 }
 function pickCoin(c,scroll){sel=c;renderPicks();if(scroll){var el=document.getElementById("pick-"+c);if(el)el.scrollIntoView({block:"start"})}}

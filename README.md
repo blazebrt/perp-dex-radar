@@ -14,6 +14,50 @@ strategy is published only once its live trades make money after costs and clear
 is published while the market is risk-off or BTC's 4-hour trend is down. A goal tracker shows whether your balance
 is on the path to your target and what the journal's own results say about reaching it.
 
+## Quant desk (version 6): long and short, tested on three years
+
+`quant.html` is a second dashboard for slower trades that go **long or short**. 24 strategies were built and tested
+on a year of hourly candles and three years of 4-hour candles from the coins that trade on your DEXs, after fees,
+slippage and funding, each trade next to a random twin. Three passed and run live on paper every scan:
+
+| Strategy | Bars | Last year, R per trade (trades) | 3 years, R per trade (trades) | vs random | Winners | Profit factor |
+|---|---|---|---|---|---|---|
+| Daily trend rider | 1d | +0.10R (490) | +0.06R (1,181) | +0.10R | 41% | 1.16 |
+| 4-hour trend crossover | 4h | +0.13R (690) | +0.09R (2,424) | +0.06R | 38% | 1.20 |
+| Momentum rotation | 1d | +0.10R (364) | +0.14R (909) | +0.07R | 48% | 1.35 |
+
+Together: +0.09R per trade over 4,514 trades in three years, +0.07R ± 0.03 better than
+random entries, a Sharpe ratio of about 1.5. The other 21 lost money after costs, worked in only part of the
+year, or were no better than random entries; the page lists every one with its numbers and the reason. Short-term
+(1-hour) ideas all lost to fees; the edge is in multi-day trends and momentum, both directions.
+
+**What it means for an account.** Replaying the three strategies on the real three years from $500 with up to 60
+positions at once: 0.5% risk per trade ended at $2,043 (worst drop 30%), 1% at $3,264 (worst drop
+54%), and 2% at only $688 (worst drop 89%): too much risk per trade destroys growth. The growth
+planner bootstraps those trades into thousands of two-year paths from $500:
+
+| Risk per trade | Typical result | Reach $10K | Reach $1M | Drop 50% on the way | Lose 90% |
+|---|---|---|---|---|---|
+| 0.5% | $1,751 | 1.5% | 0.0% | 11% | 0.0% |
+| 0.75% | $2,837 | 13% | 0.0% | 45% | <0.1% |
+| 1% | $4,225 | 28% | <0.1% | 78% | 0.2% |
+| 1.5% | $7,398 | 44% | 1.4% | 99% | 3.2% |
+| 2% | $9,412 | 49% | 5.2% | 100% | 11% |
+| 3% | $3,779 | 42% | 11% | 100% | 33% |
+| 5% | $50 | 16% | 6.7% | 100% | 76% |
+
+Growth peaks near 1.5% per trade (the Kelly level); half of it keeps a 90% loss very unlikely. These
+odds assume the next two years look like the last three; live results usually fall short, and the page has a
+switch for "half as good". Paper trading only, not financial advice.
+
+How it works: `quant.py` runs after `scanner.py` in every scan. It fetches 4-hour candles for every coin with $1M+
+a day on your DEXs, builds daily bars from them, computes the signals on closed bars only, and paper-trades each one
+from the next hour's open with its stop, trailing stop and time limit, after fees, slippage and MEXC funding. Its
+record lives in `data/quant_journal.json` on the site. The research code is in `tools/research/` (numpy, pandas,
+numba) and the market data comes from the **Market data** workflow (`tools/fetch_history.py`, saved on the
+`market-data` branch). The live code matches the research engine signal for signal and trade for trade on the same
+candles.
+
 ## What changed in version 5
 
 An audit of version 4 found that its signals did no better than random entries once costs were counted: the
@@ -49,11 +93,17 @@ Nothing runs on your computer.
 | --- | --- |
 | `scanner.py` | Pulls the data, runs the strategies, the journal, the backtest and strategy discovery, writes the site (Python standard library only) |
 | `index.html` | The dashboard page |
-| `.github/workflows/scan.yml` | The hourly schedule and the publish step |
+| `quant.py` | The quant desk: long and short trend and momentum strategies, paper-traded every scan (standard library only) |
+| `quant.html` | The quant desk page: signals with your position size, the strategies, the growth planner, the live record |
+| `quant_research.json` | One-year and three-year test results of all 24 strategies, used by `quant.html` |
+| `.github/workflows/scan.yml` | The hourly schedule and the publish step (runs `scanner.py`, then `quant.py`) |
 | `.github/workflows/backtest.yml` | Strategy tests started from the Studio tab |
-| `.github/workflows/research.yml` | Tests a `v5...` branch against `main` on live exchange data (nothing published) |
-| `tests/` | Unit tests and a full scan on a fake exchange |
+| `.github/workflows/research.yml` | Tests a `v5...` / `v6...` branch against `main` on live exchange data (nothing published) |
+| `.github/workflows/data.yml` | Downloads a year of 1h and three years of 4h candles plus funding to the `market-data` branch |
+| `tests/` | Unit tests and full runs on a fake exchange |
 | `tools/no_edge_check.py` | The strategies on a random market: shows costs and catches look-ahead bugs |
+| `tools/fetch_history.py` | The market data download used by `data.yml` |
+| `tools/research/` | The research engine behind `quant_research.json` (needs numpy, pandas, numba) |
 | `strategies.json` | Your own strategies (written by the Studio tab; created when you add the first one) |
 
 ## Setup (about 10 minutes, works from a phone browser)
