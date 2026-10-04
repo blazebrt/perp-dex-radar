@@ -32,6 +32,10 @@ The code behind `picks_research.json` and the swing scores in `picks.py`:
   day-trade results and the findings shown on the page).
 - `python parity_picks.py md` checks that `picks.py` (standard library) gives exactly the same scores as `pk_score.py`
   on the same candles.
+- `python pk_extra.py md` tests the live extra checks (funding, open interest, liquidations, top-trader and crowd
+  ratios, supply growth, market cap, volume against market cap) where history exists: Gate.io statistics since
+  April 2026 and a year of CoinGecko data (downloaded by `tools/fetch_extra.py` in the Market data workflow).
+  `picks_export.py` also writes `../../picks_seed.json`, the last 45 days of circulating supply per coin.
 
 How the score was chosen: about 25 checks were tested one by one and in combinations on every coin with $5M+ a day
 from late 2023 to October 2026, year by year and in rising and falling markets. Kept were the ones that improved the

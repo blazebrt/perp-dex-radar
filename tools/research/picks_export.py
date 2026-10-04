@@ -14,6 +14,7 @@ import pandas as pd
 
 import pk_day
 import qind as I
+from pk_extra import panel_from
 from pk_data import daily_panel, factors, forward, regimes
 from pk_score import account, scores
 from pk_trades import COST, sim
@@ -48,6 +49,78 @@ def band_stats(sc, R, RET, fw, elig, years, bands=BANDS):
                     "dbl": round(float(np.mean(fw["max30"][m] >= 1.0)), 3),
                     "dn30": round(float(np.mean(fw["min30"][m] <= -0.3)), 3), "years": ys})
     return out
+
+
+def extras_evidence(md, d, F, labs):
+    """R per trade with and without each tested extra condition (futures statistics since April 2026, CoinGecko
+    and funding over the last year): every coin and day where the data exists."""
+    t, coins, elig = d["t"], list(d["coins"]), d["elig"]
+    st = panel_from(md, "stats_gate_4h", t, coins, ["open_interest_usd", "long_liq_usd", "short_liq_usd"],
+                    sums=("long_liq_usd", "short_liq_usd"))
+    cg = panel_from(md, os.path.join("cg", "hist"), t, coins, ["mcap", "vol", "price"])
+    with np.errstate(all="ignore"):
+        oi = st["open_interest_usd"]
+        oi7, px7 = oi / I.shift(oi, 7) - 1, I.ret(d["c"], 7)
+        liq3 = I.sma(st["long_liq_usd"], 3) / (I.sma(st["long_liq_usd"], 3) + I.sma(st["short_liq_usd"], 3))
+        turn = cg["vol"] / cg["mcap"]
+        sup = (cg["mcap"] / cg["price"]) / I.shift(cg["mcap"] / cg["price"], 30) - 1
+        fund = F["fund3"]
+        # funding history exists from about 400 days back; before that the research assumes 0.01% per 8 hours
+        real_fund = np.repeat((t >= t[-1] - 380 * 86400)[:, None], len(coins), 1)
+        tests = [
+            ("long", "Open interest up 5%+ in 7 days while the price rose", np.isfinite(oi7), (oi7 >= 0.05) & (px7 > 0)),
+            ("long", "Longs were 60%+ of liquidations over 3 days", np.isfinite(liq3), liq3 >= 0.6),
+            ("long", "24h volume at most 10% of the market cap", np.isfinite(turn), turn <= 0.10),
+            ("long", "Circulating supply up 2%+ in 30 days", np.isfinite(sup), sup >= 0.02),
+            ("short", "Circulating supply up 2%+ in 30 days", np.isfinite(sup), sup >= 0.02),
+            ("short", "Funding above 0.01% per 8 hours", np.isfinite(fund) & real_fund, fund > 0.0003),
+        ]
+    out = []
+    for side, name, have, cond in tests:
+        R = labs[side][0]
+        base = elig & np.isfinite(R) & have
+        yes, no = base & cond, base & ~cond
+        out.append({"side": side, "check": name, "yes": round(float(np.nanmean(R[yes])), 3), "n_yes": int(yes.sum()),
+                    "no": round(float(np.nanmean(R[no])), 3), "n_no": int(no.sum())})
+        print(f"extra {side}: {name}: yes {out[-1]['yes']:+.3f} (n {out[-1]['n_yes']}) no {out[-1]['no']:+.3f}")
+    return out
+
+
+def extras_line(ex):
+    e = {(x["side"], x["check"]): x for x in ex}
+    a = e.get(("long", "Open interest up 5%+ in 7 days while the price rose"))
+    b = e.get(("long", "Circulating supply up 2%+ in 30 days"))
+    c = e.get(("short", "Circulating supply up 2%+ in 30 days"))
+    f = e.get(("short", "Funding above 0.01% per 8 hours"))
+    if not (a and b and c and f):
+        return "Smart money and fundamentals were checked where history exists; they move the score by a few points."
+    return (f"Smart money and fundamentals, where history exists: longs did worse when leverage piled in during the "
+            f"rise (open interest up 5%+ in a week: {a['yes']:+.2f}R per trade vs {a['no']:+.2f}R) and when unlocks "
+            f"added 2%+ supply in a month ({b['yes']:+.2f}R vs {b['no']:+.2f}R); the same unlocks helped shorts "
+            f"({c['yes']:+.2f}R vs {c['no']:+.2f}R), and shorts did worse when funding was high ({f['yes']:+.2f}R vs "
+            f"{f['no']:+.2f}R). These checks move the score by a few points; the Hyperliquid top traders have no "
+            f"history to test and only nudge it.")
+
+
+def write_seed(md, path, days=45):
+    """The last weeks of CoinGecko circulating supply per coin: picks.py starts its 30-day supply growth from it."""
+    folder = os.path.join(md, "cg", "hist")
+    if not os.path.isdir(folder):
+        return
+    out = {}
+    for f in sorted(os.listdir(folder)):
+        import csv
+        import gzip
+        with gzip.open(os.path.join(folder, f), "rt") as fh:
+            rows = list(csv.reader(fh))[1:]
+        pts = [(int(r[0]), float(r[2]) / float(r[1])) for r in rows if r[1] and r[2] and float(r[1]) > 0 and int(r[0]) % 86400 == 0]
+        if not pts:
+            continue
+        last = pts[-1][0]
+        out[f[:-7]] = [[t_, float(f"{c:.6g}")] for t_, c in pts if t_ >= last - days * 86400]
+    with open(path, "w") as fh:
+        json.dump({"generated": int(time.time()), "supply": out}, fh, separators=(",", ":"))
+    print(f"wrote {path} ({len(out)} coins)")
 
 
 def main():
@@ -119,6 +192,8 @@ def main():
         x = res["day"][side]
         print(f"day {side}: top 5 every 4h R {x['top5']['R']:+.3f} ({x['top5']['ret'] * 100:+.2f}%) vs every coin "
               f"{x['top5']['R_all']:+.3f}; bands " + ", ".join(f"{b['lo']}+ {b['R']:+.3f}" for b in x["bands"]))
+    res["extras"] = extras_evidence(md, d, F, labs)
+    write_seed(md, os.path.join(os.path.dirname(out_path), "picks_seed.json"))
     L, S = res["swing"]["long"], res["swing"]["short"]
     top_l, top_s = L["bands"][-1], S["bands"][-1]
     res["findings"] = [
@@ -138,9 +213,10 @@ def main():
         "days before its August run, but the tested exit took +3% and was out before the big move. No rule we tested "
         "could pick these in advance, because the same picture more often kept falling. The score aims for many "
         "good trades with small losses instead of one lucky one.",
+        extras_line(res["extras"]),
         "Day trades on hourly candles lost money after fees with every selection we tried, and on 4-hour candles "
         "they were close to zero. The edge is in holding swing trades for days to weeks.",
-        "Realistic growth: about 1.2x to 1.6x a year at 2% to 3% risk per trade, with drops of 20% to 35% along "
+        "Realistic growth: about 1.2x to 1.7x a year at 2% to 3% risk per trade, with drops of 20% to 35% along "
         "the way. $500 to $1M in two years would need about 2,000x; nothing tested comes close, and a bigger size "
         "mostly raises the chance of losing the account.",
     ]
