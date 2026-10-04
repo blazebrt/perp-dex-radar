@@ -60,6 +60,69 @@ trades: on hourly candles every selection rule lost money after fees (the best a
 list is shown with that warning. The live swing scores match the research code exactly
 (`tools/research/parity_picks.py`), and every 80+ swing pick and 85+ day pick is paper-traded on the page.
 
+## Coin analyzer and free sentiment (version 7.1)
+
+**The analyzer** (`analyze.html`, linked from the front page and from every pick) takes any coin you type and gives
+a full trade read on four timeframes at once (15 minutes, 1 hour, 4 hours, daily), with live prices:
+
+- the trend on each timeframe and whether they agree, the swing structure (higher highs and lows, breaks, stop runs);
+- support and resistance zones built from swing points on every timeframe, the price where most volume traded,
+  yesterday's and last week's highs and lows, drawn as bands on the chart;
+- momentum (RSI, MACD, divergences), volatility squeezes, volume, and positioning (funding, open interest, top traders'
+  and the crowd's long/short ratios from the exchange);
+- a LONG, SHORT or WAIT call with every point behind it, and a plan: entry (market, limit or stop order), a stop
+  beyond the level that proves the idea wrong, three targets at the next zones, your position size for the account
+  and risk you set, how to manage it, and the plan for the other side if you want to trade against the read;
+- for coins on your DEXs, the tested swing score and its record, and the sentiment score;
+- an optional trader's note written by AI from these numbers, with your own key: Google Gemini (free on Google's
+  free tier, Gemini 3.8 Flash or 3.5 Flash-Lite) or Anthropic Claude (about 1 to 3 cents a note). The key stays in
+  your browser and is sent only to that company.
+
+It reads candles straight from the exchanges' public APIs in your browser (Binance futures, then Bybit, Gate.io and
+Hyperliquid), so it works for coins outside the scan too.
+
+**What the tests say, plainly.** The analyzer's rules were replayed on a year of hourly candles for 118 coins
+(September 2025 to October 2026; `tools/research/analyzer_backtest.js`), seeing only the data available at each
+moment and trading each plan as the page describes, after 0.12% round-trip costs:
+
+| Chart | Trades | Before costs | After costs | Winners |
+|---|---|---|---|---|
+| 1 hour | 29,039 | +0.04% per trade | -0.08% per trade (-0.04R) | 42% |
+| 4 hours | 8,400 | +0.08% per trade | -0.04% per trade (-0.02R) | 42% |
+
+So the chart read on its own is about break-even, which is normal for technical analysis on these timeframes. A
+higher agreement number did not help, and no simple filter (all timeframes aligned, RSI extremes, strong zones, stop
+runs) held up in both halves of the year. That is why the page leads with the **evidence**: when a coin has a tested
+swing signal (score 80+ on the front page), it says so with that signal's three-year record; when it has none, it
+says the plan is risk control, not a reason to trade. Use the analyzer for the entry, the stop and the size, and the
+swing score for the decision.
+
+**Free sentiment.** Each scan adds a 0-100 sentiment score per coin from free sources only (X/Twitter has no free
+access in 2026, and scraping it is against its rules):
+
+| Source | What it gives | Weight in the score |
+|---|---|---|
+| Stocktwits (public streams) | Bullish and bearish tags on the latest posts, posts a day, watchers | 35 |
+| Hyperliquid top traders | Share of their money that is long | 25 |
+| CoinGecko | Community votes (and trending searches, shown next to it) | 20 |
+| News (CoinDesk, Cointelegraph, The Block, CryptoSlate, Bitcoinist) | Headlines naming the coin in the last 3 days and their tone | 20 |
+| Reddit and 4chan (ApeWisdom) | Mention counts and their change, shown next to the score | - |
+| Fear & Greed (alternative.me) | The whole market's mood | - |
+
+There is no free history to test sentiment on, so it is shown next to the tested score and moves the analyzer's
+call by 4 points at most. Each scan saves a daily snapshot per coin (`sent_hist` in the picks journal), so it can be
+tested once a few months of history exist.
+
+**Optional: a free CoinGecko key.** Without a key the scan uses CoinGecko's public API, which is slower and limited.
+A free Demo key makes it faster and more reliable:
+
+1. Create a free account at [coingecko.com/en/api](https://www.coingecko.com/en/api/pricing) and choose the
+   **Demo** plan, then copy your API key from the developer dashboard.
+2. In your repository: **Settings > Secrets and variables > Actions > New repository secret**. Name it
+   `COINGECKO_API_KEY`, paste the key, **Add secret**.
+3. The next scan uses it: the market card on the front page then says "(your CoinGecko key)". Never paste the
+   key into a chat or a file in the repository.
+
 ## Quant desk (version 6): long and short, tested on three years
 
 `quant.html` is a second dashboard for slower trades that go **long or short**. 24 strategies were built and tested
@@ -146,7 +209,9 @@ Nothing runs on your computer.
 | `picks.html` | The coin picks page, published as the front page (`index.html`; the radar moves to `radar.html`) |
 | `picks_research.json` | The test results behind the scores, shown on the picks page (`tools/research/picks_export.py`) |
 | `picks_seed.json` | The last 45 days of each coin's circulating supply, so the unlock check works from the first run |
-| `.github/workflows/scan.yml` | The schedule and the publish step (runs `scanner.py`, then `quant.py`, then `picks.py`) |
+| `analyze.html` | The coin analyzer page: any coin, four timeframes, the read, the plan, the evidence, sentiment |
+| `analyze.js` | The analyzer engine (also runs in node for the tests and `tools/research/analyzer_backtest.js`) |
+| `.github/workflows/scan.yml` | The schedule and the publish step (runs `scanner.py`, then `quant.py`, then `picks.py`, and publishes the analyzer) |
 | `.github/workflows/backtest.yml` | Strategy tests started from the Studio tab |
 | `.github/workflows/research.yml` | Tests a `v5...` / `v6...` / `v7...` branch on live exchange data (nothing published) |
 | `.github/workflows/data.yml` | Downloads a year of 1h and three years of 4h candles, funding, futures statistics and CoinGecko fundamentals to the `market-data` branch |
