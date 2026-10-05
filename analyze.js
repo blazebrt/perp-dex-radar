@@ -186,7 +186,8 @@
              picks: {side, score, core, label, sentiment} | null   (the tested swing score from the scan),
              sentiment: {score, label, ...} | null                 (overrides picks.sentiment),
              market: {mood, fng: {value, label}} | null            (from the scan),
-             account, risk} */
+             account, risk,
+             lean: true                                            (word the read as context, without a trade)} */
   function analyze(inp) {
     const tf = inp.tf || "1h", bars = inp.main, n = bars ? bars.length : 0;
     if (!bars || n < 120) throw new Error("not enough candles for the " + (TF_LABEL[tf] || tf) + " chart (" + n + ")");
@@ -471,19 +472,27 @@
     const pros = top.filter((p) => side ? Math.sign(p.pts) === (side === "long" ? 1 : -1) : false).slice(0, 3).map((p) => p.name.toLowerCase());
     const cons = top.filter((p) => side ? Math.sign(p.pts) === (side === "long" ? -1 : 1) : false).slice(0, 2).map((p) => p.name.toLowerCase());
     let summary;
-    if (side) {
+    const sgn = (x) => (x > 0 ? "+" : "") + x;
+    if (side && inp.lean) {
+      // the page's context read: where the chart leans and why, without a trade (the call comes from tested signals)
+      summary = coin + " on the " + T + " chart leans " + side + " (score " + sgn(bias) + " on a scale of -100 to +100). " +
+        "For it: " + (pros.join(", ") || "the overall picture") + "." + (cons.length ? " Against it: " + cons.join(", ") + "." : "") +
+        " The chart's own " + side + " setup would be a " + plans[0].type.toLowerCase() + ", " + plans[0].entryNote + ".";
+    } else if (side) {
       const p = plans[0];
       summary = coin + " on the " + T + " chart: " + (side === "long" ? "a long" : "a short") + " setup (" + p.type.toLowerCase() + "), agreement " + confidence + "/100. " +
         "For it: " + (pros.join(", ") || "the overall picture") + "." + (cons.length ? " Against it: " + cons.join(", ") + "." : "") +
         " Plan: " + (side === "long" ? "buy " : "sell ") + p.entryNote + ", stop " + fmtPrice(p.stop) + " (" + (p.stopPct * 100).toFixed(1) + "% away), first target " + fmtPrice(p.targets[0].price) + " (" + p.targets[0].rr.toFixed(1) + " times the risk).";
+    } else if (inp.lean) {
+      summary = coin + " on the " + T + " chart has no lean (score " + sgn(bias) + " on a scale of -100 to +100): the timeframes disagree or price sits in the middle of its range.";
     } else {
       summary = coin + " on the " + T + " chart: no clear edge right now (score " + bias + " on a scale of -100 to +100), because the timeframes disagree or price sits in the middle of its range. " +
         "Long only " + plans[0].entryNote + "; short only " + plans[1].entryNote + ".";
     }
-    const change = side === "long" ? ["A " + T + " close below " + fmtPrice(plans[0].stop) + " ends the long idea."]
-      : side === "short" ? ["A " + T + " close above " + fmtPrice(plans[0].stop) + " ends the short idea."]
+    const change = side === "long" ? ["A " + T + " close below " + fmtPrice(plans[0].stop) + " ends the long " + (inp.lean ? "lean." : "idea.")]
+      : side === "short" ? ["A " + T + " close above " + fmtPrice(plans[0].stop) + " ends the short " + (inp.lean ? "lean." : "idea.")]
       : ["A clean break of " + (res[0] ? fmtPrice(res[0].hi) : "resistance") + " with volume would favour longs; a break of " + (sup[0] ? fmtPrice(sup[0].lo) : "support") + " would favour shorts."];
-    if (ctxD && side && ((side === "long" && ctxD.dir === "down") || (side === "short" && ctxD.dir === "up"))) change.push("This trade goes against the daily trend: take profits early and keep the size small.");
+    if (!inp.lean && ctxD && side && ((side === "long" && ctxD.dir === "down") || (side === "short" && ctxD.dir === "up"))) change.push("This trade goes against the daily trend: take profits early and keep the size small.");
     const labels = swingLabels(piv).slice(-12).map((x) => Object.assign(x, {t: bars[x.i].t}));
     return {
       coin, tf, price: px, atr: A, atrPct: A / px, chgDay, verdict, side, bias, confidence, parts, plans, alt, checks,
@@ -507,6 +516,276 @@
       } catch (e) { /* too few candles on this timeframe */ }
     }
     return out;
+  }
+
+  // ------------------------------------------------------------------ the call: tested signals only
+  /* Only signals that held up in our tests make the call, and each one comes with the exits it was tested with:
+       swing  the Coin picks swing score, ready at 80 (3-year test: in at the next daily open, stop 2 daily ATR kept
+              between 5% and 25%, a trailing stop 3 ATR behind the best price, out after 30 days at the latest)
+       quant  a position of the quant desk, whose live strategies passed a 3-year test: its own stop, trailing stop
+              and time limit
+       smart  2+ proven Hyperliquid traders shorting a coin together (promising in a 30-day test without
+              hindsight): stop 1.5 times the typical daily move (1.5% at least), out 24 hours after the signal
+     The plan joins the tested trade as it stands: same stop level, same trailing stop, same time limit, so the
+     trade on the page is the one the records count. Proven signals are sized at the chosen risk, mixed and promising
+     ones at half of it. Proven signals on both sides mean no trade. The chart read never confirms or blocks a call:
+     in a 3-year test of 5,453 swing signals the trades did no better when the 4-hour or the daily read agreed
+     (tools/research/analyzer_gate.py). */
+  const DAY = 86400, HOUR = 3600;
+  const SWING = {stopK: 2, trailK: 3, minStop: 0.05, maxStop: 0.25, days: 30, readyAt: 80};
+  const SMART = {stopK: 1.5, minStop: 0.015, hours: 24, lateHours: 6};
+  const RISK_SHARE = {Proven: 1, Mixed: 0.5, Promising: 0.5};
+  const SOURCE = {swing: "Coin picks swing", quant: "Quant desk", smart: "Smart money"};
+  const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const per100 = (r) => (r == null || !isFinite(r)) ? null : Math.round(r * 100);
+  const monthYear = (t) => { const d = new Date(t * 1000); return MON[d.getUTCMonth()] + " " + d.getUTCFullYear(); };
+  const dayTxt = (t) => { const d = new Date(t * 1000); return MON[d.getUTCMonth()] + " " + d.getUTCDate(); };
+  const usd100 = (p) => p == null ? "–" : (p > 0 ? "+$" : p < 0 ? "−$" : "$") + Math.abs(p);
+
+  /* Proven when it made money per dollar risked overall and in every test year, Mixed when only overall. */
+  function tierOf(R, years) {
+    if (!(R > 0)) return "No edge";
+    return years.length && years.every((y) => y > 0) ? "Proven" : "Mixed";
+  }
+  /* The tested record of the swing band a chart score falls in (picks_research.json). */
+  function swingRecord(research, side, core) {
+    const t = research && research.swing ? research.swing[side] : null;
+    const b = t && core != null ? (t.bands || []).find((x) => core >= x.lo && core < x.hi) : null;
+    if (!b) return null;
+    const years = Object.keys(b.years || {}).sort().map((y) => ({y, r: b.years[y].R, n: b.years[y].n}));
+    return {n: b.n, win: b.win, R: b.R, per100: per100(b.R), ret: b.ret, years, up: years.filter((y) => y.r > 0).length,
+            band: b.lo + "–" + Math.min(100, b.hi - 1), tier: tierOf(b.R, years.map((y) => y.r)), period: research.period || null};
+  }
+  /* The record of one quant desk strategy (quant_research.json); "live" strategies passed the desk's tests. */
+  function quantRecord(research, sid) {
+    const s = research && research.strategies ? research.strategies[sid] : null;
+    const t = s ? (s.three_year || s.one_year) : null;
+    if (!t || !t.n) return null;
+    const years = (s.years || []).filter((y) => y && y.n).map((y) => ({y: monthYear(y.from) + " to " + monthYear(y.to), r: y.avg, n: y.n}));
+    const w = research.window_3y || [];
+    return {n: t.n, win: t.wr, R: t.avg, per100: per100(t.avg), years, up: years.filter((y) => y.r > 0).length,
+            tier: s.verdict === "live" ? "Proven" : "No edge", period: w.length === 2 ? monthYear(w[0]) + " to " + monthYear(w[1]) : null};
+  }
+  /* The record of the smart-money rule (smart.json): the test sets the verdict until 40 live trades decide it. */
+  function smartRecord(sm) {
+    const a = sm && sm.accuracy, t = a && a.tested;
+    if (!t || !t.n) return null;
+    const v = a.verdict;
+    return {n: t.n, win: t.win, R: t.r, per100: per100(t.r), period: t.period || null, note: t.note || null, live: a.live || null,
+            tier: v === "Proven" ? "Proven" : (v === "Promising" || v === "Mixed") ? "Promising" : "No edge"};
+  }
+  /* The power-of-1000 factor between two quotes of the same coin (1000PEPE against PEPE), or null when they differ. */
+  function scaleOf(a, b) {
+    if (!(a > 0) || !(b > 0)) return null;
+    for (const k of [1, 1000, 0.001, 1e6, 1e-6]) if (Math.abs(Math.log(a / (b * k))) < Math.log(1.3)) return k;
+    return null;
+  }
+  /* A run of losses this long is normal over 20 trades at this win rate (the expected longest run, rounded). */
+  function lossRun(win, trades) {
+    const q = 1 - win;
+    if (!(q > 0 && q < 1)) return null;
+    return Math.max(2, Math.round(Math.log(trades || 20) / Math.log(1 / q)));
+  }
+  /* Mean absolute daily move over the last 7 completed days. */
+  function dailyMove(d1, now) {
+    const today = Math.floor(now / DAY) * DAY;
+    const b = (d1 || []).filter((x) => x && x.c > 0 && x.t < today).slice(-8);
+    if (b.length < 5) return null;
+    let s = 0;
+    for (let i = 1; i < b.length; i++) s += Math.abs(b[i].c / b[i - 1].c - 1);
+    return s / (b.length - 1);
+  }
+
+  /* What the scans say about one coin: {signals (tested, long or short), notes (there, but not a signal), inScan}.
+     src: {picks, picksResearch, quant, quantResearch, smart}, each optional. */
+  function testedSignals(coin, src) {
+    src = src || {};
+    const signals = [], notes = [];
+    const P = src.picks, sc = P && P.scores ? P.scores[coin] : null;
+    if (sc && (sc.side === "long" || sc.side === "short") && sc.score != null) {
+      const readyAt = (P.settings && P.settings.ready) || SWING.readyAt;
+      const rec = swingRecord(src.picksResearch, sc.side, sc.core != null ? sc.core : sc.score);
+      const text = "Swing score " + Math.round(sc.score) + " for a " + sc.side + (sc.label ? " (" + sc.label + ")" : "");
+      if (sc.score >= readyAt && rec && rec.tier !== "No edge") {
+        signals.push({src: "swing", name: SOURCE.swing, side: sc.side, tier: rec.tier, rec, text, score: sc.score, core: sc.core, day: P.day});
+      } else {
+        notes.push({src: "swing", side: sc.side, rec, score: sc.score, readyAt,
+                    text: text + (sc.score >= readyAt ? ", but scores like it have no tested edge." : ". A trade starts at " + readyAt + "."),
+                    want: "Coin picks swing: the score reaching " + readyAt + " (now " + Math.round(sc.score) + " for a " + sc.side + ")."});
+      }
+    }
+    const Q = src.quant, strategies = (Q && Q.strategies) || {};
+    for (const o of (Q && Q.open) || []) {
+      if (o.c !== coin || !(o.d === 1 || o.d === -1)) continue;
+      const rec = quantRecord(src.quantResearch, o.s), st = strategies[o.s] || {}, side = o.d > 0 ? "long" : "short";
+      if (rec && rec.tier === "No edge") continue;
+      signals.push({src: "quant", name: SOURCE.quant, side, tier: "Proven", rec, pos: o, sid: o.s, strategy: st.name || o.s, desc: st.desc || "",
+                    text: (st.name || o.s) + " is " + side + (o.px == null ? ", in at the next open" : " since " + dayTxt(o.t_in))});
+    }
+    if (Q && !signals.some((s) => s.src === "quant")) {
+      notes.push({src: "quant", text: "The quant desk has no position in " + coin + ".",
+                  want: "Quant desk: one of its strategies opening a trade on " + coin + " (they check every 4 hours and at each daily close)."});
+    }
+    const S = src.smart;
+    if (S) {
+      const row = (S.coins || []).find((c) => c.coin === coin), rec = smartRecord(S);
+      if (row && row.signal && (row.side === "long" || row.side === "short") && rec && (row.proven || rec.tier !== "No edge")) {
+        const trade = (S.open || []).find((t) => t.coin === coin && (t.kind || "signal") === "signal") || null;
+        signals.push({src: "smart", name: SOURCE.smart, side: row.side, tier: row.proven ? "Proven" : rec.tier, rec, row, trade, text: row.text,
+                      t: trade ? trade.t_in : S.generated, cluster: (S.coins || []).filter((c) => c.signal).length});
+      } else {
+        const want = (now) => "Smart money: 2 or more proven traders opening shorts on " + coin + " within 24 hours (" + now + ").";
+        if (row && row.signal) {
+          notes.push({src: "smart", side: row.side, text: row.text + ", but the rule lost money in its live record, so it is not a signal."});
+        } else if (row && row.info) {
+          notes.push({src: "smart", side: row.side, text: row.text + ": information only. In the test, coins they bought together did no better than the market.",
+                      want: want("now a long crowd, which is information only")});
+        } else if (row && row.traders) {
+          notes.push({src: "smart", text: row.traders + " proven trader" + (row.traders > 1 ? "s hold " : " holds ") + coin + " (" + row.n_long + " long, " + row.n_short + " short); no group of them opened a side together in the last 24 hours.",
+                      want: want("now " + row.traders + " of them hold it: " + row.n_long + " long, " + row.n_short + " short")});
+        } else {
+          notes.push({src: "smart", text: "None of the " + (S.traders_n || 200) + " proven Hyperliquid traders holds " + coin + ".", want: want("none of them holds it now")});
+        }
+      }
+    }
+    return {signals, notes, inScan: !!sc};
+  }
+
+  /* Swing: join the trade the test took, in at the open after the signal day. */
+  function swingPlan(sig, ctx) {
+    const d = sig.side === "long" ? 1 : -1, px = ctx.price;
+    const entryDay = sig.day != null ? sig.day + DAY : Math.floor(ctx.now / DAY) * DAY;
+    const bars = (ctx.d1 || []).filter((b) => b && b.c > 0);
+    const before = bars.filter((b) => b.t < entryDay);
+    const A = before.length >= 20 ? lastVal(atr(before.map((b) => b.h), before.map((b) => b.l), before.map((b) => b.c), 14)) : null;
+    const close = before.length ? last(before).c : null;
+    if (!(A > 0) || !(close > 0)) return {error: "Not enough daily candles on this exchange to set the tested stop."};
+    const sd = Math.min(SWING.maxStop, Math.max(SWING.minStop, SWING.stopK * A / close)), aShare = A / close;
+    const since = bars.filter((b) => b.t >= entryDay);
+    const e = since.length ? since[0].o : close, trail = SWING.trailK * aShare * e;
+    const stop0 = e * (1 - d * sd);
+    let stop = stop0, best = e;
+    for (const b of since) {
+      if (d > 0 ? b.l <= stop : b.h >= stop) {
+        return {expired: true, error: "The tested trade from the " + dayTxt(entryDay) + " open (" + fmtPrice(e) + ") already hit its stop at " + fmtPrice(stop) +
+                ". The next chance is at the next daily open, if the score is still 80 or more."};
+      }
+      best = d > 0 ? Math.max(best, b.h) : Math.min(best, b.l);
+      stop = d > 0 ? Math.max(stop, best - trail) : Math.min(stop, best + trail);
+    }
+    if (d > 0 ? px <= stop : px >= stop) return {expired: true, error: "The price is through the tested stop (" + fmtPrice(stop) + ")."};
+    return {kind: "swing", side: sig.side, entry: px, stop, stopPct: Math.abs(px - stop) / px, trail, trailPct: trail / px, trailBy: "high",
+            exitBy: entryDay + SWING.days * DAY, raised: stop !== stop0,
+            tested: {entry: e, t: entryDay, stop: stop0, stopPct: sd, atrPct: aShare, move: d * (px / e - 1)}};
+  }
+  /* Quant desk: join its position with its current stop, trailing stop and time limit. */
+  function quantPlan(sig, ctx) {
+    const o = sig.pos, res = o.res || {}, d = o.d > 0 ? 1 : -1, px = ctx.price;
+    const exitBy = o.t_in + (o.hold_h || 0) * HOUR;
+    if (ctx.now >= exitBy) return {expired: true, error: "The desk's time limit for this trade has passed; it closes at the next scan."};
+    const pending = o.px == null;
+    const k = pending ? 1 : scaleOf(px, res.last_px || o.px);
+    if (!k) return {error: "The desk prices " + ctx.coin + " on another market and its price does not match this chart, so its stop cannot be placed here. Use the levels on the Quant desk page."};
+    const stop = pending ? px * (1 - d * o.stop_pct) : (res.stop_now != null ? res.stop_now : o.stop) * k;
+    if (!(stop > 0) || (d > 0 ? px <= stop : px >= stop)) return {expired: true, error: "The price is through the desk's stop (" + fmtPrice(stop) + "): the trade is closing."};
+    const trail = o.trail_pct ? (pending ? px : o.px * k) * o.trail_pct : 0;
+    return {kind: "quant", side: sig.side, entry: px, stop, stopPct: Math.abs(px - stop) / px, trail, trailPct: trail / px, trailBy: "close", exitBy,
+            raised: !pending && res.stop_now != null && Math.abs(res.stop_now - o.px * (1 - d * o.stop_pct)) > 1e-9 * o.px,
+            desk: {entry: pending ? null : o.px * k, t: o.t_in, pending, stopPct: o.stop_pct, holdDays: Math.round((o.hold_h || 0) / 24), move: pending ? null : d * (px / (o.px * k) - 1)}};
+  }
+  /* Smart money: join the paper trade of the signal (same stop level, out 24 hours after the signal). */
+  function smartPlan(sig, ctx) {
+    const d = sig.side === "long" ? 1 : -1, px = ctx.price, tr = sig.trade;
+    let sp = tr && tr.stop_pct > 0 ? tr.stop_pct : null;
+    if (!sp) {
+      const m = dailyMove(ctx.d1, ctx.now);
+      sp = m != null ? Math.max(SMART.minStop, SMART.stopK * m) : 2 * SMART.minStop;
+    }
+    const t0 = tr ? tr.t_in : (sig.t || ctx.now);
+    const exitBy = tr && tr.t_out_by ? tr.t_out_by : t0 + SMART.hours * HOUR;
+    const left = exitBy - ctx.now;
+    if (left <= SMART.lateHours * HOUR) {
+      return {expired: true, error: left <= 0 ? "Its 24-hour window has ended." : "Only " + Math.max(1, Math.round(left / HOUR)) + " of its 24 tested hours are left: too late to join."};
+    }
+    const k = tr && tr.px ? scaleOf(px, tr.last_px || tr.px) : null;
+    const stop = k ? tr.px * k * (1 - d * sp) : px * (1 - d * sp);
+    if (d > 0 ? px <= stop : px >= stop) return {expired: true, error: "The price is through the signal's stop (" + fmtPrice(stop) + ")."};
+    return {kind: "smart", side: sig.side, entry: px, stop, stopPct: Math.abs(px - stop) / px, trail: 0, trailPct: 0, exitBy,
+            signal: {t: t0, entry: k ? tr.px * k : null, stopPct: sp, move: k ? d * (px / (tr.px * k) - 1) : null}};
+  }
+  function sized(plan, tier, ctx) {
+    plan.riskShare = RISK_SHARE[tier] || 0.5;
+    plan.riskUsd = ctx.account * ctx.risk * plan.riskShare;
+    plan.size = plan.riskUsd / plan.stopPct;
+    plan.lev = plan.size / ctx.account;
+    return plan;
+  }
+  function recordTxt(rec) {
+    if (!rec) return "";
+    return usd100(rec.per100) + " per $100 risked over " + rec.n.toLocaleString("en-US") + " trades, " + Math.round(rec.win * 100) + "% winners";
+  }
+
+  /* The call for one coin. inp: {coin, price (on the chart's scale), d1 (daily candles, oldest first; the last may
+     still be forming), now (seconds), account, risk, src}. Returns {verdict: LONG | SHORT | WAIT, side, tier, lead
+     (the signal whose plan is used: the strongest tested record), plan, signals, agree, against, expired, notes,
+     conflict, inScan, headline}. */
+  function decide(inp) {
+    const ctx = {coin: inp.coin, price: inp.price, now: inp.now || Math.floor(Date.now() / 1000), d1: inp.d1 || [],
+                 account: inp.account > 0 ? inp.account : 500, risk: inp.risk > 0 ? inp.risk : 0.02};
+    const T = testedSignals(inp.coin, inp.src);
+    const live = [], expired = [];
+    for (const s of T.signals) {
+      const p = s.src === "swing" ? swingPlan(s, ctx) : s.src === "quant" ? quantPlan(s, ctx) : smartPlan(s, ctx);
+      if (p.expired) { s.why = p.error; expired.push(s); continue; }
+      s.plan = p.error ? null : sized(p, s.tier, ctx);
+      s.planError = p.error || null;
+      live.push(s);
+    }
+    const proven = live.filter((s) => s.tier === "Proven");
+    const pool = proven.length ? proven : live;
+    const sides = Array.from(new Set(pool.map((s) => s.side)));
+    const side = sides.length === 1 ? sides[0] : null;
+    const rank = (s) => (s.plan ? 1000 : 0) + (s.rec && s.rec.per100 != null ? s.rec.per100 : 0);
+    const lead = side ? pool.filter((s) => s.side === side).sort((a, b) => rank(b) - rank(a))[0] : null;
+    const out = {coin: inp.coin, verdict: side ? side.toUpperCase() : "WAIT", side, tier: lead ? lead.tier : null, lead,
+                 plan: lead ? lead.plan : null, signals: live, expired, notes: T.notes, inScan: T.inScan,
+                 agree: side ? live.filter((s) => s !== lead && s.side === side) : [],
+                 against: side ? live.filter((s) => s.side !== side) : [], conflict: sides.length > 1,
+                 lossRun: lead && lead.rec ? lossRun(lead.rec.win, 20) : null};
+    const nm = (s) => s.name + " " + s.side + (s.src === "quant" ? " (" + s.strategy + ")" : s.src === "swing" ? " " + Math.round(s.score) : "");
+    if (out.conflict) {
+      out.headline = "Tested signals disagree: " + pool.map(nm).join(" against ") + ". With " + (proven.length ? "proven" : "tested") + " signals on both sides there is no trade.";
+    } else if (lead) {
+      out.headline = lead.name + ": " + lead.text + ". " + (lead.rec ? "Tested: " + recordTxt(lead.rec) + "." : "") +
+        (lead.tier !== "Proven" ? " " + lead.tier + " record, so half size." : "");
+    } else if (expired.length) {
+      out.headline = "The tested signal has run its course: " + expired[0].why;
+    } else {
+      out.headline = "No tested signal on " + inp.coin + " right now. Nothing that held up in our tests points either way, so the answer is to wait.";
+    }
+    return out;
+  }
+  /* Coins with a call from tested signals right now, strongest first: [{coin, side, tier, srcs}]. Needs no candles,
+     so only the time limits are checked here; the page checks the stops when a coin is opened. */
+  function signalCoins(src, now) {
+    src = src || {};
+    now = now || Math.floor(Date.now() / 1000);
+    const timely = (s) => s.src === "quant" ? now < s.pos.t_in + (s.pos.hold_h || 0) * HOUR
+      : s.src === "smart" ? ((s.trade && s.trade.t_out_by) || (s.t || now) + SMART.hours * HOUR) - now > SMART.lateHours * HOUR : true;
+    const coins = new Set(), P = src.picks, readyAt = (P && P.settings && P.settings.ready) || SWING.readyAt;
+    for (const [c, x] of Object.entries((P && P.scores) || {})) if (x && x.score >= readyAt) coins.add(c);
+    for (const o of (src.quant && src.quant.open) || []) coins.add(o.c);
+    for (const r of (src.smart && src.smart.coins) || []) if (r.signal) coins.add(r.coin);
+    const out = [];
+    for (const c of coins) {
+      const sig = testedSignals(c, src).signals.filter(timely), proven = sig.filter((s) => s.tier === "Proven"), pool = proven.length ? proven : sig;
+      if (!pool.length) continue;
+      const sides = new Set(pool.map((s) => s.side));
+      if (sides.size !== 1) continue;
+      const side = pool[0].side;
+      out.push({coin: c, side, tier: proven.length ? "Proven" : pool[0].tier, srcs: Array.from(new Set(pool.filter((s) => s.side === side).map((s) => s.src)))});
+    }
+    return out.sort((a, b) => (a.tier === "Proven" ? 0 : 1) - (b.tier === "Proven" ? 0 : 1) || b.srcs.length - a.srcs.length || (a.coin < b.coin ? -1 : 1));
   }
 
   // ------------------------------------------------------------------ candles from the exchanges (browser only)
@@ -658,7 +937,8 @@
     return closed;
   }
 
-  const TA = {analyze, analyzeAll, load, update, SOURCES, ema, rsi, atr, macd, bbWidth, pivots, structure, swingLabels, buildZones, volumeProfile, fmtPrice, TF_LABEL, TF_SEC};
+  const TA = {analyze, analyzeAll, load, update, SOURCES, ema, rsi, atr, macd, bbWidth, pivots, structure, swingLabels, buildZones, volumeProfile, fmtPrice, TF_LABEL, TF_SEC,
+              decide, testedSignals, signalCoins, swingRecord, quantRecord, smartRecord, scaleOf, lossRun, recordTxt, usd100, dayTxt, SWING, SMART};
   if (typeof module !== "undefined" && module.exports) module.exports = TA;
   else root.TA = TA;
 })(typeof window !== "undefined" ? window : this);

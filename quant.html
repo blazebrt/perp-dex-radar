@@ -476,7 +476,7 @@ function renderOpen() {
     const last = res.last_px;
     const dist = last && stopNow ? Math.abs(last - stopNow) / last : null;
     const side = el("span", { class: "pill " + (x.d > 0 ? "long" : "short") }, [el("span", { class: "dot" }), x.d > 0 ? "Long" : "Short"]);
-    const coin = el("td", {}, [el("b", { text: x.c })]);
+    const coin = el("td", {}, [el("a", { href: "analyze.html?coin=" + encodeURIComponent(x.c) + "&tf=4h", style: "color:inherit", title: "The call and the plan for " + x.c }, [el("b", { text: x.c })])]);
     if (fresh.has(`${x.c}-${x.s}-${x.t_in}`)) coin.append(" ", el("span", { class: "pill new", text: "NEW" }));
     const pnl = res.r === undefined || res.r === null ? "–" : sgn(res.r) + "R";
     const pnlTd = el("td", { class: "num " + tone(res.r) }, [pnl, el("div", { class: "muted small", text: last && x.px ? sgn((x.d * (last - x.px) / x.px) * 100, 1) + "%" : "" })]);
