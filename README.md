@@ -14,11 +14,77 @@ strategy is published only once its live trades make money after costs and clear
 is published while the market is risk-off or BTC's 4-hour trend is down. A goal tracker shows whether your balance
 is on the path to your target and what the journal's own results say about reaching it.
 
-## Coin picks (version 7): the front page
+## Dashboard (version 7.2): everything in one look
 
-The front page (`picks.html`, served as `index.html`) scores **every coin on your DEXs from 0 to 100** for a
+The front page (`dashboard.html`, served as `index.html`) shows the three versions side by side with smart money
+and one accuracy scorecard, and every page has the same tab bar (Dashboard, Coin picks, Quant desk, 15m radar,
+Smart money, Analyzer), so each version is one tap away, on a phone too:
+
+- **Market now**: the daily trend (coin picks), the last 3 hours (15-minute radar), Fear & Greed and how Hyperliquid's
+  proven traders lean, in one sentence ("Uptrend with a soft patch: swing longs keep the wind; fast 15-minute longs
+  wait"), so the versions no longer seem to contradict each other.
+- **The three versions**: what each says now (ready picks, open positions, standing aside) and its accuracy.
+- **Where the signals line up**: coins that two or more versions point at, with conflicts marked "mixed".
+- **Accuracy scorecard**: every version in one unit, **the average result per trade for each $100 risked, after
+  fees**, next to the share of winners and the number of trades, tested and live, with a plain verdict:
+
+| Version | Verdict | Tested | Per $100 risked | Winners |
+|---|---|---|---|---|
+| Coin picks, swing (scores 80+) | Proven | 5,453 trades, Oct 2023 to Oct 2026 | +$29 | 48% |
+| Quant desk | Proven | 4,514 trades, Dec 2023 to Oct 2026 | +$9 | 41% |
+| 15m radar | Not proven | 2,230 picks, last 30 days | +$1 | 51% |
+| Coin picks, day trades (80+) | No edge | 25,046 trades, Oct 2025 to Oct 2026 | −$6 | 35% |
+
+`dashboard.py` builds `data/dashboard.json` from the files the scan has just written (nothing is fetched); if it
+fails, the front page stays the coin picks page. Each pick on the coin picks page also carries its own tested
+accuracy badge (Proven, Mixed or No edge) for its score band.
+
+## Smart money (version 7.2): tested without hindsight
+
+The smart money page (`smart.html`, from `smart.py`) follows **Hyperliquid's proven traders**: $100k+ made over their
+whole account history, at most 15% of the account lost over the last 30 days, a $25k+ account, and a real
+directional trader (market makers and high-frequency books are left out); the 200 most profitable that pass. Every
+scan reads their open positions (public data), compares them with the last scan, and shows per coin how many are
+long and short (one vote each, weighted by size against their own account, so one whale cannot outvote everyone),
+what they opened in the last 24 hours, and the trades as they happen. Addresses are shown as a short code.
+
+**How it was tested.** `tools/research/smart_collect.py` (the Smart money research workflow) saved 90 days of trade
+fills of 380 traders (950,748 fills), their account and PnL histories and hourly candles of 174 coins. A signal at
+time t is entered at the next hourly open and judged 24 hours later after 0.09% costs; "vs market" removes the
+average move of all coins over the same hours. Who counts as proven is decided only from what was known at that
+moment. The clean test also leaves out every trader who was picked for last month's results (the pool itself would
+otherwise carry hindsight) and judges only the last 30 days:
+
+| Method (clean test, next 24 hours) | Side | Signals | Right | vs market | Per $100 risked |
+|---|---|---|---|---|---|
+| Old method: biggest money among last month's top traders | long | 1,207 | 51% | +0.1% | +$12 |
+| Old method | short | 641 | 46% | +0.1% | −$9 |
+| What proven traders hold (one vote each) | long | 632 | 49% | -0.1% | +$11 |
+| What proven traders hold | short | 493 | 46% | +0.0% | −$11 |
+| Every new position of a proven trader | long | 944 | 49% | -0.2% | +$6 |
+| Every new position of a proven trader | short | 509 | 56% | +1.2% | +$3 |
+| **2+ proven traders opening the same side within 24 h** | long | 108 | 52% | +0.1% | +$16 |
+| **2+ proven traders opening the same side within 24 h** | short | 31 | 63% | +2.3% | +$14 |
+
+**What it means.** Following proven traders' longs did no better than the market's own drift, whichever way it
+was measured, and the old method (the biggest money among last month's top traders, which the radar used) had no
+edge either; the radar's own records agree (its long trades did worse when top traders were 65%+ long). The one
+result that stands out: **when 2 or more proven traders open shorts on the same coin within 24 hours**, the coin
+went their way 63% of the time and did +2.3% against the market over the next day (31 trades on
+11 coins, Sep 05 to Oct 02 2026); on the whole window, where the trader pool has some hindsight, 66% and
++1.9% on 48 trades. That is the signal the page trades on paper (stop 1.5 typical daily moves, at least
+1.5%; out after 24 hours), and the coin picks use it as a small nudge (±2). It is marked **Promising**, not Proven:
+31 trades is too few. After 40 live paper trades the live record decides on its own: Proven when it makes money
+with a t-statistic of 2+, No edge when it does not. Long crowds are shown as information, and paper-traded apart so
+their record is visible too. Several short signals at once usually mean one bet on the market falling: size them
+together. (A test that let hindsight pick the traders showed 61% right and +$36 per $100 risked; that number is not
+used anywhere.)
+
+## Coin picks (version 7)
+
+The coin picks page (`picks.html`) scores **every coin on your DEXs from 0 to 100** for a
 swing trade (days to weeks) and a day trade (hours), long or short, and shows the **Top 5 and Top 10** with the
-reasons for each coin, an entry, a stop, reference targets and your position size. The 15-minute radar moved to
+reasons for each coin, an entry, a stop, reference targets and your position size. The 15-minute radar is at
 `radar.html`.
 
 Each swing pick shows 18 checks with a tick or a cross and the actual number behind it:
@@ -26,7 +92,7 @@ Each swing pick shows 18 checks with a tick or a cross and the actual number beh
 | Group | Checks | Weight |
 |---|---|---|
 | Chart setup (tested) | Long "coiled bottom": near the 90-day low, daily RSI back above 45, Bollinger squeeze, tight 90-day range, calm daily moves, up over 30 days, higher low, Bitcoin above its 50-day EMA, volume waking up. Short "downtrend bounce": below the 50-day EMA, down over 30 days, bounced (RSI above 50), not on its low, lower high, 4-hour trend down, weaker than Bitcoin, heavier selling volume, below the 30-day VWAP | 100 points |
-| Smart money (live) | Hyperliquid top traders' positions; Gate.io open interest over 7 days (leverage piling in), liquidations over 3 days (longs flushed out) and top traders' long/short ratio; funding on your DEXs | up to ±10 points together with the next two rows |
+| Smart money (live) | Proven Hyperliquid traders shorting together (see Smart money); Gate.io open interest over 7 days (leverage piling in), liquidations over 3 days (longs flushed out) and top traders' long/short ratio; funding on your DEXs | up to ±10 points together with the next two rows |
 | Fundamentals (live, CoinGecko) | Supply unlocks (30-day growth of the circulating supply), volume against market cap, market cap, distance from the all-time high | |
 | Liquidity | Daily volume on your DEXs | |
 
@@ -34,7 +100,8 @@ The extra checks follow what the history showed where it exists (futures statist
 of CoinGecko and funding data): longs did worse when open interest jumped 5%+ in a week while the price rose
 (+0.09R per trade against +0.39R) and when unlocks added 2%+ supply in a month (-0.13R against +0.03R); the same
 unlocks helped shorts, and shorts did worse when funding was above 0.01% per 8 hours (-0.05R against +0.18R).
-The Hyperliquid top traders have no history to test, so they only nudge the score (±2).
+Smart money comes from the proven-trader engine (`smart.py`): its short signal tested promising but not yet proven,
+so it only nudges the score (±2).
 
 **How good is it?** Tested on every coin with $5M+ a day, every day from late 2023 to October 2026, trading the
 plan on the card (enter at the next daily open, stop 2 daily ATRs away, trail 3 ATRs behind the best price, out
@@ -224,12 +291,18 @@ Nothing runs on your computer.
 | `quant.html` | The quant desk page: signals with your position size, the strategies, the growth planner, the live record |
 | `quant_research.json` | One-year and three-year test results of all 24 strategies, used by `quant.html` |
 | `picks.py` | The coin picks: every coin scored for swing and day trades with its reasons, plans and a paper record (standard library only) |
-| `picks.html` | The coin picks page, published as the front page (`index.html`; the radar moves to `radar.html`) |
+| `picks.html` | The coin picks page (`picks.html`; the radar moves to `radar.html`) |
+| `dashboard.py` | Builds the dashboard data (`data/dashboard.json`) from the scan's files and publishes the front page |
+| `dashboard.html` | The dashboard, published as the front page (`index.html`) |
+| `smart.py` | Smart money: Hyperliquid's proven traders, their entries and positions per coin, signals and a paper record |
+| `smart.html` | The smart money page: accuracy, signals, fresh moves, paper trades, every coin they hold |
+| `smart_research.json` | The smart-money test results shown on the page (`tools/research/smart_backtest.py`) |
 | `picks_research.json` | The test results behind the scores, shown on the picks page (`tools/research/picks_export.py`) |
 | `picks_seed.json` | The last 45 days of each coin's circulating supply, so the unlock check works from the first run |
 | `analyze.html` | The coin analyzer page: any coin, four timeframes, the read, the plan, the evidence, sentiment |
 | `analyze.js` | The analyzer engine (also runs in node for the tests and `tools/research/analyzer_backtest.js`) |
-| `.github/workflows/scan.yml` | The schedule and the publish step (runs `scanner.py`, then `quant.py`, then `picks.py`, and publishes the analyzer) |
+| `.github/workflows/scan.yml` | The schedule and the publish step (runs `scanner.py`, `smart.py`, `quant.py`, `picks.py`, then `dashboard.py`, and publishes the analyzer) |
+| `.github/workflows/smart_research.yml` | Collects 90 days of Hyperliquid trader history for the smart-money test to the `smart-data` branch |
 | `.github/workflows/backtest.yml` | Strategy tests started from the Studio tab |
 | `.github/workflows/research.yml` | Tests a `v5...` / `v6...` / `v7...` branch on live exchange data (nothing published) |
 | `.github/workflows/data.yml` | Downloads a year of 1h and three years of 4h candles, funding, futures statistics and CoinGecko fundamentals to the `market-data` branch |
@@ -237,7 +310,7 @@ Nothing runs on your computer.
 | `tools/no_edge_check.py` | The strategies on a random market: shows costs and catches look-ahead bugs |
 | `tools/fetch_history.py` | The market data download used by `data.yml` |
 | `tools/fetch_extra.py` | Futures statistics (Gate.io) and fundamentals (CoinGecko) history for the coin-score research |
-| `tools/research/` | The research engine behind `quant_research.json` and `picks_research.json` (needs numpy, pandas, numba) |
+| `tools/research/` | The research engine behind `quant_research.json` and `picks_research.json` (needs numpy, pandas, numba), and the smart-money test behind `smart_research.json` (`smart_collect.py`, `smart_backtest.py`: standard library) |
 | `strategies.json` | Your own strategies (written by the Studio tab; created when you add the first one) |
 
 ## Setup (about 10 minutes, works from a phone browser)

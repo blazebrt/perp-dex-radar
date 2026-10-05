@@ -2,7 +2,8 @@
 (hours), long or short, with every check in plain words, a trade plan and a paper record.
 
 Runs after scanner.py and quant.py in every scan (see .github/workflows/scan.yml) and writes:
-    site/index.html              the picks page (picks.html); the 15-minute radar moves to site/radar.html
+    site/picks.html              the picks page (also site/index.html until dashboard.py writes the front page);
+                                 the 15-minute radar moves to site/radar.html
     site/data/picks.json         the scores, the reasons, the trade plans and the paper record
     site/data/picks_journal.json the paper trades (read back from the published site next run)
     site/data/picks_research.json the test results behind the scores (copied from picks_research.json)
@@ -363,8 +364,21 @@ def extra_checks(side, coin, sm, gs, fund8h, fdm, liq, supply_growth=None):
     CoinGecko and funding over the last year); the others are shown for information or as a small nudge."""
     L = side == "long"
     out = []
+    if isinstance(sm, dict):
+        # proven Hyperliquid traders (smart.py): their signal under the tested rule, or how they lean
+        want = "long" if L else "short"
+        if sm.get("signal") and sm.get("side") in ("long", "short"):
+            ok = sm["side"] == want
+            out.append(("smart", "Proven traders agree", ok, 2, sm.get("text") or "", "Smart money",
+                        bool(sm.get("tested"))))
+        elif sm.get("traders"):
+            out.append(("smart", "Proven traders agree", None, 2,
+                        f"{sm.get('n_long', 0)} long, {sm.get('n_short', 0)} short, no signal", "Smart money", False))
+        else:
+            out.append(("smart", "Proven traders agree", None, 2, "No positions from the proven traders",
+                        "Smart money", False))
     # Hyperliquid top traders (scanner.py reads their open positions): no history to test, a small nudge
-    if sm and (sm[2] + sm[3]) >= 50_000:
+    elif sm and (sm[2] + sm[3]) >= 50_000:
         ln, sn, lu, su = sm[0], sm[1], sm[2], sm[3]
         net = lu - su
         ok = (net > 0 and lu >= 1.5 * su) if L else (net < 0 and su >= 1.5 * lu)
@@ -1002,7 +1016,12 @@ def sentiment_of(t, fdm, trend, votes, st, ape, feed, sm):
     if N and N.get("n"):
         out["news"] = N
         out["raw"]["news"] = N["tone"] * N["n"] / (N["n"] + 2)    # one headline counts for little
-    if sm and (sm[2] + sm[3]) >= 50_000:
+    if isinstance(sm, dict):
+        if sm.get("long_share") is not None and sm.get("traders"):
+            share = sm["long_share"]
+            out["whales"] = round(share * 100)
+            out["raw"]["whales"] = 0.5 + (share - 0.5) * min(1.0, sm["traders"] / 5)          # one trader counts little
+    elif sm and (sm[2] + sm[3]) >= 50_000:
         share = sm[2] / (sm[2] + sm[3])
         out["whales"] = round(share * 100)
         out["raw"]["whales"] = 0.5 + (share - 0.5) * min(1.0, (sm[2] + sm[3]) / 1_000_000)   # small books count less
@@ -1158,7 +1177,18 @@ def supply_growth(J, t, now):
 
 
 def read_smart(out_dir):
-    """Hyperliquid top traders per coin, from the scan that ran just before (data/latest.json)."""
+    """Smart money per coin from earlier in the same scan: the proven traders (data/smart.json, written by
+    smart.py: a dict per coin) or, when that is missing, the radar's top-trader totals (data/latest.json: a list
+    per coin)."""
+    try:
+        with open(os.path.join(out_dir, "data", "smart.json")) as fh:
+            d = json.load(fh)
+        rows = {r["coin"]: r for r in d.get("coins") or [] if isinstance(r, dict) and r.get("coin")}
+        if rows:
+            return rows, {"read": d.get("read"), "kind": "proven",
+                          "verdict": (d.get("accuracy") or {}).get("verdict")}
+    except Exception:  # noqa: BLE001
+        pass
     p = os.path.join(out_dir, "data", "latest.json")
     try:
         with open(p) as fh:
@@ -1423,6 +1453,12 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
     c1s = sc.parallel(lambda t: hourly(data[t]["coin"], data[t]["src"], CFG["bars_1h"], now), sorted(day_set))
     # 3) live extras: smart money (scanner), open interest (Gate.io), funding (DEXs), fundamentals (CoinGecko)
     smart, smart_meta = read_smart(out_dir)
+    proven_src = (smart_meta or {}).get("kind") == "proven"
+
+    def sm_of(t):
+        """The coin's smart-money row; with the proven-trader engine a coin they do not hold gets an empty row, so
+        its check says so in the engine's words."""
+        return smart.get(t, {}) if proven_src else smart.get(t)
     ranked = sorted(swing, key=lambda t: -max(swing[t]["long"], swing[t]["short"]))
     stat_set = set(ranked[: CFG["stats_coins"]]) | set(by_liq[:10])
     pos = sc.parallel(gate_stats7, sorted(stat_set), workers=4)
@@ -1444,7 +1480,7 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
     fund = {t: sc.funding_avg(data[t]["coin"]) for t in swing}
 
     # free sentiment, ranked against the other coins of this scan
-    SENT = sentiment_rank({t: sentiment_of(t, ((cg or {}).get("coins") or {}).get(t), trend, votes, stw, ape, feed, smart.get(t))
+    SENT = sentiment_rank({t: sentiment_of(t, ((cg or {}).get("coins") or {}).get(t), trend, votes, stw, ape, feed, sm_of(t))
                            for t in swing})
 
     # 4) records
@@ -1459,7 +1495,7 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
             core = s[side]
             cr = s["cl"] if side == "long" else s["cs"]
             W = LONG_W if side == "long" else SHORT_W
-            ex = extra_checks(side, coin, smart.get(t), pos.get(t), fund.get(t), fdm, liq,
+            ex = extra_checks(side, coin, sm_of(t), pos.get(t), fund.get(t), fdm, liq,
                               supply_growth(J, t, now)) + sentiment_checks(sent)
             plan = plan_of(side, x["price_now"], x["atr"] * x["price_now"] / x["price"], "swing")
             rec = record("swing", side, t, coin, core, cr, W, swing_explain(side, x, cr), ex, plan, x["price_now"],
@@ -1480,7 +1516,7 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
         for side in ("long", "short"):
             cr = day_checks(side, y, s[side])
             core = points(cr, DAY_W)
-            ex = [e for e in extra_checks(side, coin, smart.get(t), pos.get(t), None, None, liq)
+            ex = [e for e in extra_checks(side, coin, sm_of(t), pos.get(t), None, None, liq)
                   if e[0] in ("smart", "lev", "flush", "liq")] + [rsi_check(side, y["rsi1h"])]
             plan = plan_of(side, y["price"], y["atr"], "day")
             rec = record("day", side, t, coin, core, cr, DAY_W, day_explain(side, y, cr, s[side]), ex + sentiment_checks(sent),
@@ -1636,6 +1672,7 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
         "trade_dexes": [sc.DEX_NAME.get(d, d) for d in sc.CFG["trade_dexes"]],
         "swing": swing_out, "daytrade": day_out,
         "sources": {"smart": bool(smart), "smart_traders": (smart_meta or {}).get("read"),
+                    "smart_kind": (smart_meta or {}).get("kind") or "top",
                     "oi": sum(1 for v in pos.values() if v), "cg": cg_state,
                     "cg_time": (cg or {}).get("time"), "cg_coins": len((cg or {}).get("coins") or {}),
                     "hourly": sum(1 for v in c1s.values() if v), "cg_key": bool(CG_KEY),
@@ -1668,13 +1705,15 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
     rp = os.path.join(here, "picks_research.json")
     if os.path.exists(rp):
         shutil.copyfile(rp, os.path.join(data_dir, "picks_research.json"))
-    # the picks page becomes the front page; the 15-minute radar moves to radar.html
+    # the 15-minute radar moves to radar.html; the picks page is picks.html and, until the dashboard step
+    # (dashboard.py) replaces it, also the front page
     src = os.path.join(here, "picks.html")
     idx = os.path.join(out_dir, "index.html")
     if os.path.exists(src):
         if os.path.exists(idx) and not os.path.exists(os.path.join(out_dir, "radar.html")):
             shutil.copyfile(idx, os.path.join(out_dir, "radar.html"))
         shutil.copyfile(src, idx)
+        shutil.copyfile(src, os.path.join(out_dir, "picks.html"))
     # the coin analyzer (runs in the browser and reads data/picks.json for the tested scores and sentiment)
     for name in ("analyze.html", "analyze.js"):
         p = os.path.join(here, name)

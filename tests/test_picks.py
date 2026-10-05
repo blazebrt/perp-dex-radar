@@ -98,6 +98,33 @@ class Scores(unittest.TestCase):
         self.assertIs(sh["smart"][2], False)
         self.assertIsNone(lg["lev"][2], "no Gate.io data: no points either way")
 
+    def test_proven_traders_from_the_smart_money_engine(self):
+        sm = {"coin": "SOL", "signal": True, "side": "long", "text": "3 proven traders opened longs in 24 h",
+              "tested": True, "traders": 5, "n_long": 4, "n_short": 1, "long_share": 0.8}
+        lg = {e[0]: e for e in P.extra_checks("long", {}, sm, None, None, None, 2e6)}
+        sh = {e[0]: e for e in P.extra_checks("short", {}, sm, None, None, None, 2e6)}
+        self.assertIs(lg["smart"][2], True)
+        self.assertIs(sh["smart"][2], False)
+        self.assertTrue(lg["smart"][6], "a tested signal is marked tested")
+        quiet = dict(sm, signal=False, side=None)
+        self.assertIsNone({e[0]: e for e in P.extra_checks("long", {}, quiet, None, None, None, 2e6)}["smart"][2])
+        self.assertEqual(P.sentiment_of("SOL", None, None, None, None, None, None, sm)["whales"], 80)
+        none = {e[0]: e for e in P.extra_checks("long", {}, {}, None, None, None, 2e6)}["smart"]
+        self.assertEqual((none[1], none[2], none[4]), ("Proven traders agree", None, "No positions from the proven traders"))
+        self.assertNotIn("whales", {k: v for k, v in P.sentiment_of("X", None, None, None, None, None, None, {}).items() if v})
+        d = tempfile.mkdtemp()
+        try:
+            os.makedirs(os.path.join(d, "data"))
+            with open(os.path.join(d, "data", "latest.json"), "w") as fh:
+                json.dump({"smart_coins": {"SOL": [1, 9, 1e5, 9e5, None]}, "smart": {"read": 150}}, fh)
+            self.assertEqual(P.read_smart(d)[0]["SOL"], [1, 9, 1e5, 9e5, None], "the radar's totals without smart.json")
+            with open(os.path.join(d, "data", "smart.json"), "w") as fh:
+                json.dump({"read": 180, "coins": [sm], "accuracy": {"verdict": "Proven"}}, fh)
+            rows, meta = P.read_smart(d)
+            self.assertEqual((rows["SOL"]["side"], meta["read"], meta["kind"]), ("long", 180, "proven"))
+        finally:
+            shutil.rmtree(d, ignore_errors=True)
+
     def test_tested_extra_checks_follow_the_evidence(self):
         gs = {"oi7": 0.12, "px7": 0.08, "liq3": 0.7, "top0": 1.0, "top1": 1.1, "top7": 0.1}
         lg = {e[0]: e for e in P.extra_checks("long", {}, None, gs, 0.0005, {"mc": 1e9, "vol": 4e8}, 2e6, 0.03)}

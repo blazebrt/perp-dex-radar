@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dashboard · Perp DEX Radar</title>
+<meta name="description" content="Coin picks, quant desk, 15-minute radar and Hyperliquid smart money in one look, with one accuracy scorecard for all of them.">
+<script>try{var t=localStorage.getItem("picks_theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --surface-2: #f3f2ef; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --border: rgba(11, 11, 11, 0.10);
+  --long: #2a78d6; --short: #eb6834; --long-wash: rgba(42, 120, 214, 0.10); --short-wash: rgba(235, 104, 52, 0.10);
+  --good: #0ca30c; --good-text: #006300; --good-wash: rgba(12, 163, 12, 0.10); --bad: #d03b3b; --bad-wash: rgba(208, 59, 59, 0.09);
+  --warn: #fab219; --warn-text: #865c00; --warn-wash: rgba(250, 178, 25, 0.16); --accent: #2a78d6;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --surface-2: #232321; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --border: rgba(255, 255, 255, 0.10);
+    --long: #3987e5; --short: #d95926; --long-wash: rgba(57, 135, 229, 0.15); --short-wash: rgba(217, 89, 38, 0.15);
+    --good-text: #3cc43c; --good-wash: rgba(12, 163, 12, 0.18); --bad: #e04848; --bad-wash: rgba(224, 72, 72, 0.16);
+    --warn-text: #f1c14b; --warn-wash: rgba(201, 133, 0, 0.2); --accent: #3987e5; --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --surface-2: #232321; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+  --grid: #2c2c2a; --border: rgba(255, 255, 255, 0.10);
+  --long: #3987e5; --short: #d95926; --long-wash: rgba(57, 135, 229, 0.15); --short-wash: rgba(217, 89, 38, 0.15);
+  --good-text: #3cc43c; --good-wash: rgba(12, 163, 12, 0.18); --bad: #e04848; --bad-wash: rgba(224, 72, 72, 0.16);
+  --warn-text: #f1c14b; --warn-wash: rgba(201, 133, 0, 0.2); --accent: #3987e5; --shadow: none;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body { background: var(--page); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+.num { font-variant-numeric: tabular-nums; }
+
+header.top { position: sticky; top: 0; z-index: 30; background: color-mix(in srgb, var(--page) 88%, transparent); backdrop-filter: saturate(1.4) blur(10px); -webkit-backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--border); }
+.iconbtn { flex: none; border: 1px solid var(--border); background: var(--surface); color: var(--ink-2); border-radius: 8px; padding: 6px 9px; cursor: pointer; font: inherit; font-size: 13px; line-height: 1; }
+
+/* page */
+main { padding-bottom: 64px; }
+.kicker { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin: 22px 0 10px; }
+.kicker .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--good); display: inline-block; }
+.kicker .dot.stale { background: var(--warn); }
+h2 { font-size: 20px; letter-spacing: -0.01em; margin: 0; }
+.section { margin-top: 34px; }
+.section-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.section-head p { color: var(--ink-2); margin: 0; font-size: 14px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); }
+.muted { color: var(--muted); } .ink2 { color: var(--ink-2); } .small { font-size: 13px; }
+.pos { color: var(--good-text); } .neg { color: var(--bad); }
+
+/* market now */
+.market { padding: 20px 20px 16px; }
+.market h1 { font-size: 28px; line-height: 1.15; letter-spacing: -0.02em; margin: 0; }
+.market .sub { color: var(--ink-2); margin: 6px 0 0; max-width: 820px; }
+.mtiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
+.mt { background: var(--surface-2); border-radius: 11px; padding: 11px 13px; min-width: 0; }
+.mt .l { font-size: 12px; color: var(--muted); font-weight: 650; text-transform: uppercase; letter-spacing: 0.04em; }
+.mt .v { font-size: 18px; font-weight: 650; letter-spacing: -0.01em; margin-top: 2px; display: flex; align-items: center; gap: 7px; }
+.mt .s { font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+.mdot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
+.fgbar { height: 6px; border-radius: 999px; background: linear-gradient(90deg, var(--bad), var(--warn) 50%, var(--good)); position: relative; margin-top: 8px; }
+.fgbar i { position: absolute; top: -3px; width: 4px; height: 12px; border-radius: 2px; background: var(--ink); transform: translateX(-2px); }
+
+/* versions at a glance */
+.glance { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+.gl { display: block; padding: 14px 16px; color: var(--ink); text-decoration: none; transition: border-color .15s, transform .15s; }
+.gl:hover { text-decoration: none; border-color: color-mix(in srgb, var(--ink) 30%, transparent); transform: translateY(-1px); }
+.gl .h { display: flex; align-items: center; gap: 9px; }
+.gl .lg { width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; background: var(--ink); color: var(--page); font-size: 13px; font-weight: 700; flex: none; }
+.gl .n { font-weight: 650; }
+.gl .go { margin-left: auto; color: var(--muted); }
+.gl .st { font-size: 14px; color: var(--ink-2); margin-top: 8px; min-height: 42px; }
+.gl .acc { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; font-size: 13px; color: var(--ink-2); }
+
+.badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+.badge.good { background: var(--good-wash); color: var(--good-text); }
+.badge.bad { background: var(--bad-wash); color: var(--bad); }
+.badge.warn { background: var(--warn-wash); color: var(--warn-text); }
+.badge.muted { background: var(--surface-2); color: var(--muted); }
+.pill { display: inline-flex; align-items: center; font-size: 11.5px; font-weight: 700; padding: 1px 8px; border-radius: 999px; white-space: nowrap; letter-spacing: 0.02em; }
+.pill.long { background: var(--long-wash); color: var(--long); }
+.pill.short { background: var(--short-wash); color: var(--short); }
+.pill.mixed { background: var(--surface-2); color: var(--ink-2); }
+
+/* version cards */
+.vgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.vc { padding: 16px 16px 14px; display: flex; flex-direction: column; min-width: 0; }
+.vc .h { display: flex; align-items: center; gap: 10px; }
+.vc .lg { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; background: var(--ink); color: var(--page); font-size: 14px; font-weight: 700; flex: none; }
+.vc .name { font-size: 17px; font-weight: 650; letter-spacing: -0.01em; }
+.vc .what { font-size: 13px; color: var(--ink-2); margin-top: 8px; }
+.vc .status { margin-top: 10px; font-size: 14px; font-weight: 600; display: flex; gap: 8px; align-items: baseline; }
+.vc .status .mdot { position: relative; top: 1px; }
+.accbox { margin-top: 12px; border-radius: 11px; background: var(--surface-2); padding: 10px 12px; }
+.accrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.accrow + .accrow { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--grid); }
+.accrow .k { font-size: 12px; font-weight: 650; color: var(--ink-2); }
+.accnums { display: flex; gap: 12px; flex-wrap: wrap; font-size: 13px; margin-top: 4px; width: 100%; }
+.accnums b { font-variant-numeric: tabular-nums; }
+.accnums span { color: var(--ink-2); }
+.items { list-style: none; margin: 12px 0 0; padding: 0; }
+.items li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--grid); font-size: 14px; }
+.items li:last-child { border-bottom: 0; }
+.items .c { font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.items .c small { color: var(--muted); font-weight: 500; margin-left: 5px; }
+.items .r { font-variant-numeric: tabular-nums; color: var(--ink-2); font-size: 13px; text-align: right; min-width: 44px; }
+.vc .extra { font-size: 13px; color: var(--ink-2); margin-top: 8px; }
+.vc .open { margin-top: auto; padding-top: 12px; }
+.btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); border-radius: 9px; padding: 7px 12px; font-size: 14px; font-weight: 600; text-decoration: none; }
+.btn:hover { background: var(--surface-2); text-decoration: none; }
+.empty { color: var(--ink-2); font-size: 14px; padding: 12px 0 4px; }
+
+/* where the signals line up */
+.agree { padding: 6px 16px; }
+.ag { display: grid; grid-template-columns: 120px 96px minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--grid); }
+.ag:last-child { border-bottom: 0; }
+.ag .coin { font-weight: 700; font-size: 16px; letter-spacing: -0.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ag .coin a { color: inherit; }
+.ag .cnt { font-size: 12px; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; border: 1px solid var(--border); border-radius: 8px; padding: 3px 8px; color: var(--ink-2); background: var(--surface); }
+.chip .src { font-weight: 700; color: var(--ink); }
+.chip.long { border-color: color-mix(in srgb, var(--long) 35%, transparent); }
+.chip.short { border-color: color-mix(in srgb, var(--short) 40%, transparent); }
+.chip .ck { color: var(--good-text); font-weight: 800; }
+.legend { font-size: 13px; color: var(--muted); margin-top: 8px; }
+
+/* smart money */
+.smart { padding: 16px; }
+.smgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 10px; }
+.smgrid h3 { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 4px; }
+.smrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--grid); font-size: 14px; }
+.smrow:last-child { border-bottom: 0; }
+.smrow .c { font-weight: 650; }
+.smrow .t { color: var(--ink-2); font-size: 13px; }
+.share { height: 6px; border-radius: 999px; background: var(--short-wash); overflow: hidden; margin-top: 5px; }
+.share i { display: block; height: 100%; background: var(--long); }
+
+/* scorecard */
+.sc { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+tbody tr:last-child td { border-bottom: 0; }
+th { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td .nm { font-weight: 650; }
+td .sb { font-size: 12.5px; color: var(--muted); }
+td.why { color: var(--ink-2); font-size: 13px; min-width: 240px; }
+.big { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+.unit { margin: 0 0 12px; font-size: 14px; color: var(--ink-2); max-width: 860px; }
+.sccards { display: none; }
+.scc { padding: 14px 16px; }
+.scc + .scc { margin-top: 10px; }
+.scc .h { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.scc .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.scc .two div { background: var(--surface-2); border-radius: 10px; padding: 8px 10px; font-size: 13px; color: var(--ink-2); }
+.scc .two b { display: block; font-size: 16px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.scc .w { font-size: 13px; color: var(--ink-2); margin-top: 8px; }
+
+.foot { color: var(--muted); font-size: 13px; margin-top: 40px; border-top: 1px solid var(--border); padding-top: 16px; }
+.err { padding: 22px; text-align: center; color: var(--ink-2); }
+
+@media (max-width: 980px) {
+  .vgrid { grid-template-columns: 1fr; }
+  .glance { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mtiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .market h1 { font-size: 23px; }
+  .ag { grid-template-columns: minmax(0, 1fr) auto; }
+  .ag .chips { grid-column: 1 / -1; }
+  .smgrid { grid-template-columns: 1fr; }
+  .sc table { display: none; }
+  .sccards { display: block; }
+  .gl .st { min-height: 0; }
+}
+@media (max-width: 380px) { .glance { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .gl { transition: none; } }
+
+/* shared app bar: the same on every page */
+header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; max-width: 1180px; padding-top: 10px; padding-bottom: 10px; }
+.ablogo { flex: none; display: flex; align-items: center; gap: 9px; color: var(--ink); text-decoration: none; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.ablogo:hover { text-decoration: none; }
+.ablogo i { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; background: var(--ink); color: var(--page); font-style: normal; }
+.ablogo b { font-weight: 650; font-size: 15px; letter-spacing: -0.01em; white-space: nowrap; }
+.apptabs { display: flex; align-items: center; gap: 2px; flex: 1 1 0; min-width: 0; margin: 0; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.apptabs::-webkit-scrollbar { display: none; }
+.apptabs a { flex: none; font-size: 14px; font-weight: 500; line-height: 1.5; color: var(--ink-2, var(--ink2)); padding: 6px 11px; border-radius: 8px; white-space: nowrap; text-decoration: none; }
+.apptabs a:hover { background: var(--surface-2, var(--sunk)); color: var(--ink); text-decoration: none; }
+.apptabs a[aria-current="page"] { background: var(--ink); color: var(--page); font-weight: 650; }
+@media (max-width: 760px) { .ablogo b { display: none; } }
+.apptabs.fr { mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); }
+.apptabs.fl { mask-image: linear-gradient(90deg, transparent, #000 28px); -webkit-mask-image: linear-gradient(90deg, transparent, #000 28px); }
+.apptabs.fl.fr { mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent); -webkit-mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap abwrap">
+    <a class="ablogo" href="./" aria-label="Perp DEX Radar dashboard"><i><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".45"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".75"/><path d="M12 12 L19.5 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg></i><b>Perp DEX Radar</b></a>
+    <nav class="apptabs" aria-label="Pages">
+      <a href="./" aria-current="page">Dashboard</a>
+      <a href="picks.html">Coin picks</a>
+      <a href="quant.html">Quant desk</a>
+      <a href="radar.html">15m radar</a>
+      <a href="smart.html">Smart money</a>
+      <a href="analyze.html">Analyzer</a>
+    </nav>
+    <button class="iconbtn" id="theme" type="button" aria-label="Switch light or dark theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+  </div>
+</header>
+<script>(function(){var n=document.querySelector(".apptabs");if(!n)return;var a=n.querySelector("[aria-current=page]");if(a&&n.scrollWidth>n.clientWidth)n.scrollLeft+=a.getBoundingClientRect().left-n.getBoundingClientRect().left-(n.clientWidth-a.offsetWidth)/2;function e(){n.classList.toggle("fl",n.scrollLeft>4);n.classList.toggle("fr",n.scrollLeft+n.clientWidth<n.scrollWidth-4)}n.addEventListener("scroll",e,{passive:true});addEventListener("resize",e);e();})();</script>
+
+<main class="wrap">
+  <div class="kicker" id="kicker"><span class="dot" id="dot"></span><span id="upd">Loading…</span></div>
+  <section class="card market" id="market" aria-label="Market now"></section>
+  <div class="glance" id="glance" aria-label="Every version at a glance"></div>
+
+  <section class="section" aria-labelledby="h-v">
+    <div class="section-head"><h2 id="h-v">The three versions</h2><p>What each one says now, and how accurate it has been.</p></div>
+    <div class="vgrid" id="versions"></div>
+  </section>
+
+  <section class="section" aria-labelledby="h-a">
+    <div class="section-head"><h2 id="h-a">Where the signals line up</h2><p>Coins that two or more versions point at right now.</p></div>
+    <div class="card agree" id="agree"></div>
+    <div class="legend"><span class="ck" style="color:var(--good-text);font-weight:800">✓</span> marks a signal from a method with a proven record (swing picks scoring 80+, the quant desk, a radar strategy that passed).</div>
+  </section>
+
+  <section class="section" aria-labelledby="h-s">
+    <div class="section-head"><h2 id="h-s">Smart money</h2><p id="smsub">Where Hyperliquid's proven traders are positioned.</p></div>
+    <div class="card smart" id="smart"></div>
+  </section>
+
+  <section class="section" id="accuracy" aria-labelledby="h-sc">
+    <div class="section-head"><h2 id="h-sc">Accuracy scorecard</h2></div>
+    <p class="unit">One unit for everything: the average result per trade <b>for each $100 you risk</b>, after fees. <b>+$29</b> means a trade made 0.29 times its risk on average; with 2% risk per trade that is about +0.6% of the account per trade. <b>Tested</b> is the backtest on past data with the same rules; <b>Live</b> is paper trading since the version started.</p>
+    <div class="card sc"><table id="sctable"><thead><tr><th>Version</th><th>Verdict</th><th class="num">Tested trades</th><th class="num">Winners</th><th class="num">Per $100 risked</th><th class="num">Live trades</th><th class="num">Live per $100</th><th>Why</th></tr></thead><tbody id="scbody"></tbody></table></div>
+    <div class="sccards" id="sccards"></div>
+  </section>
+
+  <p class="foot">Paper trading and backtests, not financial advice. Updated by the scan every 20 minutes (GitHub runs it on its own schedule, sometimes late). Coin picks, quant desk and radar each keep their own page with the full detail; this page only reads their published files.</p>
+</main>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+let LOCALE;
+try { LOCALE = new Intl.NumberFormat(undefined).resolvedOptions().locale; } catch (e) { LOCALE = "en-US"; }
+const n0 = (x) => x == null ? "–" : Number(x).toLocaleString(LOCALE, {maximumFractionDigits: 0});
+const pct = (x, d = 1) => x == null ? "–" : (x > 0 ? "+" : x < 0 ? "−" : "") + Math.abs(x * 100).toFixed(d) + "%";
+const win = (x) => x == null ? "–" : Math.round(x * 100) + "%";
+const usd100 = (x) => x == null ? "–" : (x > 0 ? "+$" : x < 0 ? "−$" : "$") + Math.abs(x);
+const money = (x) => x == null ? "–" : "$" + Number(x).toLocaleString(LOCALE, {maximumFractionDigits: x >= 100 ? 0 : x >= 1 ? 2 : 5});
+const compact = (x) => { if (x == null) return "–"; const a = Math.abs(x); return (a >= 1e9 ? (x / 1e9).toFixed(1) + "B" : a >= 1e6 ? (x / 1e6).toFixed(1) + "M" : a >= 1e3 ? (x / 1e3).toFixed(0) + "K" : String(Math.round(x))); };
+const sideTxt = (s) => s === "long" ? "LONG" : s === "short" ? "SHORT" : "MIXED";
+const sidePill = (s) => `<span class="pill ${s === "long" || s === "short" ? s : "mixed"}">${sideTxt(s)}</span>`;
+const ago = (t) => { if (!t) return "–"; const m = Math.max(0, Math.round((Date.now() / 1000 - t) / 60)); return m < 1 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " d ago"; };
+const toneDot = (tone) => ({good: "var(--good)", bad: "var(--bad)", warn: "var(--warn)", wait: "var(--warn)", muted: "var(--muted)"}[tone] || "var(--muted)");
+const badge = (verdict, tone) => `<span class="badge ${esc(tone || "muted")}">${tone === "good" ? "✓ " : ""}${esc(verdict || "–")}</span>`;
+const SRC = {swing: "Swing", day: "Day", quant: "Quant", radar: "Radar", smart: "Smart money"};
+const PAGE_OF = {swing: "picks.html", day: "picks.html#day", quant: "quant.html", radar: "radar.html", smart: "smart.html"};
+let D = null;
+
+function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+(function theme() {
+  const t = store("picks_theme");
+  if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+  $("theme").addEventListener("click", () => {
+    const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    const next = cur === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    store("picks_theme", next);
+  });
+})();
+
+function renderKicker() {
+  if (!D) return;
+  const age = D.updated ? (Date.now() / 1000 - D.updated) / 60 : 999;
+  $("dot").className = "dot" + (age > 45 ? " stale" : "");
+  let t = "Updated " + ago(D.updated);
+  if (D.next_scan) {
+    const m = Math.round((D.next_scan - Date.now() / 1000) / 60);
+    t += m > 0 ? ` · next scan in about ${m} min` : " · next scan due now";
+  }
+  $("upd").textContent = t;
+}
+
+function renderMarket() {
+  const M = D.market || {}, d = M.daily || {}, s = M.short || {}, f = M.fng || null, sm = M.smart || null;
+  const title = (M.verdict || "").split(":")[0] || "Market now";
+  let rest = (M.verdict || "").includes(":") ? M.verdict.slice(M.verdict.indexOf(":") + 1).trim() : (d.text || "");
+  rest = rest.charAt(0).toUpperCase() + rest.slice(1);
+  const lc = (l) => l === "Risk-on" ? "var(--good)" : l === "Risk-off" ? "var(--bad)" : "var(--warn)";
+  const tiles = [
+    `<div class="mt"><div class="l">Daily trend</div><div class="v"><span class="mdot" style="background:${d.up ? "var(--good)" : d.up === false ? "var(--bad)" : "var(--muted)"}"></span>${esc(d.label || "–")}</div>
+      <div class="s">BTC ${money(d.btc)} · ${pct(d.btc_30d)} in 30 days${d.total ? ` · ${d.above} of ${d.total} coins above their 50-day EMA` : ""}</div></div>`,
+    `<div class="mt"><div class="l">Last 3 hours</div><div class="v"><span class="mdot" style="background:${lc(s.label)}"></span>${esc(s.label || "–")}</div>
+      <div class="s">BTC ${pct(s.btc_3h)} in 3 h${s.breadth != null ? ` · ${Math.round(s.breadth * 100)}% of coins up on the day` : ""}</div></div>`,
+    `<div class="mt"><div class="l">Fear &amp; Greed</div><div class="v">${f ? esc(f.value) + ` <span class="small ink2" style="font-weight:500">${esc(f.label)}</span>` : "–"}</div>
+      ${f ? `<div class="fgbar" aria-hidden="true"><i style="left:${Math.max(0, Math.min(100, f.value))}%"></i></div>` : ""}</div>`,
+    sm && sm.long_share != null
+      ? `<div class="mt"><div class="l">Smart money</div><div class="v">${Math.round(sm.long_share * 100)}% long</div><div class="s">${esc(sm.label || "")}${sm.traders ? ` · ${sm.traders} proven traders` : ""}</div></div>`
+      : `<div class="mt"><div class="l">Smart money</div><div class="v">–</div><div class="s">See the smart-money page</div></div>`,
+  ];
+  $("market").innerHTML = `<h1>${esc(title)}</h1><p class="sub">${esc(rest)}</p><div class="mtiles">${tiles.join("")}</div>`;
+}
+
+function accLine(a) {
+  if (!a) return "";
+  const t = a.tested || {}, l = a.live || {};
+  const tested = t.n ? `${win(t.win)} winners · <b>${usd100(t.per100)}</b> per $100 risked · ${n0(t.n)} tested trades` : "No test yet";
+  return `${badge(a.verdict, a.tone)} <span>${tested}</span>`;
+}
+
+function renderGlance() {
+  const V = D.versions || [], S = D.smart || {}, sc = D.scorecard || [];
+  const smAcc = (S.accuracy || [])[0] || sc[sc.length - 1];
+  const cards = V.map((v) => {
+    const a = (v.accuracy || [])[0] || {};
+    return `<a class="card gl" href="${esc(v.page)}"><div class="h"><span class="lg">${esc(v.logo)}</span><span class="n">${esc(v.name)}</span><span class="go">→</span></div>
+      <div class="st"><span class="mdot" style="background:${toneDot(v.status && v.status.tone)};margin-right:6px"></span>${esc(v.status ? v.status.text : "")}</div>
+      <div class="acc">${badge(a.verdict, a.tone)}<span>${a.tested && a.tested.n ? usd100(a.tested.per100) + " per $100 · " + win(a.tested.win) + " win" : ""}</span></div></a>`;
+  });
+  const ns = (S.signals || []).length, ni = (S.info || []).length;
+  const smText = S.source === "engine" ? (ns ? `${ns} short signal${ns === 1 ? "" : "s"}: proven traders shorting together` + (ni ? ` · ${ni} long crowd${ni === 1 ? "" : "s"}` : "") : (ni ? `No signal · ${ni} long crowd${ni === 1 ? "" : "s"} (information)` : "No signal: proven traders are not acting together"))
+    : (S.board && S.board.length ? `Biggest positions of ${S.traders || "the"} top traders` : "No data");
+  cards.push(`<a class="card gl" href="smart.html"><div class="h"><span class="lg">$</span><span class="n">Smart money</span><span class="go">→</span></div>
+    <div class="st">${esc(smText)}</div><div class="acc">${smAcc ? badge(smAcc.verdict, smAcc.tone) : ""}<span>${smAcc && smAcc.tested && smAcc.tested.n ? usd100(smAcc.tested.per100) + " per $100 · " + win(smAcc.tested.win) + " win" : ""}</span></div></a>`);
+  $("glance").innerHTML = cards.join("");
+}
+
+function itemsOf(v) {
+  if (v.id === "picks") {
+    if (!v.items.length) return `<div class="empty">No scores this scan.</div>`;
+    return `<ul class="items">${v.items.map((i) => `<li><span class="c">${esc(i.coin)}<small>${esc(i.label || "")}</small></span>${sidePill(i.side)}<span class="r">${i.score != null ? Math.round(i.score) : "–"}</span></li>`).join("")}</ul>` +
+      (v.day && v.day.length ? `<div class="extra">Day trades scoring 80+: ${v.day.map((x) => esc(x.coin) + " " + (x.side === "short" ? "short" : "long")).join(", ")} <span class="muted">(no tested edge)</span></div>` : "") +
+      (v.open_paper ? `<div class="extra">${v.open_paper} paper trade${v.open_paper === 1 ? "" : "s"} open.</div>` : "");
+  }
+  if (v.id === "quant") {
+    if (!v.items.length) return `<div class="empty">No open positions. The strategies wait for their signals.</div>`;
+    return `<ul class="items">${v.items.map((i) => `<li><span class="c">${esc(i.coin)}<small>${esc(i.strategy || "")}</small></span>${sidePill(i.side)}<span class="r ${i.r > 0 ? "pos" : i.r < 0 ? "neg" : ""}">${i.r == null ? "new" : (i.r > 0 ? "+" : "") + i.r.toFixed(2) + "R"}</span></li>`).join("")}</ul>` +
+      (v.open_n > v.items.length ? `<div class="extra">and ${v.open_n - v.items.length} more open.</div>` : "");
+  }
+  if (!v.items.length) return `<div class="empty">Nothing on the radar right now.</div>`;
+  return `<ul class="items">${v.items.map((i) => `<li><span class="c">${esc(i.coin)}<small>${esc(i.setup || "")}${i.kind === "watch" ? " · watch" : ""}</small></span>${sidePill(i.side)}<span class="r">${i.score != null ? Math.round(i.score) : "–"}</span></li>`).join("")}</ul>`;
+}
+
+function accBox(list) {
+  return `<div class="accbox">${(list || []).filter(Boolean).map((a) => {
+    const t = a.tested || {}, l = a.live || {};
+    const tested = t.n ? `<span><b>${win(t.win)}</b> winners</span><span><b>${usd100(t.per100)}</b> per $100 risked</span><span>${n0(t.n)} trades${t.period ? ", " + esc(t.period) : ""}</span>` : `<span>No test results yet</span>`;
+    const live = l.n ? `Live: ${n0(l.n)} closed, ${win(l.win)} winners, ${usd100(l.per100)} per $100` : "Live: no closed trades yet";
+    return `<div class="accrow"><span class="k">${esc(a.name)}</span>${badge(a.verdict, a.tone)}<div class="accnums">${tested}</div><div class="accnums"><span>${live}</span></div></div>`;
+  }).join("")}</div>`;
+}
+
+function renderVersions() {
+  $("versions").innerHTML = (D.versions || []).map((v) => `<article class="card vc">
+    <div class="h"><span class="lg">${esc(v.logo)}</span><span class="name">${esc(v.name)}</span><span class="muted small" style="margin-left:auto">${v.updated ? ago(v.updated) : ""}</span></div>
+    <div class="what">${esc(v.what)}</div>
+    <div class="status"><span class="mdot" style="background:${toneDot(v.status && v.status.tone)}"></span><span>${esc(v.status ? v.status.text : "")}</span></div>
+    ${accBox(v.accuracy)}
+    ${itemsOf(v)}
+    <div class="open"><a class="btn" href="${esc(v.page)}">Open ${esc(v.name)} →</a></div>
+  </article>`).join("") || `<div class="card err">No data from the versions yet.</div>`;
+}
+
+function renderAgree() {
+  const A = D.agree || [];
+  if (!A.length) { $("agree").innerHTML = `<div class="empty" style="padding:14px 0">No coin has two or more signals right now. Each version is looking at different coins.</div>`; return; }
+  $("agree").innerHTML = A.map((r) => {
+    const label = r.conflict ? `<span class="pill mixed">MIXED</span>` : sidePill(r.side);
+    const cnt = r.conflict ? `${r.agree} vs ${r.against}` : `${r.agree} agree`;
+    const chips = r.signals.map((s) => `<a class="chip ${esc(s.side)}" href="${esc(PAGE_OF[s.src] || "#")}"><span class="src">${esc(SRC[s.src] || s.src)}</span>${esc(s.text)}${s.proven ? ` <span class="ck" title="proven method">✓</span>` : ""}</a>`).join("");
+    return `<div class="ag"><div class="coin"><a href="analyze.html?coin=${encodeURIComponent(r.coin)}">${esc(r.coin)}</a></div><div>${label}<div class="cnt">${esc(cnt)}</div></div><div class="chips">${chips}</div></div>`;
+  }).join("");
+}
+
+function renderSmart() {
+  const S = D.smart || {};
+  const acc = (S.accuracy || [])[0];
+  let body = "";
+  if (S.source === "engine") {
+    const row = (c) => `<div class="smrow"><div><span class="c"><a href="analyze.html?coin=${encodeURIComponent(c.coin)}" style="color:inherit">${esc(c.coin)}</a></span> ${sidePill(c.side)} <span class="t">${esc(c.text || "")}</span>
+      ${c.long_share != null ? `<div class="share" title="holding: share of the proven traders' weight that is long"><i style="width:${Math.round((c.long_share || 0) * 100)}%"></i></div>` : ""}</div><div class="num small ink2">${c.n_long || 0} long · ${c.n_short || 0} short</div></div>`;
+    body = `<div class="smgrid"><div><h3>Signals (the tested side)</h3>${(S.signals || []).map(row).join("") || `<div class="empty">No signal now.</div>`}</div>
+      <div><h3>Long crowds (information)</h3>${(S.info || []).map(row).join("") || `<div class="empty">No long crowd now.</div>`}</div></div>`;
+  } else if (S.board && S.board.length) {
+    body = `<div class="small ink2">The largest positions of ${esc(S.traders || "the")} top traders (old method, not tested):</div>` +
+      S.board.slice(0, 6).map((b) => `<div class="smrow"><div><span class="c">${esc(b.coin)}</span> <span class="t">${b.long_n} long ($${compact(b.long_usd)}) · ${b.short_n} short ($${compact(b.short_usd)})</span>
+      <div class="share"><i style="width:${Math.round((b.share || 0) * 100)}%"></i></div></div><div class="num small ink2">${Math.round((b.share || 0) * 100)}% long</div></div>`).join("");
+  } else {
+    body = `<div class="empty">No smart-money data in this scan.</div>`;
+  }
+  $("smart").innerHTML = (acc ? accBox([acc]) : "") + body + `<div style="margin-top:12px"><a class="btn" href="smart.html">Open Smart money →</a></div>`;
+}
+
+function renderScorecard() {
+  const rows = D.scorecard || [];
+  $("scbody").innerHTML = rows.map((a) => {
+    const t = a.tested || {}, l = a.live || {};
+    return `<tr><td><div class="nm"><a href="${esc(a.page || "#")}" style="color:inherit">${esc(a.name)}</a></div><div class="sb">${esc(a.sub || "")}</div></td>
+      <td>${badge(a.verdict, a.tone)}</td>
+      <td class="num">${t.n ? n0(t.n) : "–"}<div class="sb">${esc(t.period || "")}</div></td>
+      <td class="num">${win(t.win)}</td>
+      <td class="num"><span class="big ${t.per100 > 0 ? "pos" : t.per100 < 0 ? "neg" : ""}">${usd100(t.per100)}</span>${t.ret != null ? `<div class="sb">${pct(t.ret, 2)} a trade</div>` : ""}</td>
+      <td class="num">${l.n ? n0(l.n) : "0"}<div class="sb">${l.n ? win(l.win) + " winners" : esc(l.period || "")}</div></td>
+      <td class="num"><span class="${l.per100 > 0 ? "pos" : l.per100 < 0 ? "neg" : ""}">${l.n ? usd100(l.per100) : "–"}</span></td>
+      <td class="why">${esc(a.why || "")}</td></tr>`;
+  }).join("");
+  $("sccards").innerHTML = rows.map((a) => {
+    const t = a.tested || {}, l = a.live || {};
+    return `<div class="card scc"><div class="h"><div><div class="nm" style="font-weight:650"><a href="${esc(a.page || "#")}" style="color:inherit">${esc(a.name)}</a></div><div class="small muted">${esc(a.sub || "")}</div></div>${badge(a.verdict, a.tone)}</div>
+      <div class="two"><div>Tested${t.period ? " · " + esc(t.period) : ""}<b class="${t.per100 > 0 ? "pos" : t.per100 < 0 ? "neg" : ""}">${t.n ? usd100(t.per100) + " per $100" : "–"}</b>${t.n ? `${win(t.win)} winners · ${n0(t.n)} trades` : "no test yet"}</div>
+      <div>Live<b class="${l.per100 > 0 ? "pos" : l.per100 < 0 ? "neg" : ""}">${l.n ? usd100(l.per100) + " per $100" : "–"}</b>${l.n ? `${win(l.win)} winners · ${n0(l.n)} trades` : "no closed trades yet"}</div></div>
+      <div class="w">${esc(a.why || "")}</div></div>`;
+  }).join("");
+}
+
+function render() {
+  const parts = [renderKicker, renderMarket, renderGlance, renderVersions, renderAgree, renderSmart, renderScorecard];
+  for (const p of parts) { try { p(); } catch (e) { console.error(p.name, e); } }
+}
+
+async function load() {
+  try {
+    const r = await fetch("data/dashboard.json?ts=" + Date.now(), {cache: "no-store"});
+    if (!r.ok) throw new Error(r.status);
+    const d = await r.json();
+    if (!D || d.generated !== D.generated) { D = d; render(); }
+  } catch (e) {
+    if (!D) {
+      $("upd").textContent = "The dashboard data is not published yet.";
+      $("market").innerHTML = `<div class="err">No dashboard data yet: it appears after the next scan. The versions have their own pages: <a href="picks.html">Coin picks</a>, <a href="quant.html">Quant desk</a>, <a href="radar.html">15m radar</a>.</div>`;
+    }
+  }
+}
+load();
+setInterval(load, 120000);
+setInterval(renderKicker, 30000);
+</script>
+</body>
+</html>
