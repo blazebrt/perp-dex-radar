@@ -826,7 +826,8 @@ def gemini(kind, system, prompt, **kw):
     if not GEMINI_KEY or G["stopped"]:
         return None
     order = (GEMINI_NOTES_MODEL, GEMINI_FAST_MODEL) if kind == "notes" else (GEMINI_FAST_MODEL, GEMINI_NOTES_MODEL)
-    for m in dict.fromkeys(order):
+    busy = G.setdefault("busy", set())
+    for m in [x for x in dict.fromkeys(order) if x not in busy]:
         sc.throttle_key("gemini", CFG["gemini_gap"])
         G["calls"] += 1
         try:
@@ -839,6 +840,9 @@ def gemini(kind, system, prompt, **kw):
             G["errors"].append(f"{m}: HTTP {e.code}")
             if e.code == 404 or (e.code == 400 and "not found" in body.lower()):
                 continue                       # this model is not open to the key: try the other one
+            if e.code in (500, 502, 503, 504):
+                busy.add(m)                    # overloaded right now: the other model for the rest of this scan
+                continue
             if e.code in (401, 403, 429) or "API key" in body or "API_KEY" in body:
                 G["stopped"] = True            # quota used up, or the key is wrong: try again next scan
             return None
@@ -1414,7 +1418,7 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
     st_list = list(dict.fromkeys(ranked[:25] + by_liq[:10]))
     stw = J["st"] = stocktwits(st_list, J.get("st"), now)
     ape = J["ape"] = apewisdom(J.get("ape"), now)
-    GEMINI_STATE.update(calls=0, errors=[], stopped=False)
+    GEMINI_STATE.update(calls=0, errors=[], stopped=False, busy=set())
     feed = J["news"] = news_ai(news(J.get("news"), now), now)
     fng = J["fng"] = fear_greed(J.get("fng"), now)
     market["fng"] = {k: (fng or {}).get(k) for k in ("value", "label")} if fng else None

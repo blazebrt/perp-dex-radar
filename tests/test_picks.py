@@ -228,14 +228,14 @@ class GeminiNotes(unittest.TestCase):
     def setUp(self):
         self.saved = (P.GEMINI_KEY, P.gemini_call, P.CFG["gemini_gap"])
         P.GEMINI_KEY, P.CFG["gemini_gap"] = "test-key", 0.0
-        P.GEMINI_STATE.update(calls=0, errors=[], stopped=False)
+        P.GEMINI_STATE.update(calls=0, errors=[], stopped=False, busy=set())
         self.calls = []
         self.fail = {}
         P.gemini_call = self.fake
 
     def tearDown(self):
         P.GEMINI_KEY, P.gemini_call, P.CFG["gemini_gap"] = self.saved
-        P.GEMINI_STATE.update(calls=0, errors=[], stopped=False)
+        P.GEMINI_STATE.update(calls=0, errors=[], stopped=False, busy=set())
 
     def fake(self, model, system, prompt, max_tokens=2048, json_out=False, timeout=60):
         import io
@@ -292,6 +292,15 @@ class GeminiNotes(unittest.TestCase):
         P.desk_notes(self.recs(1), J, NOW_FIX, None, {})
         self.assertEqual(self.calls, [P.GEMINI_NOTES_MODEL, P.GEMINI_FAST_MODEL])
         self.assertEqual(J["notes"]["C0"]["model"], P.GEMINI_FAST_MODEL)
+
+    def test_overloaded_model_hands_over_for_the_rest_of_the_scan(self):
+        self.fail[P.GEMINI_NOTES_MODEL] = 503
+        J = {}
+        P.desk_notes(self.recs(), J, NOW_FIX, None, {})
+        self.assertEqual(self.calls, [P.GEMINI_NOTES_MODEL, P.GEMINI_FAST_MODEL, P.GEMINI_FAST_MODEL, P.GEMINI_FAST_MODEL],
+                         "after a 503 the busy model is skipped, and 3 notes are still written")
+        self.assertEqual(len(J["notes"]), 3)
+        self.assertFalse(P.GEMINI_STATE["stopped"])
 
     def test_headlines_rated_once_and_used(self):
         feed = {"items": [{"t": NOW_FIX, "src": "CoinDesk", "title": "Bitcoin ETF inflows hit a record", "desc": ""},
