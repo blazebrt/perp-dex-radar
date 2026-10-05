@@ -64,3 +64,19 @@ Rules: who counts as proven is decided from each trader's PnL history up to that
 entries are new or added positions of $25k+ and 5%+ of the account; a signal is entered at the next hourly open and
 judged 24 hours later after 0.09% costs, against the average move of every coin over the same hours.
 
+
+## The analyzer's chart read as a confirmation (version 7.3)
+
+Does the coin analyzer's chart read make the tested swing signals better? `python analyzer_gate.py md [out.json]`
+(needs node for `analyzer_gate.js`) takes every swing signal of the last three years (a chart score of 70+, long or
+short, every coin with $5M+ a day), trades it with the tested swing plan exactly as `picks_export.py` does, and asks
+the analyzer (`analyze.js`, the same file the page runs) what it read on the 4-hour and the daily chart at that day's
+close: long, short or wait. The analyzer sees only those candles, without the tested score, sentiment or market mood.
+The trades are then split by whether the read agreed, said wait or disagreed, with both halves of the period and
+each year.
+
+Result for the signals of 80+ (5,453 trades, Oct 2023 to Oct 2026), per $100 risked after costs: all +$29; the 4-hour
+read agreeing +$27, disagreeing +$38; the daily read agreeing +$18, disagreeing +$45; swing shorts with the 4-hour
+read agreeing -$1 (446 trades), disagreeing +$27. Agreement did not help, and the disagreeing groups were not steady
+for longs (nothing in the first half, all of the gain in the second), so the analyzer's call uses only the tested
+signals with their tested exits, and the chart read is shown as context.
