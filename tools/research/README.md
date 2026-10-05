@@ -44,3 +44,23 @@ volatility squeeze; for shorts, a bounce (RSI above 50) inside a downtrend while
 Checks that only worked in one year (30-day momentum, breakouts, relative strength) or never (distance from the
 all-time high on its own) were left out or kept small. A model trained on the first two years and tested on the
 third (linear and gradient-boosted trees) did no better out of sample than these simple rules.
+
+## Smart money (version 7.2)
+
+The test behind `smart_research.json` and the signal `smart.py` trades (standard library only):
+
+1. Get the data: the **Smart money research** workflow runs `smart_collect.py` on GitHub (the Hyperliquid API is not
+   reachable from everywhere) and saves the leaderboard, 380 traders' account histories, 90 days of their trade fills
+   and hourly candles on the `smart-data` branch (addresses hashed). Then
+   `git fetch origin smart-data && mkdir sd && git archive origin/smart-data | tar -x -C sd`.
+2. `python smart_backtest.py sd` compares the methods on the whole window; `--clean` leaves out the traders picked
+   for last month's results and judges only the last 30 days (no hindsight in who is looked at).
+3. `python smart_backtest.py sd --export ../../smart_research.json` rebuilds the file the page reads: the clean test
+   of the rule the live engine trades (`CHOSEN`), the same rule on the whole window, the long side, and every method
+   compared.
+
+Rules: who counts as proven is decided from each trader's PnL history up to that day; positions come from the fills
+(the API's own "position before" of the next fill; fills in the same second are put back in the order they link up);
+entries are new or added positions of $25k+ and 5%+ of the account; a signal is entered at the next hourly open and
+judged 24 hours later after 0.09% costs, against the average move of every coin over the same hours.
+
