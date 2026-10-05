@@ -131,7 +131,9 @@ A free Demo key makes it faster and more reliable:
 
 - writes a short desk note on each of the top 5 swing picks (Gemini 3.8 Flash, falling back to 3.5 Flash-Lite),
   shown on the pick cards and in the analyzer. A note is rewritten only when its pick changes side, moves 5+ points
-  or is 12 hours old, at most 3 a scan;
+  or is 12 hours old, with at most 3 requests a scan. A note that comes back cut off (without its closing line) is
+  never shown; the other model is asked, or the next scan tries again. When a note quotes the tested record, it names
+  the chart-score band the record is for, because the record does not cover the live extra points;
 - rates the tone of new news headlines in one batched request at most every 3 hours (instead of the word list).
 
 That keeps it to a few dozen requests a day. Google does not publish fixed free-tier limits (AI Studio shows yours);
