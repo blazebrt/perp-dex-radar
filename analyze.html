@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Coin Analyzer · Perp DEX Radar</title>
-<meta name="description" content="Search any coin and get a full trade read on four timeframes: trend, key levels, a long / short / wait call, entry, stop, three targets and your position size.">
+<meta name="description" content="Search any coin: a long, short or wait call from signals that made money in our tests, the tested trade plan with your position size, and a chart read on four timeframes.">
 <script>try{var t=localStorage.getItem("picks_theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
 <style>
 :root {
@@ -130,13 +130,45 @@ h3 { font-size: 13px; margin: 14px 0 4px; color: var(--muted); text-transform: u
 .tfc .b { margin-left: auto; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .alignnote { font-size: 13px; color: var(--ink-2); margin: 8px 2px 0; }
 
-/* evidence */
-.evidence { margin-top: 10px; padding: 14px 18px; display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; align-items: start; }
-.evidence .tag { font-size: 11px; font-weight: 750; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 8px; border-radius: 6px; white-space: nowrap; margin-top: 2px; }
-.evidence .tag.yes { background: color-mix(in srgb, var(--good) 14%, transparent); color: var(--good-text); }
-.evidence .tag.no { background: var(--surface-2); color: var(--ink-2); }
-.evidence p { margin: 0; font-size: 14px; color: var(--ink-2); }
-.evidence p b { color: var(--ink); }
+/* the call */
+.vmeta { display: grid; gap: 3px; min-width: 0; }
+.vmeta .sub { font-size: 12px; color: var(--ink-2); }
+.callwhy { width: 100%; margin: 0; font-size: 14px; color: var(--ink-2); border-top: 1px dashed var(--grid); padding-top: 10px; }
+.callwhy b { color: var(--ink); }
+.tier { display: inline-flex; align-items: center; font-size: 11px; font-weight: 750; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 8px; border-radius: 6px; white-space: nowrap; width: fit-content; }
+.tier.proven { background: color-mix(in srgb, var(--good) 14%, transparent); color: var(--good-text); }
+.tier.mixed, .tier.promising { background: color-mix(in srgb, var(--warn) 18%, transparent); color: var(--half); }
+.tier.none { background: var(--surface-2); color: var(--ink-2); }
+.tier.ctx { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+.tier.bad { background: color-mix(in srgb, var(--bad) 12%, transparent); color: var(--bad); }
+
+/* every tested signal on the coin */
+.sigs { margin-top: 10px; padding: 16px 18px 10px; }
+.sigs h2 { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.sgrid { display: grid; grid-template-columns: 170px minmax(0, 1.25fr) 104px minmax(0, 1fr); border-top: 1px solid var(--grid); }
+.sgr { display: contents; }
+.sgr > div { padding: 9px 10px 9px 0; border-bottom: 1px solid var(--grid); font-size: 13.5px; min-width: 0; }
+.sgr .sn { font-weight: 650; }
+.sgr .sn small { display: block; color: var(--muted); font-weight: 500; font-size: 12px; }
+.sgr .ss { color: var(--ink); }
+.sgr .ss .pill { margin-right: 6px; }
+.sgr .ss small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+.sgr .sr { color: var(--ink-2); font-size: 13px; }
+.sgr .sr b { color: var(--ink); }
+.sgr.dim .ss, .sgr.dim .sn { color: var(--ink-2); }
+.sgr.lead > div { background: color-mix(in srgb, var(--accent) 5%, transparent); }
+.sgr.lead > div:first-child { box-shadow: inset 3px 0 0 var(--accent); padding-left: 10px; }
+.sgr > div:first-child { padding-left: 2px; }
+.signote { font-size: 12.5px; color: var(--muted); margin: 8px 0 0; }
+
+/* the plan */
+.lv .k.trail { color: var(--ink-2); }
+.lv.none .p { font-size: 14px; font-weight: 600; color: var(--ink-2); }
+.next { margin: 6px 0 0; padding-left: 18px; font-size: 13.5px; color: var(--ink-2); }
+.next li { margin: 0 0 6px; }
+.subhead { font-size: 13px; color: var(--ink-2); margin: -4px 0 4px; }
+.ctxhead { margin: 30px 0 4px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.ctxhead h2 { margin: 0; font-size: 20px; }
 
 /* chart + plan */
 .cols { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 12px; margin-top: 12px; align-items: start; }
@@ -228,6 +260,7 @@ details.alt summary { cursor: pointer; color: var(--accent); font-size: 13px; fo
 [hidden] { display: none !important; }
 @media (max-width: 1020px) {
   .cols, .cols2 { grid-template-columns: 1fr; }
+  .cols .plan { order: -1; }   /* the call's plan before the chart on narrow screens */
 }
 @media (max-width: 720px) {
   h1 { font-size: 24px; }
@@ -241,6 +274,16 @@ details.alt summary { cursor: pointer; color: var(--accent); font-size: 13px; fo
   .tfs { flex: 1; justify-content: space-between; }
   .tfb { flex: 1; padding: 8px 4px; }
   .go { flex: 1; }
+  .quick { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+  .quick::-webkit-scrollbar { display: none; }
+  .quick .qc, .quick .lb { flex: none; }
+  .sgrid { grid-template-columns: minmax(0, 1fr) auto; grid-auto-flow: row dense; }
+  .sgr > div { border-bottom: 0; padding: 8px 0 2px; }
+  .sgr .st { grid-column: 2; text-align: right; padding-top: 8px; }
+  .sgr .ss, .sgr .sr { grid-column: 1 / -1; padding-top: 2px; }
+  .sgr .sr { border-bottom: 1px solid var(--grid); padding-bottom: 10px; }
+  .sgr.lead > div:first-child { padding-left: 8px; }
+  .vmeta { flex: 1; }
 }
 
 /* shared app bar: the same on every page */
@@ -282,7 +325,7 @@ header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: 
 
 <main class="wrap">
   <h1>Analyze any coin</h1>
-  <p class="lede">Type a coin and pick a timeframe. You get the trend on four timeframes, the levels that matter, a long, short or wait call, and a full plan: entry, stop, three targets and your position size. Prices update live.</p>
+  <p class="lede">Type a coin. The call (long, short or wait) comes only from signals that made money in our tests, and the plan is the trade they were tested with: entry, stop, trailing stop, time limit and your size. The chart read on four timeframes shows where the price sits. Prices update live.</p>
 
   <form class="card search" id="form" autocomplete="off">
     <div class="sbox">
@@ -304,9 +347,7 @@ header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: 
 
   <section id="result" hidden>
     <div class="card head" id="head"></div>
-    <div class="align" id="align"></div>
-    <p class="alignnote" id="alignnote"></p>
-    <div class="card evidence" id="evidence"></div>
+    <div class="card sigs" id="signals"></div>
     <div class="cols">
       <div class="card chartcard">
         <div class="ctools">
@@ -323,6 +364,10 @@ header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: 
       </div>
       <aside class="card plan" id="plan"></aside>
     </div>
+    <div class="ctxhead"><h2>The chart read</h2><span class="tier ctx">Context, not a signal</span></div>
+    <p class="alignnote" style="margin-top:2px" id="ctxnote"></p>
+    <div class="align" id="align"></div>
+    <p class="alignnote" id="alignnote"></p>
     <div class="cols2">
       <div class="card read" id="read"></div>
       <div class="stack">
@@ -336,18 +381,17 @@ header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: 
 
   <section class="section method" id="how">
     <div class="card">
-      <h2>How the analyzer works</h2>
-      <p>It reads the candles of the exchange that lists the coin (Binance futures first, then Bybit, Gate.io and Hyperliquid) on four timeframes, and applies the same rules every time:</p>
+      <h2>How the call is made</h2>
+      <p><b>Only tested signals make the call.</b> A coin gets LONG or SHORT only when one of these is live on it. Everything else is a wait.</p>
       <ul>
-        <li><b>Trend first.</b> The daily and 4-hour trends (moving averages and the sequence of swing highs and lows) carry the most weight. A trade with the bigger trend needs less to go right.</li>
-        <li><b>Levels.</b> Support and resistance zones come from swing points on every timeframe, the price where most volume traded, yesterday's and last week's highs and lows. Zones hit by several of them are stronger.</li>
-        <li><b>Setups.</b> A breakout retest, a pullback to support (or rally into resistance), a squeeze breakout, a stop run (price pokes through a swing point and snaps back), or buying a dip at the next support.</li>
-        <li><b>Risk.</b> The stop goes beyond the level that proves the idea wrong, never closer than one average candle range. Targets are the next zones ahead, at least 1 times the risk away. The size is set so the stop costs your chosen share of the account.</li>
-        <li><b>Positioning.</b> Funding, open interest and long/short ratios show what traders do with money. Crowded longs or leverage chasing a move count against a long, as they did in our tests.</li>
-        <li><b>Tested score and sentiment.</b> For coins on your DEXs, the 3-year-tested swing score from the Picks page and the free social sentiment score are added.</li>
+        <li><b>A Coin picks swing score of 80 or more.</b> Three-year test on 118 coins (Oct 2023 to Oct 2026): +$29 per $100 risked over 5,453 trades after fees, positive every year for longs and shorts. Exits as tested: in at the daily open, stop 2 daily ATR (kept between 5% and 25%), trailing stop 3 ATR behind the best price, out after 30 days at the latest.</li>
+        <li><b>A position of the quant desk.</b> Its three live strategies made +$9 per $100 risked over 4,514 trades in three years after fees, slippage and funding, and did better than random entries taken at the same moments. Exits: the desk's own stop, trailing stop and time limit.</li>
+        <li><b>Proven traders shorting together:</b> 2 or more of Hyperliquid's proven traders opening shorts on the same coin within 24 hours. Promising, not proven: +$14 per $100 risked over 31 trades in a 30-day test without hindsight, so it is traded at half size until 40 live trades decide. Exits: stop 1.5 times the coin's typical daily move, out after 24 hours.</li>
       </ul>
-      <p><b>What the tests say.</b> We replayed these exact rules on a year of hourly data for 118 coins (Sep 2025 to Oct 2026). At each step the analyzer saw only the data available then, and its plan was traded with the entry, stop, targets, partial profits and time stop shown on the page, after 0.12% round-trip costs. On 1-hour charts, 29,039 trades came out about break-even before fees and lost 0.04 times the risk per trade after them (42% winners). On 4-hour charts, 8,400 trades did much the same (−0.02 times the risk). A higher agreement number did not help, and no simple filter (trend alignment, RSI extremes, strong zones, stop runs) held up in both halves of the year.</p>
-      <p>That is normal for chart reading, and it is why the page shows the evidence first. The <b>swing score</b> from the Picks page did hold up over three years: longs scoring 80–89 made +2.8% per trade after fees, and shorts scoring 90+ made +5.1%. The best use of the analyzer: when a coin has a tested signal, use the plan here for the entry, the stop and the size. When it has none, treat the plan as risk control, not as a reason to trade.</p>
+      <p><b>The plan is the tested trade.</b> You join each trade as it stands (same stop level, same trailing stop, same time limit), so the trade on this page is the one the records count. There are no profit targets: the tested exits let the winners run, and the winners pay for the losers. The size is set so the stop costs your chosen share of the account (half of it for promising and mixed signals).</p>
+      <p><b>When signals disagree.</b> Proven signals on both sides: no trade. When several agree, the plan follows the one with the strongest record. A weaker signal against a proven one is shown but does not change the call.</p>
+      <p><b>The chart read is context.</b> Trend, levels, momentum and positioning on four timeframes show where the price sits and which levels matter. We tested whether it makes the calls better: on the 5,453 swing signals of the last three years, trades made +$27 per $100 risked when the 4-hour read agreed and +$38 when it disagreed (+$18 against +$45 on the daily chart), and swing shorts did worst when the 4-hour read agreed (−$1). So the chart read never confirms or blocks a call. On its own its plans were about break-even before fees and lost money after them (29,039 trades on 1-hour charts and 8,400 on 4-hour charts, one year, 118 coins).</p>
+      <p><b>No guarantee.</b> Between 38% and 61% of these trades win, depending on the signal. The edge is small and shows over many trades, not in any one of them. Expect losing runs, risk the same small share every time, and never move a stop away from the price.</p>
     </div>
   </section>
 
@@ -382,31 +426,44 @@ const TZ = -new Date().getTimezoneOffset() * 60;   // chart times in the viewer'
 const cssv = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const LOCALE = (() => { try { new Intl.DateTimeFormat(navigator.language).format(0); return navigator.language; } catch (e) { return "en-US"; } })();
 
-let PK = null;            // the scan (data/picks.json): tested scores, sentiment, market mood
-let RS = null;            // the 3-year test behind the swing score (data/picks_research.json)
-// one-year walk-forward test of this analyzer's own plans (hourly and 4-hour charts, after 0.12% round-trip costs)
+let PK = null;            // the scan (data/picks.json): tested swing scores, sentiment, market mood
+// the scans the call is made from (all optional): Coin picks, its 3-year test, the quant desk and its test, smart money
+const SRC = {picks: null, picksResearch: null, quant: null, quantResearch: null, smart: null};
+// one-year walk-forward test of the chart read's own plans (hourly and 4-hour charts, after 0.12% round-trip costs)
 const SELF_TEST = {h1: {trades: 29039, coins: 118, avgR: -0.039, win: 0.419, gross: 0.00036, net: -0.00084}, h4: {trades: 8400, coins: 117, avgR: -0.024, win: 0.424, gross: 0.00076, net: -0.00044}, period: "Sep 2025 to Oct 2026"};
+// does the chart read make the tested swing signals better? 5,453 swing signals (score 80+, Oct 2023 to Oct 2026),
+// traded with the tested plan, split by what the 4-hour and the daily read said at the time (tools/research/analyzer_gate.py)
+const GATE_TEST = {n: 5453, all: 29, period: "Oct 2023 to Oct 2026", "4h": {agree: [1150, 27], disagree: [1363, 38]}, "1d": {agree: [1381, 18], disagree: [1157, 45]}, shorts4hAgree: [446, -1]};
 let LOCAL = [];           // coins in the scan, for instant suggestions
-const S = {coin: null, tf: store.get("analyze_tf", "1h"), data: null, all: null, meta: null, sent: null, fng: null, idHint: null, timer: null, busy: false, show: {ema: true, zones: true, plan: true, labels: true}};
+const S = {coin: null, tf: store.get("analyze_tf", "1h"), data: null, all: null, call: null, meta: null, sent: null, fng: null, idHint: null, timer: null, busy: false, show: {ema: true, zones: true, plan: true, labels: true}};
 if (!TFS.includes(S.tf)) S.tf = "1h";
 
 // ------------------------------------------------------------------ account and risk (shared with the Picks page)
 function acct() { const v = parseFloat(store.get("picks_acct", "500")); return isFinite(v) && v > 0 ? v : 500; }
 function riskPct() { const v = parseFloat(store.get("picks_risk", "2")); return isFinite(v) && v > 0 ? Math.min(v, 10) / 100 : 0.02; }
 
-// ------------------------------------------------------------------ the scan (optional)
-async function loadPicks() {
+// ------------------------------------------------------------------ the scans (optional: without them every coin is a wait)
+async function getData(name, fresh) {
   try {
-    const r = await fetch("data/picks.json?ts=" + Date.now(), {cache: "no-store"});
-    if (!r.ok) return;
-    PK = await r.json();
+    const r = await fetch("data/" + name + (fresh ? "?ts=" + Date.now() : ""), {cache: "no-store"});
+    return r.ok ? await r.json() : null;
+  } catch (e) { return null; }
+}
+let SCANS_AT = 0;
+async function loadScans() {
+  SCANS_AT = Date.now();
+  const [pk, pr, q, qr, sm] = await Promise.all([getData("picks.json", true), getData("picks_research.json"), getData("quant.json", true),
+    getData("quant_research.json"), getData("smart.json", true)]);
+  Object.assign(SRC, {picks: pk, picksResearch: pr, quant: q, quantResearch: qr, smart: sm});
+  PK = pk;
+  if (PK) {
     const list = PK.scores ? Object.entries(PK.scores).map(([sym, x]) => ({sym, side: x.side, score: x.score, label: x.label}))
       : ((PK.swing || {}).all || []).map((x) => ({sym: x.coin, side: x.side, score: x.score, label: x.label}));
     LOCAL = list.filter((x) => /^[A-Z0-9]+$/.test(x.sym)).sort((a, b) => b.score - a.score);
     if (PK.market && PK.market.fng) S.fng = PK.market.fng;
-    $("#ver").textContent = "Scan " + (PK.version || "") + ".";
-  } catch (e) { /* the analyzer works without the scan */ }
-  try { const r = await fetch("data/picks_research.json", {cache: "no-store"}); if (r.ok) RS = await r.json(); } catch (e) { RS = null; }
+  }
+  const t = [PK && PK.generated, q && q.generated, sm && sm.generated].filter(Boolean);
+  $("#ver").textContent = t.length ? "Scans updated " + agoS(Math.min(...t)) + "." : "";
   renderQuick();
 }
 function scanOf(sym) {
@@ -422,10 +479,11 @@ function recent() { try { return JSON.parse(store.get("analyze_recent", "[]")) |
 function addRecent(sym) { store.set("analyze_recent", JSON.stringify([sym].concat(recent().filter((x) => x !== sym)).slice(0, 8))); }
 function renderQuick() {
   let h = "";
-  const top = PK && PK.swing ? (PK.swing.all || []).filter((p) => /^[A-Z0-9]+$/.test(p.coin)).slice(0, 5) : [];
-  if (top.length) {
-    h += '<span class="lb">Top picks</span>' + top.map((p) => '<button class="qc" type="button" data-c="' + esc(p.coin) + '" data-tf="4h">' + esc(p.coin) +
-      ' <span class="s-' + p.side + '">' + (p.side === "long" ? "long" : "short") + '</span> ' + Math.round(p.score) + '</button>').join("");
+  const calls = TA.signalCoins(SRC, Math.floor(Date.now() / 1000)).filter((x) => /^[A-Z0-9]+$/.test(x.coin)).slice(0, 10);
+  if (calls.length) {
+    h += '<span class="lb" title="Coins with a call from tested signals right now">Tested calls now</span>' + calls.map((x) => '<button class="qc" type="button" data-c="' + esc(x.coin) + '" title="' +
+      esc(x.srcs.map((s) => ({swing: "Coin picks swing", quant: "Quant desk", smart: "Smart money"}[s] || s)).join(" + ") + " · " + x.tier) + '">' + esc(x.coin) +
+      ' <span class="s-' + x.side + '">' + x.side + '</span>' + (x.tier === "Proven" ? "" : ' <span class="muted">½</span>') + '</button>').join("");
   }
   const rc = recent();
   if (rc.length) h += '<span class="lb" style="margin-left:8px">Recent</span>' + rc.map((c) => '<button class="qc" type="button" data-c="' + esc(c) + '">' + esc(c) + '</button>').join("");
@@ -577,11 +635,16 @@ async function fetchFng() {
 // ------------------------------------------------------------------ analysis
 function optsFor() {
   const sc = scanOf(S.coin);
-  const sent = sc && sc.sentiment && sc.sentiment.score != null ? sc.sentiment : null;   // only the scan's full score moves the call
+  const sent = sc && sc.sentiment && sc.sentiment.score != null ? sc.sentiment : null;   // only the scan's full score moves the read
   const market = PK && PK.market ? {mood: PK.market.mood, fng: PK.market.fng || S.fng} : (S.fng ? {fng: S.fng} : null);
-  return {picks: sc, sentiment: sent, market, account: acct(), risk: riskPct()};
+  // the chart read is context: the tested swing score is part of the call, not of the read
+  return {picks: null, lean: true, sentiment: sent, market, account: acct(), risk: riskPct()};
 }
-function recompute() { S.all = TA.analyzeAll(S.data, optsFor()); }
+function livePrice() { const b = S.data && S.data.bars["1h"]; return b && b.length ? last(b).c : null; }
+function recompute() {
+  S.all = TA.analyzeAll(S.data, optsFor());
+  S.call = TA.decide({coin: S.coin, price: livePrice(), d1: S.data.bars["1d"] || [], now: Math.floor(Date.now() / 1000), account: acct(), risk: riskPct(), src: SRC});
+}
 function syncUrl() {
   const u = new URL(location.href);
   if (S.coin) u.searchParams.set("coin", S.coin); else u.searchParams.delete("coin");
@@ -638,15 +701,23 @@ function startLive() {
   S.timer = setInterval(async () => {
     if (document.hidden || !S.data || S.busy) return;
     try {
+      if (Date.now() - SCANS_AT > 10 * 60000) await loadScans();   // the scans run every 20 minutes
       const closed = await TA.update(S.data);
       const before = sigOf(S.all && S.all[S.tf]);
       recompute();
       if (closed || sigOf(S.all[S.tf]) !== before) renderAll(true);   // the call or the plan changed: redraw everything
-      else { renderHead(); renderAlign(); liveBar(); }
+      else {
+        renderHead(); renderAlign(); liveBar();
+        if (!$("#plan").contains(document.activeElement)) renderPlan();   // the size follows the price (not while typing)
+      }
     } catch (e) { /* try again next tick */ }
   }, 15000);
 }
-function sigOf(a) { return a ? a.verdict + "|" + a.plans.map((p) => p.type + "|" + fp(p.entry) + "|" + fp(p.stop)).join("|") : ""; }
+function sigOf(a) {
+  const c = S.call, p = c && c.plan;
+  return (a ? a.verdict + "|" + a.plans.map((x) => x.type + "|" + fp(x.entry) + "|" + fp(x.stop)).join("|") : "") +
+    "|" + (c ? c.verdict + "|" + c.signals.length + "|" + c.expired.length : "") + "|" + (p ? fp(p.stop) : "");
+}
 function liveBar() {
   if (!CH || !S.data) return;
   const b = last(S.data.bars[S.tf]);
@@ -660,24 +731,45 @@ function liveBar() {
 function renderAll(keepRange) {
   if (!S.all || !S.all[S.tf]) return;
   // one section failing (odd data from a source) must not take the rest of the page down
-  for (const f of [renderHead, renderAlign, renderEvidence, () => renderChart(keepRange), renderPlan, renderRead, renderScore, renderChecks, renderSent, renderAI]) {
+  for (const f of [renderHead, renderSignals, renderAlign, () => renderChart(keepRange), renderPlan, renderRead, renderScore, renderChecks, renderSent, renderAI]) {
     try { f(); } catch (e) { console.error("render", e); }
   }
 }
 function A() { return S.all[S.tf]; }
 function vClass(a) { return a.side || "wait"; }
+const sgn = (x) => (x > 0 ? "+" : "") + x;
+const money2 = (x) => x == null || !isFinite(x) ? "–" : x < 10 ? "$" + x.toFixed(2) : money(x);
+const LEAN = (a) => a.side === "long" ? "Leans long" : a.side === "short" ? "Leans short" : "No lean";
+const TIER_CLS = {Proven: "proven", Mixed: "mixed", Promising: "promising"};
+const PAGE_OF = {swing: "picks.html", quant: "quant.html", smart: "smart.html"};
+function tierTag(t, txt) { return '<span class="tier ' + (TIER_CLS[t] || "none") + '">' + esc(txt || t) + '</span>'; }
+function sidePill(side, quiet) { return side ? '<span class="pill ' + (quiet ? "ord" : side) + '">' + (quiet ? side : side.toUpperCase()) + '</span>' : ""; }
+function whenShort(t) { return new Date(t * 1000).toLocaleString(LOCALE, {month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"}); }
+function sizeShare(p) { return (riskPct() * p.riskShare * 100).toFixed(2).replace(/\.?0+$/, "") + "%"; }
+function sigName(s) { return s.name + (s.src === "quant" ? " (" + s.strategy + ")" : ""); }
+function callWhy() {
+  const c = S.call;
+  if (!c) return "";
+  let t = esc(c.headline);
+  if (c.lead && c.agree.length) t += ' <b>Also for it:</b> ' + c.agree.map((s) => esc(sigName(s) + " " + s.side)).join(", ") + '.';
+  if (c.lead && c.against.length) t += ' <b>Against it:</b> ' + c.against.map((s) => esc(sigName(s) + " " + s.side + " (" + s.tier.toLowerCase() + ")")).join(", ") + '. It has the weaker record, so it does not change the call.';
+  return t;
+}
 function renderHead() {
-  const a = A(), d = S.data, m = S.meta && !S.meta.mismatch ? S.meta : null;
+  const a = A(), c = S.call, d = S.data, m = S.meta && !S.meta.mismatch ? S.meta : null;
   const h1 = d.bars["1h"], px = last(h1).c, ref = h1[Math.max(0, h1.length - 25)].c, ch = px / ref - 1;
-  const bias = a.bias, pos = 50 + bias / 2;
-  const dotCol = a.side === "long" ? "var(--long)" : a.side === "short" ? "var(--short)" : "var(--muted)";
+  const v = c ? c.verdict : "WAIT", cls = c && c.side ? c.side : "wait";
+  const tag = !c ? '<span class="tier none">Loading the scans</span>' : c.lead ? tierTag(c.lead.tier, c.lead.tier + " signal")
+    : '<span class="tier none">' + (c.conflict ? "Tested signals disagree" : c.expired.length ? "Signal ran its course" : "No tested signal") + '</span>';
+  const sub = c && c.lead ? esc(sigName(c.lead)) + " · " + (c.lead.tier === "Proven" ? "full size" : "half size")
+    : "Chart " + TFN[S.tf] + ": " + LEAN(a).toLowerCase() + " (context only)";
   let h = '<div class="coinid">' + (m && m.image ? '<img src="' + esc(m.image) + '" alt="">' : '<div class="ph">' + esc(S.coin.slice(0, 1)) + '</div>') +
     '<div><div class="sym">' + esc(S.coin) + '</div><div class="nm">' + esc(m ? m.name : "") + (m && m.rank ? " · #" + m.rank : "") + '</div></div></div>' +
     '<div class="pxbox"><div class="px">' + fp(px) + '</div><div class="ch ' + (ch >= 0 ? "pos" : "neg") + '">' + pct(ch, 2) + ' 24h</div></div>' +
     '<div class="src"><span class="live" title="Live"></span>' + esc(d.exchange) + ' · ' + esc(d.symbol) + ' · updated ' + ago(d.updated || d.loaded) + venuesTxt() +
     (d.multiplier > 1 ? ' · prices per ' + d.multiplier.toLocaleString() + ' ' + esc(S.coin) + ' (like the 1000' + esc(S.coin) + ' and k' + esc(S.coin) + ' contracts)' : "") + '</div>' +
-    '<div class="verdict"><div class="vpill ' + vClass(a) + '">' + a.verdict + '</div><div class="meter"><div class="lbl"><span>Short</span><span>' + TFN[S.tf] + ' score ' + (bias > 0 ? "+" : "") + bias + '</span><span>Long</span></div>' +
-    '<div class="bar"><div class="mid"></div><div class="dot" style="left:' + pos + '%;background:' + dotCol + '"></div></div><div class="cf" title="How strongly the checks point one way. In our one-year test a higher number did not make the trade more profitable on its own.">Agreement ' + a.confidence + '/100</div></div></div>';
+    '<div class="verdict"><div class="vpill ' + cls + '">' + v + '</div><div class="vmeta">' + tag + '<div class="sub">' + sub + '</div></div></div>' +
+    '<p class="callwhy">' + callWhy() + '</p>';
   if (m) {
     const circ = m.circ && (m.max || m.total) ? m.circ / (m.max || m.total) : null;
     h += '<div class="funda"><span>Market cap <b>' + big(m.mc) + '</b></span>' + (m.fdv ? '<span>Fully diluted <b>' + big(m.fdv) + '</b></span>' : "") +
@@ -687,35 +779,65 @@ function renderHead() {
   }
   $("#head").innerHTML = h;
 }
-function bandOf(side, core) {
-  const t = RS && RS.swing ? RS.swing[side] : null;
-  return t ? (t.bands || []).find((b) => core >= b.lo && core < b.hi) || null : null;
+
+// ---- every tested signal on the coin
+function recTxt(rec, src) {
+  if (!rec) return '<span class="muted">No test record</span>';
+  const yrs = rec.years && rec.years.length > 1 ? ' · positive in ' + rec.up + ' of ' + rec.years.length + (src === "quant" ? ' test years' : ' years') : "";
+  return '<b>' + TA.usd100(rec.per100) + ' per $100 risked</b> · ' + rec.n.toLocaleString("en-US") + ' trades · ' + Math.round(rec.win * 100) + '% winners' + yrs + (rec.period ? ' · ' + esc(rec.period) : "");
 }
-function evidence() {
-  const a = A(), sc = scanOf(S.coin), out = {signal: null, lines: []};
-  if (sc && sc.core != null) {
-    const b = bandOf(sc.side, sc.core), ready = sc.core >= 80, sideW = sc.side === "long" ? "long" : "short";
-    const rec = b ? ' Past ' + sideW + 's with a swing score of ' + b.lo + '–' + Math.min(100, b.hi - 1) + ' made <b>' + pct(b.ret) + ' per trade after fees</b> (' + b.n.toLocaleString() + ' trades, ' + esc(RS.period || "three years") + ', ' + Math.round(b.win * 100) + '% winners).' : "";
-    if (ready) {
-      out.signal = sc.side;
-      const agree = a.side === sc.side ? " The chart read agrees." : a.side ? " The chart read points the other way; the tested signal has the stronger record." : " The chart shows no short-term edge, which is fine for a swing trade of days to weeks.";
-      out.lines.push('<b>Tested signal: ' + sideW.toUpperCase() + '.</b> The 3-year-tested swing score is <b>' + Math.round(sc.core) + ' for a ' + sideW + '</b> (' + esc(sc.label) + ').' + rec + agree +
-        ' <a href="picks.html">Swing rules on the Coin picks page</a>.');
-    } else {
-      out.lines.push('<b>No tested signal right now.</b> The swing score is ' + Math.round(sc.core) + ' for a ' + sideW + ' (' + esc(sc.label) + '); trades are taken at 80 and above.' + rec);
-    }
+function renderSignals() {
+  const c = S.call, a = A();
+  if (!c) { $("#signals").innerHTML = ""; return; }
+  const rows = [];
+  const row = (cls, name, sub, state, small, tier, rec) => rows.push('<div class="sgr ' + cls + '"><div class="sn">' + name + (sub ? '<small>' + sub + '</small>' : "") + '</div>' +
+    '<div class="ss">' + state + (small ? '<small>' + small + '</small>' : "") + '</div><div class="st">' + tier + '</div><div class="sr">' + rec + '</div></div>');
+  const ran = '<span class="tier none">Ran its course</span>', noSig = (t) => '<span class="tier none">' + (t || "No signal") + '</span>';
+  const all = c.signals.concat(c.expired), isLive = (s) => c.signals.includes(s), lead = (s) => s === c.lead ? "lead" : (isLive(s) ? "" : "dim");
+  // Coin picks swing
+  const sw = all.find((s) => s.src === "swing"), swn = c.notes.find((n) => n.src === "swing");
+  if (sw) {
+    row(lead(sw), "Coin picks swing", "Score 80+, days to weeks", sidePill(sw.side) + 'Score ' + Math.round(sw.score) + (sw.label ? ' · ' + esc(sw.label) : ""),
+      isLive(sw) ? esc(sw.planError || (sw.plan ? "Tested entry " + fp(sw.plan.tested.entry) + " at the " + TA.dayTxt(sw.plan.tested.t) + " daily open" : "")) : esc(sw.why),
+      isLive(sw) ? tierTag(sw.tier) : ran, recTxt(sw.rec, "swing") + (sw.rec ? ' <span class="muted">(' + sw.side + 's with a chart score of ' + sw.rec.band + ')</span>' : ""));
+  } else if (swn) {
+    const sc = scanOf(S.coin) || {};
+    row("dim", "Coin picks swing", "Score 80+, days to weeks", 'Score ' + Math.round(swn.score) + ' for a ' + swn.side + ' · not ready', 'A trade starts at ' + swn.readyAt + '.',
+      noSig("Not a signal"), swn.rec ? 'Tested chart score ' + Math.round(sc.core != null ? sc.core : swn.score) + ': ' + TA.usd100(swn.rec.per100) + ' per $100 risked (' +
+      swn.rec.n.toLocaleString("en-US") + ' trades, ' + esc(swn.rec.tier.toLowerCase()) + ')' : "");
   } else {
-    out.lines.push('<b>No tested signal.</b> This coin is not in your DEX scan, so it has no tested swing score.');
+    row("dim", "Coin picks swing", "Score 80+, days to weeks", PK ? "Not in your DEX scan" : "Scan not loaded", "", noSig("—"), "");
   }
-  const hi = S.tf === "4h" || S.tf === "1d", st = hi ? SELF_TEST.h4 : SELF_TEST.h1;
-  out.lines.push('<b>The chart read on its own is not an edge.</b> We replayed these plans on ' + (hi ? "4-hour" : "1-hour") + ' charts for ' + st.coins + ' coins (' + SELF_TEST.period + ', ' + st.trades.toLocaleString() +
-    ' trades): about break-even before fees (' + pct(st.gross, 2) + ' per trade) and ' + pct(st.net, 2) + ' after them, ' + Math.round(st.win * 100) + '% winners. Use the plan for where to get in, where you are wrong and how big to go' +
-    (out.signal ? ', and trade it when it agrees with the tested signal.' : '; on its own it is not a reason to trade.'));
-  return out;
-}
-function renderEvidence() {
-  const ev = evidence();
-  $("#evidence").innerHTML = '<span class="tag ' + (ev.signal ? "yes" : "no") + '">' + (ev.signal ? "Tested" : "Untested") + '</span><p>' + ev.lines[0] + '</p><span></span><p>' + ev.lines[1] + '</p>';
+  // quant desk: one row per position
+  const qs = all.filter((s) => s.src === "quant"), desk = SRC.quantResearch && SRC.quantResearch.portfolio && SRC.quantResearch.portfolio.all_trades;
+  for (const q of qs) {
+    const p = q.plan, dk = p && p.desk;
+    row(lead(q), "Quant desk", esc(q.strategy), sidePill(q.side) + esc(q.strategy) + (q.pos.px == null ? " · in at the next open" : " · since " + TA.dayTxt(q.pos.t_in)),
+      isLive(q) ? (q.planError ? esc(q.planError) : dk && dk.entry ? "Desk entry " + fp(dk.entry) + ", " + pct(dk.move) + " for the trade so far" : "") : esc(q.why),
+      isLive(q) ? tierTag(q.tier) : ran, recTxt(q.rec, "quant"));
+  }
+  if (!qs.length) {
+    row("dim", "Quant desk", "3 trend strategies", SRC.quant ? "No position" : "Scan not loaded", "", noSig(),
+      desk ? 'Desk record: ' + TA.usd100(Math.round(desk.avg * 100)) + ' per $100 risked over ' + desk.n.toLocaleString("en-US") + ' trades' : "");
+  }
+  // smart money
+  const ss = all.find((s) => s.src === "smart"), sn = c.notes.find((n) => n.src === "smart"), srec = SRC.smart ? TA.smartRecord(SRC.smart) : null;
+  if (ss) {
+    const p = ss.plan;
+    row(lead(ss), "Smart money", "Proven traders shorting together", sidePill(ss.side) + esc(ss.text),
+      isLive(ss) ? (p && p.signal.move != null ? "Signal " + agoS(p.signal.t) + ", " + pct(p.signal.move) + " for the trade since" : "Signal " + agoS(ss.t)) + (ss.cluster >= 3 ? " · " + ss.cluster + " coins at once" : "") : esc(ss.why),
+      isLive(ss) ? tierTag(ss.tier) : ran, recTxt(ss.rec) + (ss.rec && ss.rec.live && ss.rec.live.n ? ' · live: ' + ss.rec.live.n + ' trades' : ' · live record starting'));
+  } else {
+    row("dim", "Smart money", "Proven traders shorting together", SRC.smart ? esc(sn ? sn.text : "No proven-trader crowd") : "Scan not loaded", "",
+      sn && sn.side ? noSig("Information") : noSig(), srec ? 'Rule: ' + TA.usd100(srec.per100) + ' per $100 risked over ' + srec.n + ' trades (shorts)' : "");
+  }
+  // the chart read: context
+  const g = GATE_TEST[S.tf], st = S.tf === "4h" || S.tf === "1d" ? SELF_TEST.h4 : SELF_TEST.h1;
+  row("dim", "Chart read · " + TFN[S.tf], "Trend, levels, momentum", LEAN(a) + ' · score ' + sgn(a.bias), "", '<span class="tier ctx">Context</span>',
+    g ? 'Tested on ' + GATE_TEST.n.toLocaleString("en-US") + ' swing signals: ' + TA.usd100(g.agree[1]) + ' per $100 risked when this read agreed, ' + TA.usd100(g.disagree[1]) + ' when it disagreed. It does not change the call.'
+      : 'Its own plans: ' + pct(st.net, 2) + ' a trade after fees over ' + st.trades.toLocaleString("en-US") + ' trades (one year). It does not change the call.');
+  $("#signals").innerHTML = '<h2>What decides the call on ' + esc(S.coin) + ' <span class="small muted" style="font-weight:500">every tested signal, with its record after fees</span></h2>' +
+    '<div class="sgrid">' + rows.join("") + '</div><p class="signote">Records come from tests on past data after fees; live results will differ. Proven: made money overall and in every test year. Promising or mixed: half size.</p>';
 }
 const DEX = {HL: "Hyperliquid", VR: "Variational", AS: "Aster", EG: "edgeX", LT: "Lighter", DY: "dYdX", PX: "Paradex", EX: "Extended"};
 function venuesTxt() {
@@ -727,17 +849,18 @@ function renderAlign() {
   $("#align").innerHTML = TFS.map((tf) => {
     const a = S.all[tf];
     if (!a) return '<button class="tfc" type="button" disabled><span class="t">' + TFN[tf] + '</span><span class="v wait">–</span></button>';
-    return '<button class="tfc' + (tf === S.tf ? " on" : "") + '" type="button" data-tf="' + tf + '" aria-pressed="' + (tf === S.tf) + '"><span class="t">' + TFN[tf] + '</span><span class="v ' + vClass(a) + '">' + a.verdict +
-      '</span><span class="b">' + (a.bias > 0 ? "+" : "") + a.bias + '</span></button>';
+    return '<button class="tfc' + (tf === S.tf ? " on" : "") + '" type="button" data-tf="' + tf + '" aria-pressed="' + (tf === S.tf) + '"><span class="t">' + TFN[tf] + '</span><span class="v ' + vClass(a) + '">' + LEAN(a) +
+      '</span><span class="b">' + sgn(a.bias) + '</span></button>';
   }).join("");
   document.querySelectorAll(".tfc[data-tf]").forEach((b) => b.addEventListener("click", () => setTf(b.dataset.tf, true)));
   const v = TFS.filter((t) => S.all[t]).map((t) => S.all[t].side);
   const L = v.filter((x) => x === "long").length, Sh = v.filter((x) => x === "short").length;
-  $("#alignnote").textContent = L === v.length ? "All four timeframes lean long: the cleanest kind of long." :
-    Sh === v.length ? "All four timeframes lean short: the cleanest kind of short." :
-    L && Sh ? "The timeframes disagree. Pros trade the side of the higher timeframes and wait for the lower ones to line up." :
-    L ? L + " of " + v.length + " timeframes lean long, the rest have no edge." : Sh ? Sh + " of " + v.length + " timeframes lean short, the rest have no edge." :
-    "No timeframe shows an edge right now. Waiting is a position too.";
+  $("#alignnote").textContent = L === v.length ? "All timeframes lean long." :
+    Sh === v.length ? "All timeframes lean short." :
+    L && Sh ? "The timeframes disagree; the higher ones usually matter more." :
+    L ? L + " of " + v.length + " timeframes lean long, the rest have no lean." : Sh ? Sh + " of " + v.length + " timeframes lean short, the rest have no lean." :
+    "No timeframe leans either way.";
+  $("#ctxnote").textContent = "Where the price sits and which levels matter, on four timeframes. In a 3-year test of 5,453 swing signals, trades did as well or better when this read disagreed, so it never confirms or blocks the call above.";
 }
 
 // ---- chart
@@ -849,14 +972,12 @@ function drawPlanLines() {
   CH.lines = [];
   if (!S.show.plan) return;
   const wide = $("#chart").clientWidth > 600;   // line titles only where there is room for them
-  const a = A(), add = (price, color, title, style, width) => CH.lines.push(CH.candles.createPriceLine({price, color, title: wide ? title : "", lineStyle: style, lineWidth: width || 1, axisLabelVisible: true}));
-  const plans = a.plans;
-  for (const p of plans) {
-    const sideCol = p.side === "long" ? cssv("--long") : cssv("--short"), tag = plans.length > 1 ? (p.side === "long" ? "Long " : "Short ") : "";
-    add(p.entry, sideCol, tag + "Entry", LC.LineStyle.Solid, 2);
-    add(p.stop, cssv("--stop"), tag + "Stop", LC.LineStyle.Dashed);
-    if (plans.length === 1) p.targets.forEach((t, i) => add(t.price, cssv("--target"), "T" + (i + 1), LC.LineStyle.Dotted));
-  }
+  const add = (price, color, title, style, width) => CH.lines.push(CH.candles.createPriceLine({price, color, title: wide ? title : "", lineStyle: style, lineWidth: width || 1, axisLabelVisible: true}));
+  const p = S.call && S.call.plan;
+  if (!p) return;   // no tested trade: the chart shows the levels only
+  const ref = p.kind === "swing" ? p.tested.entry : p.kind === "quant" ? p.desk.entry : p.signal.entry;
+  if (ref) add(ref, p.side === "long" ? cssv("--long") : cssv("--short"), p.kind === "swing" ? "Tested entry" : p.kind === "quant" ? "Desk entry" : "Signal", LC.LineStyle.Solid, 2);
+  add(p.stop, cssv("--stop"), "Stop", LC.LineStyle.Dashed, 2);
 }
 function drawMarkers() {
   if (!CH) return;
@@ -883,6 +1004,7 @@ document.querySelectorAll(".tg").forEach((b) => b.addEventListener("click", () =
 }));
 
 // ---- plan
+// the chart read's own plans: only shown, folded away, as untested risk control when there is no call
 function levelRows(p) {
   const L = p.side === "long", px = A().price;
   const away = p.entry === px ? "at the current price" : (Math.abs(p.entry / px - 1) * 100).toFixed(2) + "% " + (p.entry > px ? "above" : "below") + " the price";
@@ -894,45 +1016,85 @@ function levelRows(p) {
   });
   return h + '</div>';
 }
-function sizeBox(p) {
-  return '<div class="sizebox"><div>Position size</div><div class="big">' + money(p.size) + ' <span class="small ink2">' + p.lev.toFixed(1) + 'x leverage</span></div>' +
-    '<div>If the stop is hit you lose ' + money(p.riskUsd) + ' (' + (riskPct() * 100).toFixed(1).replace(/\.0$/, "") + '% of ' + money(acct()) + ') plus fees.' + (p.lev > 10 ? ' <b class="neg">Over 10x: use a smaller risk or skip it.</b>' : "") + '</div>' +
-    '<div class="acctrow"><label>Account $<input id="acctIn" type="number" min="10" step="10" value="' + acct() + '"></label><label>Risk %<input id="riskIn" type="number" min="0.1" max="10" step="0.1" value="' + (riskPct() * 100).toFixed(1).replace(/\.0$/, "") + '"></label></div></div>';
+function planCard(p) {
+  const L = p.side === "long";
+  return '<div class="cond"><h2><span class="small muted" style="font-weight:600">' + (L ? "Long idea" : "Short idea") + '</span><span class="pill ' + p.side + '">' + (L ? "LONG" : "SHORT") + '</span>' + esc(p.type) + '</h2>' +
+    levelRows(p) + '<p class="small muted" style="margin:6px 0 0">Size at your risk: ' + money(p.size) + ' (' + p.lev.toFixed(1) + 'x).</p></div>';
 }
-function planCard(p, cond) {
-  const L = p.side === "long", px = A().price;
-  let h = '<div class="cond">';
-  h += '<h2>' + (cond ? '<span class="small muted" style="font-weight:600">' + (L ? "Long idea" : "Short idea") + '</span>' : "") +
-    '<span class="pill ' + p.side + '">' + (L ? "LONG" : "SHORT") + '</span>' + esc(p.type) + '</h2>';
-  h += levelRows(p);
-  if (!cond) h += sizeBox(p);
-  if (p.order !== "market") {
-    const far = Math.abs(p.entry / px - 1);
-    h += '<div class="note info">' + (p.order === "limit" ? '<b>Not at the entry yet.</b> Place a ' + (L ? "buy" : "sell") + ' limit order at ' + fp(p.entry) + (far > 0.03 ? ", or set an alert: it is " + (far * 100).toFixed(1) + "% away." : ".")
-      : '<b>Only on the break.</b> Use a ' + (L ? "buy" : "sell") + ' stop order at ' + fp(p.entry) + ' so you are filled only if price breaks through.') + '</div>';
+function acctInputs() {
+  return '<div class="acctrow"><label>Account $<input id="acctIn" type="number" min="10" step="10" value="' + acct() + '"></label><label>Risk %<input id="riskIn" type="number" min="0.1" max="10" step="0.1" value="' + (riskPct() * 100).toFixed(1).replace(/\.0$/, "") + '"></label></div>';
+}
+// the tested trade, in words
+function stopWhy(s, p) {
+  if (p.kind === "swing") return p.raised ? "Raised by the trailing stop since the " + TA.dayTxt(p.tested.t) + " open" : "2 daily ATR from the " + TA.dayTxt(p.tested.t) + " open, kept between 5% and 25%";
+  if (p.kind === "quant") return p.raised ? "The desk's stop, already raised by its trailing stop" : p.desk.pending ? "The desk's stop distance from the entry" : "The desk's stop";
+  return "1.5 times " + S.coin + "'s typical daily move, at least 1.5%";
+}
+function trailWhy(s, p) {
+  const L = p.side === "long";
+  if (p.kind === "swing") return "behind the " + (L ? "highest" : "lowest") + " price since the open (3 daily ATR); move it only toward the price";
+  return "behind the best hourly close, as the desk moves it (the Quant desk page shows its stop now); move it only toward the price";
+}
+function exitWhy(s, p) {
+  if (p.kind === "swing") return "30 days after the entry, at the daily close, if the stop is not hit first";
+  if (p.kind === "quant") return "the " + p.desk.holdDays + "-day limit of the " + s.strategy + ", if the stop is not hit first";
+  return "24 hours after the signal, if the stop is not hit first";
+}
+function testedPlanCard(c) {
+  const s = c.lead, p = c.plan, L = p.side === "long";
+  const title = s.src === "swing" ? "The tested swing trade" : s.src === "quant" ? "Join the " + s.strategy : "Join the proven traders' short";
+  const ref = p.kind === "swing" ? {lbl: "Tested entry", px: p.tested.entry, t: p.tested.t, move: p.tested.move}
+    : p.kind === "quant" ? (p.desk.entry ? {lbl: "Desk entry", px: p.desk.entry, t: p.desk.t, move: p.desk.move} : null)
+    : (p.signal.entry ? {lbl: "Signal at", px: p.signal.entry, t: p.signal.t, move: p.signal.move} : null);
+  const refTxt = ref ? esc(ref.lbl) + " " + fp(ref.px) + " (" + whenShort(ref.t) + "), " + pct(ref.move) + " for the trade since" : p.kind === "quant" && p.desk.pending ? "The desk enters at the next open" : "";
+  const cap = (x) => x.charAt(0).toUpperCase() + x.slice(1);
+  let h = '<h2><span class="pill ' + p.side + '">' + (L ? "LONG" : "SHORT") + '</span>' + esc(title) + '</h2>' +
+    '<div class="subhead">' + tierTag(s.tier) + ' ' + (s.tier === "Proven" ? "Full size." : "Half size until it is proven.") + ' The exits it was tested with.</div>';
+  h += '<div class="lvls">' +
+    '<div class="lv entry"><span class="k">Entry</span><span class="p">' + fp(p.entry) + '<small>' + refTxt + '</small></span><span class="r">Market</span></div>' +
+    '<div class="lv stop"><span class="k">Stop</span><span class="p">' + fp(p.stop) + '<small>' + esc(stopWhy(s, p)) + '</small></span><span class="r neg">' + (L ? "−" : "+") + (p.stopPct * 100).toFixed(2) + '%</span></div>' +
+    (p.trail > 0 ? '<div class="lv"><span class="k trail">Trail</span><span class="p">' + fp(p.trail) + '<small>' + esc(cap(trailWhy(s, p))) + '</small></span><span class="r">' + (p.trailPct * 100).toFixed(1) + '%</span></div>'
+      : '<div class="lv none"><span class="k trail">Trail</span><span class="p">None<small>A fixed stop, as tested</small></span><span class="r"></span></div>') +
+    '<div class="lv"><span class="k trail">Exit by</span><span class="p" style="font-size:15px">' + whenShort(p.exitBy) + '<small>' + esc(cap(exitWhy(s, p))) + '</small></span><span class="r">' + leftTxt(p.exitBy) + '</span></div>' +
+    '<div class="lv none"><span class="k trail">Target</span><span class="p">None<small>The tested exits let the winners run; they pay for the losers</small></span><span class="r"></span></div></div>';
+  h += '<div class="sizebox"><div>Position size</div><div class="big">' + money(p.size) + ' <span class="small ink2">' + p.lev.toFixed(1) + 'x leverage</span></div>' +
+    '<div>If the stop is hit you lose about ' + money2(p.riskUsd) + ' (' + sizeShare(p) + ' of ' + money(acct()) + ')' + (p.riskShare < 1 ? ', half your usual risk,' : '') + ' plus fees.' +
+    (p.lev > 10 ? ' <b class="neg">Over 10x: use a smaller risk or skip it.</b>' : "") + '</div>' + acctInputs() + '</div>';
+  if (s.rec) h += '<div class="note info"><b>' + Math.round(s.rec.win * 100) + '% of these trades won in the test.</b> ' + (c.lossRun ? 'Runs of about ' + c.lossRun + ' losses in a row are normal over 20 trades. ' : '') +
+    'Keep the stop, skip early profit-taking and risk the same share every time: that is the trade the record counts.</div>';
+  if (c.against.length) h += '<div class="note"><b>Against it:</b> ' + c.against.map((x) => esc(sigName(x) + " " + x.side + " (" + x.tier.toLowerCase() + ")")).join(", ") + '. It has the weaker record, so it does not change the call.</div>';
+  if (s.src === "smart" && s.cluster >= 3) h += '<div class="note"><b>' + s.cluster + ' smart-money signals at once.</b> These coins usually move together: treat them as one bet on the market falling and split this risk between them if you take several.</div>';
+  return h;
+}
+function leftTxt(t) {
+  const s = t - Date.now() / 1000;
+  return s <= 0 ? "due" : s >= 2 * 86400 ? Math.round(s / 86400) + " days" : Math.max(1, Math.round(s / 3600)) + " h";
+}
+function waitCard(c) {
+  const a = A();
+  const title = c.conflict ? "Tested signals disagree" : c.expired.length && !c.signals.length ? "The signal ran its course" : "No tested signal";
+  let h = '<h2><span class="pill">WAIT</span>' + title + '</h2><p class="small ink2" style="margin:0 0 6px">' + esc(c.headline) + '</p>';
+  const next = [];
+  if (c.conflict) next.push("The signals on one side ending: a quant desk trade closing, the swing score falling under 80, or the smart-money window passing.");
+  else {
+    if (!c.inScan && PK) next.push(esc(S.coin) + " is not in your DEX scan, so it has no swing score.");
+    for (const n of c.notes) if (n.want) next.push(esc(n.want));
   }
-  if (p.wide) h += '<div class="note"><b>Wide stop.</b> The level that proves this wrong is far for this timeframe; the size above already accounts for it.</div>';
-  if (!cond) h += '<div class="mgmt"><p><b>Managing it.</b> ' + esc(p.manage) + '</p><p>' + esc(p.timeStop) + '</p></div>';
-  return h + '</div>';
+  for (const s of c.expired) next.push(esc(s.name + ": " + s.why));
+  if (next.length) h += '<h3>What would make it a trade</h3><ul class="next">' + next.map((x) => '<li>' + x + '</li>').join("") + '</ul>';
+  const ideas = a.side ? [a.plans[0], a.alt] : [a.plans[0], a.plans[1]];
+  h += '<details class="alt"><summary>Chart levels if you trade it anyway (untested)</summary><p class="small ink2" style="margin:8px 0 0">The chart read\'s own plans broke even before fees in our test and lost money after them. Use these only as risk control: where an idea is wrong, and how big to go.</p>' +
+    ideas.filter(Boolean).map(planCard).join("") + '</details>';
+  return h;
 }
 function renderPlan() {
-  const a = A();
-  let h = "";
-  if (a.side) {
-    h += planCard(a.plans[0], false);
-    const ch = a.text.change;
-    if (/against the daily trend/.test(ch)) h += '<div class="note bad">' + esc(ch.split(". ").slice(1).join(". ") || ch) + '</div>';
-    if (a.alt) {
-      const o = a.alt;
-      h += '<details class="alt"><summary>If you want to go ' + (o.side === "long" ? "long" : "short") + ' anyway</summary><p class="small ink2" style="margin:8px 0 0">The read favours the ' + a.side + ' side, so this is the riskier trade. If you take it, this is where it is proven wrong:</p>' + planCard(o, true).replace('<div class="cond">', '<div class="cond" style="margin-top:6px">') + '</details>';
-    }
-  } else {
-    h += '<h2><span class="pill">WAIT</span>No edge right now</h2><p class="small ink2" style="margin:0">Price is between its levels or the timeframes disagree. Two conditional plans: act only if price reaches one of them.</p>';
-    h += planCard(a.plans[0], true) + planCard(a.plans[1], true);
-    h += '<div class="sizebox">Sizes for these plans: long ' + money(a.plans[0].size) + ' (' + a.plans[0].lev.toFixed(1) + 'x), short ' + money(a.plans[1].size) + ' (' + a.plans[1].lev.toFixed(1) + 'x), each risking ' + money(a.plans[0].riskUsd) + '.' +
-      '<div class="acctrow"><label>Account $<input id="acctIn" type="number" min="10" step="10" value="' + acct() + '"></label><label>Risk %<input id="riskIn" type="number" min="0.1" max="10" step="0.1" value="' + (riskPct() * 100).toFixed(1).replace(/\.0$/, "") + '"></label></div></div>';
-  }
-  h += '<div class="btnrow"><button class="btn" type="button" id="copyPlan">Copy plan</button><button class="btn" type="button" id="reload">Re-analyze</button></div>';
+  const c = S.call;
+  let h;
+  if (c && c.lead && c.plan) h = testedPlanCard(c);
+  else if (c && c.lead) h = '<h2><span class="pill ' + c.side + '">' + c.verdict + '</span>' + esc(sigName(c.lead)) + '</h2><div class="subhead">' + tierTag(c.lead.tier) + '</div><div class="note">' + esc(c.lead.planError || "The plan could not be built.") + '</div>';
+  else h = waitCard(c || {notes: [], expired: [], signals: [], headline: "Loading the scans…", conflict: false, inScan: true});
+  h += '<div class="btnrow"><button class="btn" type="button" id="copyPlan">Copy plan</button><button class="btn" type="button" id="reload">Re-analyze</button>' +
+    (c && c.lead ? '<a class="btn" href="' + PAGE_OF[c.lead.src] + '">' + esc(c.lead.name) + ' page</a>' : "") + '</div>';
   $("#plan").innerHTML = h;
   for (const [id, key] of [["acctIn", "picks_acct"], ["riskIn", "picks_risk"]]) {
     const el = document.getElementById(id);
@@ -942,15 +1104,22 @@ function renderPlan() {
   $("#reload").addEventListener("click", () => run(S.coin));
 }
 function planText() {
-  const a = A(), lines = [S.coin + " · " + TA.TF_LABEL[S.tf] + " · " + a.verdict + (a.side ? " (agreement " + a.confidence + "/100)" : "")];
-  const one = (p, tag) => {
-    lines.push((tag || "") + (p.side === "long" ? "Buy " : "Sell ") + (p.order === "market" ? "at market " : p.order === "limit" ? "limit " : "stop ") + fp(p.entry) + " — " + p.type);
-    lines.push("Stop " + fp(p.stop) + " (" + (p.stopPct * 100).toFixed(2) + "%)");
-    lines.push(p.targets.map((t, i) => "T" + (i + 1) + " " + fp(t.price) + " (" + t.rr.toFixed(1) + "R)").join(" · "));
-    lines.push("Size " + money(p.size) + " (" + p.lev.toFixed(1) + "x), risk " + money(p.riskUsd) + ". Invalid: " + p.invalid.toLowerCase() + ".");
-  };
-  if (a.side) one(a.plans[0]); else { one(a.plans[0], "LONG IDEA: "); one(a.plans[1], "SHORT IDEA: "); }
-  lines.push("— Perp DEX Radar analyzer, " + new Date().toISOString().slice(0, 16).replace("T", " ") + " UTC. Not financial advice.");
+  const c = S.call, lines = [];
+  const utc = (t) => new Date(t * 1000).toISOString().slice(0, 16).replace("T", " ") + " UTC";
+  if (c && c.lead && c.plan) {
+    const s = c.lead, p = c.plan, L = p.side === "long";
+    lines.push(S.coin + " · " + c.verdict + " · " + s.tier + " signal: " + sigName(s) + ". " + s.text + ".");
+    if (s.rec) lines.push("Tested: " + TA.recordTxt(s.rec) + (s.rec.period ? " (" + s.rec.period + ")" : "") + ".");
+    lines.push((L ? "Buy" : "Sell") + " at market, near " + fp(p.entry));
+    lines.push("Stop " + fp(p.stop) + " (" + (L ? "−" : "+") + (p.stopPct * 100).toFixed(2) + "%): " + stopWhy(s, p).replace(/^./, (m) => m.toLowerCase()));
+    if (p.trail > 0) lines.push("Trailing stop " + fp(p.trail) + " " + trailWhy(s, p));
+    lines.push("Out by " + utc(p.exitBy) + ": " + exitWhy(s, p));
+    lines.push("No profit target.");
+    lines.push("Size " + money(p.size) + " (" + p.lev.toFixed(1) + "x), risk " + money2(p.riskUsd) + (p.riskShare < 1 ? " (half size)" : "") + ".");
+  } else {
+    lines.push(S.coin + " · WAIT. " + (c ? c.headline : ""));
+  }
+  lines.push("— Perp DEX Radar analyzer, " + utc(Date.now() / 1000) + ". Not financial advice.");
   return lines.join("\n");
 }
 async function copyPlan() {
@@ -963,7 +1132,7 @@ async function copyPlan() {
 function renderRead() {
   const a = A(), t = a.text;
   const sec = (title, body) => body ? '<h3>' + title + '</h3><p>' + esc(body) + '</p>' : "";
-  $("#read").innerHTML = '<h2>The read</h2><p class="sum">' + esc(t.summary) + '</p>' +
+  $("#read").innerHTML = '<h2>The read on the ' + esc(TA.TF_LABEL[S.tf]) + ' chart</h2><p class="sum">' + esc(t.summary) + '</p>' +
     sec("Big picture", t.big) + sec("Structure", t.structure) + sec("Key levels", t.levels) + sec("Momentum and volume", t.momentum) +
     sec("Positioning and sentiment", t.positioning) + sec("What would change the view", t.change);
 }
@@ -974,8 +1143,8 @@ function renderScore() {
     const style = p.pts > 0 ? "left:50%;width:" + w + "%" : "right:50%;width:" + w + "%";
     return '<div class="prt"><div class="n">' + esc(p.name) + ' <span>' + esc(p.why) + '</span></div><div class="bar"><i style="' + style + ';background:' + col + '"></i></div><div class="v" style="color:' + col + '">' + (p.pts > 0 ? "+" : "") + p.pts + '</div></div>';
   }).join("");
-  $("#score").innerHTML = '<h2>Why the score is ' + (a.bias > 0 ? "+" : "") + a.bias + '</h2><div class="parts">' + (rows || '<div class="small muted">Nothing leans either way.</div>') + '</div>' +
-    '<div class="total"><span>Total (long above +20, short below −20)</span><span>' + (a.bias > 0 ? "+" : "") + a.bias + '</span></div>';
+  $("#score").innerHTML = '<h2>Why the chart ' + (a.side ? "leans " + a.side : "has no lean") + ' (' + sgn(a.bias) + ')</h2><div class="parts">' + (rows || '<div class="small muted">Nothing leans either way.</div>') + '</div>' +
+    '<div class="total"><span>Total (leans long above +20, short below −20)</span><span>' + sgn(a.bias) + '</span></div>';
 }
 function renderChecks() {
   const a = A(), groups = {};
@@ -1025,7 +1194,7 @@ function renderSent() {
     h += row("Top traders", se.whales != null ? "Hyperliquid's top traders are " + se.whales + "% long" : "");
   }
   if (fng && fng.value != null) h += '<div class="srow"><span class="k">Fear & Greed</span><span><b>' + fng.value + '</b> ' + esc(fng.label || "") + ' (whole market)</span></div>';
-  h += '<p class="small muted" style="margin:10px 0 0">Free sources only: X (Twitter) data has no free access in 2026, and Stocktwits is the closest free equivalent. Crypto crowds lean bullish on almost everything, so each source is ranked against the other coins instead of read as is. Sentiment is not part of the tested score; a strong reading moves the call by 4 points at most.</p>';
+  h += '<p class="small muted" style="margin:10px 0 0">Free sources only: X (Twitter) data has no free access in 2026, and Stocktwits is the closest free equivalent. Crypto crowds lean bullish on almost everything, so each source is ranked against the other coins instead of read as is. Sentiment is not part of any tested signal: a strong reading moves the chart read by 4 points at most and never changes the call.</p>';
   $("#sent").innerHTML = h;
 }
 
@@ -1104,31 +1273,43 @@ function aiForm(prov) {
     aiFormBody(prov) + '</div>';
 }
 function aiPayload() {
-  const a = A(), r2 = (x) => x == null ? null : +TA.fmtPrice(x);
-  const plan = (p) => p && {side: p.side, setup: p.type, order: p.order, entry: r2(p.entry), stop: r2(p.stop), stop_pct: +(p.stopPct * 100).toFixed(2),
-    targets: p.targets.map((t) => ({price: r2(t.price), r_multiple: +t.rr.toFixed(2), basis: t.why})), size_usd: Math.round(p.size), leverage: +p.lev.toFixed(1), risk_usd: Math.round(p.riskUsd), invalidation: p.invalid};
+  const a = A(), c = S.call, r2 = (x) => x == null ? null : +TA.fmtPrice(x);
+  const rec = (r) => r ? {trades: r.n, win_rate: +r.win.toFixed(3), usd_per_100_risked: r.per100, period: r.period} : null;
+  const sig = (s) => ({source: sigName(s), side: s.side, tier: s.tier, signal: s.text, tested_record: rec(s.rec)});
+  const p = c && c.plan, ld = c && c.lead;
+  const plan = p && ld ? {side: p.side, order: "market", entry: r2(p.entry), stop: r2(p.stop), stop_pct: +(p.stopPct * 100).toFixed(2), stop_basis: stopWhy(ld, p),
+    trailing_stop: p.trail > 0 ? {distance: r2(p.trail), pct: +(p.trailPct * 100).toFixed(2), rule: trailWhy(ld, p)} : null,
+    exit_by_utc: new Date(p.exitBy * 1000).toISOString().slice(0, 16).replace("T", " "), exit_rule: exitWhy(ld, p), profit_target: "none (the tested exits let winners run)",
+    size_usd: Math.round(p.size), leverage: +p.lev.toFixed(1), risk_usd: +p.riskUsd.toFixed(2), half_size: p.riskShare < 1} : null;
+  const cp = (x) => x && {side: x.side, setup: x.type, entry: r2(x.entry), stop: r2(x.stop), targets: x.targets.map((t) => r2(t.price))};
   return {
-    coin: S.coin, timeframe: TA.TF_LABEL[S.tf], price: r2(a.price), exchange: S.data.exchange, atr_pct: +(a.atrPct * 100).toFixed(2), change_24h_pct: +(a.chgDay * 100).toFixed(2),
-    verdict: a.verdict, score: a.bias, confidence: a.confidence,
-    timeframes: Object.fromEntries(TFS.filter((t) => S.all[t]).map((t) => [TA.TF_LABEL[t], {verdict: S.all[t].verdict, score: S.all[t].bias}])),
-    score_parts: a.parts.map((p) => ({name: p.name, points: p.pts, why: p.why})),
-    support_zones: a.zones.support.map((z) => ({from: r2(z.lo), to: r2(z.hi), sources: z.src})),
-    resistance_zones: a.zones.resistance.map((z) => ({from: r2(z.lo), to: r2(z.hi), sources: z.src})),
-    plans: a.plans.map(plan), other_side_plan: plan(a.alt),
-    checks: a.checks.map((c) => ({group: c.group, name: c.name, leans: c.ok > 0 ? "long" : c.ok < 0 ? "short" : "neutral", detail: c.detail})),
-    written_read: a.text,
+    coin: S.coin, price: r2(a.price), exchange: S.data.exchange, change_24h_pct: +(a.chgDay * 100).toFixed(2),
+    call: c ? {verdict: c.verdict, tier: c.tier, headline: c.headline, tested_signals_disagree: c.conflict} : null,
+    plan,
+    tested_signals: c ? c.signals.map(sig) : [], signals_that_ran_their_course: c ? c.expired.map((s) => ({source: sigName(s), side: s.side, why: s.why})) : [],
+    not_signals: c ? c.notes.map((n) => n.text) : [],
+    expected_losing_run: c && c.lossRun ? c.lossRun + " losses in a row are normal over 20 trades" : null,
+    chart_read_context: {
+      note: "Context only. In a 3-year test of 5,453 swing signals, trades did as well or better when the chart read disagreed, so it never changes the call.",
+      timeframe: TA.TF_LABEL[S.tf], lean: a.side || "none", score: a.bias,
+      timeframes: Object.fromEntries(TFS.filter((t) => S.all[t]).map((t) => [TA.TF_LABEL[t], {lean: S.all[t].side || "none", score: S.all[t].bias}])),
+      score_parts: a.parts.map((x) => ({name: x.name, points: x.pts, why: x.why})),
+      support_zones: a.zones.support.map((z) => ({from: r2(z.lo), to: r2(z.hi), sources: z.src})),
+      resistance_zones: a.zones.resistance.map((z) => ({from: r2(z.lo), to: r2(z.hi), sources: z.src})),
+      written_read: a.text, untested_chart_plans: c && !c.lead ? (a.side ? [cp(a.plans[0]), cp(a.alt)] : [cp(a.plans[0]), cp(a.plans[1])]) : undefined,
+    },
     fundamentals: S.meta && !S.meta.mismatch ? {market_cap: S.meta.mc, fdv: S.meta.fdv, rank: S.meta.rank, circulating_share: S.meta.circ && (S.meta.max || S.meta.total) ? +(S.meta.circ / (S.meta.max || S.meta.total)).toFixed(2) : null, pct_from_ath: S.meta.athPct} : null,
     sentiment: S.sent ? {score: S.sent.score, label: S.sent.label, partial: !!S.sent.partial, stocktwits: S.sent.stocktwits || null, reddit: S.sent.reddit || null, news_count: S.sent.news ? S.sent.news.n : null, headlines: S.sent.news && S.sent.news.top ? S.sent.news.top.map((x) => x.title) : []} : null,
     market: PK && PK.market ? {mood: PK.market.mood, fear_greed: PK.market.fng} : (S.fng ? {fear_greed: S.fng} : null),
-    evidence: (() => { const ev = evidence(); return {tested_signal: ev.signal, notes: ev.lines.map((x) => x.replace(/<[^>]+>/g, ""))}; })(),
   };
 }
-const AI_SYSTEM = "You are a senior crypto derivatives trader with 30 years of experience across futures desks, writing a short desk note for a trader who will act on it today. " +
-  "Use ONLY the numbers in the JSON you are given; never invent prices, levels, news or indicators. Keep the computed entry, stop and targets exactly as given: you may say which target you would favour or that you would pass on the trade, but do not change the numbers. " +
-  "Be direct and specific, plain English, short sentences, no hype, no emojis. If the setup is weak or the timeframes conflict, say so plainly and say what you would wait for. " +
-  "The 'evidence' field matters most: a tested signal comes from a 3-year backtest of the swing score; the chart read alone was about break-even before fees in a one-year test. Weigh the tested signal above the chart read, and when there is no tested signal say plainly that this is a lower-conviction idea where the plan is mainly risk control. " +
-  "Format in Markdown with these sections: '## Bottom line' (two sentences: the call and the main reason), '## The trade' (bullets: order type and entry, stop, targets with R multiples, size), " +
-  "'## Why' (3 to 5 bullets), '## What would make me wrong' (2 to 3 bullets), '## Managing it' (2 to 3 bullets). For a WAIT verdict, put both conditional triggers under '## The trade'. Maximum 320 words. End with the line: Not financial advice.";
+const AI_SYSTEM = "You are a senior crypto derivatives trader writing a short desk note for a trader who will act on it today. " +
+  "Use ONLY the numbers in the JSON you are given; never invent prices, levels, news, indicators or records. " +
+  "The call (LONG, SHORT or WAIT) and the plan come only from signals that made money in back-tests, each with the exits it was tested with. Repeat the plan exactly: never change the entry, stop, trailing stop, time limit or size, and never add profit targets. " +
+  "The chart read is context only (in a 3-year test it did not make the calls better): use it to say where the price sits and which levels matter, never to argue for a different call. " +
+  "For WAIT, say plainly that nothing tested points either way and list what would make it a trade; you may mention the untested chart levels only as risk control. " +
+  "Be direct, plain English, short sentences, no hype, no emojis. Format in Markdown with these sections: '## Bottom line' (two sentences: the call and the main reason), '## The trade' (bullets with the plan exactly as given, or 'No trade' for WAIT), " +
+  "'## Why' (3 to 5 bullets, the tested signal and its record first), '## What would make me wrong' (2 to 3 bullets), '## Managing it' (2 to 3 bullets: follow the tested exits, expect the losing runs). Maximum 300 words. End with the line: Not financial advice.";
 function mdLite(s) {
   const lines = esc(s).split(/\r?\n/), out = [];
   let inList = false;
@@ -1213,7 +1394,7 @@ renderQuick();
 (async function start() {
   const u = new URL(location.href), c = u.searchParams.get("coin"), tf = u.searchParams.get("tf");
   if (tf && TFS.includes(tf)) setTf(tf, false);
-  const pk = loadPicks();
+  const pk = loadScans();
   if (c) { $("#q").value = normSym(c); await pk; run(c); }
   else { await pk; if (matchMedia("(pointer: fine)").matches) $("#q").focus(); }
 })();

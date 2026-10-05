@@ -343,15 +343,16 @@ function oddsHtml(p) {
   if (!b) return "";
   const t = R.swing[p.side];
   const ys = Object.entries(b.years || {});
-  const up = ys.filter(([, v]) => (v.ret || 0) > 0).length;
-  const yrs = ys.map(([y, v]) => y + " " + pct(v.ret)).join(" · ");
+  const yR = (v) => v.R != null ? v.R : (v.ret || 0);   // per dollar risked, the unit of the headline
+  const up = ys.filter(([, v]) => yR(v) > 0).length;
+  const yrs = ys.map(([y, v]) => { const d = Math.round(yR(v) * 100); return y + " " + (d > 0 ? "+$" : d < 0 ? "−$" : "$") + Math.abs(d); }).join(" · ");
   const verdict = b.R > 0 && ys.length && up === ys.length ? ["good", "✓ Proven"] : b.R > 0 ? ["warn", "Mixed"] : ["bad", "No edge"];
   const per100 = Math.round(b.R * 100);
   const range = b.lo + "–" + Math.min(100, b.hi - 1);
   const advice = verdict[0] === "good" ? "" : (b.lo < 80 ? " Wait for 80+." : "");
   return '<div class="odds"><span class="badge ' + verdict[0] + '">' + verdict[1] + '</span> <b>Tested accuracy, ' + (p.side === "long" ? "longs" : "shorts") + ' with a chart score of ' + range + ':</b> ' +
     Math.round(b.win * 100) + '% winners · <b>' + (per100 > 0 ? "+$" : per100 < 0 ? "−$" : "$") + Math.abs(per100) + ' per $100 risked</b> · ' + pct(b.ret) + ' a trade after fees · ' +
-    b.n.toLocaleString() + ' trades · positive in ' + up + ' of ' + ys.length + ' years (' + yrs + ').' + advice + ' ' +
+    b.n.toLocaleString() + ' trades · positive in ' + up + ' of ' + ys.length + ' years (' + yrs + ' per $100 risked).' + advice + ' ' +
     (p.side === "long" ? 'Reached +50% within 30 days ' + Math.round(b.up50 * 100) + '% of the time, fell 30% ' + Math.round(b.dn30 * 100) + '% (every coin: ' + Math.round(t.base.up50 * 100) + '% and ' + Math.round(t.base.dn30 * 100) + '%).'
                        : 'The price fell 30% within 30 days ' + Math.round(b.dn30 * 100) + '% of the time (every coin: ' + Math.round(t.base.dn30 * 100) + '%).') + '</div>';
 }
@@ -382,7 +383,7 @@ function noteHtml(p, open) {
 }
 function anaLink(p) {
   if (!/^[A-Za-z0-9]+$/.test(p.coin)) return "";   // tickers the exchanges do not list by name
-  return '<div class="small" style="margin-top:8px"><a href="analyze.html?coin=' + encodeURIComponent(p.coin) + '&tf=' + (p.kind === "swing" ? "4h" : "1h") + '">Full chart, levels and plan for ' + esc(p.coin) + ' →</a></div>';
+  return '<div class="small" style="margin-top:8px"><a href="analyze.html?coin=' + encodeURIComponent(p.coin) + '&tf=' + (p.kind === "swing" ? "4h" : "1h") + '">The call, the tested plan and the chart for ' + esc(p.coin) + ' →</a></div>';
 }
 function pickCard(p, i) {
   const venues = p.venues ? '<span class="pill" title="Traded on">' + esc(p.venues) + '</span>' : "";

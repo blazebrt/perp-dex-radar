@@ -222,9 +222,9 @@ def crowd_of(row, cfg=CFG):
     if cfg["signal"] == "entries":
         nl, ns = row["new_long"], row["new_short"]
         if nl - ns >= cfg["signal_min_traders"]:
-            return "long", f"{nl} proven trader{'s' if nl > 1 else ''} opened longs in 24 h" + (f", {ns} shorts" if ns else "")
+            return "long", f"{nl} proven trader{'s' if nl > 1 else ''} opened longs in 24 h" + (f", {ns} short{'s' if ns > 1 else ''}" if ns else "")
         if ns - nl >= cfg["signal_min_traders"]:
-            return "short", f"{ns} proven trader{'s' if ns > 1 else ''} opened shorts in 24 h" + (f", {nl} longs" if nl else "")
+            return "short", f"{ns} proven trader{'s' if ns > 1 else ''} opened shorts in 24 h" + (f", {nl} long{'s' if nl > 1 else ''}" if nl else "")
     elif cfg["signal"] == "consensus" and row["long_share"] is not None and row["traders"] >= cfg["consensus_min_traders"]:
         if row["long_share"] >= cfg["consensus_share"]:
             return "long", f"{row['n_long']} of {row['traders']} proven traders long ({row['long_share'] * 100:.0f}% of the weight)"

@@ -91,7 +91,8 @@ def picks_accuracy(P, PR):
     for x in (lo, sh):
         for y in ((x or {}).get("years") or {}).values():
             years_n += 1
-            years_ok += 1 if (num(y.get("ret")) or 0) > 0 else 0
+            r = num(y.get("R"))
+            years_ok += 1 if (r if r is not None else (num(y.get("ret")) or 0)) > 0 else 0
     tested = rec(t["n"], t.get("win"), t.get("r"), t.get("ret"), (PR or {}).get("period"))
     rp = (P or {}).get("record") or {}
     ls = rp.get("swing") or {}

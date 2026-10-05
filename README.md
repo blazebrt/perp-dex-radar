@@ -127,44 +127,68 @@ trades: on hourly candles every selection rule lost money after fees (the best a
 list is shown with that warning. The live swing scores match the research code exactly
 (`tools/research/parity_picks.py`), and every 80+ swing pick and 85+ day pick is paper-traded on the page.
 
-## Coin analyzer and free sentiment (version 7.1)
+## Coin analyzer (version 7.3): the call comes only from tested signals
 
-**The analyzer** (`analyze.html`, linked from the front page and from every pick) takes any coin you type and gives
-a full trade read on four timeframes at once (15 minutes, 1 hour, 4 hours, daily), with live prices:
+**The analyzer** (`analyze.html`, linked from every page, every pick, every quant desk position and every smart-money
+coin) takes any coin you type and answers one question: is there a trade on it that has made money in our tests,
+and exactly how is that trade run?
 
-- the trend on each timeframe and whether they agree, the swing structure (higher highs and lows, breaks, stop runs);
-- support and resistance zones built from swing points on every timeframe, the price where most volume traded,
-  yesterday's and last week's highs and lows, drawn as bands on the chart;
-- momentum (RSI, MACD, divergences), volatility squeezes, volume, and positioning (funding, open interest, top traders'
-  and the crowd's long/short ratios from the exchange);
-- a LONG, SHORT or WAIT call with every point behind it, and a plan: entry (market, limit or stop order), a stop
-  beyond the level that proves the idea wrong, three targets at the next zones, your position size for the account
-  and risk you set, how to manage it, and the plan for the other side if you want to trade against the read;
-- for coins on your DEXs, the tested swing score and its record, and the sentiment score;
-- an optional trader's note written by AI from these numbers, with your own key: Google Gemini (free on Google's
-  free tier, Gemini 3.8 Flash or 3.5 Flash-Lite) or Anthropic Claude (about 1 to 3 cents a note). The key stays in
-  your browser and is sent only to that company.
+**The call.** LONG or SHORT only when one of these is live on the coin. Otherwise it is WAIT, with what would make it
+a trade:
 
-It reads candles straight from the exchanges' public APIs in your browser (Binance futures, then Bybit, Gate.io and
-Hyperliquid), so it works for coins outside the scan too.
+| Signal | Record after fees | Size | Exits, as tested |
+|---|---|---|---|
+| Coin picks swing score of 80+ | Proven: +$29 per $100 risked over 5,453 trades, Oct 2023 to Oct 2026 (the page shows the record of the coin's own score band) | Your risk (half when its band's record is mixed) | In at the daily open, stop 2 daily ATR (5% to 25%), trailing stop 3 ATR behind the best price, out after 30 days |
+| A quant desk position | Proven: +$9 per $100 risked over 4,514 trades, Dec 2023 to Oct 2026 (the page shows the strategy's own record) | Your risk | The desk's own stop, trailing stop and time limit |
+| 2+ proven Hyperliquid traders opening shorts on the coin within 24 hours | Promising: +$14 per $100 risked over 31 trades in a 30-day test without hindsight | Half your risk, until 40 live trades decide | Stop 1.5 typical daily moves (at least 1.5%), out 24 hours after the signal |
 
-**What the tests say, plainly.** The analyzer's rules were replayed on a year of hourly candles for 118 coins
-(September 2025 to October 2026; `tools/research/analyzer_backtest.js`), seeing only the data available at each
-moment and trading each plan as the page describes, after 0.12% round-trip costs:
+- **The plan is the tested trade.** You join each trade as it stands: the same stop level, the same trailing stop and
+  the same time limit, so the trade on the page is the one its record counts; the stop distance and the size are
+  worked out from the current price. There are no profit targets, because the tested exits let the winners run and
+  the winners pay for the losers. A trade already stopped out, or with most of its window gone, is not offered.
+- **Conflicts.** Proven signals on both sides mean WAIT. When several agree, the plan follows the one with the
+  strongest record. A weaker signal against a proven one is shown but does not change the call (on the first live
+  data, the quant desk was long BTC, ETH and XRP while proven traders were shorting them: the call stays long).
+- **What decides the call** is a table on the page: every tested signal on the coin with its state and record, and
+  the chart read marked as context. Next to the plan: the signal's win rate and the losing run that is normal for it
+  ("runs of about 6 losses in a row are normal over 20 trades" for 41% winners), so a losing streak is no surprise.
+- "Tested calls now" under the search box lists the coins with a call right now, one tap each.
+
+**The chart read is context, and two tests decided that.** The read on four timeframes (trend, swing structure,
+support and resistance zones from swing points, volume profile and last week's range, RSI, MACD, divergences,
+squeezes, volume, funding, open interest and long/short ratios) stays on the page for where the price sits and
+which levels matter.
+
+On its own (`tools/research/analyzer_backtest.js`: a year of hourly candles for 118 coins, each plan traded as the
+page described it, after 0.12% round-trip costs) it was about break-even before costs:
 
 | Chart | Trades | Before costs | After costs | Winners |
 |---|---|---|---|---|
 | 1 hour | 29,039 | +0.04% per trade | -0.08% per trade (-0.04R) | 42% |
 | 4 hours | 8,400 | +0.08% per trade | -0.04% per trade (-0.02R) | 42% |
 
-So the chart read on its own is about break-even, which is normal for technical analysis on these timeframes. A
-higher agreement number did not help, and no simple filter (all timeframes aligned, RSI extremes, strong zones, stop
-runs) held up in both halves of the year. That is why the page leads with the **evidence**: when a coin has a tested
-swing signal (score 80+ on the front page), it says so with that signal's three-year record; when it has none, it
-says the plan is risk control, not a reason to trade. Use the analyzer for the entry, the stop and the size, and the
-swing score for the decision.
+As a confirmation of the tested swing signals (`tools/research/analyzer_gate.py`): every swing signal of 80+ of the
+last three years, traded with the tested swing plan and split by what the analyzer read on the 4-hour and daily
+charts at that day's close (it saw only those candles, without the score, sentiment or market mood):
 
-**Free sentiment.** Each scan adds a 0-100 sentiment score per coin from free sources only (X/Twitter has no free
+| Swing signals of 80+, Oct 2023 to Oct 2026 | Trades | Per $100 risked |
+|---|---|---|
+| All | 5,453 | +$29 |
+| The 4-hour read agreed | 1,150 | +$27 |
+| The 4-hour read disagreed | 1,363 | +$38 |
+| The daily read agreed | 1,381 | +$18 |
+| The daily read disagreed | 1,157 | +$45 |
+| Shorts, the 4-hour read agreed | 446 | -$1 |
+| Shorts, the 4-hour read disagreed | 874 | +$27 |
+
+Waiting for the chart to agree would have made the results worse, not better. Taking only the trades where it
+disagreed is no rule either: for longs that group made nothing in the first half of the period and all of its gain
+in the second. So the read neither confirms nor blocks a call. More indicators would not change this; the read
+already uses the usual ones.
+
+## Free sentiment (version 7.1)
+
+Each scan adds a 0-100 sentiment score per coin from free sources only (X/Twitter has no free
 access in 2026, and scraping it is against its rules). Crypto crowds lean bullish on almost everything (in a live
 run 69% of coins looked bullish on the raw numbers), so each source is ranked against the other coins of the same
 scan and 50 means a typical coin today. Small samples are pulled toward neutral, and a coin needs two sources for a
@@ -180,7 +204,7 @@ score:
 | Fear & Greed (alternative.me) | The whole market's mood | - |
 
 There is no free history to test sentiment on, so it is shown next to the tested score and moves the analyzer's
-call by 4 points at most. Each scan saves a daily snapshot per coin (`sent_hist` in the picks journal), so it can be
+chart read by 4 points at most; it never changes the call. Each scan saves a daily snapshot per coin (`sent_hist` in the picks journal), so it can be
 tested once a few months of history exist.
 
 **Optional: a free CoinGecko key.** Without a key the scan uses CoinGecko's public API, which is slower and limited.
@@ -299,8 +323,8 @@ Nothing runs on your computer.
 | `smart_research.json` | The smart-money test results shown on the page (`tools/research/smart_backtest.py`) |
 | `picks_research.json` | The test results behind the scores, shown on the picks page (`tools/research/picks_export.py`) |
 | `picks_seed.json` | The last 45 days of each coin's circulating supply, so the unlock check works from the first run |
-| `analyze.html` | The coin analyzer page: any coin, four timeframes, the read, the plan, the evidence, sentiment |
-| `analyze.js` | The analyzer engine (also runs in node for the tests and `tools/research/analyzer_backtest.js`) |
+| `analyze.html` | The coin analyzer page: the call from tested signals, the tested plan and size, the chart read on four timeframes, sentiment |
+| `analyze.js` | The analyzer engine: the call (`decide`), the chart read (`analyze`) and the candle loaders (also runs in node for the tests and the research scripts) |
 | `.github/workflows/scan.yml` | The schedule and the publish step (runs `scanner.py`, `smart.py`, `quant.py`, `picks.py`, then `dashboard.py`, and publishes the analyzer) |
 | `.github/workflows/smart_research.yml` | Collects 90 days of Hyperliquid trader history for the smart-money test to the `smart-data` branch |
 | `.github/workflows/backtest.yml` | Strategy tests started from the Studio tab |
@@ -310,7 +334,7 @@ Nothing runs on your computer.
 | `tools/no_edge_check.py` | The strategies on a random market: shows costs and catches look-ahead bugs |
 | `tools/fetch_history.py` | The market data download used by `data.yml` |
 | `tools/fetch_extra.py` | Futures statistics (Gate.io) and fundamentals (CoinGecko) history for the coin-score research |
-| `tools/research/` | The research engine behind `quant_research.json` and `picks_research.json` (needs numpy, pandas, numba), and the smart-money test behind `smart_research.json` (`smart_collect.py`, `smart_backtest.py`: standard library) |
+| `tools/research/` | The research engine behind `quant_research.json` and `picks_research.json` (needs numpy, pandas, numba), the smart-money test behind `smart_research.json` (`smart_collect.py`, `smart_backtest.py`: standard library), and the test of the chart read as a confirmation (`analyzer_gate.py` with `analyzer_gate.js`) |
 | `strategies.json` | Your own strategies (written by the Studio tab; created when you add the first one) |
 
 ## Setup (about 10 minutes, works from a phone browser)
