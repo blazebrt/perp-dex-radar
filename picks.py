@@ -1453,6 +1453,12 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
     c1s = sc.parallel(lambda t: hourly(data[t]["coin"], data[t]["src"], CFG["bars_1h"], now), sorted(day_set))
     # 3) live extras: smart money (scanner), open interest (Gate.io), funding (DEXs), fundamentals (CoinGecko)
     smart, smart_meta = read_smart(out_dir)
+    proven_src = (smart_meta or {}).get("kind") == "proven"
+
+    def sm_of(t):
+        """The coin's smart-money row; with the proven-trader engine a coin they do not hold gets an empty row, so
+        its check says so in the engine's words."""
+        return smart.get(t, {}) if proven_src else smart.get(t)
     ranked = sorted(swing, key=lambda t: -max(swing[t]["long"], swing[t]["short"]))
     stat_set = set(ranked[: CFG["stats_coins"]]) | set(by_liq[:10])
     pos = sc.parallel(gate_stats7, sorted(stat_set), workers=4)
@@ -1474,7 +1480,7 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
     fund = {t: sc.funding_avg(data[t]["coin"]) for t in swing}
 
     # free sentiment, ranked against the other coins of this scan
-    SENT = sentiment_rank({t: sentiment_of(t, ((cg or {}).get("coins") or {}).get(t), trend, votes, stw, ape, feed, smart.get(t))
+    SENT = sentiment_rank({t: sentiment_of(t, ((cg or {}).get("coins") or {}).get(t), trend, votes, stw, ape, feed, sm_of(t))
                            for t in swing})
 
     # 4) records
@@ -1489,7 +1495,7 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
             core = s[side]
             cr = s["cl"] if side == "long" else s["cs"]
             W = LONG_W if side == "long" else SHORT_W
-            ex = extra_checks(side, coin, smart.get(t), pos.get(t), fund.get(t), fdm, liq,
+            ex = extra_checks(side, coin, sm_of(t), pos.get(t), fund.get(t), fdm, liq,
                               supply_growth(J, t, now)) + sentiment_checks(sent)
             plan = plan_of(side, x["price_now"], x["atr"] * x["price_now"] / x["price"], "swing")
             rec = record("swing", side, t, coin, core, cr, W, swing_explain(side, x, cr), ex, plan, x["price_now"],
@@ -1510,7 +1516,7 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
         for side in ("long", "short"):
             cr = day_checks(side, y, s[side])
             core = points(cr, DAY_W)
-            ex = [e for e in extra_checks(side, coin, smart.get(t), pos.get(t), None, None, liq)
+            ex = [e for e in extra_checks(side, coin, sm_of(t), pos.get(t), None, None, liq)
                   if e[0] in ("smart", "lev", "flush", "liq")] + [rsi_check(side, y["rsi1h"])]
             plan = plan_of(side, y["price"], y["atr"], "day")
             rec = record("day", side, t, coin, core, cr, DAY_W, day_explain(side, y, cr, s[side]), ex + sentiment_checks(sent),
