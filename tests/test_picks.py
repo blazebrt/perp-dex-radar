@@ -109,6 +109,9 @@ class Scores(unittest.TestCase):
         quiet = dict(sm, signal=False, side=None)
         self.assertIsNone({e[0]: e for e in P.extra_checks("long", {}, quiet, None, None, None, 2e6)}["smart"][2])
         self.assertEqual(P.sentiment_of("SOL", None, None, None, None, None, None, sm)["whales"], 80)
+        none = {e[0]: e for e in P.extra_checks("long", {}, {}, None, None, None, 2e6)}["smart"]
+        self.assertEqual((none[1], none[2], none[4]), ("Proven traders agree", None, "No positions from the proven traders"))
+        self.assertNotIn("whales", {k: v for k, v in P.sentiment_of("X", None, None, None, None, None, None, {}).items() if v})
         d = tempfile.mkdtemp()
         try:
             os.makedirs(os.path.join(d, "data"))
