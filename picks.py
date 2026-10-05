@@ -66,7 +66,7 @@ CFG = {
     "gap_coingecko": 3.0,       # seconds between CoinGecko requests without a key (2.2 with one)
     "notes_top": 5,             # AI desk notes for this many top swing picks (needs the GEMINI_API_KEY secret)
     "notes_every_h": 12,        # a note is rewritten after this long, or when its pick's side or score changes
-    "notes_per_run": 3,         # new notes per scan at most: the free tier allows few requests a day
+    "notes_per_run": 3,         # note requests per scan at most (tries count): the free tier allows few a day
     "news_ai_every_h": 3,       # headline tone by Gemini at most this often (one batched request)
     "gemini_gap": 7.0,          # seconds between Gemini requests
 }
@@ -813,6 +813,8 @@ def gemini_call(model, system, prompt, max_tokens=2048, json_out=False, timeout=
         d = json.loads(r.read().decode("utf-8"))
     c = (d.get("candidates") or [{}])[0]
     text = "".join(p.get("text", "") for p in ((c.get("content") or {}).get("parts") or []) if not p.get("thought"))
+    if c.get("finishReason") == "MAX_TOKENS":
+        raise ValueError("answer cut off (MAX_TOKENS)")   # the model ran out of room (its thinking counts too)
     if not text.strip():
         raise ValueError(f"empty answer ({c.get('finishReason')})")
     return text
@@ -846,6 +848,9 @@ def gemini(kind, system, prompt, **kw):
             if e.code in (401, 403, 429) or "API key" in body or "API_KEY" in body:
                 G["stopped"] = True            # quota used up, or the key is wrong: try again next scan
             return None
+        except ValueError as e:
+            G["errors"].append(f"{m}: {e}"[:120])
+            continue                           # an empty, cut-off or garbled answer: ask the other model
         except Exception as e:  # noqa: BLE001
             G["errors"].append(f"{m}: {type(e).__name__}")
             return None
@@ -854,8 +859,10 @@ def gemini(kind, system, prompt, **kw):
 
 NOTE_SYSTEM = (
     "You are a senior crypto derivatives trader with 30 years of experience. Write a short desk note on one coin pick "
-    "for a trader deciding today. Use ONLY the facts in the JSON; never invent prices, news or numbers. The score comes "
-    "from rules tested on three years of data, and 'record' is how past picks with this score did after fees. The exits "
+    "for a trader deciding today. Use ONLY the facts in the JSON; never invent prices, news or numbers. 'score' is the "
+    "total: the tested chart score plus live extra points. 'record' is how past picks with the same tested chart score "
+    "band did over three years after fees; it does not cover the extra points, so when you quote it, name its band "
+    "(for example 'chart scores of 60-69 averaged ...') and never call it the record of the total score. The exits "
     "are fixed by that test: the stop, the trailing stop and the time limit in 'plan'; the R targets are reference "
     "levels only. Plain English, short sentences, no hype, no emojis. Markdown with these sections: '## Bottom line' "
     "(two sentences), '## Why it scores' (3 or 4 bullets: the strongest checks that pass, and what is missing), "
@@ -868,6 +875,12 @@ NEWS_SYSTEM = (
     "coin or coins it is about: -1 clearly bearish, -0.5 somewhat bearish, 0 neutral or unclear, 0.5 somewhat bullish, "
     "1 clearly bullish. Judge only from the headline. Answer with JSON only: a list of objects "
     "{\"i\": <headline number>, \"tone\": <number>}.")
+
+
+def note_complete(text):
+    """A finished note ends with its closing line; a cut-off answer (the model ran out of room) does not."""
+    t = (text or "").strip().rstrip("*_ ").lower()
+    return t.endswith("not financial advice.") or t.endswith("not financial advice")
 
 
 def note_payload(r, research, market):
@@ -889,7 +902,8 @@ def note_payload(r, research, market):
                           "counts": "for" if e["ok"] is True else "against" if e["ok"] is False else "information"}
                          for e in r.get("extras", [])],
         "plan": {k: plan.get(k) for k in ("entry", "stop", "stop_pct", "trail", "trail_k", "days", "hours", "r1", "r2", "r3")},
-        "record": band and {"per_trade_after_fees": band.get("ret"), "winners": band.get("win"), "trades": band.get("n")},
+        "record": band and {"tested_chart_score_band": f"{band['lo']}-{min(100, band['hi'] - 1)}",
+                            "per_trade_after_fees": band.get("ret"), "winners": band.get("win"), "trades": band.get("n")},
         "sentiment": {"score": se.get("score"), "label": se.get("label"), "parts": se.get("parts"),
                       "headlines": [h["title"] for h in ((se.get("news") or {}).get("top") or [])]},
         "market": {"mood": (market or {}).get("mood"), "fear_greed": (market or {}).get("fng")},
@@ -898,23 +912,27 @@ def note_payload(r, research, market):
 
 def desk_notes(recs, J, now, research, market):
     """Gemini desk notes for the top swing picks, kept in the journal. A note is rewritten only when its pick is new,
-    changes side or moves 5+ points, or after notes_every_h hours; at most notes_per_run new notes a scan."""
+    changes side or moves 5+ points, after notes_every_h hours, or when the stored one was cut off; at most
+    notes_per_run requests a scan. A note without its closing line is never kept."""
     N = J.setdefault("notes", {})
     if GEMINI_KEY:
         made = 0
         for r in recs[:CFG["notes_top"]]:
             old = N.get(r["coin"])
             if old and old.get("side") == r["side"] and abs(old.get("score", 0) - r["score"]) < 5 \
-                    and now - old.get("t", 0) < CFG["notes_every_h"] * H:
+                    and now - old.get("t", 0) < CFG["notes_every_h"] * H and note_complete(old.get("text")):
                 continue
             if made >= CFG["notes_per_run"] or GEMINI_STATE["stopped"]:
                 break
+            made += 1                          # tries count, so failing answers cannot use up the free quota
             res = gemini("notes", NOTE_SYSTEM, "Write the desk note for this pick.\n\n" +
-                         json.dumps(note_payload(r, research, market), default=str), max_tokens=2048)
+                         json.dumps(note_payload(r, research, market), default=str), max_tokens=8192)
+            if res and not note_complete(res[1]):
+                GEMINI_STATE["errors"].append(f"{res[0]}: note for {r['coin']} was cut off")
+                res = None
             if res:
                 N[r["coin"]] = {"t": now, "side": r["side"], "score": r["score"], "model": res[0],
                                 "text": res[1].strip()[:3000]}
-                made += 1
     top = {r["coin"] for r in recs[:CFG["notes_top"] * 2]}
     for c in list(N):
         if c not in top and now - N[c].get("t", 0) > DAY:
@@ -934,7 +952,7 @@ def news_ai(feed, now):
         return feed
     feed["ai_time"] = now
     res = gemini("fast", NEWS_SYSTEM, "Headlines:\n" + "\n".join(f"{i}. {x['title']}" for i, x in enumerate(todo)),
-                 max_tokens=4096, json_out=True)
+                 max_tokens=8192, json_out=True)
     if not res:
         return feed
     try:
@@ -1499,7 +1517,7 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
     notes = desk_notes(sw_recs, J, now, research, market)
     for r in sw_recs:
         n = notes.get(r["coin"])
-        if n and n.get("side") == r["side"]:
+        if n and n.get("side") == r["side"] and note_complete(n.get("text")):
             r["note"] = {k: n.get(k) for k in ("t", "model", "text")}
     n = CFG["top_n"]
     swing_out = {"all": sw_recs[:n], "long": [r for r in sw_recs if r["side"] == "long"][:n],
