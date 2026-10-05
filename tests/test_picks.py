@@ -243,6 +243,8 @@ class GeminiNotes(unittest.TestCase):
         self.calls.append(model)
         if model in self.fail:
             code = self.fail[model]
+            if code == "cut":
+                raise ValueError("answer cut off (MAX_TOKENS)")
             raise urllib.error.HTTPError("https://x", code, "err", {}, io.BytesIO(b'{"error": {"message": "nope"}}'))
         if json_out:
             return '[{"i": 0, "tone": 0.8}, {"i": 1, "tone": -1}, {"i": 7, "tone": 1}]'
@@ -292,6 +294,54 @@ class GeminiNotes(unittest.TestCase):
         P.desk_notes(self.recs(1), J, NOW_FIX, None, {})
         self.assertEqual(self.calls, [P.GEMINI_NOTES_MODEL, P.GEMINI_FAST_MODEL])
         self.assertEqual(J["notes"]["C0"]["model"], P.GEMINI_FAST_MODEL)
+
+    def test_gemini_call_rejects_a_cut_off_answer(self):
+        import io
+        from unittest import mock
+
+        def answer(parts, reason):
+            body = json.dumps({"candidates": [{"content": {"parts": parts}, "finishReason": reason}]}).encode()
+            return mock.MagicMock(__enter__=lambda s: io.BytesIO(body), __exit__=lambda *a: False)
+
+        real = self.saved[1]
+        cut = [{"text": "## Bottom line\nBTC is setting up a coiled bottom long.\n- Daily swings are calm"}]
+        with mock.patch("urllib.request.urlopen", return_value=answer(cut, "MAX_TOKENS")):
+            with self.assertRaisesRegex(ValueError, "cut off"):
+                real("m", "sys", "prompt")
+        done = [{"text": "thinking it over", "thought": True}, {"text": "A note.\n\nNot financial advice."}]
+        with mock.patch("urllib.request.urlopen", return_value=answer(done, "STOP")):
+            self.assertEqual(real("m", "sys", "prompt"), "A note.\n\nNot financial advice.")
+
+    def test_cut_off_answer_asks_the_other_model(self):
+        self.fail[P.GEMINI_NOTES_MODEL] = "cut"
+        J = {}
+        P.desk_notes(self.recs(1), J, NOW_FIX, None, {})
+        self.assertEqual(self.calls, [P.GEMINI_NOTES_MODEL, P.GEMINI_FAST_MODEL])
+        self.assertEqual(J["notes"]["C0"]["model"], P.GEMINI_FAST_MODEL)
+        self.assertIn(f"{P.GEMINI_NOTES_MODEL}: answer cut off (MAX_TOKENS)", P.GEMINI_STATE["errors"])
+
+    def test_cut_off_notes_are_not_kept_and_get_rewritten(self):
+        good = self.fake
+        self.fake_text = "## Bottom line\nBTC is setting up a coiled bottom long.\n\n## Why it scores\n- Daily swings are calm"
+        P.gemini_call = lambda *a, **k: (self.calls.append(a[0]), self.fake_text)[1]
+        J = {}
+        P.desk_notes(self.recs(), J, NOW_FIX, None, {})
+        self.assertEqual(J["notes"], {}, "a note without its closing line is not kept")
+        self.assertEqual(len(self.calls), 3, "failed tries count toward the scan's budget")
+        self.assertTrue(any("cut off" in e for e in P.GEMINI_STATE["errors"]))
+        self.calls.clear()
+        J["notes"]["C0"] = {"t": NOW_FIX, "side": "short", "score": 85.0, "model": "m", "text": self.fake_text}
+        P.gemini_call = good
+        P.desk_notes(self.recs(1), J, NOW_FIX + 60, None, {})
+        self.assertIn("Not financial advice", J["notes"]["C0"]["text"], "a stored cut-off note is rewritten at once")
+
+    def test_record_names_its_band(self):
+        research = {"swing": {"long": {"bands": [{"lo": 60, "hi": 70, "n": 5174, "ret": -0.0034, "win": 0.36}]}}}
+        r = self.recs(2)[1]
+        r["core"], r["score"] = 65.0, 73.0
+        rec = P.note_payload(r, research, {})["record"]
+        self.assertEqual(rec["tested_chart_score_band"], "60-69")
+        self.assertIn("never call it the record of the total score", P.NOTE_SYSTEM)
 
     def test_overloaded_model_hands_over_for_the_rest_of_the_scan(self):
         self.fail[P.GEMINI_NOTES_MODEL] = 503
