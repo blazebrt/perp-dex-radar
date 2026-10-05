@@ -1,9 +1,9 @@
 name: Research
 
 # Runs on every push to a branch whose name starts with "v5", "v6" or "v7" (and on demand): the tests,
-# one scan, one run of the quant desk and one run of the coin picks on live exchange data, each with a new
-# journal. Nothing is published. The results replace the "research" branch (one commit, no history) so
-# they can be checked before main is changed.
+# one scan, two runs of the smart-money engine, one run of the quant desk and one of the coin picks on live
+# exchange data, each with a new journal, then the dashboard from those files. Nothing is published. The
+# results replace the "research" branch (one commit, no history) so they can be checked before main changes.
 
 on:
   push:
@@ -42,6 +42,15 @@ jobs:
           python scanner.py --out out_new --replay-days 0 > research_scan_new.txt 2>&1 || true
           tail -15 research_scan_new.txt
 
+      - name: Smart money on live Hyperliquid data (two scans, new journal, nothing published)
+        continue-on-error: true
+        run: |
+          python smart.py --out out_new --journal none.json > research_smart.txt 2>&1 || true
+          cp out_new/data/smart_journal.json smart_journal_1.json 2>/dev/null || true
+          sleep 90
+          python smart.py --out out_new --journal smart_journal_1.json >> research_smart.txt 2>&1 || true
+          tail -15 research_smart.txt
+
       - name: Quant desk on live exchange data (new journal, nothing published)
         continue-on-error: true
         run: |
@@ -54,6 +63,12 @@ jobs:
           python picks.py --out out_new --journal none.json > research_picks.txt 2>&1 || true
           tail -15 research_picks.txt
 
+      - name: Dashboard from this run's files
+        continue-on-error: true
+        run: |
+          python dashboard.py --out out_new > research_dashboard.txt 2>&1 || true
+          tail -5 research_dashboard.txt
+
       - name: Save the results for review
         if: always()
         env:
@@ -64,7 +79,7 @@ jobs:
         run: |
           mkdir -p R
           cp research_*.txt R/ 2>/dev/null || true
-          for f in latest.json journal.csv quant.json picks.json; do
+          for f in latest.json journal.csv quant.json picks.json smart.json dashboard.json; do
             if [ -f "out_new/data/$f" ]; then cp "out_new/data/$f" "R/new_$f"; fi
           done
           echo "$GITHUB_REF_NAME $GITHUB_SHA $(date -u +%Y-%m-%dT%H:%MZ)" > R/run.txt
