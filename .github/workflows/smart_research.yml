@@ -1,0 +1,54 @@
+name: Smart money research
+
+# Collects the data for the smart-money test from Hyperliquid's public, read-only API: the leaderboard, a few
+# hundred traders' account histories and trade fills over 90 days, and hourly candles. Runs when the collector
+# changes on a v7 branch, or from the Actions tab. The data replaces the "smart-data" branch (one commit, no
+# history); tools/research/smart_backtest.py reads it. Nothing is published to the site.
+
+on:
+  push:
+    branches: ["v7*"]
+    paths: ["tools/research/smart_collect.py", ".github/workflows/smart_research.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: smart-research
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 260
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Collect (public read-only Hyperliquid data)
+        continue-on-error: true
+        run: python tools/research/smart_collect.py --out smartdata --days 90 --pool 450 --max-minutes 200 2>&1 | tee smart_collect.log
+
+      - name: Save the data on the smart-data branch
+        if: always()
+        env:
+          GIT_AUTHOR_NAME: perp-dex-radar
+          GIT_AUTHOR_EMAIL: actions@users.noreply.github.com
+          GIT_COMMITTER_NAME: perp-dex-radar
+          GIT_COMMITTER_EMAIL: actions@users.noreply.github.com
+        run: |
+          mkdir -p smartdata
+          cp smart_collect.log smartdata/ 2>/dev/null || true
+          echo "$GITHUB_REF_NAME $GITHUB_SHA $(date -u +%Y-%m-%dT%H:%MZ)" > smartdata/run.txt
+          ls -la smartdata
+          export GIT_INDEX_FILE="$RUNNER_TEMP/smart.index"
+          git read-tree --empty
+          for f in smartdata/*; do
+            git update-index --add --cacheinfo "100644,$(git hash-object -w "$f"),$(basename "$f")"
+          done
+          commit=$(git commit-tree "$(git write-tree)" -m "Smart money data $GITHUB_REF_NAME ${GITHUB_SHA::7}")
+          git push --force origin "$commit:refs/heads/smart-data"
