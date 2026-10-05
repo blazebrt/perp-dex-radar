@@ -1,0 +1,28 @@
+{
+ "t": 1791175581,
+ "window": [
+  1783399581,
+  1791175581
+ ],
+ "days": 90,
+ "leaderboard_accounts": 47241,
+ "pool": 380,
+ "groups": {
+  "pre": 225,
+  "fallen": 54,
+  "active": 58,
+  "hot": 150
+ },
+ "with_portfolio": 380,
+ "with_fills": 380,
+ "fills": 950748,
+ "complete_fills": 289,
+ "coins_with_candles": 174,
+ "stats": {
+  "requests": 1905,
+  "weight": 107690,
+  "errors": 0,
+  "retries": 0
+ },
+ "minutes": 105.9
+}

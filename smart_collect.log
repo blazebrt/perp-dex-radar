@@ -1,0 +1,35 @@
+[      0s] leaderboard ...
+[      1s] leaderboard: 47241 accounts
+[      2s] pool: 380 traders {'pre': 225, 'fallen': 54, 'active': 58, 'hot': 150}
+[      2s] universe: 178 perps, 104 with $300,000+ a day
+[     64s] states read: 380
+[    133s] candles: 25 of 174
+[    220s] candles: 50 of 174
+[    307s] candles: 75 of 174
+[    387s] candles: 100 of 174
+[    473s] candles: 125 of 174
+[    551s] candles: 150 of 174
+[    640s] candles saved: 174 coins
+[    695s] portfolios: 50 of 380
+[    755s] portfolios: 100 of 380
+[    815s] portfolios: 150 of 380
+[    875s] portfolios: 200 of 380
+[    935s] portfolios: 250 of 380
+[    996s] portfolios: 300 of 380
+[   1056s] portfolios: 350 of 380
+[   1762s] fills: 25 of 380 traders, 140136 fills, weight 29483
+[   2307s] fills: 50 of 380 traders, 240965 fills, weight 38743
+[   2853s] fills: 75 of 380 traders, 343552 fills, weight 48107
+[   3127s] fills: 100 of 380 traders, 389674 fills, weight 52952
+[   3581s] fills: 125 of 380 traders, 458294 fills, weight 60444
+[   3946s] fills: 150 of 380 traders, 519880 fills, weight 66798
+[   4397s] fills: 175 of 380 traders, 596889 fills, weight 74440
+[   4825s] fills: 200 of 380 traders, 702751 fills, weight 82034
+[   5183s] fills: 225 of 380 traders, 759946 fills, weight 87684
+[   5246s] fills: 250 of 380 traders, 764969 fills, weight 89043
+[   5362s] fills: 275 of 380 traders, 781562 fills, weight 90492
+[   5425s] fills: 300 of 380 traders, 793761 fills, weight 91716
+[   5488s] fills: 325 of 380 traders, 808204 fills, weight 93170
+[   5821s] fills: 350 of 380 traders, 871157 fills, weight 98651
+[   6243s] fills: 375 of 380 traders, 921145 fills, weight 105760
+[   6353s] done: {"t": 1791175581, "window": [1783399581, 1791175581], "days": 90, "leaderboard_accounts": 47241, "pool": 380, "groups": {"pre": 225, "fallen": 54, "active": 58, "hot": 150}, "with_portfolio": 380, "with_fills": 380, "fills": 950748, "complete_fills": 289, "coins_with_candles": 174, "stats": {"requests": 1905, "weight": 107690, "errors": 0, "retries": 0}, "minutes": 105.9}
