@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Coin Picks · Perp DEX Radar</title>
 <meta name="description" content="Every coin on your perp DEXs scored 0-100 for swing and day trades, long or short, with the reasons, a trade plan and a paper record.">
+<script>try{var t=localStorage.getItem("picks_theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
 <style>
 :root {
   color-scheme: light;
@@ -41,8 +42,6 @@ header.top .wrap { display: flex; align-items: center; gap: 16px; padding-top: 1
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; letter-spacing: -0.01em; }
 .brand .logo { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: var(--ink); color: var(--page); font-size: 14px; font-weight: 700; }
 .brand small { color: var(--muted); font-weight: 500; }
-header.top nav { margin-left: auto; display: flex; gap: 14px; align-items: center; font-size: 14px; }
-header.top nav a { color: var(--ink-2); }
 .iconbtn { border: 1px solid var(--border); background: var(--surface); color: var(--ink-2); border-radius: 8px; padding: 5px 9px; cursor: pointer; font: inherit; font-size: 13px; }
 h1 { font-size: 30px; line-height: 1.15; letter-spacing: -0.02em; margin: 28px 0 6px; }
 h2 { font-size: 20px; letter-spacing: -0.01em; margin: 0; }
@@ -107,6 +106,10 @@ h3 { font-size: 15px; margin: 0; }
 .plan .v { font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; }
 .plan .s { font-size: 12px; color: var(--ink-2); }
 .odds { font-size: 13px; color: var(--ink-2); margin-top: 10px; }
+.badge { display: inline-flex; align-items: center; font-size: 11.5px; font-weight: 700; padding: 1px 8px; border-radius: 999px; white-space: nowrap; margin-right: 4px; }
+.badge.good { background: rgba(12, 163, 12, 0.11); color: var(--good-text); }
+.badge.warn { background: rgba(250, 178, 25, 0.18); color: var(--half); }
+.badge.bad { background: rgba(208, 59, 59, 0.10); color: var(--bad); }
 details.more { margin-top: 8px; }
 .desk { font-size: 14px; color: var(--ink-2); margin-top: 6px; border-left: 3px solid var(--accent); padding: 2px 0 2px 12px; }
 .desk h4 { margin: 10px 0 4px; font-size: 14px; color: var(--ink); }
@@ -137,29 +140,46 @@ tr.detail td { background: var(--surface-2); }
 @media (max-width: 620px) {
   h1 { font-size: 24px; }
   .checks { grid-template-columns: 1fr; }
-  header.top nav .hide-s { display: none; }
   .brand small { display: none; }
   .chips { margin-left: 0; }
 }
+
+/* shared app bar: the same on every page */
+header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; max-width: 1180px; padding-top: 10px; padding-bottom: 10px; }
+.ablogo { flex: none; display: flex; align-items: center; gap: 9px; color: var(--ink); text-decoration: none; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.ablogo:hover { text-decoration: none; }
+.ablogo i { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; background: var(--ink); color: var(--page); font-style: normal; }
+.ablogo b { font-weight: 650; font-size: 15px; letter-spacing: -0.01em; white-space: nowrap; }
+.apptabs { display: flex; align-items: center; gap: 2px; flex: 1 1 0; min-width: 0; margin: 0; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.apptabs::-webkit-scrollbar { display: none; }
+.apptabs a { flex: none; font-size: 14px; font-weight: 500; line-height: 1.5; color: var(--ink-2, var(--ink2)); padding: 6px 11px; border-radius: 8px; white-space: nowrap; text-decoration: none; }
+.apptabs a:hover { background: var(--surface-2, var(--sunk)); color: var(--ink); text-decoration: none; }
+.apptabs a[aria-current="page"] { background: var(--ink); color: var(--page); font-weight: 650; }
+@media (max-width: 760px) { .ablogo b { display: none; } }
+.apptabs.fr { mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); }
+.apptabs.fl { mask-image: linear-gradient(90deg, transparent, #000 28px); -webkit-mask-image: linear-gradient(90deg, transparent, #000 28px); }
+.apptabs.fl.fr { mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent); -webkit-mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
 </style>
 </head>
 <body>
 <header class="top">
-  <div class="wrap">
-    <div class="brand"><div class="logo">P</div><div>Coin Picks <small>· Perp DEX Radar</small></div></div>
-    <nav>
-      <a href="#swing">Swing</a>
+  <div class="wrap abwrap">
+    <a class="ablogo" href="./" aria-label="Perp DEX Radar dashboard"><i><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".45"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".75"/><path d="M12 12 L19.5 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg></i><b>Perp DEX Radar</b></a>
+    <nav class="apptabs" aria-label="Pages">
+      <a href="./">Dashboard</a>
+      <a href="picks.html" aria-current="page">Coin picks</a>
+      <a href="quant.html">Quant desk</a>
+      <a href="radar.html">15m radar</a>
+      <a href="smart.html">Smart money</a>
       <a href="analyze.html">Analyzer</a>
-      <a href="#record" class="hide-s">Track record</a>
-      <a href="#how" class="hide-s">How it works</a>
-      <a href="quant.html" class="hide-s">Quant desk</a>
-      <a href="radar.html" class="hide-s">15m radar</a>
-      <button class="iconbtn" id="theme" type="button" aria-label="Switch light or dark theme">
+    </nav>
+    <button class="iconbtn" id="theme" type="button" aria-label="Switch light or dark theme">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
       </button>
-    </nav>
   </div>
 </header>
+<script>(function(){var n=document.querySelector(".apptabs");if(!n)return;var a=n.querySelector("[aria-current=page]");if(a&&n.scrollWidth>n.clientWidth)n.scrollLeft+=a.getBoundingClientRect().left-n.getBoundingClientRect().left-(n.clientWidth-a.offsetWidth)/2;function e(){n.classList.toggle("fl",n.scrollLeft>4);n.classList.toggle("fr",n.scrollLeft+n.clientWidth<n.scrollWidth-4)}n.addEventListener("scroll",e,{passive:true});addEventListener("resize",e);e();})();</script>
+
 
 <main class="wrap">
   <h1>The best coins to trade right now</h1>
@@ -317,14 +337,21 @@ function bandOf(p) {
 }
 function oddsHtml(p) {
   if (p.kind !== "swing") {
-    return '<div class="odds">Day trades have no tested edge after fees (see the note above). Use a limit order and keep the size small.</div>';
+    return '<div class="odds"><span class="badge bad">No edge</span> <b>Day trades lost money after fees in the 1-year test at every score.</b> The day score shows conditions, not a proven edge: use a limit order and keep the size small.</div>';
   }
   const b = bandOf(p);
   if (!b) return "";
   const t = R.swing[p.side];
-  const yrs = Object.entries(b.years || {}).map(([y, v]) => y + " " + pct(v.ret)).join(" · ");
-  return '<div class="odds"><b>Past results of ' + (p.side === "long" ? "longs" : "shorts") + ' with a chart score of ' + b.lo + '–' + Math.min(100, b.hi - 1) + ':</b> ' +
-    pct(b.ret) + ' per trade on average after fees, ' + Math.round(b.win * 100) + '% winners (' + b.n.toLocaleString() + ' coin-days; by year ' + yrs + '). ' +
+  const ys = Object.entries(b.years || {});
+  const up = ys.filter(([, v]) => (v.ret || 0) > 0).length;
+  const yrs = ys.map(([y, v]) => y + " " + pct(v.ret)).join(" · ");
+  const verdict = b.R > 0 && ys.length && up === ys.length ? ["good", "✓ Proven"] : b.R > 0 ? ["warn", "Mixed"] : ["bad", "No edge"];
+  const per100 = Math.round(b.R * 100);
+  const range = b.lo + "–" + Math.min(100, b.hi - 1);
+  const advice = verdict[0] === "good" ? "" : (b.lo < 80 ? " Wait for 80+." : "");
+  return '<div class="odds"><span class="badge ' + verdict[0] + '">' + verdict[1] + '</span> <b>Tested accuracy, ' + (p.side === "long" ? "longs" : "shorts") + ' with a chart score of ' + range + ':</b> ' +
+    Math.round(b.win * 100) + '% winners · <b>' + (per100 > 0 ? "+$" : per100 < 0 ? "−$" : "$") + Math.abs(per100) + ' per $100 risked</b> · ' + pct(b.ret) + ' a trade after fees · ' +
+    b.n.toLocaleString() + ' trades · positive in ' + up + ' of ' + ys.length + ' years (' + yrs + ').' + advice + ' ' +
     (p.side === "long" ? 'Reached +50% within 30 days ' + Math.round(b.up50 * 100) + '% of the time, fell 30% ' + Math.round(b.dn30 * 100) + '% (every coin: ' + Math.round(t.base.up50 * 100) + '% and ' + Math.round(t.base.dn30 * 100) + '%).'
                        : 'The price fell 30% within 30 days ' + Math.round(b.dn30 * 100) + '% of the time (every coin: ' + Math.round(t.base.dn30 * 100) + '%).') + '</div>';
 }
@@ -385,7 +412,7 @@ function renderMood() {
     '<div class="small ink2">BTC ' + px(b.price) + ' · 50-day EMA ' + px(b.ema50) + ' · 30 days ' + pct(b.mom30) + '</div>' +
     '<div class="small ink2">' + (m.above != null ? m.above + ' of ' + m.total + ' coins above their 50-day EMA' : "") + '</div>' +
     (m.fng && m.fng.value != null ? '<div class="small ink2">Fear &amp; Greed <b>' + esc(m.fng.value) + '</b> ' + esc(m.fng.label || "") + '</div>' : "") +
-    '<div class="small muted">Updated ' + ago(P.generated) + ' · ' + P.coins + ' coins scored · smart money ' + (s.smart ? "on (" + (s.smart_traders || 0) + " top traders)" : "off") +
+    '<div class="small muted">Updated ' + ago(P.generated) + ' · ' + P.coins + ' coins scored · smart money ' + (s.smart ? "on (" + (s.smart_traders || 0) + (s.smart_kind === "proven" ? " proven traders)" : " top traders)") : "off") +
     ' · fundamentals ' + (s.cg_time ? "from " + ago(s.cg_time) : "unavailable") + (s.cg_key ? " (your CoinGecko key)" : "") +
     (s.stocktwits != null ? ' · sentiment from ' + s.stocktwits + ' coins on Stocktwits, ' + (s.news || 0) + ' headlines, ' + (s.reddit || 0) + ' coins on Reddit' : "") + '</div>' +
     '<div class="refresh"><button class="iconbtn" id="refresh" type="button">⟳ Refresh now</button><span class="small muted" id="refreshMsg">' +

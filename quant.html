@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Quant Desk · Perp DEX Radar</title>
 <meta name="description" content="Long and short trend and momentum strategies for perp DEXs, tested on one and three years of data, with live paper trading and a growth planner.">
+<script>try{var t=localStorage.getItem("picks_theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
 <style>
 :root {
   color-scheme: light;
@@ -98,8 +99,6 @@ header.top .wrap { display: flex; align-items: center; gap: 16px; padding-top: 1
   background: var(--ink); color: var(--page); font-size: 14px; font-weight: 700;
 }
 .brand small { color: var(--muted); font-weight: 500; }
-header.top nav { margin-left: auto; display: flex; gap: 14px; align-items: center; font-size: 14px; }
-header.top nav a { color: var(--ink-2); }
 .iconbtn {
   border: 1px solid var(--border); background: var(--surface); color: var(--ink-2);
   border-radius: 8px; padding: 5px 9px; cursor: pointer; font: inherit; font-size: 13px;
@@ -205,24 +204,42 @@ details.tv summary { cursor: pointer; color: var(--ink-2); font-size: 13px; }
 @media (max-width: 560px) {
   h1 { font-size: 24px; }
   .hero .big { font-size: 40px; }
-  header.top nav .hide-s { display: none; }
 }
+
+/* shared app bar: the same on every page */
+header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; max-width: 1180px; padding-top: 10px; padding-bottom: 10px; }
+.ablogo { flex: none; display: flex; align-items: center; gap: 9px; color: var(--ink); text-decoration: none; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.ablogo:hover { text-decoration: none; }
+.ablogo i { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; background: var(--ink); color: var(--page); font-style: normal; }
+.ablogo b { font-weight: 650; font-size: 15px; letter-spacing: -0.01em; white-space: nowrap; }
+.apptabs { display: flex; align-items: center; gap: 2px; flex: 1 1 0; min-width: 0; margin: 0; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.apptabs::-webkit-scrollbar { display: none; }
+.apptabs a { flex: none; font-size: 14px; font-weight: 500; line-height: 1.5; color: var(--ink-2, var(--ink2)); padding: 6px 11px; border-radius: 8px; white-space: nowrap; text-decoration: none; }
+.apptabs a:hover { background: var(--surface-2, var(--sunk)); color: var(--ink); text-decoration: none; }
+.apptabs a[aria-current="page"] { background: var(--ink); color: var(--page); font-weight: 650; }
+@media (max-width: 760px) { .ablogo b { display: none; } }
+.apptabs.fr { mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); }
+.apptabs.fl { mask-image: linear-gradient(90deg, transparent, #000 28px); -webkit-mask-image: linear-gradient(90deg, transparent, #000 28px); }
+.apptabs.fl.fr { mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent); -webkit-mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
 </style>
 </head>
 <body>
 <header class="top">
-  <div class="wrap">
-    <div class="brand"><div class="logo">Q</div><div>Quant Desk <small>· Perp DEX Radar</small></div></div>
-    <nav>
-      <a class="hide-s" href="#signals">Signals</a>
-      <a class="hide-s" href="#strategies">Strategies</a>
-      <a class="hide-s" href="#planner">Growth planner</a>
-      <a href="./">Coin picks</a>
-      <a class="hide-s" href="radar.html">15m radar</a>
-      <button class="iconbtn" id="theme" type="button" aria-label="Switch between light and dark"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="display:block"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+  <div class="wrap abwrap">
+    <a class="ablogo" href="./" aria-label="Perp DEX Radar dashboard"><i><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".45"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".75"/><path d="M12 12 L19.5 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg></i><b>Perp DEX Radar</b></a>
+    <nav class="apptabs" aria-label="Pages">
+      <a href="./">Dashboard</a>
+      <a href="picks.html">Coin picks</a>
+      <a href="quant.html" aria-current="page">Quant desk</a>
+      <a href="radar.html">15m radar</a>
+      <a href="smart.html">Smart money</a>
+      <a href="analyze.html">Analyzer</a>
     </nav>
+    <button class="iconbtn" id="theme" type="button" aria-label="Switch between light and dark"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="display:block"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
   </div>
 </header>
+<script>(function(){var n=document.querySelector(".apptabs");if(!n)return;var a=n.querySelector("[aria-current=page]");if(a&&n.scrollWidth>n.clientWidth)n.scrollLeft+=a.getBoundingClientRect().left-n.getBoundingClientRect().left-(n.clientWidth-a.offsetWidth)/2;function e(){n.classList.toggle("fl",n.scrollLeft>4);n.classList.toggle("fr",n.scrollLeft+n.clientWidth<n.scrollWidth-4)}n.addEventListener("scroll",e,{passive:true});addEventListener("resize",e);e();})();</script>
+
 
 <main class="wrap">
   <h1>Long and short, only what survived a 3-year test</h1>
@@ -360,14 +377,15 @@ const cssVar = (n) => getComputedStyle(document.documentElement).getPropertyValu
 
 // ------------------------------------------------------------------ theme
 (function initTheme() {
-  const t = store.get("theme", null);
+  let t = null;
+  try { t = localStorage.getItem("picks_theme"); } catch (e) { t = null; }
   if (t) document.documentElement.setAttribute("data-theme", t);
   $("theme").addEventListener("click", () => {
     const cur = document.documentElement.getAttribute("data-theme") ||
       (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     const next = cur === "dark" ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", next);
-    store.set("theme", next);
+    try { localStorage.setItem("picks_theme", next); } catch (e) { /* private mode */ }
     renderCharts();
   });
 })();

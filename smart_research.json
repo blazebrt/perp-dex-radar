@@ -1,0 +1,284 @@
+{
+ "generated": 1791175581,
+ "window": [
+  1783399581,
+  1791175581
+ ],
+ "traders": 380,
+ "method": "2+ proven traders opening the same side within 24 h",
+ "hours": 24,
+ "side": "short",
+ "rule": "When 2 or more proven Hyperliquid traders open or add to shorts on the same coin within 24 hours (more of them than open longs), short it at the next hour: stop 1.5 typical daily moves away (at least 1.5%), out after 24 hours.",
+ "sub": "Proven traders shorting together",
+ "verdict": "Promising",
+ "tone": "warn",
+ "why": "In a test without hindsight (the last 30 days; traders chosen only on what was known before), coins that 2+ proven traders shorted together moved their way 63% of the time over the next day and did 2.3% better than the market. Following them with the fixed stop made +$14 per $100 risked (61% winners), \u2212$4 in the first half of the period and +$21 in the second. 31 trades on 11 coins is too few to call it proven: the live record decides. Their longs did no better than the market (52% right, +0.1% against the market), so long crowds are shown as information only.",
+ "why_short": "Shorts by 2+ proven traders were right 63% of the time and +2.3% against the market over a day (31 trades, a 30-day test without hindsight): promising, too few to call proven. Their longs: no edge.",
+ "tested": {
+  "n": 31,
+  "win": 0.613,
+  "r": 0.145,
+  "t": 1.0,
+  "ret": 0.01638,
+  "hit": 0.625,
+  "excess": 0.02282,
+  "excess_t": 2.6,
+  "halves": [
+   -0.04221,
+   0.20977
+  ],
+  "halves_positive": false,
+  "coins": 11,
+  "days": 18,
+  "period": "Sep 05 to Oct 02 2026",
+  "note": "11 coins over 18 days"
+ },
+ "full_window": {
+  "n": 48,
+  "win": 0.667,
+  "r": 0.247,
+  "t": 1.93,
+  "ret": 0.01857,
+  "hit": 0.66,
+  "excess": 0.01903,
+  "excess_t": 2.51,
+  "halves": [
+   0.39619,
+   0.16586
+  ],
+  "halves_positive": true,
+  "coins": 13,
+  "days": 31,
+  "period": "Aug 09 to Oct 02 2026"
+ },
+ "longs": {
+  "n": 108,
+  "win": 0.509,
+  "r": 0.157,
+  "t": 1.14,
+  "ret": 0.01182,
+  "hit": 0.519,
+  "excess": 0.00107,
+  "excess_t": 0.22,
+  "halves": [
+   0.30233,
+   0.01671
+  ],
+  "halves_positive": true,
+  "coins": 22,
+  "days": 30,
+  "period": "Sep 05 to Oct 04 2026"
+ },
+ "compared": [
+  {
+   "method": "old: dollar share of last month's top traders",
+   "hours": 24,
+   "side": "both",
+   "n": 1848,
+   "win": 0.475,
+   "r": 0.044,
+   "hit": 0.493,
+   "excess": 0.0006
+  },
+  {
+   "method": "old: dollar share of last month's top traders",
+   "hours": 24,
+   "side": "long",
+   "n": 1207,
+   "win": 0.498,
+   "r": 0.117,
+   "hit": 0.511,
+   "excess": 0.00061
+  },
+  {
+   "method": "old: dollar share of last month's top traders",
+   "hours": 24,
+   "side": "short",
+   "n": 641,
+   "win": 0.432,
+   "r": -0.093,
+   "hit": 0.46,
+   "excess": 0.00057
+  },
+  {
+   "method": "consensus of proven traders (one vote each, by conviction)",
+   "hours": 24,
+   "side": "both",
+   "n": 1125,
+   "win": 0.459,
+   "r": 0.016,
+   "hit": 0.476,
+   "excess": -0.00056
+  },
+  {
+   "method": "consensus of proven traders (one vote each, by conviction)",
+   "hours": 24,
+   "side": "long",
+   "n": 632,
+   "win": 0.478,
+   "r": 0.114,
+   "hit": 0.491,
+   "excess": -0.00101
+  },
+  {
+   "method": "consensus of proven traders (one vote each, by conviction)",
+   "hours": 24,
+   "side": "short",
+   "n": 493,
+   "win": 0.434,
+   "r": -0.109,
+   "hit": 0.456,
+   "excess": 3e-05
+  },
+  {
+   "method": "entries of proven traders",
+   "hours": 24,
+   "side": "both",
+   "n": 1453,
+   "win": 0.501,
+   "r": 0.047,
+   "hit": 0.516,
+   "excess": 0.00278
+  },
+  {
+   "method": "entries of proven traders",
+   "hours": 24,
+   "side": "long",
+   "n": 944,
+   "win": 0.486,
+   "r": 0.056,
+   "hit": 0.493,
+   "excess": -0.002
+  },
+  {
+   "method": "entries of proven traders",
+   "hours": 24,
+   "side": "short",
+   "n": 509,
+   "win": 0.528,
+   "r": 0.032,
+   "hit": 0.559,
+   "excess": 0.01159
+  },
+  {
+   "method": "2+ proven traders opening the same side within 24 h",
+   "hours": 24,
+   "side": "both",
+   "n": 139,
+   "win": 0.532,
+   "r": 0.154,
+   "hit": 0.543,
+   "excess": 0.00604
+  },
+  {
+   "method": "2+ proven traders opening the same side within 24 h",
+   "hours": 24,
+   "side": "long",
+   "n": 108,
+   "win": 0.509,
+   "r": 0.157,
+   "hit": 0.519,
+   "excess": 0.00107
+  },
+  {
+   "method": "2+ proven traders opening the same side within 24 h",
+   "hours": 24,
+   "side": "short",
+   "n": 31,
+   "win": 0.613,
+   "r": 0.145,
+   "hit": 0.625,
+   "excess": 0.02282
+  },
+  {
+   "method": "3+ proven traders opening the same side within 24 h",
+   "hours": 24,
+   "side": "both",
+   "n": 70,
+   "win": 0.571,
+   "r": 0.218,
+   "hit": 0.577,
+   "excess": 0.00172
+  },
+  {
+   "method": "3+ proven traders opening the same side within 24 h",
+   "hours": 24,
+   "side": "long",
+   "n": 60,
+   "win": 0.517,
+   "r": 0.141,
+   "hit": 0.517,
+   "excess": -0.00674
+  },
+  {
+   "method": "3+ proven traders opening the same side within 24 h",
+   "hours": 24,
+   "side": "short",
+   "n": 10,
+   "win": 0.9,
+   "r": 0.68,
+   "hit": 0.909,
+   "excess": 0.04792
+  },
+  {
+   "method": "entries of last month's top traders",
+   "hours": 24,
+   "side": "both",
+   "n": 1113,
+   "win": 0.513,
+   "r": 0.078,
+   "hit": 0.528,
+   "excess": 0.00183
+  },
+  {
+   "method": "entries of last month's top traders",
+   "hours": 24,
+   "side": "long",
+   "n": 811,
+   "win": 0.486,
+   "r": 0.077,
+   "hit": 0.49,
+   "excess": -0.00185
+  },
+  {
+   "method": "entries of last month's top traders",
+   "hours": 24,
+   "side": "short",
+   "n": 302,
+   "win": 0.586,
+   "r": 0.079,
+   "hit": 0.63,
+   "excess": 0.0116
+  },
+  {
+   "method": "entries of the best callers (own past hit rate)",
+   "hours": 24,
+   "side": "both",
+   "n": 1027,
+   "win": 0.519,
+   "r": 0.089,
+   "hit": 0.536,
+   "excess": 0.00361
+  },
+  {
+   "method": "entries of the best callers (own past hit rate)",
+   "hours": 24,
+   "side": "long",
+   "n": 533,
+   "win": 0.527,
+   "r": 0.189,
+   "hit": 0.535,
+   "excess": -0.00371
+  },
+  {
+   "method": "entries of the best callers (own past hit rate)",
+   "hours": 24,
+   "side": "short",
+   "n": 494,
+   "win": 0.51,
+   "r": -0.018,
+   "hit": 0.537,
+   "excess": 0.01146
+  }
+ ]
+}
