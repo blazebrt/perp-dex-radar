@@ -129,6 +129,46 @@ def scan_id(ts):
     return f"local-{int(ts)}"
 
 
+def strategy_authority():
+    """Where quant strategy authority comes from today (exposed, not changed): quant.py runs its ORDER tuple
+    regardless of any research verdict, and tools/research/qexport.py assigns the verdict "live" to its FINAL tuple
+    before any evidence test runs. Read with ast (qexport imports numpy/pandas), never executed."""
+    import ast
+    out = {"quant_runtime_order": None, "research_final": None, "research_verdict_preassigned_live": None,
+           "research_file_verdicts": None, "files": {}}
+    try:
+        import quant as q
+        out["quant_runtime_order"] = list(q.ORDER)
+    except Exception:  # noqa: BLE001
+        pass
+    path = os.path.join(ROOT, "tools", "research", "qexport.py")
+    out["files"]["tools/research/qexport.py"] = file_sha(path)
+    out["files"]["quant.py"] = file_sha(os.path.join(ROOT, "quant.py"))
+    out["files"]["quant_research.json"] = file_sha(os.path.join(ROOT, "quant_research.json"))
+    try:
+        with open(path) as fh:
+            tree = ast.parse(fh.read())
+        for node in tree.body:
+            if isinstance(node, ast.Assign) and any(getattr(t, "id", None) == "FINAL" for t in node.targets):
+                out["research_final"] = list(ast.literal_eval(node.value))
+            if isinstance(node, ast.FunctionDef) and node.name == "verdict" and node.body:
+                first = node.body[0]
+                if isinstance(first, ast.If) and "FINAL" in ast.dump(first.test):
+                    ret = next((b for b in first.body if isinstance(b, ast.Return)), None)
+                    val = getattr(ret, "value", None)
+                    lead = val.elts[0] if isinstance(val, ast.Tuple) and val.elts else None
+                    out["research_verdict_preassigned_live"] = isinstance(lead, ast.Constant) and lead.value == "live"
+    except Exception as e:  # noqa: BLE001
+        out["error"] = f"{type(e).__name__}: {e}"[:200]
+    try:
+        with open(os.path.join(ROOT, "quant_research.json")) as fh:
+            st = json.load(fh).get("strategies") or {}
+        out["research_file_verdicts"] = {k: (v or {}).get("verdict") for k, v in sorted(st.items())}
+    except (OSError, ValueError, AttributeError):
+        pass
+    return out
+
+
 def header(engine, ts):
     from . import ENGINE_VERSION, SCHEMA
     return {"schema": SCHEMA, "engine": engine, "scan_id": scan_id(ts), "ts": int(ts), "git_sha": git_sha(),

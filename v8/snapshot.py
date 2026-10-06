@@ -27,6 +27,7 @@ import urllib.request
 from . import ENGINE_VERSION, SCHEMA
 from . import ledger as LG
 from . import parts as PT
+from . import provenance
 from . import taxonomy as T
 
 ENGINES = ("universe", "radar", "quant", "swing", "day", "smart")
@@ -168,6 +169,8 @@ def build(out_dir, pages_url=None, first_seen_path=None):
         "swing_eligible": ((P.get("swing") or {}).get("stages") or {}).get("swing_checked"),
         "smart_represented": ((P.get("smart") or {}).get("stages") or {}).get("rows"),
         "dispositions": {e: (coverage.get(e) or {}).get("by_disposition") for e in ENGINES},
+        "dispositions_total": {d: sum(((coverage.get(e) or {}).get("by_disposition") or {}).get(d, 0) for e in ENGINES)
+                               for d in T.DISPOSITIONS},
         "unaccounted": {"registry_assets": len(universe_unaccounted),
                         **{e: (coverage.get(e) or {}).get("unaccounted") for e in ENGINES}},
         "unaccounted_registry_assets": universe_unaccounted[:50],
@@ -225,6 +228,7 @@ def build(out_dir, pages_url=None, first_seen_path=None):
         "data_sources": {"dex_market_lists": {k: (v or {}).get("ok") for k, v in ((reg or {}).get("venues") or {}).items()},
                          "fallback_universe": bool(uni.get("fallback"))},
         "legacy_output_hashes": {r["path"]: r["sha256"] for r in refs},
+        "strategy_authority": provenance.strategy_authority(),
     }
     snap = {"schema": SCHEMA, "manifest": manifest, "coverage": {"summary": summary, "engines": coverage},
             "registry": {"counts": rc, "contracts": columns((reg or {}).get("contracts") or []),
