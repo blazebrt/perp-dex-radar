@@ -22,7 +22,9 @@ concurrency:
 jobs:
   tests:
     name: Unit tests and legacy parity
-    runs-on: ubuntu-latest
+    # Pinned: the golden digests compare floating-point results, which can differ in the last digit between
+    # system math libraries. ubuntu-latest moves to Ubuntu 26 from October 19, 2026.
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
