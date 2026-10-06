@@ -242,6 +242,7 @@ class PipelineAudit(unittest.TestCase):
         self.assertTrue(m["scan_ids_consistent"])
         self.assertEqual(set(m["legacy_output_hashes"]), {r["path"] for r in self.snap["legacy_output_refs"]})
         self.assertEqual(len(m["config_hashes"]["radar"]), 64)
+        self.assertTrue(m["strategy_authority"]["research_verdict_preassigned_live"])
 
 
 if __name__ == "__main__":

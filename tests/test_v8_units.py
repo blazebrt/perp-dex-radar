@@ -277,6 +277,14 @@ class Provenance(unittest.TestCase):
                 self.assertNotIn("tok-456", s)
                 self.assertNotIn(" at 0x", s)          # no memory addresses
 
+    def test_hard_coded_quant_authority_is_exposed(self):
+        a = provenance.strategy_authority()
+        self.assertEqual(a["quant_runtime_order"], ["TSMOM", "TREND_EMA", "XSMOM"])
+        self.assertEqual(a["research_final"], ["TSMOM", "TREND_EMA", "XSMOM"])
+        self.assertTrue(a["research_verdict_preassigned_live"])
+        self.assertEqual({a["research_file_verdicts"][k] for k in a["research_final"]}, {"live"})
+        self.assertEqual(len(a["files"]["tools/research/qexport.py"]), 64)
+
     def test_scan_id(self):
         with mock.patch.dict(os.environ, {"GITHUB_RUN_ID": "77", "GITHUB_RUN_ATTEMPT": "2"}, clear=False):
             os.environ.pop("V8_SCAN_ID", None)
