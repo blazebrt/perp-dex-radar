@@ -49,7 +49,7 @@ class PipelineAudit(unittest.TestCase):
         cls.snap, cls.n_raw, cls.n_gz, _ = SN.write(cls.out, keep_parts=True)
         cls.keep = keep
         cls.recs = {e: {r["a"]: r for r in cls.snap["dispositions"].get(e, [])} for e in SN.ENGINES}
-        cls.contracts = {c["id"]: c for c in cls.snap["registry"]["contracts"]}
+        cls.contracts = {c["id"]: c for c in SN.contract_records(cls.snap)}
 
     @classmethod
     def tearDownClass(cls):
@@ -115,7 +115,7 @@ class PipelineAudit(unittest.TestCase):
         d = os.path.join(self.tmp, "again")
         shutil.copytree(self.keep, d)
         snap, _, _, _ = SN.write(d, first_seen_path=prev)
-        btc = next(c for c in snap["registry"]["contracts"] if c["id"] == "hyperliquid:BTC")
+        btc = next(c for c in SN.contract_records(snap) if c["id"] == "hyperliquid:BTC")
         self.assertEqual(btc["first_seen"], ts - 86400)
 
     # ---- tradfi collision class: visible, recorded, legacy decision unchanged
@@ -133,6 +133,9 @@ class PipelineAudit(unittest.TestCase):
         self.assertEqual(self.contracts["extended:PURR-USD"]["tradfi_reason"], "VENUE_CATEGORY:Equity")
         self.assertEqual(self.contracts["extended:QNT_24_5-USD"]["tradfi_reason"], "VENUE_24_5_MARKET")
         self.assertIn("aster:BBUSDT", self.recs["radar"]["BB"]["o"]["tradfi_rows"])
+        self.assertTrue(self.recs["radar"]["QNT"]["o"]["known_crypto"])
+        self.assertEqual(self.contracts["aster:FAKE01USDT"]["type"], "perp")
+        self.assertEqual(self.snap["registry"]["contracts"]["fields"][0], "id")
         for t in ("AAPL", "ACME", "EURUSD"):
             self.assertEqual(self.recs["radar"][t]["c"], "TRADFI_CLASSIFIED")
         self.assertEqual(self.contracts["variational:ACME"]["tradfi_reason"], "NAME_PATTERN:holdings")
