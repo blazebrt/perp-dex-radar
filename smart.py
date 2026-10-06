@@ -477,6 +477,12 @@ def run(out_dir, pages_url=None, journal_path=None, fetch=None, now=None, cfg=CF
     rp = os.path.join(here, "smart_research.json")
     if os.path.exists(rp):
         shutil.copyfile(rp, os.path.join(data_dir, "smart_research.json"))
+    try:  # v8 audit: trader selection and every held coin's disposition (never changes this run)
+        from v8 import audit_smart
+        audit_smart.audit(out_dir, now, cfg=cfg, board=board, traders=traders, snap=snap, coins=coins,
+                          open_trades=J["open"])
+    except Exception as e:  # noqa: BLE001 - observability must never stop a run
+        sc.log(f"v8 audit skipped: {type(e).__name__}: {e}")
     sc.log(f"smart money: {len(snap)} of {len(traders)} proven traders read, {len(new)} new entries, "
            f"{sum(1 for c in crowds if c['signal'])} signals and {sum(1 for c in crowds if c['info'])} long crowds, "
            f"{len(J['open'])} paper trades open, {len(J['closed'])} closed")

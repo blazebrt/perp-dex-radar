@@ -328,7 +328,10 @@ Nothing runs on your computer.
 | `.github/workflows/scan.yml` | The schedule and the publish step (runs `scanner.py`, `smart.py`, `quant.py`, `picks.py`, then `dashboard.py`, and publishes the analyzer) |
 | `.github/workflows/smart_research.yml` | Collects 90 days of Hyperliquid trader history for the smart-money test to the `smart-data` branch |
 | `.github/workflows/backtest.yml` | Strategy tests started from the Studio tab |
-| `.github/workflows/research.yml` | Tests a `v5...` / `v6...` / `v7...` branch on live exchange data (nothing published) |
+| `.github/workflows/research.yml` | Tests a `v5...` / `v6...` / `v7...` / `v8/phase-...` branch on live exchange data (nothing published) |
+| `.github/workflows/ci.yml` | Blocking checks on every pull request and push to main: all tests, legacy parity, simulator and no-edge checks |
+| `v8/` | v8 Phase 1 audit (observes, never changes a decision): every DEX contract, why each coin was or was not shown by each engine, data health and provenance, published as `data/v8/audit_latest.json`. See `docs/v8/` |
+| `tools/v8/legacy_parity.py` | Runs the whole pipeline offline on a fixed fake market and proves the legacy outputs are unchanged |
 | `.github/workflows/data.yml` | Downloads a year of 1h and three years of 4h candles, funding, futures statistics and CoinGecko fundamentals to the `market-data` branch |
 | `tests/` | Unit tests and full runs on a fake exchange |
 | `tools/no_edge_check.py` | The strategies on a random market: shows costs and catches look-ahead bugs |

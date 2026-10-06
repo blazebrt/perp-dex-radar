@@ -1719,6 +1719,13 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
         p = os.path.join(here, name)
         if os.path.exists(p):
             shutil.copyfile(p, os.path.join(out_dir, name))
+    try:  # v8 audit: every coin's swing and day-trade disposition from this run's own values (never changes them)
+        from v8 import audit_picks
+        audit_picks.audit(out_dir, now, universe=universe, coins=coins, got=got, data=data, last_day=last_day,
+                          swing=swing, by_liq=by_liq, day_set=day_set, c1s=c1s, sw_recs=sw_recs, day_recs=day_recs,
+                          swing_out=swing_out, day_out=day_out, new=new)
+    except Exception as e:  # noqa: BLE001 - observability must never stop a run
+        log(f"v8 audit skipped: {type(e).__name__}: {e}")
     log(f"done in {out['duration_s']}s: {len(sw_recs)} swing and {len(day_recs)} day-trade scores; "
         f"top swing {', '.join(r['coin'] + ' ' + r['side'] + ' ' + str(r['score']) for r in sw_recs[:3])}")
     return out
