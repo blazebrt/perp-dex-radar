@@ -19,8 +19,13 @@ def tradfi_code(coin, trace=TRACE):
     venues = (coin or {}).get("venues") or {}
     flags = {d: bool(v.get("tradfi")) for d, v in venues.items()}
     code = "TRADFI_TICKER_COLLISION" if any(not f for f in flags.values()) else "TRADFI_CLASSIFIED"
-    o = {"venue_tradfi": dict(sorted(flags.items())), "name": (coin or {}).get("name")}
     t = (coin or {}).get("t")
+    o = {"venue_tradfi": dict(sorted(flags.items())), "name": (coin or {}).get("name")}
+    try:
+        import scanner as sc
+        o["known_crypto"] = t in sc.KNOWN_CRYPTO     # True: a listed crypto coin is the one being excluded
+    except Exception:  # noqa: BLE001
+        pass
     rows = getattr(trace, "rows", None) or {}
     flagged = sorted(f"{d}:{r.get('sym')}" for d, rs in rows.items() for r in (rs or [])
                      if r.get("t") == t and r.get("tradfi"))

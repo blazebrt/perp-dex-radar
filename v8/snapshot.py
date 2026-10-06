@@ -30,6 +30,9 @@ from . import parts as PT
 from . import taxonomy as T
 
 ENGINES = ("universe", "radar", "quant", "swing", "day", "smart")
+CONTRACT_FIELDS = ("id", "venue", "raw", "norm", "asset", "mult", "canon", "type", "active", "status", "tradfi",
+                   "tradfi_reason", "price", "vol", "oi", "fund8h", "fund_iv_h", "src_ts", "rcv_ts", "first_seen",
+                   "health", "basis", "legacy")
 LEGACY_FILES = ("latest.json", "journal.json", "journal.csv", "quant.json", "quant_journal.json", "picks.json",
                 "picks_journal.json", "smart.json", "smart_journal.json", "dashboard.json")
 FIRST_SEEN_KEEP_S = 400 * 86400
@@ -224,12 +227,26 @@ def build(out_dir, pages_url=None, first_seen_path=None):
         "legacy_output_hashes": {r["path"]: r["sha256"] for r in refs},
     }
     snap = {"schema": SCHEMA, "manifest": manifest, "coverage": {"summary": summary, "engines": coverage},
-            "registry": {"counts": rc, "contracts": (reg or {}).get("contracts") or [],
+            "registry": {"counts": rc, "contracts": columns((reg or {}).get("contracts") or []),
                          "assets": (reg or {}).get("assets") or {}, "events": (reg or {}).get("events") or []},
             "data_health": data_health, "dispositions": dispositions,
             "reasons": {k: {"disposition": v[0], "text": v[1]} for k, v in T.REASONS.items()},
             "steps": T.STEPS, "legacy_output_refs": refs}
     return snap, fs
+
+
+def columns(contracts):
+    """Registry contracts as one field list and one row per contract (the field names are not repeated ten
+    thousand times). contract_records() turns them back into dicts."""
+    return {"fields": list(CONTRACT_FIELDS), "rows": [[c.get(f) for f in CONTRACT_FIELDS] for c in contracts]}
+
+
+def contract_records(snap):
+    """The registry contracts of a snapshot as dicts."""
+    c = (snap.get("registry") or {}).get("contracts") or {}
+    if isinstance(c, list):
+        return c
+    return [dict(zip(c.get("fields") or [], row)) for row in c.get("rows") or []]
 
 
 def dumps(obj):

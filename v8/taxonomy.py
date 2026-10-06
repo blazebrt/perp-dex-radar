@@ -37,8 +37,9 @@ REASONS = {
     # ---- shared universe (asset level)
     "TRADFI_CLASSIFIED": (MODEL_INELIGIBLE, "classified tradfi (stock, index, FX, commodity); legacy engines "
                                             "are crypto only"),
-    "TRADFI_TICKER_COLLISION": (MODEL_INELIGIBLE, "a tradfi listing on one venue shares the ticker of a crypto "
-                                                  "listing on another; legacy marks the whole ticker tradfi"),
+    "TRADFI_TICKER_COLLISION": (MODEL_INELIGIBLE, "venues disagree: a tradfi listing shares the ticker of a market "
+                                                  "listed as crypto; legacy marks the whole ticker tradfi (a real "
+                                                  "crypto coin is excluded when known_crypto is true)"),
     "NO_ACTIVE_PERP_CONTRACT": (NOT_EXECUTABLE, "every contract for this asset was skipped by the legacy "
                                                 "adapters (delisted, inactive, builder, non-perpetual)"),
     "PRICE_CONFLICT_ALL_VENUES": (INSUFFICIENT_DATA, "every venue's price was dropped as a price conflict"),

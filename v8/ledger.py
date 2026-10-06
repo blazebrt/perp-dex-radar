@@ -5,7 +5,8 @@ commit, config hash and engine version - live once in the engine part's header a
 
 Record keys
     a   canonical asset            d   disposition (taxonomy.DISPOSITIONS)     c   stable reason code
-    st  stage that decided it      r   human reason                            o   observed input(s)
+    st  stage that decided it      r   human reason (only when not the standard sentence rendered from c, o
+                                       and th; expand() always fills it)     o   observed input(s)
     th  threshold or rule          h   data health of the inputs               src data source
     k   venue contract ids         x   step codes (taxonomy.STEPS) noted on the way, optional
 """
@@ -74,7 +75,9 @@ class Ledger:
         if asset in self.records:
             self.duplicates.append([asset, code])
             return self.records[asset]
-        rec = {"a": asset, "d": d, "c": code, "st": stage, "r": r or render(code, o, th)}
+        rec = {"a": asset, "d": d, "c": code, "st": stage}
+        if r:                       # the standard sentence is rendered from c, o and th when read (expand)
+            rec["r"] = r
         if o is not None:
             rec["o"] = _clean(o)
         if th is not None:
@@ -123,7 +126,8 @@ def expand(part, header):
     for r in part.get("records") or []:
         yield {"scan_id": header.get("scan_id"), "ts": header.get("ts"), "engine": part.get("engine"),
                "stage": r.get("st"), "asset": r.get("a"), "contracts": r.get("k") or [], "disposition": r.get("d"),
-               "reason_code": r.get("c"), "reason": r.get("r"), "observed": r.get("o"), "rule": r.get("th"),
+               "reason_code": r.get("c"), "reason": r.get("r") or render(r.get("c"), r.get("o"), r.get("th")),
+               "observed": r.get("o"), "rule": r.get("th"),
                "health": r.get("h"), "source": r.get("src"), "steps": r.get("x") or [],
                "git_sha": header.get("git_sha"), "config_hash": (header.get("config_hashes") or {}).get(
                    part.get("engine")), "engine_version": (header.get("engine_versions") or {}).get(part.get("engine"))}

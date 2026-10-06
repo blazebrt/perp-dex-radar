@@ -117,7 +117,7 @@ def read_aster(p):
         base = s.get("baseAsset") or re.sub(r"(USDT|USDC|USD)$", "", sym)
         tk, pr = tick.get(sym, {}), prem.get(sym, {})
         ut = s.get("underlyingType")
-        out.append(_rec("aster", sym, base, str(ct).lower(), st == "TRADING", skip,
+        out.append(_rec("aster", sym, base, "perp" if ct == "PERPETUAL" else str(ct).lower(), st == "TRADING", skip,
                         price=_f(tk.get("lastPrice")) or _f(pr.get("markPrice")), vol=_f(tk.get("quoteVolume")),
                         fund8h=_f(pr.get("lastFundingRate")), tradfi=True if ut and ut != "COIN" else None,
                         tradfi_why=f"VENUE_UNDERLYING:{ut}" if ut and ut != "COIN" else None, rcv=rcv, status=st))
