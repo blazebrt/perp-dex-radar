@@ -23,5 +23,13 @@ what the engines decide, so it needs its own parity break, its own evidence and 
 | 15 | No DEX market list sends a venue timestamp | Staleness of DEX data cannot be measured at the source | `src_ts` null on every contract |
 | 16 | Smart money reads Hyperliquid only and ignores positions under $10k | Coins not on Hyperliquid can never have a smart-money signal | `SMART_VENUE_NOT_COVERED`, `SMART_POSITIONS_BELOW_MIN` |
 | 17 | The Scan workflow is scheduled 72 times a day (minutes 7, 27, 47) but GitHub runs it about 4 times a day | Fewer scans than the settings assume (`every_min` 20) | storage projections use both figures |
+| 18 | Other pre-analysis gates: $5M reference (CEX) volume for quant and swing, the radar's top-40 + 16 extras deep-dive shortlist, the top-50 day-trade candidate list, top-10/8-watch publication cut-offs, candles only from MEXC, Gate.io, Bitget, Hyperliquid or Aster | Coins are dropped before or during analysis for reasons unrelated to their setup | `REF_VOLUME_BELOW_LEGACY_MIN`, `RADAR_STAGE2_NOT_SELECTED`, `DAY_CANDIDATE_NOT_SELECTED`, `OUTPUT_TOP_N_CUTOFF`, `NO_SUPPORTED_CANDLES` |
+| 19 | Hard-coded strategy authority: `tools/research/qexport.py` has `FINAL = ("TSMOM", "TREND_EMA", "XSMOM")` and `verdict()` returns "live" for them before any evidence test; `quant.py` runs `ORDER = ("TSMOM", "TREND_EMA", "XSMOM")` regardless of verdicts | The quant desk's "live" strategies are assigned, not earned | manifest `strategy_authority` |
+| 20 | Survivorship bias: the historical research universe is selected from today's surviving, liquid contracts | Backtests overstate results | documented (research tools are outside the scan) |
+| 21 | Quant historical slippage uses today's DEX volume | Historical costs are understated for coins that were thinner then | documented |
+| 22 | Swing backtest: fixed 0.19% round-trip cost, no funding | Swing results omit funding and real spread variation | documented (`picks_research.json` rules) |
+| 23 | Quant funding is partly assumed and taken from a reference exchange (MEXC), not the DEX traded | Paper and backtest funding can differ from what a DEX position pays | documented; item 7 |
+| 24 | Portfolio simulation is realised-equity only, with no correlation or beta clustering | Portfolio risk of several same-direction positions is understated | documented |
 
-Nothing in this list was changed by Phase 1. The parity check proves it for the fixture.
+Nothing in this list was changed by Phase 1, and Phase 1 instrumentation is not a claim that any of it is solved.
+The parity check proves the legacy outputs unchanged on the fixture.

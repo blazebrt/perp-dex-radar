@@ -17,6 +17,7 @@ Every snapshot starts with a manifest:
 | `registry_contracts`, `dispositions` | counts |
 | `data_sources` | which DEX market lists loaded, whether the fallback coin list was used |
 | `legacy_output_hashes` | sha256 of every legacy data file of the scan (the audit never changes them) |
+| `strategy_authority` | where quant strategy authority comes from today: `quant.py`'s runtime `ORDER`, the research `FINAL` tuple in `tools/research/qexport.py`, whether its `verdict()` pre-assigns "live", the research file's verdicts, and the hashes of those files (exposed, not changed) |
 
 ### Config hashes
 
