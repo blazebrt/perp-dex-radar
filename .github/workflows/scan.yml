@@ -40,6 +40,15 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Core tests (a failure stops the scan here, before anything is built or published)
+        id: core_tests
+        # The fast unit tests of every engine and of the v8 audit (about 20 seconds). The full suite, the
+        # end-to-end legacy parity check and the research checks run in the CI workflow.
+        run: >-
+          python -m unittest tests.test_v5 tests.test_quant tests.test_picks tests.test_smart
+          tests.test_smart_backtest tests.test_dashboard tests.test_analyze tests.test_analyzer_call
+          tests.test_v8_units
+
       - id: pages
         uses: actions/configure-pages@v5
 
@@ -119,6 +128,24 @@ jobs:
         if: always()
         continue-on-error: true
         run: python dashboard.py --out site
+
+      - name: v8 audit snapshot (observability only)
+        # Assembles data/v8/audit_latest.json from what the engines above recorded: every DEX contract, every
+        # coin's disposition in every engine, data health and provenance. It reads the published files and never
+        # changes them, so a problem here must not stop the pages from being published.
+        if: always() && steps.core_tests.outcome == 'success'
+        continue-on-error: true
+        run: python -m v8.snapshot --out site --pages-url "${{ steps.pages.outputs.base_url }}" --archive-dir "$RUNNER_TEMP/v8_archive"
+
+      - name: Keep this scan's audit snapshot for 14 days (Actions artifact; nothing is stored permanently)
+        if: always() && steps.core_tests.outcome == 'success'
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: v8-audit-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/v8_archive/
+          retention-days: 14
+          if-no-files-found: ignore
 
       - name: Save a copy of the journal for review
         # Replaces the journal-data branch with this scan's latest.json, journal.csv and the quant desk's

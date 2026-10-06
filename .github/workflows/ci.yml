@@ -1,0 +1,87 @@
+name: CI
+
+# Blocking checks. Every step fails the job when its command fails: no continue-on-error, no "|| true".
+# Runs on every pull request to main, every push to main and to v8/* branches, and on demand.
+# To make a red run block merging, add the two jobs below as required status checks of main
+# (Settings > Branches > branch protection rule for main > Require status checks to pass).
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, "v8/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Unit tests and legacy parity
+    # Pinned: the golden digests compare floating-point results, which can differ in the last digit between
+    # system math libraries. ubuntu-latest moves to Ubuntu 26 from October 19, 2026.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: All unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: v8 Phase 1 tests (registry, ledger, data health, provenance, end-to-end audit and parity)
+        run: python -m unittest tests.test_v8_units tests.test_v8_audit -v
+
+      - name: Legacy parity against the committed golden digests
+        run: python tools/v8/legacy_parity.py --out "$RUNNER_TEMP/parity_head" --check tests/fixtures/v8/legacy_parity_golden.json
+
+      - name: Legacy parity against the base commit, rebuilt on this runner
+        # Proves the change leaves every legacy output identical to the base branch on the same machine. A later
+        # phase that changes legacy behaviour on purpose must say so in its PR and update this check.
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA"
+          mkdir -p "$RUNNER_TEMP/base/tools/v8"
+          cp tools/v8/legacy_parity.py "$RUNNER_TEMP/base/tools/v8/"
+          python "$RUNNER_TEMP/base/tools/v8/legacy_parity.py" --out "$RUNNER_TEMP/parity_base" --write-golden "$RUNNER_TEMP/golden_base.json"
+          python tools/v8/legacy_parity.py --out "$RUNNER_TEMP/parity_head2" --check "$RUNNER_TEMP/golden_base.json"
+
+      - name: Workflow files parse
+        run: |
+          python -m pip install --disable-pip-version-check --quiet pyyaml
+          python -c "import glob, yaml; [yaml.safe_load(open(f)) for f in sorted(glob.glob('.github/workflows/*.yml'))]; print('workflows OK')"
+
+  research-checks:
+    name: Simulator and no-edge checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install the simulator's libraries
+        run: python -m pip install --disable-pip-version-check numpy numba
+
+      - name: Simulator tests
+        run: python tools/research/test_qsim.py
+
+      - name: No-edge check (no strategy may make money on a random market)
+        run: python tools/no_edge_check.py

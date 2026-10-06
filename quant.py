@@ -161,8 +161,10 @@ def bars_4h(coin, n):
     gsym = sc.exchange_symbol("gate", coin["t"])
     tries.append(("gate", gsym, lambda: sc._gate_rows(sc.FETCH(sc.GATE_KLINE_RANGE.format(
         sym=gsym, iv="4h", start=now - B4 * n, end=now)))))
+    tried = []  # what each source gave (v8 observability only)
     for src, s, fn in tries:
         if sc.BREAKERS[src].open:
+            tried.append((src, "breaker"))
             continue
         try:
             rows = sc._clean(fn())
@@ -170,17 +172,21 @@ def bars_4h(coin, n):
         except Exception as e:  # noqa: BLE001
             if sc.is_hard_failure(e):
                 sc.BREAKERS[src].fail()
+            tried.append((src, "error"))
             continue
         if len(rows) < 60:
+            tried.append((src, f"short:{len(rows)}"))
             continue
         scale, ok = sc.detect_scale(coin.get("ref_price"), rows)
         if not ok:
+            tried.append((src, "scale"))
             continue
         if scale != 1.0:
             for x in rows:
                 for k in ("o", "h", "l", "c"):
                     x[k] *= scale
         return {"src": src, "sym": s, "candles": rows}
+    sc.V8.candle_miss(coin["t"], "4h", tried)
     return None
 
 
@@ -642,6 +648,12 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
     rp = os.path.join(here, "quant_research.json")
     if os.path.exists(rp):
         shutil.copyfile(rp, os.path.join(data_dir, "quant_research.json"))
+    try:  # v8 audit: every coin's disposition from this run's own values (never changes them)
+        from v8 import audit_quant
+        audit_quant.audit(out_dir, now, universe=universe, coins=coins, got=got, data=data, daily=daily, lastd=lastd,
+                          new=new, open_trades=J["open"])
+    except Exception as e:  # noqa: BLE001 - observability must never stop a run
+        log(f"v8 audit skipped: {type(e).__name__}: {e}")
     log(f"done in {out['duration_s']}s: {len(new)} new signals, {len(J['open'])} open trades")
     return out
 

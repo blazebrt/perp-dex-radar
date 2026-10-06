@@ -1,13 +1,14 @@
 name: Research
 
-# Runs on every push to a branch whose name starts with "v5", "v6" or "v7" (and on demand): the tests,
+# Runs on every push to a branch whose name starts with "v5", "v6" or "v7" or to a v8 phase branch
+# ("v8/phase-...") (and on demand): the tests,
 # one scan, two runs of the smart-money engine, one run of the quant desk and one of the coin picks on live
 # exchange data, each with a new journal, then the dashboard from those files. Nothing is published. The
 # results replace the "research" branch (one commit, no history) so they can be checked before main changes.
 
 on:
   push:
-    branches: ["v5*", "v6*", "v7*"]
+    branches: ["v5*", "v6*", "v7*", "v8/phase-*"]
   workflow_dispatch:
 
 permissions:
@@ -69,6 +70,13 @@ jobs:
           python dashboard.py --out out_new > research_dashboard.txt 2>&1 || true
           tail -5 research_dashboard.txt
 
+      - name: v8 audit snapshot from this run's files (observability only, nothing published)
+        continue-on-error: true
+        run: |
+          python -m v8.snapshot --out out_new --archive-dir v8_archive > research_v8.txt 2>&1 || true
+          tail -5 research_v8.txt
+          python -c "import json; s = json.load(open('out_new/data/v8/audit_latest.json')); json.dump({'manifest': s['manifest'], 'summary': s['coverage']['summary'], 'engines': s['coverage']['engines'], 'registry_counts': s['registry']['counts'], 'data_health': {k: v for k, v in s['data_health'].items() if k != 'registry_venues'}, 'venues': s['data_health'].get('registry_venues'), 'storage': s['storage']}, open('research_v8_summary.json', 'w'), indent=1)" >> research_v8.txt 2>&1 || true
+
       - name: Save the results for review
         if: always()
         env:
@@ -82,6 +90,8 @@ jobs:
           for f in latest.json journal.csv quant.json picks.json smart.json dashboard.json; do
             if [ -f "out_new/data/$f" ]; then cp "out_new/data/$f" "R/new_$f"; fi
           done
+          if [ -f out_new/data/v8/audit_latest.json.gz ]; then cp out_new/data/v8/audit_latest.json.gz R/new_audit_latest.json.gz; fi
+          if [ -f research_v8_summary.json ]; then cp research_v8_summary.json R/; fi
           echo "$GITHUB_REF_NAME $GITHUB_SHA $(date -u +%Y-%m-%dT%H:%MZ)" > R/run.txt
           export GIT_INDEX_FILE="$RUNNER_TEMP/research.index"
           git read-tree --empty

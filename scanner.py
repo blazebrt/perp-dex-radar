@@ -77,6 +77,16 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+try:  # v8 observability (see v8/): records what the scan already does, never changes it
+    from v8.trace import TRACE as V8
+except ImportError:  # pragma: no cover - the scan runs the same without the v8 package
+    class _NoTrace:
+        live = False
+
+        def __getattr__(self, name):
+            return lambda *a, **k: None
+    V8 = _NoTrace()
+
 VERSION = "5.0.0"
 
 # Version 5 changes how strategies are judged, after an audit found that the signals of
@@ -504,6 +514,7 @@ def _venue(t, dex, sym, mult, price=None, vol=None, oi=None, funding8h=None, tra
 
 def dex_variational():
     d = FETCH(VAR_STATS)
+    V8.payload("variational", "stats", d)
     out = []
     for L in d.get("listings") or []:
         sym = str(L.get("ticker", "")).strip()
@@ -522,6 +533,7 @@ def dex_variational():
 
 def dex_hyperliquid():
     d = FETCH(HL_INFO, {"type": "metaAndAssetCtxs"})
+    V8.payload("hyperliquid", "meta", d)
     meta, ctxs = d[0], d[1]
     out = []
     for asset, ctx in zip(meta.get("universe") or [], ctxs):
@@ -539,13 +551,18 @@ def dex_hyperliquid():
 
 def dex_aster():
     info = FETCH(ASTER_INFO)
+    V8.payload("aster", "info", info)
     try:
-        tick = {x["symbol"]: x for x in FETCH(ASTER_TICKER) if isinstance(x, dict)}
+        raw = FETCH(ASTER_TICKER)
+        V8.payload("aster", "ticker", raw)
+        tick = {x["symbol"]: x for x in raw if isinstance(x, dict)}
     except Exception as e:  # noqa: BLE001
         note_error(f"aster tickers: {e}")
         tick = {}
     try:
-        prem = {x["symbol"]: x for x in FETCH(ASTER_PREMIUM) if isinstance(x, dict)}
+        raw = FETCH(ASTER_PREMIUM)
+        V8.payload("aster", "premium", raw)
+        prem = {x["symbol"]: x for x in raw if isinstance(x, dict)}
     except Exception as e:  # noqa: BLE001
         note_error(f"aster funding: {e}")
         prem = {}
@@ -566,6 +583,7 @@ def dex_aster():
 
 def dex_edgex():
     d = FETCH(EDGEX_META)
+    V8.payload("edgex", "meta", d)
     lst = ((d.get("data") or {}).get("contractList")) or []
     out = []
     for c in lst:
@@ -582,6 +600,7 @@ def dex_edgex():
 
 def dex_lighter():
     d = FETCH(LIGHTER_BOOKS)
+    V8.payload("lighter", "books", d)
     lst = d.get("order_book_details") or d.get("order_books") or []
     out = []
     for b in lst:
@@ -598,6 +617,7 @@ def dex_lighter():
 
 def dex_dydx():
     d = FETCH(DYDX_MARKETS)
+    V8.payload("dydx", "markets", d)
     out = []
     for tk, m in (d.get("markets") or {}).items():
         if m.get("status") != "ACTIVE":
@@ -612,6 +632,7 @@ def dex_dydx():
 
 def dex_paradex():
     d = FETCH(PARADEX_SUMMARY, timeout=40)
+    V8.payload("paradex", "summary", d)
     out = []
     for r in d.get("results") or []:
         sym = str(r.get("symbol", ""))
@@ -628,6 +649,7 @@ def dex_paradex():
 
 def dex_extended():
     d = FETCH(EXTENDED_MARKETS)
+    V8.payload("extended", "markets", d)
     out = []
     for m in d.get("data") or []:
         if m.get("active") is False or m.get("status", "ACTIVE") != "ACTIVE":
@@ -655,7 +677,9 @@ DEX_FETCHERS = {"hyperliquid": dex_hyperliquid, "variational": dex_variational, 
 def build_universe():
     """Merge every DEX's market list into one dict of coins."""
     status, coins = {}, {}
+    V8.begin_universe()
     results = parallel(lambda dex: DEX_FETCHERS[dex](), list(DEXES), workers=len(DEXES))
+    V8.universe_rows(results)
     for dex in DEXES:
         rows = results.get(dex)
         if rows is None:
@@ -681,6 +705,7 @@ def build_universe():
                 for dex, p, _ in priced:
                     if abs(p / ref - 1) > 0.2:
                         note_error(f"{t}: {DEX_NAME[dex]} price {fp(p)} differs from the main market ({fp(ref)}); left out")
+                        V8.event("PRICE_CONFLICT_DROPPED", t=t, dex=dex, price=p, ref=ref)
                         c["venues"].pop(dex, None)
                 ref = median([v["price"] / v["mult"] for v in c["venues"].values() if v.get("price")], ref)
         c["ref_price"] = ref
@@ -694,6 +719,7 @@ def build_universe():
     any_ok = any(s["ok"] for s in status.values())
     if not any_ok:
         note_error("No DEX market list could be loaded; using the built-in coin list without DEX data")
+        V8.event("FALLBACK_UNIVERSE")
         coins = {t: {"t": t, "venues": {}, "name": t, "tradfi": False, "ref_price": None, "best_vol": None,
                      "tot_vol": None, "trade_vol": None} for t in FALLBACK_CRYPTO}
     return coins, status, any_ok
@@ -876,13 +902,15 @@ def get_candles(coin, tf, bars, prefer=None):
         order.remove(prefer)
         order.insert(0, prefer)
     min_bars = min(bars, 30 if tf == "1h" else 60)
-    mismatch = []
+    mismatch, tried = [], []  # tried: what each source gave (v8 observability only)
     for src in order:
         if BREAKERS[src].open:
+            tried.append((src, "breaker"))
             continue
         if src in ("hyperliquid", "aster"):
             v = venues.get(src)
             if not v:
+                tried.append((src, "no_venue"))
                 continue
             sym = v["sym"]
         else:
@@ -894,8 +922,10 @@ def get_candles(coin, tf, bars, prefer=None):
             if is_hard_failure(e):
                 BREAKERS[src].fail()
                 note_error(f"{src} {sym} {tf}: {e}")
+            tried.append((src, "error"))
             continue
         if len(c) < min_bars:
+            tried.append((src, f"short:{len(c)}"))
             continue
         ref = coin.get("ref_price")
         if not ref and src in ("hyperliquid", "aster"):
@@ -903,6 +933,7 @@ def get_candles(coin, tf, bars, prefer=None):
         scale, ok = detect_scale(ref, c)
         if not ok:
             mismatch.append(src)
+            tried.append((src, "scale"))
             continue
         if scale != 1.0:
             for x in c:
@@ -911,6 +942,7 @@ def get_candles(coin, tf, bars, prefer=None):
         return {"src": src, "sym": sym, "scale": scale, "candles": c, "fetched": now_ts()}
     if mismatch:
         note_error(f"{t}: {', '.join(mismatch)} price does not match the DEX price; skipped there")
+    V8.candle_miss(t, tf, tried)
     return None
 
 
@@ -1843,6 +1875,8 @@ def find_signals(a, h1, sm=None, learn=None, only=None, specs=None, ctx=None, px
         sk = sp.get("sk") or (learn.get("sk") or {}).get(sp["id"], 1.0)
         s = build_plan(sp, a, *lv, tp_r=tp_r, sk=sk, px=px)
         if not s:
+            if V8.live:
+                V8.plan_reject(a, sp, lv, tp_r, sk, px)
             continue
         s["gate"] = (ctx or {}).get("gate")
         if sp.get("filters"):
@@ -1850,6 +1884,8 @@ def find_signals(a, h1, sm=None, learn=None, only=None, specs=None, ctx=None, px
                  "btc3": (ctx or {}).get("btc3", 0.0), "status": s["status"]}
             try:
                 if not all(FILTERS[k][1](c, v) for k, v in sp["filters"].items()):
+                    if V8.live:
+                        V8.filter_reject(a, sp)
                     continue
             except (TypeError, KeyError):
                 continue
@@ -4802,6 +4838,7 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
     ctx = {"regime": regime["label"], "btc3": btc3, "gate": gate}
     specs_now = active_specs()
     specs15 = [sp for sp in specs_now if sp.get("tf", "15m") == "15m"]
+    V8.begin_live()  # v8: plan rejections are recorded from here to the end of this scan's signal search
     for t, a in A.items():
         a["signals"] = find_signals(a, s1[t], smc.get(t), L, specs=specs15, ctx=ctx, px=a["_px"])
         if a["signals"]:
@@ -4835,6 +4872,7 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
             lst.sort(key=lambda x: -x[0])
             raw += [(t, s, a) for _, t, s, a in lst[:CFG["tf_signal_cap"]]]
         log(f"your {tf} strategies: {sum(len(v) for v in found.values())} signals")
+    V8.end_live()
     pos_list = sorted(prelim, key=lambda t: -prelim[t])[:CFG["positioning_n"]]
     POS = parallel(fetch_positioning, pos_list)
     sigs, sig_now = [], {}
@@ -5031,6 +5069,13 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
     src = index_src or os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
     if os.path.exists(src):
         shutil.copyfile(src, os.path.join(out_dir, "index.html"))
+    try:  # v8 audit: the registry and every coin's disposition, from this scan's own values (never changes them)
+        from v8 import audit_radar
+        audit_radar.audit(out_dir, scan_t, coins=coins, dex_status=dex_status, dex_ok=dex_ok, crypto=crypto,
+                          res1=res1, s1=s1, ranked=ranked, cands=cands, extras=extras, res2=res2, A=A, sigs=sigs,
+                          best=best, pick_sigs=pick_sigs, watch_sigs=watch_sigs, gate=gate)
+    except Exception as e:  # noqa: BLE001 - observability must never stop a scan
+        log(f"v8 audit skipped: {type(e).__name__}: {e}")
     log(f"done in {out['duration_s']}s: {len(picks)} picks, regime {regime['label']}, {len(ERRORS)} notes"
         + (f", {n_alerts} alert message(s) sent" if n_alerts else ""))
     return out
