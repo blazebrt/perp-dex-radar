@@ -35,9 +35,9 @@ webhook URLs stay in the environment and are never read by the audit.
 | Section | Contents |
 |---|---|
 | `manifest` | above |
-| `registry` | `counts`, every `contracts` record, `assets`, universe `events` (price conflicts, fallback) |
+| `registry` | `counts`, every contract (`contracts.fields` names the columns, `contracts.rows` holds one row per contract; `v8.snapshot.contract_records()` turns them back into records), `assets`, universe `events` (price conflicts, fallback) |
 | `data_health` | see [data-health.md](data-health.md) |
-| `dispositions` | per engine, one compact record per asset (no candles, no price arrays) |
+| `dispositions` | per engine, one compact record per asset (no candles, no price arrays); the human sentence is rendered from the code, observed value and rule by `v8.ledger.expand()`, which also joins the scan, engine, commit, config hash and version fields |
 | `coverage` | the per-scan accounting below, plus each engine's counts by disposition and by reason and its stages |
 | `reasons`, `steps` | the taxonomy, so the file reads on its own |
 | `legacy_output_refs` | path, sha256 and size of each legacy file |
