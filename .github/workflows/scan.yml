@@ -47,7 +47,7 @@ jobs:
         run: >-
           python -m unittest tests.test_v5 tests.test_quant tests.test_picks tests.test_smart
           tests.test_smart_backtest tests.test_dashboard tests.test_analyze tests.test_analyzer_call
-          tests.test_v8_units
+          tests.test_v8_units tests.test_v8_identity
 
       - id: pages
         uses: actions/configure-pages@v5

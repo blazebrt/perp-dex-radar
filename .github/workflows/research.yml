@@ -77,6 +77,12 @@ jobs:
           tail -5 research_v8.txt
           python -c "import json; s = json.load(open('out_new/data/v8/audit_latest.json')); json.dump({'manifest': s['manifest'], 'summary': s['coverage']['summary'], 'engines': s['coverage']['engines'], 'registry_counts': s['registry']['counts'], 'data_health': {k: v for k, v in s['data_health'].items() if k != 'registry_venues'}, 'venues': s['data_health'].get('registry_venues'), 'storage': s['storage']}, open('research_v8_summary.json', 'w'), indent=1)" >> research_v8.txt 2>&1 || true
 
+      - name: v8 universe identity report (collision matrix, missing volumes) from this run's snapshot
+        continue-on-error: true
+        run: |
+          python tools/v8/identity_report.py out_new/data/v8/audit_latest.json --json research_identity.json > research_identity.txt 2>&1 || true
+          head -40 research_identity.txt
+
       - name: Save the results for review
         if: always()
         env:
@@ -92,6 +98,7 @@ jobs:
           done
           if [ -f out_new/data/v8/audit_latest.json.gz ]; then cp out_new/data/v8/audit_latest.json.gz R/new_audit_latest.json.gz; fi
           if [ -f research_v8_summary.json ]; then cp research_v8_summary.json R/; fi
+          if [ -f research_identity.json ]; then cp research_identity.json R/; fi
           echo "$GITHUB_REF_NAME $GITHUB_SHA $(date -u +%Y-%m-%dT%H:%MZ)" > R/run.txt
           export GIT_INDEX_FILE="$RUNNER_TEMP/research.index"
           git read-tree --empty
