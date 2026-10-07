@@ -20,7 +20,7 @@ A contract is **one market on one venue**: `venue:raw_symbol`, for example `hype
 | `asset`, `mult` | canonical underlying and price multiplier, from the legacy `canon()` (`kPEPE` -> `PEPE` x1000) |
 | `canon` | why: `IDENTITY`, `UPPERCASE`, `MULTIPLIER:x1000`, `ALIAS:VANATOKEN`, `MULTIPLIER_ALIAS:...` |
 | `type`, `active`, `status` | market type (`perp`, `current_quarter`, `spot`, `other`), whether the venue reports it active, and its raw status |
-| `tradfi`, `tradfi_reason` | the legacy classification and the rule that decided it: `TRADFI_LIST`, `FX_PAIR`, `KNOWN_CRYPTO`, `NAME_PATTERN:<word>`, `DEFAULT_CRYPTO`, `VENUE_UNDERLYING:<type>`, `VENUE_CATEGORY:<category>`, `VENUE_24_5_MARKET` |
+| `tradfi`, `tradfi_reason` | the adapter's own row label (Phase 1 field, unchanged) and the rule behind it: `TRADFI_LIST`, `FX_PAIR`, `KNOWN_CRYPTO`, `NAME_PATTERN:<word>`, `DEFAULT_CRYPTO`, `VENUE_UNDERLYING:<type>`, `VENUE_CATEGORY:<category>`, `VENUE_24_5_MARKET`. Since Phase 2 it no longer decides anything: the identity columns below do |
 | `price`, `vol`, `oi`, `fund8h` | as the legacy adapter computes them (funding per 8 hours) |
 | `fund_iv_h` | the venue's funding interval in hours where known (Hyperliquid and dYdX: 1), else null |
 | `src_ts` | venue timestamp: none of the eight market lists sends one today, so it is null |
@@ -28,15 +28,22 @@ A contract is **one market on one venue**: `venue:raw_symbol`, for example `hype
 | `first_seen` | the first scan this contract was seen in, from our own registry history (`data/v8/first_seen.json`) |
 | `basis` | how each value was observed when not simply `OBSERVED`: `OBSERVED_ZERO` or `MISSING` |
 | `health` | `HEALTHY`, `MISSING` (price or volume missing), `CONFLICTED` (dropped as a price conflict), `STALE` (venue timestamp older than 15 minutes) |
-| `legacy` | what the legacy universe did with it (below) |
+| `legacy` | what the universe did with it (below) |
+| `cls`, `cls_reason`, `cls_auth` | Phase 2: the contract's own classification (`CRYPTO`, `TRADFI`, `AMBIGUOUS`, `UNLABELED`), the evidence (`VENUE_CATEGORY:RWA`, `VENUE_CATEGORY:Crypto`, `VENUE_CATEGORY_UNRECOGNIZED:<c>`, `VENUE_24_5_MARKET`, `VENUE_UNDERLYING:<t>`, `NAME_PATTERN:<word>`, `CONFLICTING_CONTRACT_EVIDENCE:...`, `NO_CONTRACT_EVIDENCE`) and its authority (`VENUE_METADATA`, `CONTRACT_NAME`, `NONE`) |
+| `meta` | the raw venue metadata behind it: Aster `underlying` (underlyingType), Extended `category` |
+| `npx` | price per 1 coin (multiplier removed): what exposures are compared on |
+| `exposure`, `exp_class`, `exp_reason` | the price-coherent exposure of its ticker the contract belongs to (`QNT#1`, `QNT#2`; `FAKE13#u1` for a contract without price), the exposure's class and why (`TRADFI_CONTRACT_EVIDENCE`, `TICKER_KNOWN_CRYPTO`, `TICKER_TRADFI_LIST`, `CRYPTO_VENUE_METADATA`, `DEFAULT_CRYPTO`, `UNLABELED_UNDER_TRADFI_COLLISION`, `CONFLICTING_CONTRACT_EVIDENCE`, ...) |
+| `admitted` | whether the contract reached the crypto universe |
+| `inherited_from` | for a contract without evidence of its own in a tradfi exposure: the contract whose evidence it inherited |
 
-## What the legacy universe did (`legacy`)
+## What the universe did (`legacy`)
 
 | State | Meaning |
 |---|---|
 | `SELECTED` | kept by the adapter and chosen as the asset's market on this venue |
 | `DUPLICATE_NOT_SELECTED` | kept by the adapter, but another market of the same asset on this venue had more volume |
 | `PRICE_CONFLICT_DROPPED` | kept, then left out because its price is more than 20% from the asset's main market |
+| `EXPOSURE_NOT_ADMITTED` | Phase 2: kept by the adapter, but part of a separate exposure of its ticker (another price level) that is tradfi or ambiguous; not merged into the admitted crypto coin |
 | `HL_BUILDER_MARKET`, `DELISTED`, `NOT_TRADING`, `NOT_PERPETUAL`, `EMPTY_SYMBOL` | skipped by the adapter |
 | `ADAPTER_FAILED` | the venue's adapter raised an error this scan, so legacy used none of its markets |
 | `AUDIT_ADAPTER_MISMATCH` | the registry's reading disagrees with the adapter (an audit defect; tested to be zero) |
@@ -50,11 +57,17 @@ duplicate and a selected row are never confused). Every scan checks the two agre
 
 `registry.assets` lists every canonical asset with its contracts and venues and:
 
-* `legacy`: `CRYPTO` or `TRADFI` (in the legacy universe), `NO_ACTIVE_PERP_CONTRACT` (every contract skipped by the
-  adapters), `PRICE_CONFLICT_ALL_VENUES`, or `VENUE_ADAPTER_FAILED` (listed only where the adapter failed);
-* `collision`: the legacy universe marks the ticker tradfi although a selected market of it is crypto - the
-  BB / PURR / QNT class. Legacy keeps excluding these (Phase 1 does not change it); the registry and every engine's
-  ledger now say so with `TRADFI_TICKER_COLLISION`, and the record names the rows that carried the tradfi flag;
+* `legacy`: `CRYPTO`, `TRADFI` or `AMBIGUOUS` (the coin exists; only `CRYPTO` reaches the engines),
+  `NO_ACTIVE_PERP_CONTRACT` (every contract skipped by the adapters), `PRICE_CONFLICT_ALL_VENUES`, or
+  `VENUE_ADAPTER_FAILED` (listed only where the adapter failed);
+* `identity` (Phase 2): the decision (`CRYPTO`, `CRYPTO_EXPOSURE_SELECTED`, `TRADFI_CLASSIFIED`,
+  `TRADFI_EXPOSURE_EXCLUDED`, `AMBIGUOUS_EXPOSURE`), the ticker list that applied (`TICKER_KNOWN_CRYPTO`,
+  `TICKER_TRADFI_LIST`, `TICKER_FX_PAIR`), `phase1` (what the Phase 1 ticker-level OR decided on the same market
+  lists: the before/after), and every exposure: id, class, reason, authority, anchor market and price, price range,
+  members, admitted;
+* `collision`: the ticker's own markets disagree - some carry tradfi or ambiguous evidence, others none - and no
+  ticker list settles it. Phase 1 excluded every such ticker (`TRADFI_TICKER_COLLISION`, retired); since Phase 2
+  each exposure is decided on its own (see [phase2-universe-identity.md](phase2-universe-identity.md));
 * `aliases`: the different raw symbols that map to the asset (multipliers, aliases), when there is more than one.
 
 ## Universe built three times

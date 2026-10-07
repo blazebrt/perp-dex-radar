@@ -9,7 +9,8 @@ Every snapshot starts with a manifest:
 | `scan_id` | `gh-<run id>-<attempt>` in GitHub Actions (shared by every engine of one scan), `local-<time>` offline |
 | `ts` | the scanner's scan time |
 | `repo`, `ref`, `git_sha` | where the code came from |
-| `schema`, `audit_version` | `v8.audit/1`, `v8-phase1.0` |
+| `schema`, `audit_version` | `v8.audit/2`, `v8-phase2.0` (Phase 1 wrote `v8.audit/1`, `v8-phase1.0`) |
+| `identity_version`, `liquidity_version` | `v8.identity/1`, `v8.liquidity/1`: the universe identity and liquidity semantics that built this scan's universe (Phase 2) |
 | `engine_versions` | each legacy engine's own version string |
 | `config_hashes` | per engine, sha256 of its decision-relevant configuration (below) |
 | `parts` | whether each engine's audit part was written (`ok`, `failed`, `missing`) |
@@ -24,14 +25,16 @@ Every snapshot starts with a manifest:
 The hash covers the engine's `CFG` (minus `schedule_minute` and `schedule_every_min`, which the workflow sets through
 the environment), its strategy definitions or score weights, the ticker lists (tradfi, known crypto, aliases,
 symbol overrides, FX codes, the tradfi name pattern), the trade DEXs and liquidity minimum, and the sha256 of the
-research file that decides what is "tested" (`quant_research.json`, `picks_research.json`, `smart_research.json`)
+research file that decides what is "tested" (`quant_research.json`, `picks_research.json`, `smart_research.json`),
+the identity version with its tolerance and venue-label sets and the liquidity version (Phase 2),
 and of `strategies.json` when present. The structure is serialised canonically: sorted keys, sets sorted,
 functions by qualified name, no memory addresses. No secret is part of any engine configuration: API keys and
 webhook URLs stay in the environment and are never read by the audit.
 
 ## Snapshot
 
-`data/v8/audit_latest.json` (and `.json.gz`), schema `v8.audit/1`:
+`data/v8/audit_latest.json` (and `.json.gz`), schema `v8.audit/2` (Phase 2 added the identity columns of every
+contract, `registry.assets[t].identity` and the identity counts; see [contract-identity.md](contract-identity.md)):
 
 | Section | Contents |
 |---|---|
