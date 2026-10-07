@@ -72,6 +72,7 @@ class Panel:
                     p = self.c[i - 1, j]
                     self.o[i, j] = self.h[i, j] = self.l[i, j] = self.c[i, j] = p
                     self.v[i, j] = 0.0
+        # cost model input (unchanged in v8 Phase 2): a coin without a known volume pays the highest slippage tier
         self.trade_vol = np.array([(info.get(c) or {}).get("trade_vol") or 0.0 for c in self.coins])
         self.fund = self._funding(md)
         self.T, self.N = T, N
