@@ -122,8 +122,8 @@ class Mirrors(unittest.TestCase):
 
 class RegistryAgainstAdapters(unittest.TestCase):
     """On every DEX payload of the parity fixture, the registry's reading of each raw market agrees with the
-    legacy adapter: what the adapter keeps is SELECTED, a duplicate or a price conflict; what it skips has the
-    adapter's own reason; nothing is lost and nothing is collapsed."""
+    legacy adapter: what the adapter keeps is SELECTED, a duplicate, a price conflict or (Phase 2) part of a separate
+    exposure that was not admitted; what it skips has the adapter's own reason; nothing is lost or collapsed."""
 
     def test_registry_reconciles_with_build_universe(self):
         import legacy_parity as LP
@@ -143,7 +143,7 @@ class RegistryAgainstAdapters(unittest.TestCase):
             rows = TRACE.rows[dex]
             kept = sorted(f"{dex}:{r['sym']}" for r in rows)
             got = sorted(c["id"] for c in cs if c["venue"] == dex and c["legacy"] in
-                         ("SELECTED", "DUPLICATE_NOT_SELECTED", "PRICE_CONFLICT_DROPPED"))
+                         ("SELECTED", "DUPLICATE_NOT_SELECTED", "PRICE_CONFLICT_DROPPED", "EXPOSURE_NOT_ADMITTED"))
             self.assertEqual(kept, got, dex)
         for t, c in coins.items():
             for dex, v in c["venues"].items():
@@ -181,7 +181,12 @@ class RegistryAgainstAdapters(unittest.TestCase):
         rows = [sc._venue("ABC", "variational", "ABC", 1.0, price=1.0, vol=5e6, name="ABC"),
                 sc._venue("ABC", "variational", "ABC", 1.0, price=1.0, vol=1e6, name="ABC")]
         rec.universe_rows({"variational": rows})
-        coins = {"ABC": {"t": "ABC", "venues": {"variational": rows[0]}, "tradfi": False}}
+        from v8 import identity as ID
+        res = ID.resolve({"variational": rows}, sc.DEXES, ID.Lists(sc.TRADFI, sc.KNOWN_CRYPTO, sc.is_fx,
+                                                                   sc.TRADFI_NAME), sc.in_my_dexes)
+        rec.identity(res)
+        coins = res.coins
+        self.assertIs(coins["ABC"]["venues"]["variational"], rows[0])
         reg = R.build(rec, coins, {"variational": {"ok": True}}, True, 0)
         ids = [c["id"] for c in reg["contracts"]]
         self.assertEqual(ids, ["variational:ABC", "variational:ABC#2"])
@@ -198,15 +203,13 @@ class Health(unittest.TestCase):
         self.assertEqual(H.basis(3.5), H.OBSERVED)
 
     def test_liquidity_tells_missing_from_zero(self):
-        mine = sc.in_my_dexes
-        self.assertEqual(H.liquidity({"venues": {"hyperliquid": {"vol": 2e6}}}, mine), (H.OBSERVED, 2e6))
-        self.assertEqual(H.liquidity({"venues": {"hyperliquid": {"vol": 0.0}}}, mine), (H.OBSERVED_ZERO, 0.0))
-        self.assertEqual(H.liquidity({"venues": {"lighter": {"vol": None}}}, mine), (H.MISSING_LEGACY_ZERO, None))
-        self.assertEqual(H.liquidity({"venues": {"dydx": {"vol": 9e6}}}, mine), (H.NOT_ON_TRADE_DEX, None))
-        self.assertEqual(H.liquidity({"venues": {}}, mine), (H.MISSING_LEGACY_ZERO, None))
-        # legacy sees all of these except the first as 0
-        for c in ({"venues": {"hyperliquid": {"vol": 0.0}}, "trade_vol": None},):
-            self.assertEqual(sc.liq_of(c) or 0, 0)
+        """Phase 2 moved the liquidity states to v8.liquidity (tests/test_v8_identity.py covers them)."""
+        from v8 import liquidity as LQ
+        mine = sc.CFG["trade_dexes"]
+        self.assertEqual(LQ.evaluate({"venues": {"hyperliquid": {"vol": 0.0}}, "trade_vol": 0.0}, mine)["basis"],
+                         H.OBSERVED_ZERO)
+        self.assertEqual(LQ.evaluate({"venues": {"lighter": {"vol": None}}}, mine)["state"], LQ.MISSING)
+        self.assertEqual(LQ.evaluate({"venues": {"dydx": {"vol": 9e6}}}, mine)["state"], LQ.NOT_ON_TRADE_DEX)
 
     def test_funding_default_is_identifiable(self):
         self.assertEqual(H.funding({"venues": {"lighter": {}}}), (H.ASSUMED_DEFAULT, None))

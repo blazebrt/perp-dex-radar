@@ -1,15 +1,17 @@
-"""v8 Phase 1, end to end: the whole pipeline (scanner, smart money twice, quant, picks, dashboard) runs offline on
-the parity fixture (tools/v8/legacy_parity.py), each engine in its own process like the Scan workflow, then the
-audit snapshot is assembled. Checks:
+"""v8 Phases 1 and 2, end to end: the whole pipeline (scanner, smart money twice, quant, picks, dashboard) runs
+offline on the parity fixture (tools/v8/legacy_parity.py), each engine in its own process like the Scan workflow,
+then the audit snapshot is assembled. Checks:
 
-* behaviour parity: every legacy output file is byte-identical (after dropping wall-clock durations and sorting
-  error notes) to the golden digests produced by the untouched main branch (tests/fixtures/v8/
-  legacy_parity_golden.json). A later phase that changes legacy behaviour ON PURPOSE regenerates that file from
-  its own base and says so in its PR;
+* no drift: every legacy output file is byte-identical (after dropping wall-clock durations and sorting error
+  notes) to this branch's golden digests (tests/fixtures/v8/legacy_parity_golden_phase2.json). That file differs
+  from the base commit's digests (legacy_parity_golden.json) only as tools/v8/delta_parity.py proves against the
+  expected-delta manifest (phase2_expected_deltas.json); CI runs that proof;
 * the contract registry keeps every market (also the ones the legacy adapters skip) under venue:raw_symbol;
-* the tradfi collision class (BB, PURR, QNT) is visible in the registry and the ledger while the legacy decision
-  stays the same;
-* missing volume and observed zero volume are told apart, a price conflict is CONFLICTED;
+* universe identity (Phase 2): the crypto coins of the BB, PURR, QNT collision class are admitted with their
+  crypto exposure only, the unrelated tradfi markets stay out and stay in the registry, the stocks a venue did not
+  label stay out, ambiguous identities are not admitted, and every decision is in the registry and the ledger;
+* missing volume and observed zero volume are told apart (DEX_VOLUME_MISSING vs DEX_VOLUME_BELOW_LEGACY_MIN), the
+  published table shows a missing volume as unavailable, a price conflict is CONFLICTED;
 * small, thin and new coins each have a named reason in every engine;
 * coverage: no asset disappears silently (unaccounted is zero everywhere);
 * the snapshot is deterministic and compact.
@@ -34,7 +36,9 @@ import legacy_parity as LP  # noqa: E402
 from v8 import snapshot as SN  # noqa: E402
 from v8 import taxonomy as T  # noqa: E402
 
-GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden.json")
+GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase2.json")
+BASE_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden.json")
+MANIFEST = os.path.join(HERE, "fixtures", "v8", "phase2_expected_deltas.json")
 
 
 class PipelineAudit(unittest.TestCase):
@@ -56,13 +60,29 @@ class PipelineAudit(unittest.TestCase):
         shutil.rmtree(cls.tmp, ignore_errors=True)
 
     # ---- parity
-    def test_legacy_outputs_identical_to_main(self):
+    def test_legacy_outputs_identical_to_this_branch_golden(self):
         with open(GOLDEN) as fh:
             golden = json.load(fh)
         diffs = LP.compare(golden, self.summary)
         self.assertEqual(diffs, [], "legacy outputs changed:\n" + "\n".join(diffs))
         self.assertEqual(self.summary["combined"], golden["combined"])
         self.assertGreaterEqual(len(golden["files"]), 20)
+
+    def test_base_golden_and_manifest_are_the_phase_base(self):
+        with open(BASE_GOLDEN) as fh:
+            base = json.load(fh)
+        with open(MANIFEST) as fh:
+            man = json.load(fh)
+        self.assertEqual(man["base"]["sha"], "15a37944bc73ae531ea33998b899a562e51361ad")
+        self.assertEqual(man["head_golden"], "tests/fixtures/v8/legacy_parity_golden_phase2.json")
+        self.assertNotEqual(base["combined"], self.summary["combined"])   # Phase 2 changes outputs on purpose
+        # narrow: every allowed delta names its ticker or file path and an approved rule
+        for e in man["universe"]:
+            self.assertIn(e["rule"], man["rules"])
+            self.assertTrue(e["ticker"] and e["field"])
+        for e in man["code"]:
+            self.assertIn(e["rule"], man["rules"])
+            self.assertGreaterEqual(len(e["path"]), 2)
 
     def test_snapshot_step_leaves_legacy_files_alone(self):
         after = LP.summary(self.out)
@@ -118,39 +138,95 @@ class PipelineAudit(unittest.TestCase):
         btc = next(c for c in SN.contract_records(snap) if c["id"] == "hyperliquid:BTC")
         self.assertEqual(btc["first_seen"], ts - 86400)
 
-    # ---- tradfi collision class: visible, recorded, legacy decision unchanged
-    def test_tradfi_collisions_visible_and_unchanged(self):
+    # ---- universe identity (Phase 2)
+    def test_crypto_exposure_admitted_tradfi_exposure_kept_out(self):
         with open(os.path.join(self.out, "data", "latest.json")) as fh:
             legacy = json.load(fh)
-        for t in ("BB", "PURR", "QNT"):
-            self.assertIn(t, legacy["coverage"]["tradfi"], "legacy still excludes it")
-            self.assertTrue(self.snap["registry"]["assets"][t]["collision"], t)
+        assets = self.snap["registry"]["assets"]
+        for t, crypto, other in (("QNT", ["aster:QNTUSDT", "lighter:QNT", "variational:QNT"], ["extended:QNT-USD"]),
+                                 ("PURR", ["hyperliquid:PURR"], ["extended:PURR-USD"]),
+                                 ("BB", ["aster:BBUSDT", "hyperliquid:BB", "variational:BBIT"],
+                                  ["extended:BB-USD", "lighter:BB"])):
+            self.assertNotIn(t, legacy["coverage"]["tradfi"], t)
+            a = assets[t]
+            self.assertEqual((a["legacy"], a["identity"]["decision"], a["collision"]),
+                             ("CRYPTO", "CRYPTO_EXPOSURE_SELECTED", True), t)
+            for cid in crypto:
+                c = self.contracts[cid]
+                self.assertEqual((c["legacy"], c["exp_class"], c["admitted"]), ("SELECTED", "CRYPTO", True), cid)
+            for cid in other:
+                c = self.contracts[cid]
+                self.assertEqual((c["legacy"], c["exp_class"], c["admitted"]),
+                                 ("EXPOSURE_NOT_ADMITTED", "TRADFI", False), cid)
+                self.assertNotEqual(c["exposure"], self.contracts[crypto[0]]["exposure"])
             for e in ("radar", "quant", "swing", "day"):
                 r = self.recs[e][t]
-                self.assertEqual((r["d"], r["c"]), (T.MODEL_INELIGIBLE, "TRADFI_TICKER_COLLISION"), (e, t))
-        self.assertEqual(self.contracts["hyperliquid:BB"]["tradfi"], False)
-        self.assertEqual(self.contracts["aster:BBUSDT"]["tradfi_reason"], "VENUE_UNDERLYING:STOCK")
-        self.assertEqual(self.contracts["extended:PURR-USD"]["tradfi_reason"], "VENUE_CATEGORY:Equity")
-        self.assertEqual(self.contracts["extended:QNT_24_5-USD"]["tradfi_reason"], "VENUE_24_5_MARKET")
-        self.assertIn("aster:BBUSDT", self.recs["radar"]["BB"]["o"]["tradfi_rows"])
-        self.assertTrue(self.recs["radar"]["QNT"]["o"]["known_crypto"])
+                self.assertNotIn(r["c"], ("TRADFI_CLASSIFIED", "TRADFI_TICKER_COLLISION", "TRADFI_EXPOSURE_EXCLUDED",
+                                          "AMBIGUOUS_EXPOSURE"), (e, t))
+                self.assertIn("CRYPTO_EXPOSURE_SELECTED", r.get("x") or [], (e, t))
+        # the decision trace: raw contracts, classifications, reasons, prices per coin, exposures
+        q = self.contracts["extended:QNT-USD"]
+        self.assertEqual((q["cls"], q["cls_reason"], q["cls_auth"]), ("TRADFI", "VENUE_CATEGORY:RWA", "VENUE_METADATA"))
+        self.assertEqual(q["meta"], {"category": "RWA"})
+        self.assertAlmostEqual(q["npx"], 46.030332)
+        self.assertEqual(self.contracts["aster:QNTUSDT"]["cls"], "UNLABELED")
+        self.assertEqual(self.contracts["aster:QNTUSDT"]["meta"], {"underlying": "COIN"})
+        self.assertEqual(self.contracts["dydx:QNT-USD"]["legacy"], "NOT_TRADING")
+        x = assets["QNT"]["identity"]["exposures"]
+        self.assertEqual([(e["class"], e["admitted"]) for e in x], [("CRYPTO", True), ("TRADFI", False)])
+        self.assertEqual(x[0]["reason"], "TICKER_KNOWN_CRYPTO")
         self.assertEqual(self.contracts["aster:FAKE01USDT"]["type"], "perp")
         self.assertEqual(self.snap["registry"]["contracts"]["fields"][0], "id")
-        for t in ("AAPL", "ACME", "EURUSD"):
-            self.assertEqual(self.recs["radar"][t]["c"], "TRADFI_CLASSIFIED")
+
+    def test_stocks_stay_out(self):
+        """The stock leakage gate, end to end: a stock one venue did not label never reaches an engine."""
+        with open(os.path.join(self.out, "data", "latest.json")) as fh:
+            legacy = json.load(fh)
+        want = {"ASTS": "TRADFI_EXPOSURE_EXCLUDED", "ONDS": "TRADFI_EXPOSURE_EXCLUDED",
+                "KORU": "TRADFI_EXPOSURE_EXCLUDED", "KIOXIA": "TRADFI_EXPOSURE_EXCLUDED",
+                "XIAOMI": "AMBIGUOUS_EXPOSURE", "SECT": "AMBIGUOUS_EXPOSURE",
+                "AAPL": "TRADFI_CLASSIFIED", "ACME": "TRADFI_CLASSIFIED", "EURUSD": "TRADFI_CLASSIFIED"}
+        for t, code in want.items():
+            self.assertIn(t, legacy["coverage"]["tradfi"], t)
+            for e in ("radar", "quant", "swing", "day"):
+                self.assertEqual(self.recs[e][t]["c"], code, (e, t))
+        self.assertEqual(self.recs["radar"]["XIAOMI"]["h"], T.CONFLICTED)
+        self.assertEqual(self.contracts["lighter:BB"]["inherited_from"], "extended:BB-USD")
+        self.assertEqual(self.contracts["aster:ASTSUSDT"]["exp_class"], "TRADFI")
+        self.assertEqual(self.contracts["variational:ONDS"]["cls_reason"], "NAME_PATTERN:holdings")
+        self.assertEqual(self.contracts["lighter:XIAOMI"]["exp_reason"], "UNLABELED_UNDER_TRADFI_COLLISION")
+        self.assertEqual(self.contracts["extended:SECT-USD"]["cls_reason"], "VENUE_CATEGORY_UNRECOGNIZED:L1")
         self.assertEqual(self.contracts["variational:ACME"]["tradfi_reason"], "NAME_PATTERN:holdings")
+        # no excluded exposure's market is counted as a crypto market of its DEX
+        dexes = legacy["coverage"]["dexes"]
+        self.assertEqual((dexes["aster"]["markets"], dexes["aster"]["crypto"]), (8, 4))
+        self.assertEqual((dexes["lighter"]["markets"], dexes["lighter"]["crypto"]), (8, 4))
+
+    def test_unpriced_contract_does_not_poison(self):
+        c = self.contracts["extended:FAKE13-USD"]
+        self.assertEqual((c["price"], c["legacy"], c["exp_class"]), (None, "EXPOSURE_NOT_ADMITTED", "TRADFI"))
+        self.assertEqual(self.snap["registry"]["assets"]["FAKE13"]["legacy"], "CRYPTO")
 
     # ---- data health
     def test_missing_and_zero_volume_are_different(self):
         self.assertEqual(self.contracts["lighter:LONLY"]["basis"].get("vol"), "MISSING")
         self.assertEqual(self.contracts["hyperliquid:ZEROV"]["basis"].get("vol"), "OBSERVED_ZERO")
-        lonly, zerov = self.recs["radar"]["LONLY"], self.recs["radar"]["ZEROV"]
-        self.assertEqual((lonly["d"], lonly["c"], lonly["h"]), (T.INSUFFICIENT_DATA, "DEX_VOLUME_MISSING_LEGACY_ZERO",
-                                                                T.MISSING))
-        self.assertEqual(lonly["o"]["legacy_used"], 0.0)
-        self.assertEqual((zerov["d"], zerov["c"]), (T.NOT_EXECUTABLE, "DEX_VOLUME_BELOW_LEGACY_MIN"))
-        self.assertEqual(zerov["o"]["basis"], "OBSERVED_ZERO")
-        self.assertIn("FUNDING_ASSUMED_DEFAULT", lonly.get("x") or [])
+        for e in ("radar", "quant", "swing", "day"):
+            lonly, zerov = self.recs[e]["LONLY"], self.recs[e]["ZEROV"]
+            self.assertEqual((lonly["d"], lonly["c"], lonly["h"]), (T.INSUFFICIENT_DATA, "DEX_VOLUME_MISSING", T.MISSING))
+            self.assertIsNone(lonly["o"]["trade_vol"])
+            self.assertEqual((zerov["d"], zerov["c"]), (T.NOT_EXECUTABLE, "DEX_VOLUME_BELOW_LEGACY_MIN"))
+            self.assertEqual((zerov["o"]["basis"], zerov["o"]["trade_vol"]), ("OBSERVED_ZERO", 0.0))
+        self.assertIn("FUNDING_ASSUMED_DEFAULT", self.recs["radar"]["LONLY"].get("x") or [])
+        for e in ("quant", "swing", "day"):       # listed only on Extended, not one of your trade DEXs (the radar
+                                                  # charts first: EXTONLY has no candles there)
+            self.assertEqual((self.recs[e]["EXTONLY"]["d"], self.recs[e]["EXTONLY"]["c"]),
+                             (T.NOT_EXECUTABLE, "NOT_ON_TRADE_DEX"), e)
+        # published: the radar table shows a missing volume as unavailable (null -> "-"), an observed 0 as 0
+        with open(os.path.join(self.out, "data", "latest.json")) as fh:
+            table = {r[1]: r for r in json.load(fh)["table"]}
+        self.assertIsNone(table["LONLY"][11])
+        self.assertEqual(table["ZEROV"][11], 0)
 
     def test_price_conflict_is_conflicted(self):
         c = self.contracts["dydx:FAKE07-USD"]
@@ -201,7 +277,11 @@ class PipelineAudit(unittest.TestCase):
                 self.assertIn(r["h"], T.HEALTH)
                 for x in r.get("x") or []:
                     self.assertIn(x, T.STEPS)
+                self.assertNotIn(r["c"], T.RETIRED, (e, a))
         self.assertNotIn("FILTERED", T.REASONS)
+        self.assertEqual(self.snap["schema"], "v8.audit/2")
+        self.assertEqual(self.snap["manifest"]["identity_version"], "v8.identity/1")
+        self.assertEqual(self.snap["manifest"]["liquidity_version"], "v8.liquidity/1")
 
     def test_published_items_are_surfaced(self):
         with open(os.path.join(self.out, "data", "smart.json")) as fh:
