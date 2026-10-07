@@ -15,10 +15,17 @@ listed separately, never digested as legacy files.
     python tools/v8/legacy_parity.py --out /tmp/parity              # run and print the digest summary
     python tools/v8/legacy_parity.py --out /tmp/parity --check tests/fixtures/v8/legacy_parity_golden.json
     python tools/v8/legacy_parity.py --out /tmp/parity --write-golden tests/fixtures/v8/legacy_parity_golden.json
+
+Differential qualification (v8 Phase 2, see tools/v8/delta_parity.py) adds two modes that also run on any commit:
+
+    python tools/v8/legacy_parity.py --dump-universe /tmp/u.json      # build_universe() on the fixture, as JSON
+    python tools/v8/legacy_parity.py --out /tmp/cf --universe-from /tmp/u.json
+        # the whole pipeline, with every build_universe() call answered by that universe (and its notes replayed)
 """
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import math
@@ -76,9 +83,12 @@ def _make_exchange():
             clone("LONLY", 4.0)                     # only on Lighter, which sends no volume for it
             clone("ZEROV", 5.0)                     # Hyperliquid reports exactly zero volume
             clone("SCALEX", 1.0)                    # the DEX price is 3x the exchange candles: other asset
-            clone("BB", 0.12)                       # crypto (BounceBit) on Hyperliquid, a stock on Aster
-            clone("PURR", 0.2)                      # crypto on Hyperliquid, an equity listing on Extended
-            clone("QNT", 90.0)                      # crypto on Variational, a 24/5 market on Extended
+            # ticker collisions shaped like the Phase 1 live scan: a crypto coin and an unrelated real-world asset
+            # (Extended category RWA) under one ticker, at very different prices
+            clone("BB", 0.12)                       # crypto on Hyperliquid, Aster, Variational (BBIT); a stock on
+                                                    # Lighter (unlabeled) and Extended (RWA) near $9.6
+            clone("PURR", 0.2)                      # crypto on Hyperliquid; an RWA (a company's shares) on Extended
+            clone("QNT", 90.0)                      # crypto on Variational, Aster, Lighter; an RWA on Extended
             self.extra = ["TINY", "NEW40", "NEW10", "THINREF", "LONLY", "ZEROV", "SCALEX", "BB", "PURR", "QNT"]
             self.vol24.update({"TINY": 3e5, "NEW40": 6e6, "NEW10": 6e6, "THINREF": 3e6, "ZEROV": 0.0,
                                "SCALEX": 4e6, "BB": 5e6, "PURR": 7e6, "QNT": 4e6, "NOCAND": 3e6, "LONLY": None})
@@ -123,6 +133,10 @@ def _make_exchange():
                        "funding_rate": 0.0, "open_interest": {}, "base_spread_bps": 3},
                       {"ticker": "ACME", "name": "Acme Holdings Inc", "mark_price": 12.0, "volume_24h": 2e6,
                        "funding_rate": 0.0, "open_interest": {}, "base_spread_bps": 3},
+                      {"ticker": "BBIT", "name": "BounceBit", "mark_price": self.px("BB") * 1.002,
+                       "volume_24h": 75.93, "funding_rate": 0.01, "open_interest": {}, "base_spread_bps": 30},
+                      {"ticker": "ONDS", "name": "Ondas Holdings Inc.", "mark_price": 7.477514,
+                       "volume_24h": 105184.77, "funding_rate": 0.0, "open_interest": {}, "base_spread_bps": 12},
                       {"ticker": "", "name": "blank", "mark_price": 1.0, "volume_24h": 1.0}]
                 return {"listings": L}
             if url == sc.ASTER_INFO:
@@ -132,7 +146,16 @@ def _make_exchange():
                     {"symbol": "BTCUSDT", "baseAsset": "BTC", "contractType": "PERPETUAL", "status": "TRADING",
                      "underlyingType": "COIN"},
                     {"symbol": "BBUSDT", "baseAsset": "BB", "contractType": "PERPETUAL", "status": "TRADING",
-                     "underlyingType": "STOCK"},
+                     "underlyingType": "COIN"},
+                    {"symbol": "QNTUSDT", "baseAsset": "QNT", "contractType": "PERPETUAL", "status": "TRADING",
+                     "underlyingType": "COIN"},
+                    {"symbol": "ASTSUSDT", "baseAsset": "ASTS", "contractType": "PERPETUAL", "status": "TRADING",
+                     "underlyingType": "COIN"},
+                    {"symbol": "KORUUSDT", "baseAsset": "KORU", "contractType": "PERPETUAL", "status": "TRADING",
+                     "underlyingType": "COIN"},
+                    {"symbol": "XIAOMIUSDT", "baseAsset": "XIAOMI", "contractType": "PERPETUAL",
+                     "status": "TRADING", "underlyingType": "COIN"},
+                    {"symbol": "ONDSUSDT", "baseAsset": "ONDS", "contractType": "PERPETUAL", "status": "TRADING"},
                     {"symbol": "FAKE02USDT_260925", "baseAsset": "FAKE02", "contractType": "CURRENT_QUARTER",
                      "status": "TRADING", "underlyingType": "COIN"},
                     {"symbol": "FAKE03USDT", "baseAsset": "FAKE03", "contractType": "PERPETUAL", "status": "SETTLING",
@@ -140,7 +163,12 @@ def _make_exchange():
             if url == sc.ASTER_TICKER:
                 return [{"symbol": "FAKE01USDT", "lastPrice": str(self.px("FAKE01")), "quoteVolume": "2500000"},
                         {"symbol": "BTCUSDT", "lastPrice": str(self.px("BTC")), "quoteVolume": "90000000"},
-                        {"symbol": "BBUSDT", "lastPrice": "4.1", "quoteVolume": "800000"}]
+                        {"symbol": "BBUSDT", "lastPrice": str(self.px("BB") * 0.997), "quoteVolume": "5889.81"},
+                        {"symbol": "QNTUSDT", "lastPrice": str(self.px("QNT") * 0.995), "quoteVolume": "2432646.9"},
+                        {"symbol": "ASTSUSDT", "lastPrice": "64.46", "quoteVolume": "9929.47"},
+                        {"symbol": "KORUUSDT", "lastPrice": "22.12", "quoteVolume": "108556.54"},
+                        {"symbol": "XIAOMIUSDT", "lastPrice": "3.114", "quoteVolume": "3570.65"},
+                        {"symbol": "ONDSUSDT", "lastPrice": "7.561", "quoteVolume": "425.19"}]
             if url == sc.ASTER_PREMIUM:
                 return [{"symbol": "FAKE01USDT", "markPrice": str(self.px("FAKE01")), "lastFundingRate": "0.0001"},
                         {"symbol": "BTCUSDT", "markPrice": str(self.px("BTC")), "lastFundingRate": "0.00008"}]
@@ -155,6 +183,18 @@ def _make_exchange():
                     {"symbol": "FAKE03", "market_type": "perp", "status": "active", "mark_price": self.px("FAKE03"),
                      "daily_quote_token_volume": 2.5e6},
                     {"symbol": "LONLY", "market_type": "perp", "status": "active", "mark_price": self.px("LONLY")},
+                    {"symbol": "QNT", "market_type": "perp", "status": "active", "mark_price": self.px("QNT") * 1.001,
+                     "daily_quote_token_volume": 336238.72},
+                    {"symbol": "BB", "market_type": "perp", "status": "active", "mark_price": 9.6408,
+                     "daily_quote_token_volume": 261799.05},
+                    {"symbol": "KORU", "market_type": "perp", "status": "active", "mark_price": 22.104,
+                     "daily_quote_token_volume": 0},
+                    {"symbol": "XIAOMI", "market_type": "perp", "status": "active", "mark_price": 3.0886,
+                     "daily_quote_token_volume": 841827.9},
+                    {"symbol": "KIOXIA", "market_type": "perp", "status": "active", "mark_price": 118.44,
+                     "daily_quote_token_volume": 0},
+                    {"symbol": "1000FAKE06", "market_type": "perp", "status": "active",
+                     "mark_price": self.px("FAKE06") * 1000, "daily_quote_token_volume": 400000},
                     {"symbol": "FAKE04", "market_type": "perp", "status": "inactive", "mark_price": self.px("FAKE04"),
                      "daily_quote_token_volume": 1e6},
                     {"symbol": "FAKE05", "market_type": "spot", "status": "active", "mark_price": self.px("FAKE05"),
@@ -165,6 +205,8 @@ def _make_exchange():
                                    "volume24H": "200000", "openInterest": "100", "nextFundingRate": "0.00001"},
                     "FAKE08-USD": {"status": "FINAL_SETTLEMENT", "oraclePrice": str(self.px("FAKE08")),
                                    "volume24H": "0", "openInterest": "0", "nextFundingRate": "0"},
+                    "QNT-USD": {"status": "FINAL_SETTLEMENT", "oraclePrice": "64.109", "volume24H": "0",
+                                "openInterest": "0", "nextFundingRate": "0"},
                     "FAKE09-USD": {"status": "ACTIVE", "oraclePrice": str(self.px("FAKE09")),
                                    "volume24H": "700000", "openInterest": "50", "nextFundingRate": "0.00002"}}}
             if url == sc.PARADEX_SUMMARY:
@@ -181,15 +223,39 @@ def _make_exchange():
                      "marketStats": {"markPrice": str(self.px("FAKE10")), "dailyVolume": "900000",
                                      "openInterest": "50000", "fundingRate": "0.00001"}},
                     {"name": "PURR-USD", "assetName": "PURR", "active": True, "status": "ACTIVE", "type": "PERPETUAL",
-                     "category": "Equity", "description": "Purr Equity",
-                     "marketStats": {"markPrice": str(self.px("PURR")), "dailyVolume": "100000"}},
-                    {"name": "QNT_24_5-USD", "assetName": "QNT", "active": True, "status": "ACTIVE",
-                     "type": "PERPETUAL", "category": "Crypto", "description": "Quant 24/5",
-                     "marketStats": {"markPrice": str(self.px("QNT")), "dailyVolume": "50000"}},
+                     "category": "RWA", "description": "Hyperliquid Strategies Inc.",
+                     "marketStats": {"markPrice": "12.772243", "dailyVolume": "3031.1206"}},
+                    {"name": "QNT-USD", "assetName": "QNT", "active": True, "status": "ACTIVE", "type": "PERPETUAL",
+                     "category": "RWA", "description": "QNT real-world asset",
+                     "marketStats": {"markPrice": "46.030332", "dailyVolume": "386135.13"}},
+                    {"name": "BB-USD", "assetName": "BB", "active": True, "status": "ACTIVE", "type": "PERPETUAL",
+                     "category": "RWA", "description": "BB real-world asset",
+                     "marketStats": {"markPrice": "9.6065788", "dailyVolume": "40.051"}},
+                    {"name": "ASTS-USD", "assetName": "ASTS", "active": True, "status": "ACTIVE", "type": "PERPETUAL",
+                     "category": "RWA", "description": "ASTS real-world asset",
+                     "marketStats": {"markPrice": "64.655214", "dailyVolume": "321833.84"}},
+                    {"name": "KORU-USD", "assetName": "KORU", "active": True, "status": "ACTIVE", "type": "PERPETUAL",
+                     "category": "RWA", "description": "KORU real-world asset",
+                     "marketStats": {"markPrice": "22.106764", "dailyVolume": "279020.93"}},
+                    {"name": "XIAOMI-USD", "assetName": "XIAOMI", "active": True, "status": "ACTIVE",
+                     "type": "PERPETUAL", "category": "RWA", "description": "XIAOMI real-world asset",
+                     "marketStats": {"markPrice": "24.187487", "dailyVolume": "0"}},
+                    {"name": "KIOXIA-USD", "assetName": "KIOXIA", "active": True, "status": "ACTIVE",
+                     "type": "PERPETUAL", "category": "RWA", "description": "KIOXIA real-world asset",
+                     "marketStats": {"markPrice": "119.02363", "dailyVolume": "0"}},
+                    {"name": "FAKE13-USD", "assetName": "FAKE13", "active": True, "status": "ACTIVE",
+                     "type": "PERPETUAL", "category": "RWA", "description": "FAKE13 real-world asset",
+                     "marketStats": {"dailyVolume": "1000"}},
+                    {"name": "EXTONLY-USD", "assetName": "EXTONLY", "active": True, "status": "ACTIVE",
+                     "type": "PERPETUAL", "category": "Crypto", "description": "Extended-only coin",
+                     "marketStats": {"markPrice": "3.0", "dailyVolume": "2000000"}},
+                    {"name": "SECT-USD", "assetName": "SECT", "active": True, "status": "ACTIVE", "type": "PERPETUAL",
+                     "category": "L1", "description": "Sector coin",
+                     "marketStats": {"markPrice": "2.0", "dailyVolume": "500000"}},
                     {"name": "FAKE11-USD", "assetName": "FAKE11", "active": False, "status": "ACTIVE",
                      "type": "PERPETUAL", "category": "Crypto", "marketStats": {}},
                     {"name": "EURUSD-USD", "assetName": "EURUSD", "active": True, "status": "ACTIVE",
-                     "type": "PERPETUAL", "category": "Forex", "description": "Euro",
+                     "type": "PERPETUAL", "category": "RWA", "description": "Euro",
                      "marketStats": {"markPrice": "1.08", "dailyVolume": "3000000"}}]}
             return None
 
@@ -290,6 +356,22 @@ def run_stage(stage, out, now):
         fx.smart_round = 2
     sc.FETCH = fx.fetch
     sc.CFG["workers"] = 1          # one worker: the order threads finish in cannot change sums or notes
+    inject = os.environ.get("V8_PARITY_UNIVERSE")
+    if inject:
+        with open(inject) as fh:
+            U = json.load(fh)
+
+        def injected_universe():
+            for m in U["notes"]:
+                sc.note_error(m)
+            return copy.deepcopy(U["coins"]), copy.deepcopy(U["status"]), U["ok"]
+        sc.build_universe = injected_universe
+    if stage == "universe":
+        n0 = len(sc.ERRORS)
+        coins, status, ok = sc.build_universe()
+        with open(out, "w") as fh:
+            json.dump({"coins": coins, "status": status, "ok": ok, "notes": sc.ERRORS[n0:]}, fh)
+        return
     if stage == "scanner":
         sc.run(out, replay_days=2)
     elif stage in ("smart1", "smart2"):
@@ -314,22 +396,38 @@ def run_stage(stage, out, now):
         raise SystemExit(f"unknown stage {stage}")
 
 
-def clean_env():
+def clean_env(universe=None):
     env = {k: v for k, v in os.environ.items() if k in ("PATH", "HOME", "LANG", "LC_ALL", "SYSTEMROOT", "TMPDIR",
                                                         "TEMP", "TMP", "PYTHONPATH", "PYTHONIOENCODING",
                                                         "V8_PARITY_SEED")}
     env.update(PYTHONHASHSEED="0", TZ="UTC", PYTHONDONTWRITEBYTECODE="1", V8_PARITY="1")
+    if universe:
+        env["V8_PARITY_UNIVERSE"] = os.path.abspath(universe)
     return env
 
 
-def run_pipeline(out, log=None):
+def dump_universe(path):
+    """build_universe() of this checkout on the fixture, at the frozen scan time, written as JSON (coins, DEX
+    status, ok flag, and the notes it emitted, in order)."""
+    r = subprocess.run([sys.executable, os.path.abspath(__file__), "--stage", "universe", "--out",
+                        os.path.abspath(path), "--now", str(T_NOW)], cwd=ROOT, env=clean_env(), capture_output=True,
+                       text=True, timeout=300)
+    if r.returncode != 0:
+        raise SystemExit(f"universe dump failed:\n{r.stdout[-3000:]}\n{r.stderr[-3000:]}")
+    with open(path) as fh:
+        return json.load(fh)
+
+
+def run_pipeline(out, log=None, universe=None):
+    """Every stage in its own process. universe: a dump_universe() file that answers every build_universe() call
+    (the counterfactual run of tools/v8/delta_parity.py)."""
     if os.path.exists(out):
         shutil.rmtree(out)
     os.makedirs(out)
     for stage in STAGES:
         now = SMART_T1 if stage == "smart1" else T_NOW
         r = subprocess.run([sys.executable, os.path.abspath(__file__), "--stage", stage, "--out", out,
-                            "--now", str(now)], cwd=ROOT, env=clean_env(), capture_output=True, text=True,
+                            "--now", str(now)], cwd=ROOT, env=clean_env(universe), capture_output=True, text=True,
                            timeout=900)
         if log is not None:
             log.write(f"==== {stage} (exit {r.returncode})\n{r.stdout}\n{r.stderr}\n")
@@ -434,19 +532,27 @@ def compare(golden, got):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--out", required=True)
+    ap.add_argument("--out", default=None)
     ap.add_argument("--stage", default=None, help=argparse.SUPPRESS)
     ap.add_argument("--now", type=int, default=T_NOW, help=argparse.SUPPRESS)
     ap.add_argument("--check", default=None, help="golden summary to compare with")
     ap.add_argument("--write-golden", default=None, help="write this run's summary as the golden file")
     ap.add_argument("--log", default=None, help="write every stage's output here")
+    ap.add_argument("--dump-universe", default=None, help="write build_universe() on the fixture to this file")
+    ap.add_argument("--universe-from", default=None, help="answer build_universe() with this dumped universe")
     a = ap.parse_args(argv)
     if a.stage:
         run_stage(a.stage, a.out, a.now)
         return 0
+    if a.dump_universe:
+        u = dump_universe(a.dump_universe)
+        print(json.dumps({"coins": len(u["coins"]), "ok": u["ok"], "notes": len(u["notes"])}))
+        return 0
+    if not a.out:
+        ap.error("--out is required")
     log = open(a.log, "w") if a.log else None
     try:
-        run_pipeline(a.out, log)
+        run_pipeline(a.out, log, universe=a.universe_from)
     finally:
         if log:
             log.close()
