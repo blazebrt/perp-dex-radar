@@ -233,9 +233,9 @@ def pick_coins(n, min_vol):
     for t, c in universe.items():
         if c.get("tradfi"):
             continue
-        if (c.get("trade_vol") or 0) >= min_vol:
+        if sc.liquid_enough(c, min_vol):        # a KNOWN volume on your trade DEXs (v8.liquidity)
             rows.append(c)
-    rows.sort(key=lambda c: -(c.get("trade_vol") or 0))
+    rows.sort(key=lambda c: -sc.liq_rank_value(c))
     if "BTC" in universe and all(c["t"] != "BTC" for c in rows[:n]):
         rows.insert(0, universe["BTC"])
     return rows[:n], status

@@ -3,16 +3,20 @@
 A contract's identity is venue + raw symbol (`hyperliquid:kPEPE`, `aster:BBUSDT`). Records are never collapsed by
 ticker: two venues listing the same ticker are two contracts, and so are two markets of one venue that map to the
 same canonical asset. The registry re-reads the payloads the legacy adapters already fetched (no extra request),
-including the markets the adapters skip, and then reconciles each record with what the legacy universe did with
-it (skipped, selected, duplicate not selected, dropped as a price conflict).
+including the markets the adapters skip, and then reconciles each record with what the universe did with it
+(skipped, selected, duplicate not selected, dropped as a price conflict, or - since Phase 2 - kept out as part of a
+separate exposure of its ticker), with the identity decision of v8.identity: the contract's own classification and
+reason, its price per 1 coin, its exposure, the exposure's class, and whether it was admitted to the crypto universe.
 
-Observational only: nothing here is read by the legacy engines. The registry's own reading of a raw market is
-checked against the adapter's output on every scan; a disagreement is recorded as AUDIT_ADAPTER_MISMATCH."""
+Observational only: nothing here is read by the engines. The registry's own reading of a raw market is checked
+against the adapter's output on every scan, and the identity's per-contract state against the coin records; a
+disagreement is recorded as AUDIT_ADAPTER_MISMATCH."""
 from __future__ import annotations
 
 import re
 
 from . import health as H
+from . import identity as ID
 
 MARKET_LIST = {   # venue -> funding settlement interval in hours where the venue documents it in the payload's terms
     "hyperliquid": 1, "dydx": 1, "variational": None, "aster": None, "edgex": None, "lighter": None,
@@ -215,7 +219,7 @@ def build(trace, coins, dex_status, dex_ok, scan_ts):
     "events": [...]}."""
     sc = _sc()
     contracts, venues, seen_ids = [], {}, {}
-    conflicts = {(kw.get("t"), kw.get("dex")): kw for code, kw in trace.events if code == "PRICE_CONFLICT_DROPPED"}
+    ident = getattr(trace, "ident", None)
     for dex in sc.DEXES:
         payload = trace.payloads.get(dex)
         rows = trace.rows.get(dex)
@@ -233,12 +237,6 @@ def build(trace, coins, dex_status, dex_ok, scan_ts):
         pool = {}
         for i, r in enumerate(rows or []):
             pool.setdefault(r.get("sym"), []).append(i)
-        # the row build_universe() picked per canonical asset on this venue (first row with the highest volume)
-        picked = {}
-        for i, r in enumerate(rows or []):
-            old = picked.get(r["t"])
-            if old is None or (r.get("vol") or 0) > ((rows[old].get("vol")) or 0):
-                picked[r["t"]] = i
         for rec in recs:
             vinfo["raw"] += 1
             asset, mult, why = canon_reason(rec["norm"])
@@ -248,7 +246,7 @@ def build(trace, coins, dex_status, dex_ok, scan_ts):
                 cid = f"{cid}#{seen_ids[cid]}"
             else:
                 seen_ids[cid] = 1
-            row_i = None
+            row_i, info = None, None
             if rec["skip"] is None:
                 lst = pool.get(rec["raw"])
                 row_i = lst.pop(0) if lst else None
@@ -264,15 +262,13 @@ def build(trace, coins, dex_status, dex_ok, scan_ts):
                 vinfo["kept"] += 1
                 row = rows[row_i]
                 c = coins.get(row["t"]) if isinstance(coins, dict) else None
-                if picked.get(row["t"]) != row_i:
-                    legacy = "DUPLICATE_NOT_SELECTED"
-                elif c is not None and (c.get("venues") or {}).get(dex) is row:
-                    legacy = "SELECTED"
-                elif (row["t"], dex) in conflicts:
-                    legacy = "PRICE_CONFLICT_DROPPED"
-                else:
-                    legacy = "AUDIT_ADAPTER_MISMATCH"
+                info = ident.rows.get((dex, row_i)) if ident is not None else None
+                in_coin = c is not None and (c.get("venues") or {}).get(dex) is row
+                if info is None or (info["state"] == ID.SELECTED) != in_coin:
+                    legacy = "AUDIT_ADAPTER_MISMATCH"       # the identity's state disagrees with the coin record
                     vinfo["mismatch"] += 1
+                else:
+                    legacy = info["state"]
                 if row["t"] != asset or abs((row.get("mult") or 1.0) - mult) > 1e-12:
                     legacy, vinfo["mismatch"] = "AUDIT_ADAPTER_MISMATCH", vinfo["mismatch"] + 1
                 elif rec["tradfi_override"] is None and bool(row.get("tradfi")) != tradfi_reason(asset, rec.get("name"))[0]:
@@ -292,13 +288,19 @@ def build(trace, coins, dex_status, dex_ok, scan_ts):
                 "oi": _r(rec["oi"]), "fund8h": _r(rec["fund8h"], 9), "fund_iv_h": MARKET_LIST.get(dex),
                 "src_ts": None, "rcv_ts": int(rec["rcv"]) if rec["rcv"] else None,
                 "health": H.contract_state(pb, vb, conflicted=legacy == "PRICE_CONFLICT_DROPPED"),
-                "basis": basis, "legacy": legacy, "first_seen": None})
+                "basis": basis, "legacy": legacy, "first_seen": None,
+                # v8 Phase 2 identity (None for contracts the adapters skip)
+                "cls": (info or {}).get("cls"), "cls_reason": (info or {}).get("why"),
+                "cls_auth": (info or {}).get("auth"), "npx": _r((info or {}).get("npx")),
+                "exposure": (info or {}).get("exp"), "exp_class": (info or {}).get("exp_cls"),
+                "exp_reason": (info or {}).get("exp_why"), "admitted": (info or {}).get("admitted"),
+                "inherited_from": (info or {}).get("inherited_from"), "meta": (info or {}).get("meta")})
         # adapter rows the registry could not match to any raw record
         left = sum(len(v) for v in pool.values())
         if left:
             vinfo["mismatch"] += left
             vinfo["unmatched_rows"] = left
-    assets = asset_summary(contracts, coins, dex_ok, conflicts)
+    assets = asset_summary(contracts, coins, dex_ok, ident)
     events = [[code, kw] for code, kw in trace.events]
     return {"contracts": contracts, "assets": assets, "venues": venues, "events": events,
             "fallback": not dex_ok, "scan_ts": scan_ts}
@@ -313,8 +315,9 @@ def _r(x, nd=8):
         return None
 
 
-def asset_summary(contracts, coins, dex_ok, conflicts):
-    """Per canonical asset: its contracts, how the legacy universe classified it, and collisions."""
+def asset_summary(contracts, coins, dex_ok, ident=None):
+    """Per canonical asset: its contracts, how the universe classified it (CRYPTO, TRADFI, AMBIGUOUS or why it has
+    no coin), the identity decision with every exposure, and whether its contracts collide (disagree)."""
     by = {}
     for c in contracts:
         a = by.setdefault(c["asset"], {"contracts": [], "venues": set(), "norms": set(), "kept_crypto": False,
@@ -324,7 +327,7 @@ def asset_summary(contracts, coins, dex_ok, conflicts):
         a["contracts"].append(c["id"])
         a["venues"].add(c["venue"])
         a["norms"].add(c["norm"])
-        if c["legacy"] in ("SELECTED", "DUPLICATE_NOT_SELECTED", "PRICE_CONFLICT_DROPPED"):
+        if c["legacy"] in ("SELECTED", "DUPLICATE_NOT_SELECTED", "PRICE_CONFLICT_DROPPED", "EXPOSURE_NOT_ADMITTED"):
             a["any_kept"] = True
         if c["legacy"] == "SELECTED":
             a["kept_tradfi" if c["tradfi"] else "kept_crypto"] = True
@@ -332,21 +335,30 @@ def asset_summary(contracts, coins, dex_ok, conflicts):
     coins = coins if isinstance(coins, dict) else {}
     for t, a in by.items():
         c = coins.get(t)
+        info = ident.asset(t) if ident is not None else None
         if c is not None:
-            state = "TRADFI" if c.get("tradfi") else "CRYPTO"
+            if not c.get("tradfi"):
+                state = "CRYPTO"
+            elif info is not None and info["decision"] == ID.D_AMBIGUOUS:
+                state = "AMBIGUOUS"
+            else:
+                state = "TRADFI"
         elif a["failed"] and not a["any_kept"]:
             state = "VENUE_ADAPTER_FAILED"
         elif not a["any_kept"]:
             state = "NO_ACTIVE_PERP_CONTRACT"
         else:
             state = "PRICE_CONFLICT_ALL_VENUES"
-        collision = bool(c is not None and c.get("tradfi") and a["kept_crypto"])
         out[t] = {"contracts": a["contracts"], "venues": sorted(a["venues"]), "legacy": state,
-                  "collision": collision, "aliases": sorted(a["norms"]) if len(a["norms"]) > 1 else None}
+                  "collision": bool(info and info["collision"]),
+                  "aliases": sorted(a["norms"]) if len(a["norms"]) > 1 else None,
+                  "identity": ({"decision": info["decision"], "ticker_list": info["ticker_list"],
+                                "phase1": "TRADFI" if info.get("phase1_tradfi") else "CRYPTO",
+                                "exposures": info["exposures"]} if info is not None else None)}
     for t, c in coins.items():   # the fallback universe has coins without any contract
         if t not in out:
             out[t] = {"contracts": [], "venues": [], "legacy": "TRADFI" if c.get("tradfi") else "CRYPTO",
-                      "collision": False, "aliases": None, "fallback": not dex_ok}
+                      "collision": False, "aliases": None, "fallback": not dex_ok, "identity": None}
     return out
 
 
@@ -359,14 +371,38 @@ def counts(reg):
         by_legacy[c["legacy"]] = by_legacy.get(c["legacy"], 0) + 1
         by_venue[c["venue"]] = by_venue.get(c["venue"], 0) + 1
         by_health[c["health"]] = by_health.get(c["health"], 0) + 1
-    st = {}
+    st, dec = {}, {}
     for a in assets.values():
         st[a["legacy"]] = st.get(a["legacy"], 0) + 1
+        d = (a.get("identity") or {}).get("decision")
+        if d:
+            dec[d] = dec.get(d, 0) + 1
     return {"raw_contracts": len(cs), "active_perps": sum(1 for c in cs if c["type"] == "perp" and c["active"]),
             "selected": by_legacy.get("SELECTED", 0), "by_legacy_state": dict(sorted(by_legacy.items())),
             "by_venue": dict(sorted(by_venue.items())), "by_health": dict(sorted(by_health.items())),
             "canonical_assets": len(assets), "assets_by_legacy": dict(sorted(st.items())),
             "tradfi_collisions": sorted(t for t, a in assets.items() if a.get("collision")),
+            "assets_by_identity": dict(sorted(dec.items())), "identity_version": ID.VERSION,
+            "crypto_exposure_selected": sorted(t for t, a in assets.items()
+                                               if (a.get("identity") or {}).get("decision") == ID.D_SELECTED),
+            "ambiguous": sorted(t for t, a in assets.items() if a.get("legacy") == "AMBIGUOUS"),
+            # before/after on the same market lists: the Phase 1 ticker-level OR vs the Phase 2 identity
+            "phase1_crypto": sum(1 for a in assets.values() if (a.get("identity") or {}).get("phase1") == "CRYPTO"),
+            "phase1_excluded": sum(1 for a in assets.values() if (a.get("identity") or {}).get("phase1") == "TRADFI"),
+            "now_crypto": sum(1 for a in assets.values() if a.get("identity") and a.get("legacy") == "CRYPTO"),
+            "now_excluded": sum(1 for a in assets.values() if a.get("identity") and a.get("legacy") in ("TRADFI", "AMBIGUOUS")),
+            "changed_vs_phase1": sorted(t for t, a in assets.items() if a.get("identity") and
+                                        (a["identity"]["phase1"] == "CRYPTO") != (a.get("legacy") == "CRYPTO")),
+            "by_contract_class": _count(cs, "cls"), "by_exposure_class": _count(cs, "exp_class"),
             "multi_symbol_assets": sorted(t for t, a in assets.items() if a.get("aliases")),
             "alias_mapped": sorted({c["id"] for c in cs if str(c.get("canon", "")).startswith(("ALIAS", "MULTIPLIER_ALIAS"))}),
             "adapter_mismatches": by_legacy.get("AUDIT_ADAPTER_MISMATCH", 0)}
+
+
+def _count(cs, k):
+    out = {}
+    for c in cs:
+        v = c.get(k)
+        if v is not None:
+            out[v] = out.get(v, 0) + 1
+    return dict(sorted(out.items()))

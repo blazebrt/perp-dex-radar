@@ -1,4 +1,4 @@
-# Disposition taxonomy (v8 Phase 1)
+# Disposition taxonomy (v8 Phase 1, extended in Phase 2)
 
 Every asset an engine receives ends with exactly **one final disposition** in that engine's ledger, with a
 stable **reason code**, the observed input, the rule it was compared with, the data health of the inputs and the
@@ -7,7 +7,8 @@ or reused. There is deliberately no generic `FILTERED` code; an audit that canno
 `AUDIT_UNCLASSIFIED`, and the tests fail on it.
 
 Source of truth: `v8/taxonomy.py`. `tests/test_v8_units.py` checks that every code below is in that module and
-the other way round.
+the other way round. Phase 2 added the identity and missing-volume codes and retired two codes (marked
+[retired in v8 Phase 2]: kept for older snapshots, never emitted again, never reused).
 
 ## Final dispositions
 
@@ -17,8 +18,8 @@ the other way round.
 | `WATCHED` | published for watching, not as an actionable call: radar watch list, Setting-up listings, smart-money information-only crowds |
 | `REJECTED` | evaluated by the engine and not surfaced: no setup, blocked, below a score, cut by the number of published slots |
 | `NOT_EXECUTABLE` | not tradable enough on the DEXs the engine trades: volume below the legacy minimum, not on a trade DEX, no active perp contract |
-| `INSUFFICIENT_DATA` | the engine could not evaluate it: candles, history or a value missing or conflicting |
-| `MODEL_INELIGIBLE` | outside what the engine's model covers: tradfi tickers, reference volume below the minimum, smart money outside Hyperliquid |
+| `INSUFFICIENT_DATA` | the engine could not evaluate it: candles, history, a 24h volume or a crypto identity missing or conflicting |
+| `MODEL_INELIGIBLE` | outside what the engine's model covers: tradfi exposures, reference volume below the minimum, smart money outside Hyperliquid |
 
 ## Engines
 
@@ -48,15 +49,19 @@ appear in the registry, never as an asset's final disposition.
 | `PRICE_CONFLICT_DROPPED` |  | price more than 20% away from the asset's main market; build_universe() treats it as a different asset under the same ticker and leaves it out |
 | `ADAPTER_FAILED` |  | the venue's legacy adapter raised an error this scan, so legacy used none of its markets |
 | `AUDIT_ADAPTER_MISMATCH` |  | the registry's reading of the raw market disagrees with the legacy adapter (an observability defect; legacy output is unaffected) |
+| `EXPOSURE_NOT_ADMITTED` |  | the market belongs to a separate exposure of its ticker (a different price level) that is tradfi or ambiguous; it is not merged into the admitted crypto coin (v8 Phase 2) |
 | `TRADFI_CLASSIFIED` | `MODEL_INELIGIBLE` | classified tradfi (stock, index, FX, commodity); legacy engines are crypto only |
-| `TRADFI_TICKER_COLLISION` | `MODEL_INELIGIBLE` | venues disagree: a tradfi listing shares the ticker of a market listed as crypto; legacy marks the whole ticker tradfi (a real crypto coin is excluded when known_crypto is true) |
+| `TRADFI_TICKER_COLLISION` | `MODEL_INELIGIBLE` | venues disagree: a tradfi listing shares the ticker of a market listed as crypto; legacy marks the whole ticker tradfi (a real crypto coin is excluded when known_crypto is true) [retired in v8 Phase 2] |
+| `TRADFI_EXPOSURE_EXCLUDED` | `MODEL_INELIGIBLE` | a tradfi exposure: a market with tradfi evidence (venue category or underlying type, contract name) and markets at the same price that no venue labelled; they are one stock or real-world asset and all stay out (v8 Phase 2) |
+| `AMBIGUOUS_EXPOSURE` | `INSUFFICIENT_DATA` | the markets' own evidence cannot establish a crypto identity (conflicting or unrecognised venue labels, or unlabelled markets of a ticker that is a stock or real-world asset elsewhere, at another price, and not a known crypto coin); not admitted (v8 Phase 2) |
 | `NO_ACTIVE_PERP_CONTRACT` | `NOT_EXECUTABLE` | every contract for this asset was skipped by the legacy adapters (delisted, inactive, builder, non-perpetual) |
 | `PRICE_CONFLICT_ALL_VENUES` | `INSUFFICIENT_DATA` | every venue's price was dropped as a price conflict |
 | `VENUE_ADAPTER_FAILED` | `INSUFFICIENT_DATA` | listed only on venues whose legacy adapter failed this scan |
 | `FALLBACK_UNIVERSE` | `INSUFFICIENT_DATA` | no DEX market list loaded; legacy used its built-in coin list without DEX data |
 | `DEX_VOLUME_BELOW_LEGACY_MIN` | `NOT_EXECUTABLE` | 24h volume on your trade DEXs below the legacy minimum |
-| `DEX_VOLUME_MISSING_LEGACY_ZERO` | `INSUFFICIENT_DATA` | no 24h volume reported on your trade DEXs; legacy treats the missing value as 0 |
-| `NOT_ON_TRADE_DEX` | `NOT_EXECUTABLE` | listed only on DEXs outside your trade DEXs; legacy treats its volume as 0 |
+| `DEX_VOLUME_MISSING_LEGACY_ZERO` | `INSUFFICIENT_DATA` | no 24h volume reported on your trade DEXs; legacy treats the missing value as 0 [retired in v8 Phase 2] |
+| `DEX_VOLUME_MISSING` | `INSUFFICIENT_DATA` | listed on your trade DEXs, but none reported a 24h volume: execution liquidity is unknown, so the coin cannot pass the liquidity gate (v8 Phase 2: no longer read as $0) |
+| `NOT_ON_TRADE_DEX` | `NOT_EXECUTABLE` | listed only on DEXs outside your trade DEXs (no execution venue) |
 | `NO_SUPPORTED_CANDLES` | `INSUFFICIENT_DATA` | no candle source (MEXC, Gate.io, Bitget, Hyperliquid, Aster) returned candles for this asset |
 | `PRICE_SCALE_CONFLICT` | `INSUFFICIENT_DATA` | candle prices do not match the DEX price (another asset under the same symbol); the source was skipped |
 | `INSUFFICIENT_1H_HISTORY` | `INSUFFICIENT_DATA` | fewer closed 1h candles than the radar's stage 1 needs |
@@ -115,6 +120,7 @@ Noted on a record next to its final disposition (field `x`); never a final dispo
 | `NOT_IN_PUBLISHED_LIST` | kept out of the published list by its length limit |
 | `PLAN_REJECTED` | a strategy fired but its trade plan was rejected (see the plan list) |
 | `EXTRA_DEEP_DIVE` | deep-dived as a stage-2 extra (smart money long or dip in an uptrend) |
+| `CRYPTO_EXPOSURE_SELECTED` | the ticker also names an unrelated tradfi or ambiguous exposure at another price; the crypto exposure was admitted and the other kept out (v8 Phase 2) |
 
 ## Smart-money trader outcomes
 
@@ -133,14 +139,14 @@ Counts per scan in the smart part (`traders.by_reason`), one per leaderboard row
 
 ## Where each legacy filter is recorded
 
-| Legacy filter (unchanged in Phase 1) | Code(s) |
+| Filter | Code(s) |
 |---|---|
 | Adapter skips: builder markets, delisted, inactive, non-perpetual, empty symbol | contract states `HL_BUILDER_MARKET`, `DELISTED`, `NOT_TRADING`, `NOT_PERPETUAL`, `EMPTY_SYMBOL`; asset `NO_ACTIVE_PERP_CONTRACT` |
 | One market per asset and venue (highest volume kept) | contract state `DUPLICATE_NOT_SELECTED` |
 | Price more than 20% from the main market | contract state `PRICE_CONFLICT_DROPPED` (CONFLICTED); asset `PRICE_CONFLICT_ALL_VENUES` |
-| Tradfi tickers (lists, FX, venue category, name pattern) | `TRADFI_CLASSIFIED`, `TRADFI_TICKER_COLLISION` |
+| Universe identity (Phase 2, v8.identity): contract evidence, price-coherent exposures, tradfi lists | `TRADFI_CLASSIFIED`, `TRADFI_EXPOSURE_EXCLUDED`, `AMBIGUOUS_EXPOSURE`; contract state `EXPOSURE_NOT_ADMITTED`; step `CRYPTO_EXPOSURE_SELECTED` (Phase 1: `TRADFI_TICKER_COLLISION`, retired) |
 | No DEX market list at all (built-in coin list) | manifest `fallback_universe`, `FALLBACK_UNIVERSE` event |
-| `liq_of(c) or 0 >= $1M` on your trade DEXs (radar stage 2, quant, picks) | `DEX_VOLUME_BELOW_LEGACY_MIN`, `DEX_VOLUME_MISSING_LEGACY_ZERO`, `NOT_ON_TRADE_DEX` |
+| $1M 24h volume on your trade DEXs (radar stage 2, quant, picks; v8.liquidity since Phase 2) | `DEX_VOLUME_BELOW_LEGACY_MIN` (observed, an observed 0 included), `DEX_VOLUME_MISSING` (no volume reported), `NOT_ON_TRADE_DEX` (Phase 1: `DEX_VOLUME_MISSING_LEGACY_ZERO`, retired) |
 | Candle source chain and price-scale check | `NO_SUPPORTED_CANDLES`, `PRICE_SCALE_CONFLICT` |
 | Radar stage 1: 30 closed 1h candles | `INSUFFICIENT_1H_HISTORY` |
 | Radar stage 2: top 40 liquid plus 16 extras | `RADAR_STAGE2_NOT_SELECTED`, step `EXTRA_DEEP_DIVE` |

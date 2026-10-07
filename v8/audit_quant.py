@@ -70,11 +70,11 @@ def quant_part(now, universe, coins, got, data, daily, lastd, new, open_trades):
         c = universe[t]
         k = C.contract_ids(c)
         if c.get("tradfi"):
-            code, o = C.tradfi_code(c)
-            L.final(t, code, "universe", o=o, k=k)
+            code, o = C.excluded_code(c)
+            L.final(t, code, "universe", o=o, k=k, h=T.CONFLICTED if code == "AMBIGUOUS_EXPOSURE" else T.HEALTHY)
             continue
         if t not in chosen:
-            C.liquidity_final(L, t, c, "universe", cfg["min_dex_vol"], sc.in_my_dexes, k=k)
+            C.liquidity_final(L, t, c, "universe", cfg["min_dex_vol"], sc.CFG["trade_dexes"], k=k)
             continue
         g = got.get(t)
         if not g:
@@ -145,6 +145,7 @@ def quant_part(now, universe, coins, got, data, daily, lastd, new, open_trades):
                     k=k)
         else:
             L.final(t, "NO_STRATEGY_SIGNAL", "signal", o=o or None, src=src, k=k)
+    C.note_identity_steps(L, sorted(universe))
     part = L.to_part()
     published = set(new_by) | set(open_by)
     led = {r["a"] for r in L.records.values() if r["d"] == T.SURFACED}

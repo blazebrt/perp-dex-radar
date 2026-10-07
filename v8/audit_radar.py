@@ -56,7 +56,7 @@ def universe_part(coins, dex_status, dex_ok, scan_t):
     by_id = {c["id"]: c for c in reg["contracts"]}
     passed = []
     for t, a in sorted(reg["assets"].items()):
-        if a["legacy"] in ("CRYPTO", "TRADFI"):
+        if a["legacy"] in ("CRYPTO", "TRADFI", "AMBIGUOUS"):     # the coin exists; the radar ledger records it
             passed.append(t)
             continue
         code = a["legacy"]  # NO_ACTIVE_PERP_CONTRACT, PRICE_CONFLICT_ALL_VENUES or VENUE_ADAPTER_FAILED
@@ -85,7 +85,7 @@ def radar_part(scan_t, coins, dex_ok, crypto, res1, s1, ranked, cands, extras, r
     L.expect(sorted(coins))
 
     def liquid(t):
-        return (not dex_ok) or (sc.liq_of(crypto[t]) or 0) >= cfg["min_dex_vol"]
+        return (not dex_ok) or sc.liquid_enough(crypto[t])
 
     liq_rank = {t: i + 1 for i, t in enumerate(t for t in ranked if liquid(t))}
     stage2, extra = set(cands), set(extras)
@@ -108,8 +108,8 @@ def radar_part(scan_t, coins, dex_ok, crypto, res1, s1, ranked, cands, extras, r
         c = coins[t]
         k = C.contract_ids(c)
         if c.get("tradfi"):
-            code, o = C.tradfi_code(c)
-            L.final(t, code, "universe", o=o, k=k)
+            code, o = C.excluded_code(c)
+            L.final(t, code, "universe", o=o, k=k, h=T.CONFLICTED if code == "AMBIGUOUS_EXPOSURE" else T.HEALTHY)
             continue
         steps = []
         fb, _ = H.funding(c)
@@ -160,7 +160,7 @@ def radar_part(scan_t, coins, dex_ok, crypto, res1, s1, ranked, cands, extras, r
             continue
         if t not in stage2:
             if not liquid(t):
-                C.liquidity_final(L, t, c, "stage2", cfg["min_dex_vol"], sc.in_my_dexes, k=k)
+                C.liquidity_final(L, t, c, "stage2", cfg["min_dex_vol"], sc.CFG["trade_dexes"], k=k)
             else:
                 L.final(t, "RADAR_STAGE2_NOT_SELECTED", "stage2",
                         o={"liquid_rank": liq_rank.get(t), "stage1_score": s1[t]["score"]},
@@ -194,6 +194,7 @@ def radar_part(scan_t, coins, dex_ok, crypto, res1, s1, ranked, cands, extras, r
         else:
             L.final(t, "NO_STRATEGY_SIGNAL", "signal", o={"setups_checked": "all active 15m strategies"}, src=src,
                     k=k, x=steps)
+    C.note_identity_steps(L, sorted(coins))
     part = L.to_part()
     # consistency: what was published must be what the ledger says was surfaced or watched
     led_s = {r["a"] for r in L.records.values() if r["d"] == T.SURFACED}

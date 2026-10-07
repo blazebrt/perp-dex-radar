@@ -42,24 +42,21 @@ jobs:
       - name: All unit tests
         run: python -m unittest discover -s tests -v
 
-      - name: v8 Phase 1 tests (registry, ledger, data health, provenance, end-to-end audit and parity)
-        run: python -m unittest tests.test_v8_units tests.test_v8_audit -v
+      - name: v8 tests (Phase 1 audit; Phase 2 identity, liquidity and the delta validator)
+        run: python -m unittest tests.test_v8_units tests.test_v8_audit tests.test_v8_identity tests.test_v8_delta -v
 
-      - name: Legacy parity against the committed golden digests
-        run: python tools/v8/legacy_parity.py --out "$RUNNER_TEMP/parity_head" --check tests/fixtures/v8/legacy_parity_golden.json
+      - name: Legacy parity against this branch's committed golden digests
+        run: python tools/v8/legacy_parity.py --out "$RUNNER_TEMP/parity_head" --check tests/fixtures/v8/legacy_parity_golden_phase2.json
 
-      - name: Legacy parity against the base commit, rebuilt on this runner
-        # Proves the change leaves every legacy output identical to the base branch on the same machine. A later
-        # phase that changes legacy behaviour on purpose must say so in its PR and update this check.
-        if: github.event_name == 'pull_request'
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      - name: Differential parity against the phase base (approved deltas only)
+        # Phase 2 changes legacy outputs on purpose. The base commit named in the expected-delta manifest is
+        # rebuilt on this runner; it must reproduce its own golden digests, and every difference between it and this
+        # checkout must be one the manifest lists (tools/v8/delta_parity.py): anything else fails the job.
         run: |
+          BASE_SHA=$(python -c "import json; print(json.load(open('tests/fixtures/v8/phase2_expected_deltas.json'))['base']['sha'])")
+          git merge-base --is-ancestor "$BASE_SHA" HEAD
           git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA"
-          mkdir -p "$RUNNER_TEMP/base/tools/v8"
-          cp tools/v8/legacy_parity.py "$RUNNER_TEMP/base/tools/v8/"
-          python "$RUNNER_TEMP/base/tools/v8/legacy_parity.py" --out "$RUNNER_TEMP/parity_base" --write-golden "$RUNNER_TEMP/golden_base.json"
-          python tools/v8/legacy_parity.py --out "$RUNNER_TEMP/parity_head2" --check "$RUNNER_TEMP/golden_base.json"
+          python tools/v8/delta_parity.py --base-root "$RUNNER_TEMP/base" --manifest tests/fixtures/v8/phase2_expected_deltas.json --work "$RUNNER_TEMP/delta" --write-report "$RUNNER_TEMP/delta/report.json"
 
       - name: Workflow files parse
         run: |

@@ -1,13 +1,14 @@
-# Known legacy behaviour, deliberately NOT fixed in Phase 1
+# Known legacy behaviour
 
-Phase 1 observes; it does not correct. Each item below is now visible in the registry, the ledger or the data
-health section of the snapshot, and is left for a later, separately authorised phase. Fixing any of them changes
-what the engines decide, so it needs its own parity break, its own evidence and the owner's approval.
+Phase 1 observed; it did not correct. Each item below is visible in the registry, the ledger or the data health
+section of the snapshot. Fixing one changes what the engines decide, so it needs its own phase, evidence and the
+owner's approval. **Phase 2 fixed items 1 and 2** (see [phase2-universe-identity.md](phase2-universe-identity.md));
+everything else is still open. Items 25-29 were found in Phase 2.
 
 | # | Behaviour | Effect | Where it shows in the audit |
 |---|---|---|---|
-| 1 | The tradfi flag is OR-ed over **every** adapter row of a ticker - duplicates and markets later dropped as price conflicts included - and then over the name check | A crypto coin whose ticker is also a stock, an equity market or a 24/5 market on another venue (BB, PURR, QNT class) is excluded from every engine, even when the tradfi market is itself dropped as a price conflict | `TRADFI_TICKER_COLLISION` with `tradfi_rows`; registry `assets[t].collision` |
-| 2 | `liq_of(c) or 0`: a venue volume of exactly 0 and a missing volume both become 0; volume on DEXs outside your trade DEXs counts as 0 | Coins with missing volume look illiquid; coins listed only on dYdX, Paradex, edgeX or Extended are never executable | `DEX_VOLUME_MISSING_LEGACY_ZERO`, `NOT_ON_TRADE_DEX`, basis `OBSERVED_ZERO` |
+| 1 | **Fixed in Phase 2.** The tradfi flag was OR-ed over **every** adapter row of a ticker - duplicates and markets later dropped as price conflicts included - and then over the name check | A crypto coin whose ticker is also a stock or real-world asset on another venue (BB, PURR, QNT class) was excluded from every engine | now decided per contract and price-coherent exposure (`v8/identity.py`): `CRYPTO_EXPOSURE_SELECTED`, `TRADFI_EXPOSURE_EXCLUDED`, `AMBIGUOUS_EXPOSURE`, contract state `EXPOSURE_NOT_ADMITTED` |
+| 2 | **Fixed in Phase 2** (semantics; the gate's yes/no is unchanged). `liq_of(c) or 0`: a venue volume of exactly 0 and a missing volume both became 0 | Coins with missing volume looked like observed $0 coins | `DEX_VOLUME_MISSING` (`INSUFFICIENT_DATA`), `DEX_VOLUME_BELOW_LEGACY_MIN` with basis `OBSERVED_ZERO`, `NOT_ON_TRADE_DEX` (coins listed only on dYdX, Paradex, edgeX or Extended are still never executable: your trade DEXs are a setting) |
 | 3 | The $1M liquidity gate runs before discovery (radar stage 2, quant, picks) | Small and newly listed coins are never evaluated by those engines | `DEX_VOLUME_BELOW_LEGACY_MIN` with the observed volume |
 | 4 | The universe is built three times per scan (scanner, quant desk, coin picks), each fetching all eight market lists again | Duplicate requests to every DEX, and the three engines can see slightly different universes within one scan | `coverage.summary.engine_universe_differences` |
 | 5 | History gates: 30 closed 1h candles (radar), 30 days (quant), 90 daily candles (swing), 170 hourly candles (day) | New listings are invisible to the longer-horizon engines for weeks | `INSUFFICIENT_*_HISTORY` |
@@ -30,6 +31,11 @@ what the engines decide, so it needs its own parity break, its own evidence and 
 | 22 | Swing backtest: fixed 0.19% round-trip cost, no funding | Swing results omit funding and real spread variation | documented (`picks_research.json` rules) |
 | 23 | Quant funding is partly assumed and taken from a reference exchange (MEXC), not the DEX traded | Paper and backtest funding can differ from what a DEX position pays | documented; item 7 |
 | 24 | Portfolio simulation is realised-equity only, with no correlation or beta clustering | Portfolio risk of several same-direction positions is understated | documented |
+| 25 | Aster sends `underlyingType` "COIN" for the stocks it lists (all 10 Phase 1 stock collisions) | Aster's metadata cannot tell a stock from a coin; Phase 2 treats "COIN" as no evidence | contract `meta.underlying`, `cls` `UNLABELED` |
+| 26 | Lighter lists stocks without any label; a stock listed **only** on Lighter (or only on unlabeled venues) under a ticker that is not on the tradfi list is classified crypto by default, before and after Phase 2 | A stock can enter the crypto universe when no venue labels it anywhere (no collision to detect) | exposure reason `DEFAULT_CRYPTO`; not detectable from today's metadata |
+| 27 | Extended labels some crypto markets with sector categories (`L1`, `L2`, `Infra`; all inactive in the Phase 1 live scan) | Legacy called them tradfi; Phase 2 calls them ambiguous and keeps them out of the crypto universe | `VENUE_CATEGORY_UNRECOGNIZED:<category>`, `AMBIGUOUS_EXPOSURE` |
+| 28 | A stock quoted in another currency on one venue (XIAOMI: HKD on Extended, USD on Aster and Lighter) splits into two price exposures | Without positive crypto evidence the unlabeled exposure is held as ambiguous (not admitted); a ticker on the known-crypto list would be admitted | `UNLABELED_UNDER_TRADFI_COLLISION` |
+| 29 | Positive crypto evidence for an unlabeled exposure is the repository's pre-existing known-crypto list (unchanged in Phase 2) or Extended's "Crypto" category | A known-crypto ticker that some venue lists as a stock at a **coherent** price stays excluded (tradfi evidence wins inside one exposure); the list is maintained by hand | exposure reason `TICKER_KNOWN_CRYPTO` |
 
-Nothing in this list was changed by Phase 1, and Phase 1 instrumentation is not a claim that any of it is solved.
-The parity check proves the legacy outputs unchanged on the fixture.
+Nothing else in this list was changed by Phase 1 or Phase 2, and the instrumentation is not a claim that any of it
+is solved.

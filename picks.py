@@ -1257,7 +1257,7 @@ def record(kind, side, coin_t, coin, core, credits, weights, lines, extras, plan
     venues = " ".join(sc.DEX_CODE[d] for d in sc.DEXES if d in (coin.get("venues") or {}))
     return {"coin": coin_t, "kind": kind, "side": side, "score": round(final, 1), "core": round(core, 1),
             "extra": round(adj, 1), "label": lab, "setup": SETUP[side] if kind == "swing" else None,
-            "price": float(f"{price:.8g}"), "venues": venues, "liq": round(sc.liq_of(coin) or 0),
+            "price": float(f"{price:.8g}"), "venues": venues, "liq": sc.LIQUIDITY.stored(sc.liq_of(coin)),
             "checks": checks, "extras": ex, "plan": plan, "why": summary(side, kind, lab, checks, ex),
             **extra_vals}
 
@@ -1402,8 +1402,10 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
         universe, _, ok = sc.build_universe()
         if not ok:
             raise SystemExit("picks: no DEX market list could be loaded")
-    coins = [c for c in universe.values() if not c.get("tradfi") and (sc.liq_of(c) or 0) >= CFG["min_dex_vol"]]
-    coins.sort(key=lambda c: -(sc.liq_of(c) or 0))
+    # crypto coins with a KNOWN 24h volume of at least min_dex_vol on your trade DEXs (v8.liquidity: a missing
+    # volume never passes, and is no longer read as $0); ranked by that volume
+    coins = [c for c in universe.values() if not c.get("tradfi") and sc.liquid_enough(c, CFG["min_dex_vol"])]
+    coins.sort(key=lambda c: -sc.liq_rank_value(c))
     if "BTC" in universe and all(c["t"] != "BTC" for c in coins):
         coins.insert(0, universe["BTC"])
     got = sc.parallel(lambda t: q.bars_4h(universe[t], CFG["bars_4h"]), [c["t"] for c in coins])
@@ -1448,7 +1450,7 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
     log(f"swing checks for {len(swing)} coins (day {time.strftime('%Y-%m-%d', time.gmtime(last_day or 0))})")
 
     # 2) day-trade candidates: the most liquid coins plus every coin with a decent swing score
-    by_liq = sorted(swing, key=lambda t: -(sc.liq_of(data[t]["coin"]) or 0))
+    by_liq = sorted(swing, key=lambda t: -sc.liq_rank_value(data[t]["coin"]))
     day_set = set(by_liq[: CFG["day_coins"]]) | {t for t, s in swing.items() if max(s["long"], s["short"]) >= 60}
     c1s = sc.parallel(lambda t: hourly(data[t]["coin"], data[t]["src"], CFG["bars_1h"], now), sorted(day_set))
     # 3) live extras: smart money (scanner), open interest (Gate.io), funding (DEXs), fundamentals (CoinGecko)
@@ -1488,7 +1490,7 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
     for t, s in swing.items():
         coin, x = data[t]["coin"], s["x"]
         fdm = (cg or {}).get("coins", {}).get(t)
-        liq = sc.liq_of(coin) or 0
+        liq = sc.liq_of(coin) or 0   # score input; every coin here passed the liquidity gate (KNOWN volume)
         sent = SENT[t]
         best = None
         for side in ("long", "short"):
@@ -1541,8 +1543,8 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
         else:
             rows.append(row)
         hist[r["coin"]] = rows[-400:]
-    sw_recs.sort(key=lambda r: (-r["score"], -r["liq"]))
-    day_recs.sort(key=lambda r: (-r["score"], -r["liq"]))
+    sw_recs.sort(key=lambda r: (-r["score"], -(r["liq"] or 0)))      # missing volume: sort fallback only
+    day_recs.sort(key=lambda r: (-r["score"], -(r["liq"] or 0)))
     # AI desk notes for the top swing picks (only with the GEMINI_API_KEY secret)
     rp0 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "picks_research.json")
     try:

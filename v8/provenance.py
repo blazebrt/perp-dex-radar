@@ -59,7 +59,13 @@ def engine_config(engine):
     base = {"universe": {"dexes": sc.DEXES, "sources": sc.SOURCES, "tradfi": sc.TRADFI, "known_crypto": sc.KNOWN_CRYPTO,
                          "alias": sc.ALIAS, "symbol_override": {f"{a}:{b}": v for (a, b), v in sc.SYMBOL_OVERRIDE.items()},
                          "fx": sc.FX_CODES, "tradfi_name": sc.TRADFI_NAME.pattern,
-                         "trade_dexes": sc.CFG.get("trade_dexes"), "min_dex_vol": sc.CFG.get("min_dex_vol")}}
+                         "trade_dexes": sc.CFG.get("trade_dexes"), "min_dex_vol": sc.CFG.get("min_dex_vol"),
+                         # v8 Phase 2: the universe identity and liquidity semantics that decide the universe
+                         "identity": [sc.IDENTITY.VERSION, sc.IDENTITY.TOL,
+                                      sorted(sc.IDENTITY.EXTENDED_TRADFI_CATEGORIES),
+                                      sorted(sc.IDENTITY.EXTENDED_CRYPTO_CATEGORIES),
+                                      sorted(sc.IDENTITY.ASTER_NEUTRAL_UNDERLYING)],
+                         "liquidity": sc.LIQUIDITY.VERSION}}
     if engine == "radar":
         base["cfg"] = _cfg(sc.CFG)
         base["strategies"] = sc.STRATEGIES

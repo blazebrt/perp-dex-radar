@@ -87,6 +87,11 @@ except ImportError:  # pragma: no cover - the scan runs the same without the v8 
             return lambda *a, **k: None
     V8 = _NoTrace()
 
+# v8 Phase 2: the universe's identity (which markets are one coin, crypto or not) and its liquidity semantics are
+# decided by these two shared modules, the one authority for scanner, quant and picks. Not optional.
+from v8 import identity as IDENTITY  # noqa: E402
+from v8 import liquidity as LIQUIDITY  # noqa: E402
+
 VERSION = "5.0.0"
 
 # Version 5 changes how strategies are judged, after an audit found that the signals of
@@ -577,7 +582,7 @@ def dex_aster():
         ut = s.get("underlyingType")
         out.append(_venue(t, "aster", sym, mult, price=fnum(tk.get("lastPrice")) or fnum(pr.get("markPrice")),
                           vol=fnum(tk.get("quoteVolume")), funding8h=fnum(pr.get("lastFundingRate")),
-                          tradfi=True if ut and ut != "COIN" else None))
+                          tradfi=True if ut and ut != "COIN" else None, underlying=ut))
     return out
 
 
@@ -665,7 +670,7 @@ def dex_extended():
                           vol=fnum(st.get("dailyVolume")), oi=fnum(st.get("openInterest")),
                           funding8h=fr * 8 if fr is not None else None,
                           tradfi=True if (cat and cat != "Crypto") or "_24_5" in name else None,
-                          name=m.get("description")))
+                          name=m.get("description"), category=cat))
     return out
 
 
@@ -675,47 +680,31 @@ DEX_FETCHERS = {"hyperliquid": dex_hyperliquid, "variational": dex_variational, 
 
 
 def build_universe():
-    """Merge every DEX's market list into one dict of coins."""
-    status, coins = {}, {}
+    """Merge every DEX's market list into one dict of coins.
+
+    Which markets are one coin and whether it is crypto is decided contract by contract and per price-coherent
+    exposure by v8.identity (one authority; see its docstring); a tradfi market no longer hides a crypto coin that
+    shares its ticker, and a stock one venue forgot to label stays out. Coins with nothing admitted keep tradfi=True."""
+    status = {}
     V8.begin_universe()
     results = parallel(lambda dex: DEX_FETCHERS[dex](), list(DEXES), workers=len(DEXES))
     V8.universe_rows(results)
+
+    def conflict(t, dex, p, ref):
+        note_error(f"{t}: {DEX_NAME[dex]} price {fp(p)} differs from the main market ({fp(ref)}); left out")
+        V8.event("PRICE_CONFLICT_DROPPED", t=t, dex=dex, price=p, ref=ref)
+
+    res = IDENTITY.resolve(results, DEXES, IDENTITY.Lists(TRADFI, KNOWN_CRYPTO, is_fx, TRADFI_NAME), in_my_dexes,
+                           conflict)
+    V8.identity(res)
     for dex in DEXES:
         rows = results.get(dex)
         if rows is None:
             status[dex] = {"ok": False, "markets": 0, "crypto": 0}
-            continue
-        status[dex] = {"ok": True, "markets": len(rows), "crypto": sum(1 for r in rows if not r["tradfi"])}
-        for r in rows:
-            c = coins.setdefault(r["t"], {"t": r["t"], "venues": {}, "name": None, "tradfi": False})
-            old = c["venues"].get(dex)
-            if old is None or (r.get("vol") or 0) > (old.get("vol") or 0):
-                c["venues"][dex] = r
-            if r.get("name") and not c["name"] and dex in ("variational", "extended"):
-                c["name"] = r["name"]
-            c["tradfi"] = c["tradfi"] or r["tradfi"]
-    for t, c in coins.items():
-        priced = [(dex, v["price"] / v["mult"], v.get("vol") or 0) for dex, v in c["venues"].items() if v.get("price")]
-        ref = None
-        if priced:
-            # anchor on the most traded venue; a venue far from it lists a different asset under this ticker
-            anchor = max(priced, key=lambda x: x[2])
-            ref = anchor[1] if anchor[2] > 0 else median([p for _, p, _ in priced], None)
-            if len(priced) >= 2:
-                for dex, p, _ in priced:
-                    if abs(p / ref - 1) > 0.2:
-                        note_error(f"{t}: {DEX_NAME[dex]} price {fp(p)} differs from the main market ({fp(ref)}); left out")
-                        V8.event("PRICE_CONFLICT_DROPPED", t=t, dex=dex, price=p, ref=ref)
-                        c["venues"].pop(dex, None)
-                ref = median([v["price"] / v["mult"] for v in c["venues"].values() if v.get("price")], ref)
-        c["ref_price"] = ref
-        vols = [v["vol"] for v in c["venues"].values() if v.get("vol")]
-        c["best_vol"] = max(vols) if vols else None
-        c["tot_vol"] = sum(vols) if vols else None
-        mine = [v["vol"] for d, v in c["venues"].items() if v.get("vol") and in_my_dexes(d)]
-        c["trade_vol"] = max(mine) if mine else None
-        c["tradfi"] = c["tradfi"] or is_tradfi(t, c.get("name"))
-    coins = {t: c for t, c in coins.items() if c["venues"]}
+        else:
+            # markets whose exposure was admitted to the crypto universe
+            status[dex] = {"ok": True, "markets": len(rows), "crypto": res.crypto_rows.get(dex, 0)}
+    coins = res.coins
     any_ok = any(s["ok"] for s in status.values())
     if not any_ok:
         note_error("No DEX market list could be loaded; using the built-in coin list without DEX data")
@@ -731,8 +720,25 @@ def in_my_dexes(dex):
 
 
 def liq_of(coin):
-    """24h volume that counts for liquidity: the best of the DEXs you trade on."""
+    """24h volume that counts for liquidity: the best of the DEXs you trade on. None when no venue reported one
+    (an observed 0 is 0.0); use liquidity() to tell a missing volume from a coin not on your trade DEXs."""
     return (coin or {}).get("trade_vol") if CFG["trade_dexes"] else (coin or {}).get("best_vol")
+
+
+def liquidity(coin):
+    """The shared liquidity evaluation (v8.liquidity): state KNOWN / MISSING / NOT_ON_TRADE_DEX and the value."""
+    return LIQUIDITY.evaluate(coin, CFG["trade_dexes"])
+
+
+def liquid_enough(coin, min_vol=None):
+    """The execution-liquidity gate: a KNOWN volume of at least min_vol (default CFG min_dex_vol) on your trade
+    DEXs. A missing volume never passes; it is not treated as an observed $0 either (v8.liquidity)."""
+    return LIQUIDITY.passes(coin, CFG["min_dex_vol"] if min_vol is None else min_vol, CFG["trade_dexes"])
+
+
+def liq_rank_value(coin):
+    """Liquidity to sort by: the KNOWN value, else 0.0 (internal ordering only; never stored or shown)."""
+    return LIQUIDITY.sort_value(coin, CFG["trade_dexes"])
 
 
 # --------------------------------------------------------------------------- candles
@@ -2813,7 +2819,7 @@ def _px_at(candles, ts):
 
 def slippage(f):
     """Slippage on market orders, by the coin's best DEX 24h volume at signal time."""
-    liq = (f or {}).get("liq") or 0
+    liq = (f or {}).get("liq") or 0   # cost model, unchanged in v8 Phase 2: no known volume pays the highest slip
     for floor, cost in CFG["slip"]:
         if liq >= floor:
             return cost
@@ -3006,7 +3012,7 @@ def trade_features(a, h1, s, conv_raw, regime, coin, sm, btc3, t, live=True):
             "ext": round(a["ext21_atr"], 2), "bw": round(a["bw_pct"]), "p24": round(a["pos24"], 2),
             "r24": round(h1["r24"], 4), "reg": REG_CODE.get(regime["label"], "neu"),
             "sm": round(sm["share"], 3) if live and sm and sm["long_usd"] + sm["short_usd"] >= 25_000 else None,
-            "liq": round(liq_of(coin) or 0), "fund": rnd(funding_avg(coin), 6) if live else None,
+            "liq": LIQUIDITY.stored(liq_of(coin)), "fund": rnd(funding_avg(coin), 6) if live else None,
             "btc3": round(btc3 or 0.0, 4), "vw": rnd(a["vwap_dist"], 4), "risk": round(s["risk"], 4),
             "hr": dt.datetime.fromtimestamp(t, dt.timezone.utc).hour, "cv": round(conv_raw, 1), "st": s["status"],
             "htf": (a.get("htf") or {}).get("trend")}
@@ -3100,7 +3106,7 @@ def trade_tags(tr):
             tags.append("vs_smart")
         if f["reg"] == "off":
             tags.append("risk_off")
-        if (f.get("liq") or 0) < 100_000:
+        if (f.get("liq") or 0) < 100_000:   # learning tag, unchanged in v8 Phase 2 (paper trades need $1M+)
             tags.append("thin")
         if (f.get("fund") or 0) > 0.0003:
             tags.append("crowded")
@@ -3630,8 +3636,8 @@ def agg_1h(c15):
 
 def fetch_history(crypto, dex_ok, days):
     """15m candles covering the last `days` days (plus a warm-up) for the most traded coins."""
-    pool = sorted([t for t, c in crypto.items() if (not dex_ok) or (liq_of(c) or 0) >= CFG["min_dex_vol"]],
-                  key=lambda t: -(liq_of(crypto[t]) or 0))[:CFG["bt_universe"]]
+    pool = sorted([t for t, c in crypto.items() if (not dex_ok) or liquid_enough(c)],
+                  key=lambda t: -liq_rank_value(crypto[t]))[:CFG["bt_universe"]]
     if "BTC" in crypto and "BTC" not in pool:
         pool.append("BTC")
     bars = days * 96 + 600  # warm-up: 150 hours, so the 4h trend exists from the first backtest hour
@@ -4406,7 +4412,7 @@ def study_twins(sp, trades, C, crypto, coins, now):
                           "stop": tr["sl"], "risk": risk, "tps": tr["tp"], "tp_r": tr["tr"], "trigger": tr.get("tg"),
                           "status": tr["st"], "vh": tr.get("vh", CFG["valid_hours"]),
                           "th": tr.get("th", CFG["track_hours"]), "tf": tr.get("tf", "15m")}, tr["px"], px)
-        t2 = new_trade(c2, s2, {"last": px}, T, {"liq": round(liq_of(crypto.get(c2) or {}) or 0), "fund": None,
+        t2 = new_trade(c2, s2, {"last": px}, T, {"liq": LIQUIDITY.stored(liq_of(crypto.get(c2) or {})), "fund": None,
                                                   "risk": round(risk, 4)}, 0.0, 0.0, bt=True)
         res = simulate_trade(t2, cc, now)
         if res is None:
@@ -4500,8 +4506,8 @@ def run_study(req_text, out_dir):
         crypto = {t: c for t, c in coins.items() if not c["tradfi"]}
         wanted = [canon(str(x)) for x in (req.get("coin_list") or [])][:CFG["study_max_coins"]]
         pool = [t for t in wanted if t in crypto] or sorted(
-            [t for t, c in crypto.items() if (not dex_ok) or (liq_of(c) or 0) >= CFG["min_dex_vol"]],
-            key=lambda t: -(liq_of(crypto[t]) or 0))[:n_coins]
+            [t for t, c in crypto.items() if (not dex_ok) or liquid_enough(c)],
+            key=lambda t: -liq_rank_value(crypto[t]))[:n_coins]
         tested = list(pool)
         if "BTC" in crypto and "BTC" not in pool:
             pool.append("BTC")  # the market reference (BTC's own move is a rule field)
@@ -4782,7 +4788,7 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
 
     # stage 2: 15m deep dive on the leaders that trade with real volume on a DEX, plus extras
     def liquid(t):
-        return (not dex_ok) or (liq_of(crypto[t]) or 0) >= CFG["min_dex_vol"]
+        return (not dex_ok) or liquid_enough(crypto[t])
 
     cands = [t for t in ranked if liquid(t)][:CFG["stage2_n"]]
     extras = pick_extras(ranked, s1, smc, liquid, set(cands))
@@ -4932,8 +4938,8 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
             "valid_until": scan_t + s.get("vh", CFG["valid_hours"]) * 3600, "tf": s.get("tf", "15m"),
             "hold_h": s.get("th", CFG["track_hours"]), "user": bool(spec(sid).get("user")),
             "src": a["src"], "sym": a["sym"], "venues": venue_list(c),
-            "best_vol": round(c["best_vol"]) if c.get("best_vol") else None,
-            "trade_vol": round(c["trade_vol"]) if c.get("trade_vol") else None,
+            "best_vol": LIQUIDITY.stored(c.get("best_vol")),
+            "trade_vol": LIQUIDITY.stored(c.get("trade_vol")),
             "strategy": {"id": sid, "name": s["name"], "short": s["short"], "status": info["status"],
                          "why": info["why"], "n": st_.get("n", 0), "wr": rnd(st_.get("wr"), 3),
                          "exp": rnd(st_.get("exp"), 3), "pf": rnd(st_.get("pf"), 2),
@@ -5019,7 +5025,7 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
         sm = smc.get(t)
         table.append([i + 1, t, round(m["score"], 1), rnd(m["r1"] * 100, 2), rnd(m["r3"] * 100, 2),
                       rnd(m["r6"] * 100, 2), rnd(m["r24"] * 100, 2), round(m["pos"] * 100), round(m["rsi"]),
-                      round(m["vr"], 2), round(m["turn"]), round(c["best_vol"]) if c.get("best_vol") else 0, spark,
+                      round(m["vr"], 2), round(m["turn"]), LIQUIDITY.stored(c.get("best_vol")), spark,
                       flag.get(t, "D" if a else ""), cs, setups,
                       m["src"], " ".join(DEX_CODE[d] for d in DEXES if d in c["venues"]),
                       rnd(sm["share"], 3) if sm else None])

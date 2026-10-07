@@ -476,8 +476,10 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
         universe, _, ok = sc.build_universe()
         if not ok:
             raise SystemExit("quant: no DEX market list could be loaded")
-    coins = [c for c in universe.values() if not c.get("tradfi") and (sc.liq_of(c) or 0) >= CFG["min_dex_vol"]]
-    coins.sort(key=lambda c: -(sc.liq_of(c) or 0))
+    # crypto coins with a KNOWN 24h volume of at least min_dex_vol on your trade DEXs (v8.liquidity: a missing
+    # volume never passes, and is no longer read as $0); ranked by that volume
+    coins = [c for c in universe.values() if not c.get("tradfi") and sc.liquid_enough(c, CFG["min_dex_vol"])]
+    coins.sort(key=lambda c: -sc.liq_rank_value(c))
     if "BTC" in universe and all(c["t"] != "BTC" for c in coins):
         coins.insert(0, universe["BTC"])
     got = sc.parallel(lambda t: bars_4h(universe[t], CFG["bars_4h"]), [c["t"] for c in coins])
