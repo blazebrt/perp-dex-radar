@@ -330,8 +330,10 @@ Nothing runs on your computer.
 | `.github/workflows/backtest.yml` | Strategy tests started from the Studio tab |
 | `.github/workflows/research.yml` | Tests a `v5...` / `v6...` / `v7...` / `v8/phase-...` branch on live exchange data (nothing published) |
 | `.github/workflows/ci.yml` | Blocking checks on every pull request and push to main: all tests, legacy parity, simulator and no-edge checks |
-| `v8/` | v8 Phase 1 audit (observes, never changes a decision): every DEX contract, why each coin was or was not shown by each engine, data health and provenance, published as `data/v8/audit_latest.json`. See `docs/v8/` |
-| `tools/v8/legacy_parity.py` | Runs the whole pipeline offline on a fixed fake market and proves the legacy outputs are unchanged |
+| `v8/` | v8 audit (Phase 1; observes): every DEX contract, why each coin was or was not shown by each engine, data health and provenance, published as `data/v8/audit_latest.json`. Since Phase 2 also the universe identity (`v8/identity.py`: which markets are one coin, crypto or not) and the shared liquidity evaluation (`v8/liquidity.py`), which decide. See `docs/v8/` |
+| `tools/v8/legacy_parity.py` | Runs the whole pipeline offline on a fixed fake market and checks its outputs against golden digests |
+| `tools/v8/delta_parity.py` | Proves that every output difference from the phase's base commit is one of the approved deltas in `tests/fixtures/v8/phase2_expected_deltas.json` |
+| `tools/v8/identity_report.py` | The universe-identity collision matrix and missing-volume cases of an audit snapshot (run by `research.yml`) |
 | `.github/workflows/data.yml` | Downloads a year of 1h and three years of 4h candles, funding, futures statistics and CoinGecko fundamentals to the `market-data` branch |
 | `tests/` | Unit tests and full runs on a fake exchange |
 | `tools/no_edge_check.py` | The strategies on a random market: shows costs and catches look-ahead bugs |
