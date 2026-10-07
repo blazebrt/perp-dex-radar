@@ -25,6 +25,7 @@ import sys
 import urllib.request
 
 from . import ENGINE_VERSION, SCHEMA
+from .liquidity import VERSION as LIQUIDITY_VERSION
 from . import ledger as LG
 from . import parts as PT
 from . import provenance
@@ -33,7 +34,10 @@ from . import taxonomy as T
 ENGINES = ("universe", "radar", "quant", "swing", "day", "smart")
 CONTRACT_FIELDS = ("id", "venue", "raw", "norm", "asset", "mult", "canon", "type", "active", "status", "tradfi",
                    "tradfi_reason", "price", "vol", "oi", "fund8h", "fund_iv_h", "src_ts", "rcv_ts", "first_seen",
-                   "health", "basis", "legacy")
+                   "health", "basis", "legacy",
+                   # v8 Phase 2 identity (v8.identity; None for markets the adapters skip)
+                   "cls", "cls_reason", "cls_auth", "npx", "exposure", "exp_class", "exp_reason", "admitted",
+                   "inherited_from", "meta")
 LEGACY_FILES = ("latest.json", "journal.json", "journal.csv", "quant.json", "quant_journal.json", "picks.json",
                 "picks_journal.json", "smart.json", "smart_journal.json", "dashboard.json")
 FIRST_SEEN_KEEP_S = 400 * 86400
@@ -159,8 +163,12 @@ def build(out_dir, pages_url=None, first_seen_path=None):
         "raw_contracts": rc.get("raw_contracts"), "active_perps": rc.get("active_perps"),
         "canonical_assets": rc.get("canonical_assets"), "legacy_universe": rstages.get("universe"),
         "legacy_crypto": rstages.get("crypto"),
-        "tradfi_exclusions": n_code("radar", "TRADFI_CLASSIFIED", "TRADFI_TICKER_COLLISION"),
-        "tradfi_collisions": n_code("radar", "TRADFI_TICKER_COLLISION"),
+        "tradfi_exclusions": n_code("radar", "TRADFI_CLASSIFIED", "TRADFI_EXPOSURE_EXCLUDED"),
+        "ambiguous_exclusions": n_code("radar", "AMBIGUOUS_EXPOSURE"),
+        "tradfi_collisions": len(rc.get("tradfi_collisions") or []),
+        "collisions": rc.get("tradfi_collisions") or [],
+        "crypto_exposure_selected": rc.get("crypto_exposure_selected") or [],
+        "assets_by_identity": rc.get("assets_by_identity"),
         "universe_exclusions": len(uni_final),
         "no_data_exclusions_radar": n_disp("radar", T.INSUFFICIENT_DATA),
         "scanner_stage1": rstages.get("stage1_charted"), "scanner_stage2": rstages.get("stage2_selected"),
@@ -216,7 +224,8 @@ def build(out_dir, pages_url=None, first_seen_path=None):
         if os.path.exists(p):
             refs.append(file_ref(p, f"data/{name}"))
     manifest = {
-        "schema": SCHEMA, "audit_version": ENGINE_VERSION, "scan_id": hdr.get("scan_id"), "ts": ts,
+        "schema": SCHEMA, "audit_version": ENGINE_VERSION, "identity_version": rc.get("identity_version"),
+        "liquidity_version": LIQUIDITY_VERSION, "scan_id": hdr.get("scan_id"), "ts": ts,
         "repo": hdr.get("repo"), "ref": hdr.get("git_ref"), "git_sha": hdr.get("git_sha"),
         "engine_versions": {e: ((P.get(e) or {}).get("header") or {}).get("engine_version") for e in ENGINES},
         "config_hashes": {e: ((P.get(e) or {}).get("header") or {}).get("config_hash") for e in ENGINES},

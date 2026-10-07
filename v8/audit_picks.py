@@ -59,12 +59,12 @@ def picks_parts(now, universe, coins, got, data, last_day, swing, by_liq, day_se
         c = universe[t]
         k = C.contract_ids(c)
         if c.get("tradfi"):
-            code, o = C.tradfi_code(c)
-            both(t, code, "universe", o=o, k=k)
+            code, o = C.excluded_code(c)
+            both(t, code, "universe", o=o, k=k, h=T.CONFLICTED if code == "AMBIGUOUS_EXPOSURE" else T.HEALTHY)
             continue
         if t not in chosen:
-            C.liquidity_final(S, t, c, "universe", cfg["min_dex_vol"], sc.in_my_dexes, k=k)
-            C.liquidity_final(D, t, c, "universe", cfg["min_dex_vol"], sc.in_my_dexes, k=k)
+            C.liquidity_final(S, t, c, "universe", cfg["min_dex_vol"], sc.CFG["trade_dexes"], k=k)
+            C.liquidity_final(D, t, c, "universe", cfg["min_dex_vol"], sc.CFG["trade_dexes"], k=k)
             continue
         g = got.get(t)
         if not g:
@@ -114,6 +114,7 @@ def picks_parts(now, universe, coins, got, data, last_day, swing, by_liq, day_se
         _score_final(D, t, drec, day_list, cfg, "day", k, src, ["PAPER_OPENED"] if t in new_day else [])
     out = {}
     for L, lists in ((S, swing_out), (D, day_out)):
+        C.note_identity_steps(L, sorted(universe))
         part = L.to_part()
         shown = set(_listed(lists))
         led = {r["a"] for r in L.records.values() if r["c"] in ("SWING_READY", "SWING_SETTING_UP", "DAY_READY",

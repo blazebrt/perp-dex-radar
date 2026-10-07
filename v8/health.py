@@ -4,11 +4,13 @@ A value is one of
     OBSERVED              the venue sent a number (non-zero)
     OBSERVED_ZERO         the venue sent exactly 0
     MISSING               the venue sent nothing (field absent, null, unparsable)
-    MISSING_LEGACY_ZERO   missing, and the legacy engine uses 0 in its place (e.g. `liq_of(c) or 0`)
+    MISSING_LEGACY_ZERO   missing, and the legacy engine used 0 in its place (Phase 1; the liquidity gate no
+                          longer does since Phase 2, see v8.liquidity)
     ASSUMED_DEFAULT       missing, and the legacy engine uses a configured default (e.g. fund_default)
 
 A record (contract, candle set, engine input) is HEALTHY, STALE, MISSING or CONFLICTED. These states are
-observations only: Phase 1 never feeds them back into any engine."""
+observations only: they never feed back into any engine. The execution-liquidity states (KNOWN, MISSING,
+NOT_ON_TRADE_DEX) live in v8.liquidity, which the engines use."""
 from __future__ import annotations
 
 from .taxonomy import CONFLICTED, HEALTHY, MISSING, STALE
@@ -52,26 +54,6 @@ def contract_state(price_basis, vol_basis, conflicted=False, source_ts=None, rec
     if source_ts is not None and receive_ts is not None and receive_ts - source_ts > STALE_AFTER_S:
         return STALE
     return HEALTHY
-
-
-def liquidity(coin, in_my_dexes):
-    """(basis, value) of the legacy liquidity of a universe coin, as `liq_of(coin) or 0` sees it.
-
-    The legacy coin keeps only truthy volumes (`if v.get("vol")`), so an observed 0 and a missing value both end up
-    as trade_vol None and then 0. This tells the two apart from the venue rows the coin still carries."""
-    venues = (coin or {}).get("venues") or {}
-    mine = [v for d, v in venues.items() if in_my_dexes(d)]
-    vols = [v.get("vol") for v in mine]
-    good = [x for x in vols if basis(x) == OBSERVED]
-    if good:
-        return OBSERVED, max(good)
-    if not venues:
-        return MISSING_LEGACY_ZERO, None
-    if not mine:
-        return NOT_ON_TRADE_DEX, None
-    if any(basis(x) == OBSERVED_ZERO for x in vols):
-        return OBSERVED_ZERO, 0.0
-    return MISSING_LEGACY_ZERO, None
 
 
 def funding(coin):

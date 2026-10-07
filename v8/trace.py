@@ -21,6 +21,7 @@ class Recorder:
         self.payloads = {}       # dex -> {key: (receive_ts, payload)}  the raw market lists, as fetched
         self.rows = {}           # dex -> adapter output rows (None when the adapter failed)
         self.events = []         # (code, dict) universe events: price conflicts, fallback
+        self.ident = None        # the v8.identity Resolution of the last build_universe() (Phase 2)
         self.candles = {}        # (coin, tf) -> [(source, outcome), ...] for the last failed candle request
         self.plans = []          # live radar plan rejections: (id(a), spec id, reason inputs)
         self.filters = []        # live radar variant-filter rejections: (id(a), spec id)
@@ -32,6 +33,7 @@ class Recorder:
         try:
             with self._lock:
                 self.payloads, self.rows, self.events, self.candles = {}, {}, [], {}
+                self.ident = None
                 self.universe_ts = time.time()
         except Exception:  # noqa: BLE001
             pass
@@ -59,6 +61,14 @@ class Recorder:
         try:
             with self._lock:
                 self.rows = {dex: (list(rows) if rows is not None else None) for dex, rows in results.items()}
+        except Exception:  # noqa: BLE001
+            pass
+
+    def identity(self, res):
+        """Keep the identity decision of this universe (v8.identity.resolve) for the audit."""
+        try:
+            with self._lock:
+                self.ident = res
         except Exception:  # noqa: BLE001
             pass
 

@@ -1,53 +1,67 @@
-"""Helpers shared by the engine audits: contract ids, the tradfi and liquidity reasons, candle-miss reasons."""
+"""Helpers shared by the engine audits: contract ids, the identity and liquidity reasons, candle-miss reasons."""
 from __future__ import annotations
 
-from . import health as H
+from . import identity as ID
+from . import liquidity as LQ
 from . import taxonomy as T
 from .trace import TRACE
 
 
 def contract_ids(coin):
-    """The venue contracts the legacy universe kept for a coin (venue:raw_symbol)."""
+    """The venue contracts the universe kept for a coin (venue:raw_symbol)."""
     return [f"{d}:{v.get('sym')}" for d, v in sorted(((coin or {}).get("venues") or {}).items())]
 
 
-def tradfi_code(coin, trace=TRACE):
-    """TRADFI_TICKER_COLLISION when the venues disagree (one lists the ticker as crypto), else TRADFI_CLASSIFIED.
+def identity_of(t, trace=TRACE):
+    """The v8.identity decision for ticker t in this process's last universe, or None."""
+    res = getattr(trace, "ident", None)
+    return res.asset(t) if res is not None else None
 
-    The legacy universe ORs the tradfi flag over every adapter row of the ticker - duplicates and markets later
-    dropped as price conflicts included - so the observed value names the rows that carried the flag."""
-    venues = (coin or {}).get("venues") or {}
-    flags = {d: bool(v.get("tradfi")) for d, v in venues.items()}
-    code = "TRADFI_TICKER_COLLISION" if any(not f for f in flags.values()) else "TRADFI_CLASSIFIED"
+
+def exposure_summary(info):
+    """A compact, readable account of a ticker's exposures for a ledger record."""
+    out = []
+    for x in (info or {}).get("exposures") or []:
+        out.append({"id": x["id"], "class": x["class"], "reason": x["reason"], "price": x["anchor_price"] or
+                    (x["price_range"] or [None])[0], "contracts": x["members"],
+                    "admitted": x["admitted"] or x["attached"]})
+    return out
+
+
+def excluded_code(coin, trace=TRACE):
+    """(code, observed) for a coin the universe kept out of the crypto engines (tradfi=True): TRADFI_CLASSIFIED,
+    TRADFI_EXPOSURE_EXCLUDED or AMBIGUOUS_EXPOSURE, with the exposures that decided it."""
     t = (coin or {}).get("t")
-    o = {"venue_tradfi": dict(sorted(flags.items())), "name": (coin or {}).get("name")}
-    try:
-        import scanner as sc
-        o["known_crypto"] = t in sc.KNOWN_CRYPTO     # True: a listed crypto coin is the one being excluded
-    except Exception:  # noqa: BLE001
-        pass
-    rows = getattr(trace, "rows", None) or {}
-    flagged = sorted(f"{d}:{r.get('sym')}" for d, rs in rows.items() for r in (rs or [])
-                     if r.get("t") == t and r.get("tradfi"))
-    if flagged:
-        o["tradfi_rows"] = flagged
+    info = identity_of(t, trace)
+    if info is None:          # no identity trace (should not happen): name it, never guess
+        return "AUDIT_UNCLASSIFIED", {"why": "no v8.identity decision recorded for this coin"}
+    code = info["decision"]
+    if code not in (ID.D_TRADFI, ID.D_TRADFI_EXPOSURE, ID.D_AMBIGUOUS):
+        return "AUDIT_UNCLASSIFIED", {"why": f"coin excluded but identity decided {code}"}
+    o = {"exposures": exposure_summary(info), "name": (coin or {}).get("name")}
+    if info.get("ticker_list"):
+        o["ticker_list"] = info["ticker_list"]
     return code, o
 
 
-def liquidity_final(L, t, coin, stage, min_vol, in_my_dexes, k=None):
-    """The final record of a coin the legacy `(liq_of(c) or 0) >= min` check leaves out."""
-    b, v = H.liquidity(coin, in_my_dexes)
-    if b == H.OBSERVED:
-        return L.final(t, "DEX_VOLUME_BELOW_LEGACY_MIN", stage, o={"trade_vol": v, "basis": b}, th={"min": min_vol},
-                       k=k)
-    if b == H.OBSERVED_ZERO:
-        return L.final(t, "DEX_VOLUME_BELOW_LEGACY_MIN", stage, o={"trade_vol": 0.0, "basis": b},
+def note_identity_steps(L, tickers, trace=TRACE):
+    """Adds the CRYPTO_EXPOSURE_SELECTED step to the final record of every admitted coin whose ticker also names an
+    excluded exposure (call after the engine loop)."""
+    for t in tickers:
+        info = identity_of(t, trace)
+        if info and info["decision"] == ID.D_SELECTED:
+            L.note(t, "CRYPTO_EXPOSURE_SELECTED")
+
+
+def liquidity_final(L, t, coin, stage, min_vol, trade_dexes, k=None):
+    """The final record of a coin the execution-liquidity gate (v8.liquidity.passes) leaves out."""
+    e = LQ.evaluate(coin, trade_dexes)
+    if e["state"] == LQ.KNOWN:
+        return L.final(t, "DEX_VOLUME_BELOW_LEGACY_MIN", stage, o={"trade_vol": e["value"], "basis": e["basis"]},
                        th={"min": min_vol}, k=k)
-    if b == H.NOT_ON_TRADE_DEX:
-        return L.final(t, "NOT_ON_TRADE_DEX", stage, o={"venues": sorted(((coin or {}).get("venues") or {}))},
-                       th={"min": min_vol}, k=k)
-    return L.final(t, "DEX_VOLUME_MISSING_LEGACY_ZERO", stage, o={"trade_vol": None, "basis": b,
-                                                                   "legacy_used": 0.0},
+    if e["state"] == LQ.NOT_ON_TRADE_DEX:
+        return L.final(t, "NOT_ON_TRADE_DEX", stage, o={"venues": e["venues"]}, th={"min": min_vol}, k=k)
+    return L.final(t, "DEX_VOLUME_MISSING", stage, o={"trade_vol": None, "basis": "MISSING", "venues": e["venues"]},
                    th={"min": min_vol}, h=T.MISSING, k=k)
 
 
