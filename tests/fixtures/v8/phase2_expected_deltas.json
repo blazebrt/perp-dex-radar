@@ -1,0 +1,190 @@
+{
+ "schema": "v8.delta/1",
+ "phase": "v8 Phase 2: universe identity and missing liquidity semantics",
+ "base": {
+  "sha": "15a37944bc73ae531ea33998b899a562e51361ad",
+  "tree": "3c1c916dbef6327762ebc6d9abd93031df59c8f1",
+  "golden": "tests/fixtures/v8/legacy_parity_golden.json"
+ },
+ "head_golden": "tests/fixtures/v8/legacy_parity_golden_phase2.json",
+ "rules": {
+  "CRYPTO_EXPOSURE_ADMITTED": "A ticker whose crypto exposure carries no tradfi evidence enters the crypto universe (tradfi true -> false) although an unrelated, price-separated tradfi exposure shares its ticker; that exposure stays excluded.",
+  "NAME_FROM_ADMITTED_EXPOSURE": "The coin name is taken from the admitted contracts only.",
+  "UNPRICED_CONTRACT_CANNOT_POISON": "A contract without a price never joins or reclassifies a priced exposure; with tradfi evidence it stays out of the admitted coin.",
+  "OBSERVED_ZERO_VOLUME_KEPT": "An observed 0 volume is stored as 0.0; None now means no venue reported a volume.",
+  "UNLABELED_STOCK_NOT_COUNTED_AS_CRYPTO": "A DEX's count of crypto markets no longer includes unlabeled markets of a tradfi or ambiguous exposure (a stock the venue did not label).",
+  "PRICE_CONFLICT_NOTE_NOT_EMITTED": "The 'price differs from the main market; left out' note is not emitted for a contract that now forms its own, excluded exposure of an admitted coin.",
+  "MISSING_VOLUME_SHOWN_UNAVAILABLE": "A coin whose 24h DEX volume is missing is published with volume null (shown as '-'), not 0 (shown as $0)."
+ },
+ "universe": [
+  {
+   "ticker": "BB",
+   "field": "tradfi",
+   "base": true,
+   "head": false,
+   "rule": "CRYPTO_EXPOSURE_ADMITTED",
+   "why": "BB (BounceBit) on Hyperliquid, Aster and Variational is one price-coherent crypto exposure with no tradfi evidence; the stock on Lighter (unlabeled) and Extended (RWA) near $9.6 is a separate exposure and stays out."
+  },
+  {
+   "ticker": "FAKE13",
+   "field": "tradfi",
+   "base": true,
+   "head": false,
+   "rule": "UNPRICED_CONTRACT_CANNOT_POISON",
+   "why": "Extended's FAKE13-USD (RWA) sends no price, so it cannot be placed in the priced exposure; it no longer turns the priced crypto coin into tradfi."
+  },
+  {
+   "ticker": "FAKE13",
+   "field": "tot_vol",
+   "base": 23856883.446870532,
+   "head": 23855883.446870532,
+   "rule": "UNPRICED_CONTRACT_CANNOT_POISON",
+   "why": "its $1,000 volume is no longer added to the coin's total volume."
+  },
+  {
+   "ticker": "FAKE13",
+   "field": "venues",
+   "base": {
+    "hyperliquid": "FAKE13",
+    "variational": "FAKE13",
+    "extended": "FAKE13-USD"
+   },
+   "head": {
+    "hyperliquid": "FAKE13",
+    "variational": "FAKE13"
+   },
+   "rule": "UNPRICED_CONTRACT_CANNOT_POISON",
+   "why": "the unpriced RWA contract is kept out of the admitted crypto coin."
+  },
+  {
+   "ticker": "KIOXIA",
+   "field": "best_vol",
+   "base": null,
+   "head": 0.0,
+   "rule": "OBSERVED_ZERO_VOLUME_KEPT",
+   "why": "both venues report exactly 0 (the coin is tradfi either way)"
+  },
+  {
+   "ticker": "KIOXIA",
+   "field": "tot_vol",
+   "base": null,
+   "head": 0.0,
+   "rule": "OBSERVED_ZERO_VOLUME_KEPT",
+   "why": "as best_vol"
+  },
+  {
+   "ticker": "KIOXIA",
+   "field": "trade_vol",
+   "base": null,
+   "head": 0.0,
+   "rule": "OBSERVED_ZERO_VOLUME_KEPT",
+   "why": "as best_vol"
+  },
+  {
+   "ticker": "PURR",
+   "field": "name",
+   "base": "Hyperliquid Strategies Inc.",
+   "head": null,
+   "rule": "NAME_FROM_ADMITTED_EXPOSURE",
+   "why": "the coin's name comes from the admitted contracts only: the company name of the excluded RWA market no longer labels the crypto coin."
+  },
+  {
+   "ticker": "PURR",
+   "field": "tradfi",
+   "base": true,
+   "head": false,
+   "rule": "CRYPTO_EXPOSURE_ADMITTED",
+   "why": "PURR on Hyperliquid is a crypto exposure; Extended's PURR-USD (RWA, Hyperliquid Strategies Inc. shares) is priced ~60x higher, a separate exposure that stays out."
+  },
+  {
+   "ticker": "QNT",
+   "field": "tradfi",
+   "base": true,
+   "head": false,
+   "rule": "CRYPTO_EXPOSURE_ADMITTED",
+   "why": "QNT on Variational, Aster and Lighter is one crypto exposure; Extended's QNT-USD (RWA) at about half the price is a separate exposure and stays out."
+  },
+  {
+   "ticker": "ZEROV",
+   "field": "best_vol",
+   "base": null,
+   "head": 0.0,
+   "rule": "OBSERVED_ZERO_VOLUME_KEPT",
+   "why": "Hyperliquid reports exactly 0: stored as 0.0 (was None, the same as a missing volume)."
+  },
+  {
+   "ticker": "ZEROV",
+   "field": "tot_vol",
+   "base": null,
+   "head": 0.0,
+   "rule": "OBSERVED_ZERO_VOLUME_KEPT",
+   "why": "as best_vol"
+  },
+  {
+   "ticker": "ZEROV",
+   "field": "trade_vol",
+   "base": null,
+   "head": 0.0,
+   "rule": "OBSERVED_ZERO_VOLUME_KEPT",
+   "why": "as best_vol; the coin still fails the $1M gate (NOT_EXECUTABLE)"
+  }
+ ],
+ "dex_status": [
+  {
+   "dex": "aster",
+   "field": "crypto",
+   "base": 8,
+   "head": 4,
+   "rule": "UNLABELED_STOCK_NOT_COUNTED_AS_CRYPTO",
+   "contracts": [
+    "aster:ASTSUSDT",
+    "aster:KORUUSDT",
+    "aster:XIAOMIUSDT",
+    "aster:ONDSUSDT"
+   ]
+  },
+  {
+   "dex": "lighter",
+   "field": "crypto",
+   "base": 8,
+   "head": 4,
+   "rule": "UNLABELED_STOCK_NOT_COUNTED_AS_CRYPTO",
+   "contracts": [
+    "lighter:BB",
+    "lighter:KORU",
+    "lighter:XIAOMI",
+    "lighter:KIOXIA"
+   ]
+  }
+ ],
+ "notes": {
+  "removed": [
+   "BB: Lighter price 9.6408 differs from the main market (0.1082); left out",
+   "BB: Extended price 9.6066 differs from the main market (0.1082); left out",
+   "PURR: Extended price 12.772 differs from the main market (0.3151); left out",
+   "QNT: Extended price 46.030 differs from the main market (90.418); left out"
+  ],
+  "added": [],
+  "rule": "PRICE_CONFLICT_NOTE_NOT_EMITTED"
+ },
+ "code": [
+  {
+   "file": "data/latest.json",
+   "path": [
+    "table",
+    {
+     "match": [
+      1,
+      "LONLY"
+     ]
+    },
+    11
+   ],
+   "base": 0,
+   "head": null,
+   "rule": "MISSING_VOLUME_SHOWN_UNAVAILABLE",
+   "why": "LONLY: Lighter sends no 24h volume; the radar table showed $0."
+  }
+ ],
+ "not_allowed": "Anything else. Outputs of the engines downstream of the universe may differ between BASE and HEAD only as the counterfactual run (BASE code fed HEAD's universe) proves: unchanged legacy logic responding to the deltas above."
+}
