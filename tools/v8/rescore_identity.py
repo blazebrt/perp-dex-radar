@@ -7,8 +7,9 @@ the raw metadata Aster and Extended send, and the classification reason). This t
 market-list order and runs v8.identity.resolve() on them, so the identity states of a past scan can be computed
 without a network: the Phase 3 inventory of the Phase 2 live scan is reproduced this way.
 
-Faithful except for one input the snapshot does not store, the market's display name: a contract whose recorded
-reason was a tradfi name pattern gets a name that carries the same pattern word, so the same rule decides. Reads
+A Phase 3 snapshot also keeps the raw venue fields (Variational name, Aster underlyingSubType), which are used. For an
+older snapshot without them, the market's display name is rebuilt from the recorded reason: a contract whose reason
+was a tradfi name pattern gets a name carrying the same pattern word, so the same rule decides. Reads
 the snapshot only; changes nothing."""
 from __future__ import annotations
 
@@ -51,6 +52,11 @@ def rows_of(snap):
              "vol": c["vol"], "oi": c.get("oi"), "funding8h": c.get("fund8h"), "tradfi": c.get("tradfi"),
              "name": name}
         r.update(meta)
+        vm = c.get("vmeta") or {}            # Phase 3 snapshots keep the raw venue fields
+        if c["venue"] == "aster" and isinstance(vm.get("underlyingSubType"), list) and vm["underlyingSubType"]:
+            r["subtypes"] = list(vm["underlyingSubType"])
+        if c["venue"] == "variational" and vm.get("name"):
+            r["name"] = vm["name"]
         out[c["venue"]].append(r)
     return out
 

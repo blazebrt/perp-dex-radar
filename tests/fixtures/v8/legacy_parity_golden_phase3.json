@@ -7,7 +7,7 @@
   "data/v8/parts/swing.json",
   "data/v8/parts/universe.json"
  ],
- "combined": "408fecd27c26e5ff636de7ab259ccd95fd1bc0c2c92879e353be2274e9e7d163",
+ "combined": "4714c3aa3d6d71346e1080bc640e9917756cc9f0c793055f971b906777265058",
  "decisions": {
   "picks": {
    "daytrade_all": [
@@ -385,13 +385,13 @@
    "signals": 11
   },
   "radar": {
-   "coins": 63,
+   "coins": 64,
    "crypto": 44,
    "deep": 36,
    "dexes": {
     "aster": [
      true,
-     12,
+     13,
      5
     ],
     "dydx": [
@@ -443,6 +443,7 @@
    "tradfi": [
     "AAPL",
     "ACME",
+    "ADBE",
     "ASTS",
     "EURUSD",
     "KIOXIA",
@@ -452,6 +453,7 @@
     "SECT",
     "SKHYNIX",
     "SKHYNIXUSD",
+    "US100S",
     "XIAOMI"
    ],
    "unverified": [
@@ -460,7 +462,6 @@
     "HYUNDAIUSD",
     "MOONX",
     "NEWCOIN",
-    "US100S",
     "US10Y"
    ],
    "watch": []
@@ -487,7 +488,7 @@
   "data/dashboard.json": "e1750c0daef6167e65dabbdb3c8a6078881feaf0b3e2cece2773a9a29e1cec03",
   "data/journal.csv": "ea6fac914cde0e58780332f6361c42c283ac183fbfd622031aa8d564f39c4d73",
   "data/journal.json": "0a5d2f813ecd4e89a96ba1d77bd72cd7b5d9b9c7ebea1d6cb1ae00c82144a466",
-  "data/latest.json": "7c2819912f5e09cce25bcabb376af71ad1f37c26a5103f6d16402d0efd3c5670",
+  "data/latest.json": "519c3d32e92e439aefcafd1ee498a4cf6a7a234ac333e140775858af42601f50",
   "data/picks.json": "95ecae551ffea0dd4258f88a186701f11a2717c0dce6e34c4784fddf24920238",
   "data/picks_journal.json": "08de1df3299ca97842538c0c3e4d64c00cfa5106f1442dcc2bed93a80422a7bf",
   "data/picks_research.json": "83e32dbf258d140c5e534cefe77e08802f0eb7cd17d6762e1bc3aef39d5dfd85",

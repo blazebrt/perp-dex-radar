@@ -580,9 +580,12 @@ def dex_aster():
         t, mult = canon(base_asset)
         tk, pr = tick.get(sym, {}), prem.get(sym, {})
         ut = s.get("underlyingType")
+        sub = s.get("underlyingSubType")
         out.append(_venue(t, "aster", sym, mult, price=fnum(tk.get("lastPrice")) or fnum(pr.get("markPrice")),
                           vol=fnum(tk.get("quoteVolume")), funding8h=fnum(pr.get("lastFundingRate")),
-                          tradfi=True if ut and ut != "COIN" else None, underlying=ut))
+                          tradfi=True if ut and ut != "COIN" else None, underlying=ut,
+                          # v8 Phase 3: identity evidence only (v8.identity.venue_field_evidence)
+                          **({"subtypes": list(sub)} if isinstance(sub, list) and sub else {})))
     return out
 
 

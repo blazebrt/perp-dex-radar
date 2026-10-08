@@ -5,7 +5,7 @@
   "sha": "82f8d35a80e561384f2e8be0e1399dd4e5adb99b",
   "tree": "06d80f744401589f983ac52298650d182e0c2fa5",
   "golden": "tests/fixtures/v8/legacy_parity_golden_phase3_base.json",
-  "golden_note": "main 82f8d35 (Phase 2) on the Phase 3 fixture: the Phase 2 fixture plus the fixture-world known-crypto declaration (alone: no Phase 2 output changes) and the Phase 3 identity cases (MOONX, NEWCOIN, US100S, SAMSUNGUSD, SKHYNIX/SKHYNIXUSD, HYUNDAI/HYUNDAIUSD, US10Y, BYD, PRLX)"
+  "golden_note": "main 82f8d35 (Phase 2) on the Phase 3 fixture: the Phase 2 fixture plus the fixture-world known-crypto declaration (alone: no Phase 2 output changes) and the Phase 3 identity cases (MOONX, NEWCOIN, US100S, ADBE, SAMSUNGUSD, SKHYNIX/SKHYNIXUSD, HYUNDAI/HYUNDAIUSD, US10Y, BYD, PRLX)"
  },
  "head_golden": "tests/fixtures/v8/legacy_parity_golden_phase3.json",
  "counterfactual_projection": "exclude_without_execution_identity",
@@ -14,9 +14,26 @@
   "PARSED_SYMBOL_TRADFI": "On a venue whose symbols name the base asset only (Hyperliquid, Lighter, Variational), a symbol ending in USD yields a parsed candidate; it is tradfi evidence when the candidate is on the tradfi list or an FX pair, or when the candidate ticker has a TRADFI exposure within 20% of the contract's price. Never crypto evidence.",
   "UNVERIFIED_NOT_COUNTED_AS_CRYPTO": "A DEX's count of crypto markets counts only markets admitted with crypto execution identity: unverified markets and markets that became tradfi are no longer counted.",
   "UNVERIFIED_EXPOSURE_NOT_MERGED": "A price-separated UNVERIFIED exposure next to a VERIFIED_CRYPTO exposure of the same ticker is not merged into the crypto coin (contract state UNVERIFIED_EXPOSURE_NOT_ADMITTED), so the price-conflict note for it is not emitted.",
-  "UNVERIFIED_LISTED_SEPARATELY": "The radar publishes identity-unverified coins in coverage.unverified, not among the non-crypto (tradfi) exclusions in coverage.tradfi: unknown is not tradfi."
+  "UNVERIFIED_LISTED_SEPARATELY": "The radar publishes identity-unverified coins in coverage.unverified, not among the non-crypto (tradfi) exclusions in coverage.tradfi: unknown is not tradfi.",
+  "VENUE_FIELD_TRADFI": "A same-venue field the live venue field census showed to be tradfi-only is tradfi evidence: an Aster underlyingSubType in STOCK, ETF, Commodities, Semiconductor, USD1-RWA, or a Variational market name starting 'Swap on ' (scan gh-37782095629-1: 0 such markets in a verified crypto exposure). Tradfi direction only."
  },
  "universe": [
+  {
+   "ticker": "ADBE",
+   "field": "tradfi",
+   "base": false,
+   "head": true,
+   "rule": "VENUE_FIELD_TRADFI",
+   "why": "Aster ADBEUSDT sends underlyingType COIN (no evidence) and underlyingSubType [STOCK] (VENUE_SUBTYPE:STOCK)."
+  },
+  {
+   "ticker": "ADBE",
+   "field": "execution_identity",
+   "base": true,
+   "head": false,
+   "rule": "VENUE_FIELD_TRADFI",
+   "why": "as tradfi: VERIFIED_TRADFI"
+  },
   {
    "ticker": "BYD",
    "field": "execution_identity",
@@ -91,11 +108,19 @@
   },
   {
    "ticker": "US100S",
+   "field": "tradfi",
+   "base": false,
+   "head": true,
+   "rule": "VENUE_FIELD_TRADFI",
+   "why": "Variational names it 'Swap on US Non-Financial 100' (VENUE_NAME:swap on), as in the live scan; Phase 2 admitted it (.0B a day) as crypto by default."
+  },
+  {
+   "ticker": "US100S",
    "field": "execution_identity",
    "base": true,
    "head": false,
-   "rule": "IDENTITY_UNVERIFIED_NO_EXECUTION",
-   "why": "Variational US100S (.0B 24h volume in the live scan) has no venue label, no list entry and no tradfi name: UNVERIFIED, not crypto. Phase 2 admitted it as crypto by default."
+   "rule": "VENUE_FIELD_TRADFI",
+   "why": "as tradfi: VERIFIED_TRADFI"
   },
   {
    "ticker": "US10Y",
@@ -110,13 +135,14 @@
   {
    "dex": "aster",
    "field": "crypto",
-   "base": 8,
+   "base": 9,
    "head": 5,
    "rule": "UNVERIFIED_NOT_COUNTED_AS_CRYPTO",
    "contracts": [
     "aster:MOONXUSDT",
     "aster:NEWCOINUSDT",
-    "aster:HYUNDAIUSDT"
+    "aster:HYUNDAIUSDT",
+    "aster:ADBEUSDT"
    ]
   },
   {
@@ -149,10 +175,11 @@
    "field": "crypto",
    "base": 35,
    "head": 34,
-   "rule": "UNVERIFIED_NOT_COUNTED_AS_CRYPTO",
+   "rule": "VENUE_FIELD_TRADFI",
    "contracts": [
     "variational:US100S"
-   ]
+   ],
+   "why": "variational:US100S is now tradfi"
   }
  ],
  "notes": {
@@ -173,6 +200,7 @@
    "base": [
     "AAPL",
     "ACME",
+    "ADBE",
     "ASTS",
     "BYD",
     "EURUSD",
@@ -194,6 +222,7 @@
    "head": [
     "AAPL",
     "ACME",
+    "ADBE",
     "ASTS",
     "EURUSD",
     "KIOXIA",
@@ -203,6 +232,7 @@
     "SECT",
     "SKHYNIX",
     "SKHYNIXUSD",
+    "US100S",
     "XIAOMI"
    ],
    "rule": "UNVERIFIED_LISTED_SEPARATELY",
@@ -221,7 +251,6 @@
     "HYUNDAIUSD",
     "MOONX",
     "NEWCOIN",
-    "US100S",
     "US10Y"
    ],
    "rule": "UNVERIFIED_LISTED_SEPARATELY",
@@ -238,6 +267,7 @@
    "base": [
     "AAPL",
     "ACME",
+    "ADBE",
     "ASTS",
     "BYD",
     "EURUSD",
@@ -259,6 +289,7 @@
    "head": [
     "AAPL",
     "ACME",
+    "ADBE",
     "ASTS",
     "EURUSD",
     "KIOXIA",
@@ -268,6 +299,7 @@
     "SECT",
     "SKHYNIX",
     "SKHYNIXUSD",
+    "US100S",
     "XIAOMI"
    ],
    "rule": "UNVERIFIED_LISTED_SEPARATELY"
@@ -284,7 +316,6 @@
     "HYUNDAIUSD",
     "MOONX",
     "NEWCOIN",
-    "US100S",
     "US10Y"
    ],
    "rule": "UNVERIFIED_LISTED_SEPARATELY"
@@ -336,13 +367,14 @@
   "AAPL": "VERIFIED_TRADFI",
   "ACME": "VERIFIED_TRADFI",
   "ONDS": "VERIFIED_TRADFI",
-  "US100S": "UNVERIFIED",
+  "US100S": "VERIFIED_TRADFI",
   "ASTS": "VERIFIED_TRADFI",
   "KORU": "VERIFIED_TRADFI",
   "XIAOMI": "AMBIGUOUS",
   "NEWCOIN": "UNVERIFIED",
   "HYUNDAI": "UNVERIFIED",
   "PRLX": "VERIFIED_CRYPTO",
+  "ADBE": "VERIFIED_TRADFI",
   "LONLY": "VERIFIED_CRYPTO",
   "KIOXIA": "VERIFIED_TRADFI",
   "SAMSUNGUSD": "VERIFIED_TRADFI",

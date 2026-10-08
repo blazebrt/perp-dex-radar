@@ -231,7 +231,7 @@ class Phase3Validator(unittest.TestCase):
             man = json.load(fh)
         self.assertEqual(man["base"]["sha"], "82f8d35a80e561384f2e8be0e1399dd4e5adb99b")
         self.assertEqual(man["schema"], "v8.delta/2")
-        self.assertLessEqual(len(man["universe"]), 12)
+        self.assertLessEqual(len(man["universe"]), 16)
         self.assertLessEqual(len(man["code"]), 2)
         self.assertEqual({e["field"] for e in man["universe"]}, {"execution_identity", "tradfi"})
         # every universe delta takes execution authority away; none grants it

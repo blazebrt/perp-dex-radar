@@ -282,6 +282,36 @@ class Matrix(unittest.TestCase):
         self.assertEqual(state(r, "BYD"), ID.UNVERIFIED)
         self.assertEqual(r.coins["BYD"]["best_vol"], 0.0)
 
+    def test_same_venue_fields_tradfi_direction_only(self):
+        """Aster underlyingSubType and Variational names, chosen from the live venue field census: the tradfi-only
+        values are tradfi evidence; the crypto-looking values (Top, Meme, AI) decide nothing."""
+        def ast(base, subs, px=10.0):
+            r = aster(f"{base}USDT", base, px, 1e5)
+            r["subtypes"] = subs
+            return r
+        for sub in ("STOCK", "ETF", "Commodities", "Semiconductor", "USD1-RWA"):
+            r = resolve(ast("ZSTK", [sub, "AOS2"]))
+            self.assertEqual(state(r, "ZSTK"), ID.VERIFIED_TRADFI, sub)
+            self.assertEqual(row_of(r, "aster")["why"], f"VENUE_SUBTYPE:{sub}")
+        for sub in (["Top"], ["Meme"], ["AI"], ["AOS2"], ["pre-launch"], []):
+            r = resolve(ast("ZMEM", sub))
+            self.assertEqual(state(r, "ZMEM"), ID.UNVERIFIED, sub)          # never crypto from a subtype
+        r = resolve(var("GASOLP", 3.23, 6e6, "Swap on Gasoline"))
+        self.assertEqual(state(r, "GASOLP"), ID.VERIFIED_TRADFI)
+        self.assertEqual(row_of(r, "variational")["why"], "VENUE_NAME:swap on")
+        r = resolve(var("ZZQ", 1.0, 1e6, "Zzq Protocol"))
+        self.assertEqual(state(r, "ZZQ"), ID.UNVERIFIED)
+        # contract evidence beats the known-crypto list inside one exposure (Phase 2 precedence), so a stock tag on
+        # a coherent market of a known crypto ticker makes that exposure tradfi - the safe direction
+        r = resolve(hl("SOL", 150.0, 5e6), ast("SOL", ["STOCK"], px=150.2))
+        self.assertFalse(ID.execution_identity_eligible(r.coins["SOL"]))
+        # the live HYUNDAI case: Aster tags it STOCK, so HYUNDAIUSD resolves through its link
+        r = resolve(lighter("HYUNDAIUSD", 252.403, 2579.88), ast("HYUNDAI", ["STOCK"], px=253.02))
+        self.assertEqual((state(r, "HYUNDAI"), state(r, "HYUNDAIUSD")), (ID.VERIFIED_TRADFI, ID.VERIFIED_TRADFI))
+        self.assertEqual(row_of(r, "lighter")["why"], "PARSED_SYMBOL_EXPOSURE:HYUNDAI#1")
+        # Phase 2 knew none of this: the before/after says so
+        self.assertEqual(r.asset("HYUNDAI")["phase2"], {"state": "CRYPTO", "reasons": ["DEFAULT_CRYPTO"]})
+
     def test_parsed_symbol_never_grants_crypto(self):
         r = resolve(hl("BTC", 60000.0, 1e9), lighter("BTCUSD", 60010.0, 1e6))
         self.assertEqual(state(r, "BTC"), ID.VERIFIED_CRYPTO)

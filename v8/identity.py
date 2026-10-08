@@ -25,6 +25,9 @@ Rules (deterministic; no statistics, no per-ticker exceptions, no network):
    field.
    Contract name: a name matching the tradfi name pattern (Inc, Holdings, ETF, ...) is tradfi unless the ticker is
    on the known-crypto list (the precedence of scanner.is_tradfi()).
+   Venue fields (Phase 3, tradfi direction only, chosen from the live venue field census): an Aster underlyingSubType
+   in ASTER_TRADFI_SUBTYPES (STOCK, ETF, Commodities, Semiconductor, USD1-RWA); a Variational market name starting
+   "Swap on " (ticker not known crypto).
    Venue symbol (Phase 3): on venues whose market symbols name the base asset only (BASE_ONLY_SYMBOL_VENUES; the
    quote is the venue's settlement currency and is never written), a symbol ending in a quote code
    (QUOTE_SUFFIXES) yields a parsed underlying candidate: SAMSUNGUSD -> SAMSUNG. The candidate never changes the
@@ -93,6 +96,13 @@ STATE_OF_DECISION = {D_CRYPTO: VERIFIED_CRYPTO, D_SELECTED: VERIFIED_CRYPTO, D_T
 EXTENDED_TRADFI_CATEGORIES = frozenset({"RWA"})
 EXTENDED_CRYPTO_CATEGORIES = frozenset({"Crypto"})
 ASTER_NEUTRAL_UNDERLYING = frozenset({"COIN"})
+# Phase 3, from the venue field census of the exact-head live scan gh-37782095629-1 (2,016 active perps): Aster
+# underlyingSubType values that were never on a market of a verified crypto exposure (STOCK: 98 tradfi, 19 unverified
+# or ambiguous, 0 crypto; ETF, Commodities, Semiconductor, USD1-RWA: 54 tradfi, 8 unverified, 0 crypto). Tradfi
+# evidence only. The crypto-looking values (Top, Meme, AI) are recorded, never evidence: Meme was on a tradfi market.
+ASTER_TRADFI_SUBTYPES = frozenset({"STOCK", "ETF", "Commodities", "Semiconductor", "USD1-RWA"})
+# Variational names its tradfi swaps "Swap on <underlying>" (9 tradfi, 4 unverified, 0 crypto in the same census)
+VARIATIONAL_TRADFI_NAME_PREFIX = "swap on "
 NAMED_VENUES = ("variational", "extended")     # the venues whose market name the legacy coin record keeps
 # venues whose market symbol names the base asset only; the quote (the venue's settlement currency) is never part
 # of the symbol (Hyperliquid "BTC", Lighter "ETH", Variational "SOL"), so a trailing quote code is a lead to parse
@@ -137,9 +147,9 @@ def parse_symbol(dex, t):
 
 
 def contract_evidence(row, lists, dex=None):
-    """[(class, reason, authority), ...]: what the contract itself says (Phase 2 evidence, then the Phase 3
-    parsed-symbol evidence)."""
-    return base_evidence(row, lists) + parsed_evidence(row, lists, dex)
+    """[(class, reason, authority), ...]: what the contract itself says (Phase 2 evidence, then the Phase 3 venue
+    field and parsed-symbol evidence)."""
+    return base_evidence(row, lists) + venue_field_evidence(row, lists) + parsed_evidence(row, lists, dex)
 
 
 def base_evidence(row, lists):
@@ -166,6 +176,23 @@ def base_evidence(row, lists):
         m = lists.name_re.search(str(name))
         if m:
             ev.append((TRADFI, "NAME_PATTERN:" + m.group(0).lower(), CONTRACT_NAME))
+    return ev
+
+
+def venue_field_evidence(row, lists):
+    """Phase 3: tradfi evidence from same-venue fields the census showed to be reliable in that direction: an Aster
+    underlyingSubType in ASTER_TRADFI_SUBTYPES, a Variational name "Swap on ..." (ticker not known crypto, the
+    precedence of the name rule)."""
+    dex, t = row.get("dex"), row.get("t")
+    ev = []
+    if dex == "aster":
+        hit = sorted(set(row.get("subtypes") or ()) & ASTER_TRADFI_SUBTYPES)
+        if hit:
+            ev.append((TRADFI, "VENUE_SUBTYPE:" + "+".join(hit), VENUE_METADATA))
+    elif dex == "variational":
+        name = str(row.get("name") or "")
+        if name.lower().startswith(VARIATIONAL_TRADFI_NAME_PREFIX) and t not in lists.known_crypto:
+            ev.append((TRADFI, "VENUE_NAME:swap on", CONTRACT_NAME))
     return ev
 
 
@@ -220,7 +247,7 @@ class Member:
     def __init__(self, dex, i, row, lists):
         self.dex, self.i, self.row = dex, i, row
         self.ev2 = base_evidence(row, lists)                     # what Phase 2 knew
-        self.ev = self.ev2 + parsed_evidence(row, lists, dex)    # Phase 3
+        self.ev = self.ev2 + venue_field_evidence(row, lists) + parsed_evidence(row, lists, dex)   # Phase 3
         self.cls, self.why, self.auth = classify_evidence(self.ev)
         self.cls2 = classify_evidence(self.ev2)[0]
         p, m = row.get("price"), row.get("mult") or 1.0
@@ -503,7 +530,7 @@ def _row_info(m, g, state, asset_state):
 
 def _meta(row):
     out = {}
-    for k in ("underlying", "category"):
+    for k in ("underlying", "category", "subtypes"):
         if row.get(k) is not None:
             out[k] = row.get(k)
     return out or None

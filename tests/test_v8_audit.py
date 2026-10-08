@@ -43,7 +43,7 @@ GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase3.json"
 BASE_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase3_base.json")
 MANIFEST = os.path.join(HERE, "fixtures", "v8", "phase3_expected_deltas.json")
 # the fixture's coins without positive identity evidence (v8 Phase 3; tools/v8/legacy_parity.py)
-UNVERIFIED = ("BYD", "HYUNDAI", "HYUNDAIUSD", "MOONX", "NEWCOIN", "US100S", "US10Y")
+UNVERIFIED = ("BYD", "HYUNDAI", "HYUNDAIUSD", "MOONX", "NEWCOIN", "US10Y")
 
 
 class PipelineAudit(unittest.TestCase):
@@ -212,7 +212,7 @@ class PipelineAudit(unittest.TestCase):
         self.assertEqual(self.contracts["variational:ACME"]["tradfi_reason"], "NAME_PATTERN:holdings")
         # no excluded exposure's market is counted as a crypto market of its DEX
         dexes = legacy["coverage"]["dexes"]
-        self.assertEqual((dexes["aster"]["markets"], dexes["aster"]["crypto"]), (12, 5))
+        self.assertEqual((dexes["aster"]["markets"], dexes["aster"]["crypto"]), (13, 5))
         self.assertEqual((dexes["lighter"]["markets"], dexes["lighter"]["crypto"]), (14, 4))
 
     def test_unpriced_contract_does_not_poison(self):
@@ -296,8 +296,18 @@ class PipelineAudit(unittest.TestCase):
         h = C["lighter:HYUNDAIUSD"]
         self.assertEqual((h["cls"], h["link"]["coherent_exposure"], h["link"]["coherent_class"], h["link"]["evidence"]),
                          ("UNLABELED", "HYUNDAI#1", "UNVERIFIED", None))
-        for t in ("HYUNDAIUSD", "HYUNDAI", "US10Y", "BYD", "US100S"):
+        for t in ("HYUNDAIUSD", "HYUNDAI", "US10Y", "BYD"):
             self.assertEqual(A[t]["identity"]["state"], "UNVERIFIED", t)
+        # same-venue fields, tradfi direction (the live venue field census): an Aster STOCK subtype, a Variational swap
+        u = C["variational:US100S"]
+        self.assertEqual((u["cls"], u["cls_reason"], u["vmeta"]),
+                         ("TRADFI", "VENUE_NAME:swap on", {"name": "Swap on US Non-Financial 100"}))
+        self.assertEqual(A["US100S"]["identity"]["state"], "VERIFIED_TRADFI")
+        b = C["aster:ADBEUSDT"]
+        self.assertEqual((b["cls"], b["cls_reason"], b["meta"]),
+                         ("TRADFI", "VENUE_SUBTYPE:STOCK", {"underlying": "COIN", "subtypes": ["STOCK"]}))
+        self.assertEqual(b["vmeta"]["underlyingSubType"], ["STOCK"])
+        self.assertEqual(A["ADBE"]["identity"]["state"], "VERIFIED_TRADFI")
         self.assertIsNone(C["lighter:US10Y"]["parsed"])
         self.assertEqual(C["lighter:BYD"]["basis"].get("vol"), "OBSERVED_ZERO")
         for e in ("radar", "quant", "swing", "day"):

@@ -7,7 +7,7 @@
   "data/v8/parts/swing.json",
   "data/v8/parts/universe.json"
  ],
- "combined": "72bf36c9470f3792e5cfaca52181b59c6363cddd9fcc47745acd7356475cc5cb",
+ "combined": "f6c1042fb067adb9eeadca72c9540f4ebcd050c66eac2fe6b27da86e277a7f88",
  "decisions": {
   "picks": {
    "daytrade_all": [
@@ -390,14 +390,14 @@
    "signals": 12
   },
   "radar": {
-   "coins": 63,
-   "crypto": 53,
+   "coins": 64,
+   "crypto": 54,
    "deep": 37,
    "dexes": {
     "aster": [
      true,
-     12,
-     8
+     13,
+     9
     ],
     "dydx": [
      true,
@@ -436,6 +436,7 @@
     ]
    },
    "nodata": [
+    "ADBE",
     "BYD",
     "EXTONLY",
     "HYUNDAI",
@@ -490,7 +491,7 @@
   "data/dashboard.json": "c6f2ff9539911ffb919437a881647546520fd3d35186b19b6afe89eee1e7b028",
   "data/journal.csv": "c616525b1ad64d82d83004cb3f145635d66ff802c2b569b3501c22ca58a6bd47",
   "data/journal.json": "252663b08eecfe5f940fcab667b9158f38b017257ce9e5c82dc699c38c56556e",
-  "data/latest.json": "2238977e92a345ac8d0f1f878e5612ff3847d344ed1fc1b30e3b464251465bdb",
+  "data/latest.json": "7358065a5267ab9c7c68afc162f4eef65a9aaa155ba7c147304659b9fbec6a49",
   "data/picks.json": "bf7bb4c3d6bda5871b9522a95ab4114aa607f2c3d409f19b4cd17b22f25fb734",
   "data/picks_journal.json": "27c55a83739c95b6a4c597a2ddc7785ce908ed43bc5f74b9df85100b4812f72f",
   "data/picks_research.json": "83e32dbf258d140c5e534cefe77e08802f0eb7cd17d6762e1bc3aef39d5dfd85",

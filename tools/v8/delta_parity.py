@@ -137,7 +137,7 @@ def universe_delta(ub, uh):
         else:
             for d in va:   # the same markets must carry the same values (the adapters did not change)
                 ra, rb = dict(a["venues"][d]), dict(b["venues"][d])
-                for k in ("underlying", "category"):       # raw metadata HEAD's adapters now pass on
+                for k in ("underlying", "category", "subtypes"):   # raw metadata HEAD's adapters now pass on
                     if k not in ra:
                         rb.pop(k, None)
                 if ra != rb:

@@ -60,6 +60,8 @@ def identity_config():
     return {"version": ID.VERSION, "tol": ID.TOL, "extended_tradfi": sorted(ID.EXTENDED_TRADFI_CATEGORIES),
             "extended_crypto": sorted(ID.EXTENDED_CRYPTO_CATEGORIES),
             "aster_neutral": sorted(ID.ASTER_NEUTRAL_UNDERLYING), "base_only_symbol_venues": list(ID.BASE_ONLY_SYMBOL_VENUES),
+            "aster_tradfi_subtypes": sorted(ID.ASTER_TRADFI_SUBTYPES),
+            "variational_tradfi_name_prefix": ID.VARIATIONAL_TRADFI_NAME_PREFIX,
             "quote_suffixes": list(ID.QUOTE_SUFFIXES), "min_candidate_len": ID.MIN_CANDIDATE_LEN,
             "tradfi": sorted(sc.TRADFI), "known_crypto": sorted(sc.KNOWN_CRYPTO), "fx": sorted(sc.FX_CODES),
             "tradfi_name": sc.TRADFI_NAME.pattern}

@@ -143,7 +143,8 @@ def _make_exchange():
                        "volume_24h": 75.93, "funding_rate": 0.01, "open_interest": {}, "base_spread_bps": 30},
                       {"ticker": "ONDS", "name": "Ondas Holdings Inc.", "mark_price": 7.477514,
                        "volume_24h": 105184.77, "funding_rate": 0.0, "open_interest": {}, "base_spread_bps": 12},
-                      {"ticker": "US100S", "name": "US100S", "mark_price": 31107.65, "volume_24h": 2042034600.0,
+                      {"ticker": "US100S", "name": "Swap on US Non-Financial 100", "mark_price": 31107.65,
+                       "volume_24h": 2042034600.0,
                        "funding_rate": 0.0, "open_interest": {}, "base_spread_bps": 2},
                       {"ticker": "", "name": "blank", "mark_price": 1.0, "volume_24h": 1.0}]
                 return {"listings": L}
@@ -172,6 +173,8 @@ def _make_exchange():
                      "status": "TRADING", "underlyingType": "COIN"},
                     {"symbol": "PRLXUSDT", "baseAsset": "PRLX", "contractType": "PERPETUAL", "status": "TRADING",
                      "underlyingType": "COIN"},
+                    {"symbol": "ADBEUSDT", "baseAsset": "ADBE", "contractType": "PERPETUAL", "status": "TRADING",
+                     "underlyingType": "COIN", "underlyingSubType": ["STOCK"]},
                     {"symbol": "FAKE02USDT_260925", "baseAsset": "FAKE02", "contractType": "CURRENT_QUARTER",
                      "status": "TRADING", "underlyingType": "COIN"},
                     {"symbol": "FAKE03USDT", "baseAsset": "FAKE03", "contractType": "PERPETUAL", "status": "SETTLING",
@@ -188,7 +191,8 @@ def _make_exchange():
                         {"symbol": "MOONXUSDT", "lastPrice": str(self.px("MOONX") * 1.001), "quoteVolume": "1850000"},
                         {"symbol": "NEWCOINUSDT", "lastPrice": "0.0512", "quoteVolume": "18500"},
                         {"symbol": "HYUNDAIUSDT", "lastPrice": "253.02", "quoteVolume": "241.98"},
-                        {"symbol": "PRLXUSDT", "lastPrice": "0.1122", "quoteVolume": "2646.93"}]
+                        {"symbol": "PRLXUSDT", "lastPrice": "0.1122", "quoteVolume": "2646.93"},
+                        {"symbol": "ADBEUSDT", "lastPrice": "237.9", "quoteVolume": "2081.62"}]
             if url == sc.ASTER_PREMIUM:
                 return [{"symbol": "FAKE01USDT", "markPrice": str(self.px("FAKE01")), "lastFundingRate": "0.0001"},
                         {"symbol": "BTCUSDT", "markPrice": str(self.px("BTC")), "lastFundingRate": "0.00008"}]
@@ -380,8 +384,8 @@ def _make_exchange():
 def fixture_known_crypto(fx):
     """The fixture world's known-crypto declaration (v8 Phase 3). The fake coins (FAKE00..., TINY, NEW40, ...) are
     crypto in this world but carry no identity evidence of their own, so they are declared known crypto here, the
-    way the repository's KNOWN_CRYPTO declares real coins. The Phase 3 coins (MOONX, NEWCOIN, US100S, the Lighter
-    stocks and rates, PRLX) are left out on purpose: they have to earn or miss an identity from their own evidence.
+    way the repository's KNOWN_CRYPTO declares real coins. The Phase 3 coins (MOONX, NEWCOIN, US100S, ADBE, the
+    Lighter stocks and rates, PRLX) are left out on purpose: they have to earn or miss an identity from their own evidence.
     On the Phase 2 fixture this declaration alone changes no legacy output of main 82f8d35 (verified when Phase 3 was
     built: PARITY OK against legacy_parity_golden_phase2.json)."""
     return set(fx.coins) | {"TINY", "NEW40", "NEW10", "THINREF", "LONLY", "ZEROV", "SCALEX", "NOCAND"}
