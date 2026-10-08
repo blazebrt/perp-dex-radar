@@ -3,6 +3,7 @@ the coin-picks universe. Reads the run's own values; recomputes nothing that dec
 from __future__ import annotations
 
 from . import common as C
+from . import identity as ID
 from . import ledger as LG
 from . import parts
 from . import taxonomy as T
@@ -58,9 +59,9 @@ def picks_parts(now, universe, coins, got, data, last_day, swing, by_liq, day_se
     for t in sorted(universe):
         c = universe[t]
         k = C.contract_ids(c)
-        if c.get("tradfi"):
+        if not ID.execution_identity_eligible(c):     # identity gate (v8 Phase 3)
             code, o = C.excluded_code(c)
-            both(t, code, "universe", o=o, k=k, h=T.CONFLICTED if code == "AMBIGUOUS_EXPOSURE" else T.HEALTHY)
+            both(t, code, "universe", o=o, k=k, h=C.excluded_health(code))
             continue
         if t not in chosen:
             C.liquidity_final(S, t, c, "universe", cfg["min_dex_vol"], sc.CFG["trade_dexes"], k=k)

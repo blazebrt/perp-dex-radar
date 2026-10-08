@@ -120,7 +120,7 @@ class EndToEnd(unittest.TestCase):
         for c in cls.fx.coins:
             uni[c] = {"t": c, "venues": {"hyperliquid": {"sym": c, "mult": 1.0, "vol": cls.fx.vol24[c]}},
                       "trade_vol": cls.fx.vol24[c] * 1.2, "best_vol": cls.fx.vol24[c] * 1.2, "tradfi": False,
-                      "ref_price": cls.fx.c15[c][-1]["c"], "name": c}
+                      "ref_price": cls.fx.c15[c][-1]["c"], "name": c, "identity": "VERIFIED_CRYPTO"}
         cls.uni = uni
         cls.out1 = Q.run(os.path.join(cls.tmp, "s1"), journal_path=os.path.join(cls.tmp, "none.json"), universe=uni)
         cls.j1 = os.path.join(cls.tmp, "s1", "data", "quant_journal.json")

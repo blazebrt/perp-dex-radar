@@ -18,7 +18,7 @@ sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import scanner as sc  # noqa: E402
-from fake_exchange import FakeExchange  # noqa: E402
+from fake_exchange import FakeExchange, install  # noqa: E402
 
 
 def candles(closes, t0=1_700_000_000, bar=900, vol=1000.0):
@@ -150,8 +150,7 @@ class EndToEnd(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.fx = FakeExchange(n_coins=60, days=16)
-        cls.old_fetch = sc.FETCH
-        sc.FETCH = cls.fx.fetch
+        cls.restore = install(cls.fx)
         cls.tmp = tempfile.mkdtemp()
         cls.out1 = sc.run(os.path.join(cls.tmp, "s1"), replay_days=2)
         cls.journal = os.path.join(cls.tmp, "s1", "data", "journal.json")
@@ -159,7 +158,7 @@ class EndToEnd(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        sc.FETCH = cls.old_fetch
+        cls.restore()
 
     def test_version_and_files(self):
         self.assertEqual(self.out2["version"], sc.VERSION)
@@ -201,8 +200,7 @@ class EndToEnd(unittest.TestCase):
 class Studio(unittest.TestCase):
     def test_rule_strategy_test_reports_twins(self):
         fx = FakeExchange(n_coins=12, days=40)
-        old = sc.FETCH
-        sc.FETCH = fx.fetch
+        restore = install(fx)
         try:
             tmp = tempfile.mkdtemp()
             req = {"id": "testv5a", "days": 30, "coins": 10, "strategy": {
@@ -211,7 +209,7 @@ class Studio(unittest.TestCase):
                 "stop": {"type": "atr", "atr": 1.5}}}
             res = sc.run_study(json.dumps(req), tmp)
         finally:
-            sc.FETCH = old
+            restore()
         self.assertTrue(res["ok"], res.get("error"))
         self.assertIn("twins", res)
         self.assertGreater(res["twins"]["n"], 0)

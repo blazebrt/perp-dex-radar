@@ -53,6 +53,22 @@ def _cfg(c):
     return {k: v for k, v in c.items() if k not in ENV_KEYS}
 
 
+def identity_config():
+    """Everything that decides an asset's identity state (v8.identity), for the resolver config hash."""
+    import scanner as sc
+    ID = sc.IDENTITY
+    return {"version": ID.VERSION, "tol": ID.TOL, "extended_tradfi": sorted(ID.EXTENDED_TRADFI_CATEGORIES),
+            "extended_crypto": sorted(ID.EXTENDED_CRYPTO_CATEGORIES),
+            "aster_neutral": sorted(ID.ASTER_NEUTRAL_UNDERLYING), "base_only_symbol_venues": list(ID.BASE_ONLY_SYMBOL_VENUES),
+            "quote_suffixes": list(ID.QUOTE_SUFFIXES), "min_candidate_len": ID.MIN_CANDIDATE_LEN,
+            "tradfi": sorted(sc.TRADFI), "known_crypto": sorted(sc.KNOWN_CRYPTO), "fx": sorted(sc.FX_CODES),
+            "tradfi_name": sc.TRADFI_NAME.pattern}
+
+
+def identity_config_hash():
+    return sha(identity_config())
+
+
 def engine_config(engine):
     """The decision-relevant configuration of one engine (a dict, hashed by config_hash)."""
     import scanner as sc
@@ -61,10 +77,7 @@ def engine_config(engine):
                          "fx": sc.FX_CODES, "tradfi_name": sc.TRADFI_NAME.pattern,
                          "trade_dexes": sc.CFG.get("trade_dexes"), "min_dex_vol": sc.CFG.get("min_dex_vol"),
                          # v8 Phase 2: the universe identity and liquidity semantics that decide the universe
-                         "identity": [sc.IDENTITY.VERSION, sc.IDENTITY.TOL,
-                                      sorted(sc.IDENTITY.EXTENDED_TRADFI_CATEGORIES),
-                                      sorted(sc.IDENTITY.EXTENDED_CRYPTO_CATEGORIES),
-                                      sorted(sc.IDENTITY.ASTER_NEUTRAL_UNDERLYING)],
+                         "identity": identity_config(),
                          "liquidity": sc.LIQUIDITY.VERSION}}
     if engine == "radar":
         base["cfg"] = _cfg(sc.CFG)
@@ -179,4 +192,5 @@ def header(engine, ts):
     from . import ENGINE_VERSION, SCHEMA
     return {"schema": SCHEMA, "engine": engine, "scan_id": scan_id(ts), "ts": int(ts), "git_sha": git_sha(),
             "git_ref": git_ref(), "repo": os.environ.get("GITHUB_REPOSITORY"), "config_hash": config_hash(engine),
-            "engine_version": engine_version(engine), "audit_version": ENGINE_VERSION}
+            "engine_version": engine_version(engine), "audit_version": ENGINE_VERSION,
+            "identity_config_hash": identity_config_hash()}

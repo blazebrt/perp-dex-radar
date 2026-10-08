@@ -62,10 +62,10 @@ def _make_exchange():
             rng = random.Random(seed * 7 + 1)
             base = self.c15["ETH"]
 
-            def clone(coin, px, qv_k=1.0, days=None, vol=0.006):
+            def clone(coin, px, qv_k=1.0, days=None, vol=0.006, drift=0.0):
                 out, p = [], px
                 for x in base:
-                    r = rng.gauss(0, vol)
+                    r = rng.gauss(drift, vol)
                     o, c = p, p * math.exp(r)
                     out.append({"t": x["t"], "o": o, "h": max(o, c) * (1 + abs(rng.gauss(0, vol / 2))),
                                 "l": min(o, c) * (1 - abs(rng.gauss(0, vol / 2))), "c": c,
@@ -89,9 +89,14 @@ def _make_exchange():
                                                     # Lighter (unlabeled) and Extended (RWA) near $9.6
             clone("PURR", 0.2)                      # crypto on Hyperliquid; an RWA (a company's shares) on Extended
             clone("QNT", 90.0)                      # crypto on Variational, Aster, Lighter; an RWA on Extended
-            self.extra = ["TINY", "NEW40", "NEW10", "THINREF", "LONLY", "ZEROV", "SCALEX", "BB", "PURR", "QNT"]
+            self.extra = ["TINY", "NEW40", "NEW10", "THINREF", "LONLY", "ZEROV", "SCALEX", "BB", "PURR", "QNT", "MOONX"]
             self.vol24.update({"TINY": 3e5, "NEW40": 6e6, "NEW10": 6e6, "THINREF": 3e6, "ZEROV": 0.0,
                                "SCALEX": 4e6, "BB": 5e6, "PURR": 7e6, "QNT": 4e6, "NOCAND": 3e6, "LONLY": None})
+            # v8 Phase 3: coins without positive identity evidence, shaped like the Phase 2 live scan
+            # (gh-37605801796-1). Cloned last, so every earlier coin keeps its random sequence.
+            clone("MOONX", 1.7, drift=0.0006)       # unknown, liquid, with candles, on Hyperliquid and Aster
+                                                    # (COIN): every later gate can pass; identity must block it
+            self.vol24.update({"MOONX": 6.2e6})
             self.smart_round = 1
 
         # ---- helpers
@@ -101,7 +106,8 @@ def _make_exchange():
         def hl_markets(self):
             """(name, ctx) rows of metaAndAssetCtxs."""
             rows = []
-            for c in self.coins + ["TINY", "NEW40", "NEW10", "THINREF", "ZEROV", "SCALEX", "BB", "PURR", "NOCAND"]:
+            for c in self.coins + ["TINY", "NEW40", "NEW10", "THINREF", "ZEROV", "SCALEX", "BB", "PURR", "NOCAND",
+                                   "MOONX"]:
                 px = self.px(c) * (3.0 if c == "SCALEX" else 1.0)
                 vol = self.vol24[c] * (1.2 if c in self.coins else 1.0)
                 rows.append(({"name": c}, {"markPx": str(px), "dayNtlVlm": str(vol), "openInterest": "1000",
@@ -137,6 +143,8 @@ def _make_exchange():
                        "volume_24h": 75.93, "funding_rate": 0.01, "open_interest": {}, "base_spread_bps": 30},
                       {"ticker": "ONDS", "name": "Ondas Holdings Inc.", "mark_price": 7.477514,
                        "volume_24h": 105184.77, "funding_rate": 0.0, "open_interest": {}, "base_spread_bps": 12},
+                      {"ticker": "US100S", "name": "US100S", "mark_price": 31107.65, "volume_24h": 2042034600.0,
+                       "funding_rate": 0.0, "open_interest": {}, "base_spread_bps": 2},
                       {"ticker": "", "name": "blank", "mark_price": 1.0, "volume_24h": 1.0}]
                 return {"listings": L}
             if url == sc.ASTER_INFO:
@@ -156,6 +164,14 @@ def _make_exchange():
                     {"symbol": "XIAOMIUSDT", "baseAsset": "XIAOMI", "contractType": "PERPETUAL",
                      "status": "TRADING", "underlyingType": "COIN"},
                     {"symbol": "ONDSUSDT", "baseAsset": "ONDS", "contractType": "PERPETUAL", "status": "TRADING"},
+                    {"symbol": "MOONXUSDT", "baseAsset": "MOONX", "contractType": "PERPETUAL", "status": "TRADING",
+                     "underlyingType": "COIN"},
+                    {"symbol": "NEWCOINUSDT", "baseAsset": "NEWCOIN", "contractType": "PERPETUAL",
+                     "status": "TRADING", "underlyingType": "COIN"},
+                    {"symbol": "HYUNDAIUSDT", "baseAsset": "HYUNDAI", "contractType": "PERPETUAL",
+                     "status": "TRADING", "underlyingType": "COIN"},
+                    {"symbol": "PRLXUSDT", "baseAsset": "PRLX", "contractType": "PERPETUAL", "status": "TRADING",
+                     "underlyingType": "COIN"},
                     {"symbol": "FAKE02USDT_260925", "baseAsset": "FAKE02", "contractType": "CURRENT_QUARTER",
                      "status": "TRADING", "underlyingType": "COIN"},
                     {"symbol": "FAKE03USDT", "baseAsset": "FAKE03", "contractType": "PERPETUAL", "status": "SETTLING",
@@ -168,7 +184,11 @@ def _make_exchange():
                         {"symbol": "ASTSUSDT", "lastPrice": "64.46", "quoteVolume": "9929.47"},
                         {"symbol": "KORUUSDT", "lastPrice": "22.12", "quoteVolume": "108556.54"},
                         {"symbol": "XIAOMIUSDT", "lastPrice": "3.114", "quoteVolume": "3570.65"},
-                        {"symbol": "ONDSUSDT", "lastPrice": "7.561", "quoteVolume": "425.19"}]
+                        {"symbol": "ONDSUSDT", "lastPrice": "7.561", "quoteVolume": "425.19"},
+                        {"symbol": "MOONXUSDT", "lastPrice": str(self.px("MOONX") * 1.001), "quoteVolume": "1850000"},
+                        {"symbol": "NEWCOINUSDT", "lastPrice": "0.0512", "quoteVolume": "18500"},
+                        {"symbol": "HYUNDAIUSDT", "lastPrice": "253.02", "quoteVolume": "241.98"},
+                        {"symbol": "PRLXUSDT", "lastPrice": "0.1122", "quoteVolume": "2646.93"}]
             if url == sc.ASTER_PREMIUM:
                 return [{"symbol": "FAKE01USDT", "markPrice": str(self.px("FAKE01")), "lastFundingRate": "0.0001"},
                         {"symbol": "BTCUSDT", "markPrice": str(self.px("BTC")), "lastFundingRate": "0.00008"}]
@@ -193,6 +213,18 @@ def _make_exchange():
                      "daily_quote_token_volume": 841827.9},
                     {"symbol": "KIOXIA", "market_type": "perp", "status": "active", "mark_price": 118.44,
                      "daily_quote_token_volume": 0},
+                    {"symbol": "SAMSUNGUSD", "market_type": "perp", "status": "active", "mark_price": 200.628,
+                     "daily_quote_token_volume": 1834862.6},
+                    {"symbol": "SKHYNIXUSD", "market_type": "perp", "status": "active", "mark_price": 1284.483,
+                     "daily_quote_token_volume": 4833394.9},
+                    {"symbol": "HYUNDAIUSD", "market_type": "perp", "status": "active", "mark_price": 252.403,
+                     "daily_quote_token_volume": 2579.8786},
+                    {"symbol": "US10Y", "market_type": "perp", "status": "active", "mark_price": 94.75,
+                     "daily_quote_token_volume": 7392.4678},
+                    {"symbol": "BYD", "market_type": "perp", "status": "active", "mark_price": 3.0212,
+                     "daily_quote_token_volume": 0},
+                    {"symbol": "PRLX", "market_type": "perp", "status": "active", "mark_price": 1.34,
+                     "daily_quote_token_volume": 196238.6},
                     {"symbol": "1000FAKE06", "market_type": "perp", "status": "active",
                      "mark_price": self.px("FAKE06") * 1000, "daily_quote_token_volume": 400000},
                     {"symbol": "FAKE04", "market_type": "perp", "status": "inactive", "mark_price": self.px("FAKE04"),
@@ -252,6 +284,12 @@ def _make_exchange():
                     {"name": "SECT-USD", "assetName": "SECT", "active": True, "status": "ACTIVE", "type": "PERPETUAL",
                      "category": "L1", "description": "Sector coin",
                      "marketStats": {"markPrice": "2.0", "dailyVolume": "500000"}},
+                    {"name": "SKHYNIX-USD", "assetName": "SKHYNIX", "active": True, "status": "ACTIVE",
+                     "type": "PERPETUAL", "category": "RWA", "description": "SKHYNIX real-world asset",
+                     "marketStats": {"markPrice": "1334.15", "dailyVolume": "412000"}},
+                    {"name": "PRLX-USD", "assetName": "PRLX", "active": True, "status": "ACTIVE", "type": "PERPETUAL",
+                     "category": "Crypto", "description": "Prlx coin",
+                     "marketStats": {"markPrice": "0.11105012", "dailyVolume": "232844.47"}},
                     {"name": "FAKE11-USD", "assetName": "FAKE11", "active": False, "status": "ACTIVE",
                      "type": "PERPETUAL", "category": "Crypto", "marketStats": {}},
                     {"name": "EURUSD-USD", "assetName": "EURUSD", "active": True, "status": "ACTIVE",
@@ -339,6 +377,16 @@ def _make_exchange():
     return ParityExchange, sc, BAR
 
 
+def fixture_known_crypto(fx):
+    """The fixture world's known-crypto declaration (v8 Phase 3). The fake coins (FAKE00..., TINY, NEW40, ...) are
+    crypto in this world but carry no identity evidence of their own, so they are declared known crypto here, the
+    way the repository's KNOWN_CRYPTO declares real coins. The Phase 3 coins (MOONX, NEWCOIN, US100S, the Lighter
+    stocks and rates, PRLX) are left out on purpose: they have to earn or miss an identity from their own evidence.
+    On the Phase 2 fixture this declaration alone changes no legacy output of main 82f8d35 (verified when Phase 3 was
+    built: PARITY OK against legacy_parity_golden_phase2.json)."""
+    return set(fx.coins) | {"TINY", "NEW40", "NEW10", "THINREF", "LONLY", "ZEROV", "SCALEX", "NOCAND"}
+
+
 # --------------------------------------------------------------------------- one stage in its own process
 def run_stage(stage, out, now):
     """Run one engine like the Scan workflow does (its own process), offline, at a frozen time."""
@@ -355,6 +403,7 @@ def run_stage(stage, out, now):
     if stage == "smart2":
         fx.smart_round = 2
     sc.FETCH = fx.fetch
+    sc.KNOWN_CRYPTO = sc.KNOWN_CRYPTO | fixture_known_crypto(fx)     # the fixture world's crypto authority
     sc.CFG["workers"] = 1          # one worker: the order threads finish in cannot change sums or notes
     inject = os.environ.get("V8_PARITY_UNIVERSE")
     if inject:
@@ -494,6 +543,7 @@ def decisions(out):
                   "watch": [[p["coin"], p["sid"]] for p in L.get("watch") or []],
                   "coins": cov.get("coins"), "crypto": cov.get("crypto"), "scanned": cov.get("scanned"),
                   "deep": cov.get("deep"), "signals": cov.get("signals"), "tradfi": cov.get("tradfi"),
+                  "unverified": cov.get("unverified"),
                   "nodata": cov.get("nodata"),
                   "dexes": {k: [v.get("ok"), v.get("markets"), v.get("crypto")] for k, v in (cov.get("dexes") or {}).items()}}
     Q = load("quant.json") or {}

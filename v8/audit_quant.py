@@ -6,6 +6,7 @@ sig_tsmom, xs_scores, _stop); the results are only written to the audit part."""
 from __future__ import annotations
 
 from . import common as C
+from . import identity as ID
 from . import ledger as LG
 from . import parts
 from . import taxonomy as T
@@ -69,9 +70,9 @@ def quant_part(now, universe, coins, got, data, daily, lastd, new, open_trades):
     for t in sorted(universe):
         c = universe[t]
         k = C.contract_ids(c)
-        if c.get("tradfi"):
+        if not ID.execution_identity_eligible(c):     # identity gate (v8 Phase 3)
             code, o = C.excluded_code(c)
-            L.final(t, code, "universe", o=o, k=k, h=T.CONFLICTED if code == "AMBIGUOUS_EXPOSURE" else T.HEALTHY)
+            L.final(t, code, "universe", o=o, k=k, h=C.excluded_health(code))
             continue
         if t not in chosen:
             C.liquidity_final(L, t, c, "universe", cfg["min_dex_vol"], sc.CFG["trade_dexes"], k=k)

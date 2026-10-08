@@ -1,11 +1,11 @@
-"""v8 Phases 1 and 2, end to end: the whole pipeline (scanner, smart money twice, quant, picks, dashboard) runs
+"""v8 Phases 1, 2 and 3, end to end: the whole pipeline (scanner, smart money twice, quant, picks, dashboard) runs
 offline on the parity fixture (tools/v8/legacy_parity.py), each engine in its own process like the Scan workflow,
 then the audit snapshot is assembled. Checks:
 
 * no drift: every legacy output file is byte-identical (after dropping wall-clock durations and sorting error
-  notes) to this branch's golden digests (tests/fixtures/v8/legacy_parity_golden_phase2.json). That file differs
-  from the base commit's digests (legacy_parity_golden.json) only as tools/v8/delta_parity.py proves against the
-  expected-delta manifest (phase2_expected_deltas.json); CI runs that proof;
+  notes) to this branch's golden digests (tests/fixtures/v8/legacy_parity_golden_phase3.json). That file differs
+  from the phase base's digests (legacy_parity_golden_phase3_base.json: main 82f8d35 on the same fixture) only as
+  tools/v8/delta_parity.py proves against the expected-delta manifest (phase3_expected_deltas.json); CI runs it;
 * the contract registry keeps every market (also the ones the legacy adapters skip) under venue:raw_symbol;
 * universe identity (Phase 2): the crypto coins of the BB, PURR, QNT collision class are admitted with their
   crypto exposure only, the unrelated tradfi markets stay out and stay in the registry, the stocks a venue did not
@@ -13,6 +13,9 @@ then the audit snapshot is assembled. Checks:
 * missing volume and observed zero volume are told apart (DEX_VOLUME_MISSING vs DEX_VOLUME_BELOW_LEGACY_MIN), the
   published table shows a missing volume as unavailable, a price conflict is CONFLICTED;
 * small, thin and new coins each have a named reason in every engine;
+* identity coverage (Phase 3): coins without positive identity evidence are UNVERIFIED, stay visible in the
+  registry, the universe and every ledger, are never published by any engine, and are not called tradfi;
+  venue-symbol parsing (SAMSUNGUSD, SKHYNIXUSD) is provenance-visible; identity transitions are recorded per scan;
 * coverage: no asset disappears silently (unaccounted is zero everywhere);
 * the snapshot is deterministic and compact.
 
@@ -36,9 +39,11 @@ import legacy_parity as LP  # noqa: E402
 from v8 import snapshot as SN  # noqa: E402
 from v8 import taxonomy as T  # noqa: E402
 
-GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase2.json")
-BASE_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden.json")
-MANIFEST = os.path.join(HERE, "fixtures", "v8", "phase2_expected_deltas.json")
+GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase3.json")
+BASE_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase3_base.json")
+MANIFEST = os.path.join(HERE, "fixtures", "v8", "phase3_expected_deltas.json")
+# the fixture's coins without positive identity evidence (v8 Phase 3; tools/v8/legacy_parity.py)
+UNVERIFIED = ("BYD", "HYUNDAI", "HYUNDAIUSD", "MOONX", "NEWCOIN", "US100S", "US10Y")
 
 
 class PipelineAudit(unittest.TestCase):
@@ -73,9 +78,17 @@ class PipelineAudit(unittest.TestCase):
             base = json.load(fh)
         with open(MANIFEST) as fh:
             man = json.load(fh)
-        self.assertEqual(man["base"]["sha"], "15a37944bc73ae531ea33998b899a562e51361ad")
-        self.assertEqual(man["head_golden"], "tests/fixtures/v8/legacy_parity_golden_phase2.json")
-        self.assertNotEqual(base["combined"], self.summary["combined"])   # Phase 2 changes outputs on purpose
+        self.assertEqual(man["base"]["sha"], "82f8d35a80e561384f2e8be0e1399dd4e5adb99b")
+        self.assertEqual(man["base"]["tree"], "06d80f744401589f983ac52298650d182e0c2fa5")
+        self.assertEqual(man["head_golden"], "tests/fixtures/v8/legacy_parity_golden_phase3.json")
+        self.assertEqual(man["counterfactual_projection"], "exclude_without_execution_identity")
+        self.assertNotEqual(base["combined"], self.summary["combined"])   # Phase 3 changes outputs on purpose
+        for e in man.get("decisions") or []:
+            self.assertIn(e["rule"], man["rules"])
+        # every coin's identity state is pinned, and the pinned states are the ones this run produced
+        self.assertEqual(man["identity_states"],
+                         {t: a["identity"]["state"] for t, a in self.snap["registry"]["assets"].items()
+                          if a["legacy"] in ("CRYPTO", "TRADFI", "AMBIGUOUS", "UNVERIFIED")})
         # narrow: every allowed delta names its ticker or file path and an approved rule
         for e in man["universe"]:
             self.assertIn(e["rule"], man["rules"])
@@ -199,13 +212,127 @@ class PipelineAudit(unittest.TestCase):
         self.assertEqual(self.contracts["variational:ACME"]["tradfi_reason"], "NAME_PATTERN:holdings")
         # no excluded exposure's market is counted as a crypto market of its DEX
         dexes = legacy["coverage"]["dexes"]
-        self.assertEqual((dexes["aster"]["markets"], dexes["aster"]["crypto"]), (8, 4))
-        self.assertEqual((dexes["lighter"]["markets"], dexes["lighter"]["crypto"]), (8, 4))
+        self.assertEqual((dexes["aster"]["markets"], dexes["aster"]["crypto"]), (12, 5))
+        self.assertEqual((dexes["lighter"]["markets"], dexes["lighter"]["crypto"]), (14, 4))
 
     def test_unpriced_contract_does_not_poison(self):
         c = self.contracts["extended:FAKE13-USD"]
         self.assertEqual((c["price"], c["legacy"], c["exp_class"]), (None, "EXPOSURE_NOT_ADMITTED", "TRADFI"))
         self.assertEqual(self.snap["registry"]["assets"]["FAKE13"]["legacy"], "CRYPTO")
+
+    # ---- identity coverage (Phase 3)
+    def test_unknown_new_coin_stays_discoverable(self):
+        """The mandatory small-coin case, end to end: a brand-new unknown perp (NEWCOIN: Aster only, $18.5k, no
+        candles, on no list, no label) is in the contract registry, the asset registry, the discovery universe and
+        every engine's Decision Trace - as UNVERIFIED, not TRADFI, and not deleted."""
+        with open(os.path.join(self.out, "data", "latest.json")) as fh:
+            legacy = json.load(fh)
+        c = self.contracts["aster:NEWCOINUSDT"]
+        self.assertEqual((c["legacy"], c["cls"], c["exp_class"], c["exp_state"], c["admitted"], c["in_record"]),
+                         ("SELECTED", "UNLABELED", "UNVERIFIED", "UNVERIFIED", False, True))
+        self.assertEqual(c["exp_reason"], "NO_POSITIVE_IDENTITY_EVIDENCE")
+        a = self.snap["registry"]["assets"]["NEWCOIN"]
+        i = a["identity"]
+        self.assertEqual((a["legacy"], i["state"], i["decision"]), ("UNVERIFIED", "UNVERIFIED", "IDENTITY_UNVERIFIED"))
+        self.assertEqual((i["discovery_eligible"], i["execution_identity_eligible"]), (True, False))
+        self.assertEqual((i["phase2"], i["phase2_reasons"]), ("CRYPTO", ["DEFAULT_CRYPTO"]))
+        self.assertEqual(i["evidence"], [])
+        self.assertTrue(i["promotion"])
+        for t in UNVERIFIED:
+            self.assertIn(t, legacy["coverage"]["unverified"], t)
+            self.assertNotIn(t, legacy["coverage"]["tradfi"], t)                 # unknown is not tradfi
+            self.assertEqual(self.snap["registry"]["assets"][t]["identity"]["state"], "UNVERIFIED", t)
+            for e in ("radar", "quant", "swing", "day"):
+                r = self.recs[e][t]
+                self.assertEqual((r["c"], r["d"], r["h"]), ("IDENTITY_UNVERIFIED", "INSUFFICIENT_DATA", "MISSING"),
+                                 (e, t))
+                self.assertEqual((r["o"]["state"], r["o"]["discovery"], r["o"]["execution_identity"]),
+                                 ("UNVERIFIED", True, False), (e, t))
+        idn = self.snap["coverage"]["summary"]["identity"]
+        self.assertEqual(sorted(idn["unverified_assets"]), sorted(UNVERIFIED))
+        self.assertEqual(idn["unverified_exclusions"], {e: len(UNVERIFIED) for e in ("radar", "quant", "swing", "day")})
+        self.assertEqual(idn["states"]["UNVERIFIED"], len(UNVERIFIED))
+        self.assertEqual(sum(idn["states"].values()), len(legacy["coverage"]["tradfi"]) + len(UNVERIFIED) +
+                         legacy["coverage"]["crypto"])
+        self.assertEqual(idn["execution_identity_eligible"], legacy["coverage"]["crypto"])
+
+    def test_no_published_output_without_crypto_identity(self):
+        """Nothing any engine published - radar picks, watch list and table, radar paper trades, quant signals and
+        positions, swing and day lists - is an asset without VERIFIED_CRYPTO identity."""
+        assets = self.snap["registry"]["assets"]
+        data = os.path.join(self.out, "data")
+        load = lambda n: json.load(open(os.path.join(data, n)))  # noqa: E731
+        L, Q, P, J = load("latest.json"), load("quant.json"), load("picks.json"), load("journal.json")
+        published = set()
+        published |= {p["coin"] for p in L.get("picks") or []} | {p["coin"] for p in L.get("watch") or []}
+        published |= {row[1] for row in L.get("table") or []}
+        published |= {t.get("coin") for t in (J.get("open") or []) + (J.get("closed") or []) if t.get("coin")}
+        published |= {t.get("c") for t in (Q.get("signals") or []) + (Q.get("open") or [])}
+        for k in ("swing", "daytrade"):
+            for side in ("all", "long", "short"):
+                published |= {r.get("coin") for r in (P.get(k) or {}).get(side) or [] if isinstance(r, dict)}
+        self.assertTrue(published)
+        for t in sorted(x for x in published if x):
+            self.assertEqual(assets[t]["identity"]["state"], "VERIFIED_CRYPTO", t)
+        for t in UNVERIFIED:
+            self.assertNotIn(t, published, t)
+        # the base code surfaced MOONX (quant TSMOM and XSMOM) on this fixture: the identity gate removed it
+        with open(BASE_GOLDEN) as fh:
+            base = json.load(fh)
+        self.assertIn("MOONX", {x[0] for x in base["decisions"]["quant"]["open"]})
+
+    def test_tradfi_and_unknown_symbol_cases(self):
+        """M-P and SKHYNIXUSD end to end: venue-symbol parsing at the venue boundary, with provenance."""
+        C, A = self.contracts, self.snap["registry"]["assets"]
+        s = C["lighter:SAMSUNGUSD"]
+        self.assertEqual((s["cls"], s["cls_reason"], s["cls_auth"], s["parsed"]),
+                         ("TRADFI", "PARSED_SYMBOL_TRADFI_LIST:SAMSUNG", "PARSED_SYMBOL", ["SAMSUNG", "QUOTE_SUFFIX:USD"]))
+        self.assertEqual(A["SAMSUNGUSD"]["identity"]["state"], "VERIFIED_TRADFI")
+        k = C["lighter:SKHYNIXUSD"]
+        self.assertEqual((k["cls"], k["cls_reason"]), ("TRADFI", "PARSED_SYMBOL_EXPOSURE:SKHYNIX#1"))
+        self.assertEqual((k["link"]["candidate"], k["link"]["coherent_exposure"], k["link"]["coherent_class"]),
+                         ("SKHYNIX", "SKHYNIX#1", "TRADFI"))
+        self.assertEqual(A["SKHYNIXUSD"]["identity"]["state"], "VERIFIED_TRADFI")
+        h = C["lighter:HYUNDAIUSD"]
+        self.assertEqual((h["cls"], h["link"]["coherent_exposure"], h["link"]["coherent_class"], h["link"]["evidence"]),
+                         ("UNLABELED", "HYUNDAI#1", "UNVERIFIED", None))
+        for t in ("HYUNDAIUSD", "HYUNDAI", "US10Y", "BYD", "US100S"):
+            self.assertEqual(A[t]["identity"]["state"], "UNVERIFIED", t)
+        self.assertIsNone(C["lighter:US10Y"]["parsed"])
+        self.assertEqual(C["lighter:BYD"]["basis"].get("vol"), "OBSERVED_ZERO")
+        for e in ("radar", "quant", "swing", "day"):
+            self.assertIn(self.recs[e]["SAMSUNGUSD"]["c"], ("TRADFI_CLASSIFIED", "TRADFI_EXPOSURE_EXCLUDED"), e)
+        self.assertIn("lighter:SKHYNIXUSD", self.snap["registry"]["counts"]["parsed_symbol_links"])
+
+    def test_unverified_exposure_is_not_merged_into_a_crypto_coin(self):
+        c = self.contracts["lighter:PRLX"]
+        self.assertEqual((c["legacy"], c["exp_state"], c["admitted"]),
+                         ("UNVERIFIED_EXPOSURE_NOT_ADMITTED", "UNVERIFIED", False))
+        a = self.snap["registry"]["assets"]["PRLX"]
+        self.assertEqual((a["legacy"], a["identity"]["state"], a["identity"]["excluded_unverified"]),
+                         ("CRYPTO", "VERIFIED_CRYPTO", ["PRLX#2"]))
+        self.assertEqual(self.contracts["extended:PRLX-USD"]["cls_reason"], "VENUE_CATEGORY:Crypto")
+        self.assertIn("UNVERIFIED_EXPOSURE_KEPT_OUT", self.recs["radar"]["PRLX"].get("x") or [])
+
+    def test_identity_transitions_are_recorded_not_rewritten(self):
+        ts = self.snap["manifest"]["ts"]
+        prev = os.path.join(self.tmp, "id_prev.json")
+        with open(prev, "w") as fh:
+            json.dump({"NEWCOIN": ["UNVERIFIED", ts - 86400], "MOONX": ["VERIFIED_CRYPTO", ts - 3600],
+                       "GONE": ["UNVERIFIED", ts - 100]}, fh)
+        d = os.path.join(self.tmp, "again_id")
+        shutil.copytree(self.keep, d)
+        snap, _, _, _ = SN.write(d, identity_path=prev)
+        moves = snap["coverage"]["summary"]["identity"]["transitions"]
+        self.assertEqual([(m["asset"], m["from"], m["to"]) for m in moves], [("MOONX", "VERIFIED_CRYPTO", "UNVERIFIED")])
+        with open(os.path.join(d, "data", "v8", "identity_state.json")) as fh:
+            st = json.load(fh)
+        self.assertEqual(st["NEWCOIN"], ["UNVERIFIED", ts - 86400])     # since the earlier scan, not rewritten
+        self.assertEqual(st["MOONX"], ["UNVERIFIED", ts])
+        self.assertEqual(st["GONE"], ["UNVERIFIED", ts - 100])          # not seen this scan: kept for a while
+        with open(os.path.join(self.out, "data", "v8", "identity_state.json")) as fh:
+            first = json.load(fh)
+        self.assertEqual(first["QNT"], ["VERIFIED_CRYPTO", ts])
 
     # ---- data health
     def test_missing_and_zero_volume_are_different(self):
@@ -279,8 +406,9 @@ class PipelineAudit(unittest.TestCase):
                     self.assertIn(x, T.STEPS)
                 self.assertNotIn(r["c"], T.RETIRED, (e, a))
         self.assertNotIn("FILTERED", T.REASONS)
-        self.assertEqual(self.snap["schema"], "v8.audit/2")
-        self.assertEqual(self.snap["manifest"]["identity_version"], "v8.identity/1")
+        self.assertEqual(self.snap["schema"], "v8.audit/3")
+        self.assertEqual(self.snap["manifest"]["identity_version"], "v8.identity/2")
+        self.assertEqual(len(self.snap["manifest"]["identity_config_hash"]), 64)
         self.assertEqual(self.snap["manifest"]["liquidity_version"], "v8.liquidity/1")
 
     def test_published_items_are_surfaced(self):

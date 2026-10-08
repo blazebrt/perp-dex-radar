@@ -1,4 +1,5 @@
-"""v8 Phase 2: universe identity (v8.identity) and liquidity semantics (v8.liquidity), unit level.
+"""v8 Phase 2: universe identity (v8.identity) and liquidity semantics (v8.liquidity), unit level (Phase 3's own
+identity cases are in tests/test_v8_phase3.py).
 
 * the collision regression matrix, cases A-K (crypto + unrelated stock, a stock one venue forgot to label, a wrong
   tradfi row, two exposures under one ticker, no price, multiplier aliases, only ambiguous evidence, and the live
@@ -77,8 +78,9 @@ def resolve(*rows):
 
 
 def admitted(res, t):
-    c = res.coins.get(t)
-    return c is not None and not c["tradfi"]
+    """Admitted to the crypto engines: since v8 Phase 3 that means crypto execution identity (VERIFIED_CRYPTO), not
+    merely 'not tradfi'."""
+    return ID.execution_identity_eligible(res.coins.get(t))
 
 
 # The ten Phase 1 live collisions that are real stocks, with the prices, volumes and labels the live scan
@@ -152,10 +154,16 @@ class CollisionMatrix(unittest.TestCase):
     def test_E_contract_without_price_cannot_poison(self):
         # an unpriced RWA market next to a priced coin: it neither joins nor reclassifies it
         r = resolve(hl("FOO", 2.0, 5e6), ext("FOO-USD", "FOO", None, 1000.0))
-        self.assertTrue(admitted(r, "FOO"))
+        # Phase 3: FOO has no positive evidence of its own, so it is UNVERIFIED - but the RWA did not poison it
+        self.assertFalse(r.coins["FOO"]["tradfi"])
+        self.assertEqual(r.coins["FOO"]["identity"], ID.UNVERIFIED)
         self.assertEqual(list(r.coins["FOO"]["venues"]), ["hyperliquid"])
         self.assertEqual(r.rows[("extended", 0)]["state"], ID.NOT_ADMITTED)
         self.assertEqual(r.rows[("extended", 0)]["exp_cls"], ID.TRADFI)
+        # the same shape under a known crypto ticker is admitted
+        r = resolve(hl("SOL", 150.0, 5e6), ext("SOL-USD", "SOL", None, 1000.0))
+        self.assertTrue(admitted(r, "SOL"))
+        self.assertEqual(list(r.coins["SOL"]["venues"]), ["hyperliquid"])
         # an unpriced, unlabeled market rides along with an admitted coin, as it always did
         r = resolve(hl("FOO", 2.0, 5e6), edgex("FOOUSD"))
         self.assertEqual(sorted(r.coins["FOO"]["venues"]), ["edgex", "hyperliquid"])
@@ -351,12 +359,36 @@ class NoCollisionParity(unittest.TestCase):
         return res
 
     def test_identical_to_legacy_without_tradfi_evidence(self):
+        """Without tradfi evidence anywhere, every coin record is the legacy record of the contracts that form it.
+        Phase 2: all of a ticker's contracts. Phase 3 (manifest rule UNVERIFIED_EXPOSURE_NOT_MERGED): when a ticker
+        has a VERIFIED_CRYPTO exposure (here: Extended category Crypto, or a known-crypto ticker), a price-separated
+        UNVERIFIED exposure is not merged into it, so the reference is the legacy record of the crypto exposures'
+        contracts only. A ticker with no crypto evidence keeps the legacy record of all its contracts, as UNVERIFIED."""
         for seed in range(40):
             res = self.random_results(seed)
-            legacy = legacy_build(res, sc.in_my_dexes)
-            got = ID.resolve(res, sc.DEXES, LISTS, sc.in_my_dexes).coins
-            self.assertEqual(list(got), list(legacy), seed)
+            r = ID.resolve(res, sc.DEXES, LISTS, sc.in_my_dexes)
+            got = r.coins
+            members = {}
+            for (dex, i), info in r.rows.items():
+                members.setdefault(res[dex][i]["t"], []).append((dex, i, info))
+            sub = {d: (None if rows is None else []) for d, rows in res.items()}
+            for d, rows in res.items():
+                for i, row in enumerate(rows or []):
+                    info = r.rows[(d, i)]
+                    if info["in_record"] or got[row["t"]]["identity"] != ID.VERIFIED_CRYPTO:
+                        sub[d].append(row)
+            legacy = legacy_build(sub, sc.in_my_dexes)
+            self.assertEqual(sorted(got), sorted(legacy), seed)
             for t in legacy:
+                a = r.asset(t)
+                # crypto evidence on a priced contract (an unpriced contract never defines an exposure)
+                has_crypto = t in LISTS.known_crypto or any(info["cls"] == ID.CRYPTO and info["npx"]
+                                                            for _, _, info in members[t])
+                self.assertEqual(got[t]["identity"], ID.VERIFIED_CRYPTO if has_crypto else ID.UNVERIFIED, (seed, t))
+                self.assertFalse(got[t]["tradfi"], (seed, t))           # unknown is not tradfi
+                if not has_crypto:
+                    self.assertEqual(a["decision"], ID.D_UNVERIFIED)
+                    self.assertFalse(ID.execution_identity_eligible(got[t]))
                 exp = zero_semantics(legacy[t])
                 self.assertEqual(list(got[t]["venues"]), list(exp["venues"]), (seed, t))
                 for k in exp:
@@ -364,7 +396,7 @@ class NoCollisionParity(unittest.TestCase):
                         self.assertTrue(all(got[t]["venues"][d] is exp["venues"][d] for d in exp["venues"]))
                     else:
                         self.assertEqual(got[t][k], exp[k], (seed, t, k))
-                self.assertEqual(list(got[t]), list(legacy[t]))   # same keys, same order
+                self.assertEqual(list(got[t]), list(legacy[t]) + ["identity"])   # same keys, same order, + identity
 
     def test_tradfi_list_tickers_unchanged(self):
         for seed in range(20):
@@ -472,7 +504,8 @@ class NoHardcodedTickers(unittest.TestCase):
             self.assertFalse(any(t in c.split(":")[0].split() or c == t for c in consts), t)
         for t in sc.KNOWN_CRYPTO | sc.TRADFI:
             self.assertNotIn(t, [c for c in consts if c.isupper() and len(c) > 1 and c not in (
-                "RWA", "COIN", ID.CRYPTO, ID.TRADFI, ID.AMBIGUOUS, ID.UNLABELED)], t)
+                "RWA", "COIN", ID.CRYPTO, ID.TRADFI, ID.AMBIGUOUS, ID.UNLABELED, ID.UNVERIFIED,
+                ID.VERIFIED_CRYPTO, ID.VERIFIED_TRADFI)], t)
 
 
 if __name__ == "__main__":

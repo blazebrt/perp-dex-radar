@@ -21,7 +21,7 @@ concurrency:
 jobs:
   research:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
         with:
@@ -77,11 +77,27 @@ jobs:
           tail -5 research_v8.txt
           python -c "import json; s = json.load(open('out_new/data/v8/audit_latest.json')); json.dump({'manifest': s['manifest'], 'summary': s['coverage']['summary'], 'engines': s['coverage']['engines'], 'registry_counts': s['registry']['counts'], 'data_health': {k: v for k, v in s['data_health'].items() if k != 'registry_venues'}, 'venues': s['data_health'].get('registry_venues'), 'storage': s['storage']}, open('research_v8_summary.json', 'w'), indent=1)" >> research_v8.txt 2>&1 || true
 
-      - name: v8 universe identity report (collision matrix, missing volumes) from this run's snapshot
+      - name: Phase base engines on the same live data (comparison only, nothing published)
+        # v8 Phase 3: the phase base (the base commit of the expected-delta manifest, main before this phase) runs the
+        # scanner, the quant desk and the coin picks on live data right after this branch, so the identity report can
+        # list every production output the identity gate removes or adds. The two runs are minutes apart; the report
+        # says which differences identity explains.
         continue-on-error: true
         run: |
-          python tools/v8/identity_report.py out_new/data/v8/audit_latest.json --json research_identity.json > research_identity.txt 2>&1 || true
-          head -40 research_identity.txt
+          BASE_SHA=$(python -c "import json; print(json.load(open('tests/fixtures/v8/phase3_expected_deltas.json'))['base']['sha'])")
+          echo "phase base $BASE_SHA" > research_base.txt
+          git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA" >> research_base.txt 2>&1 || true
+          cd "$RUNNER_TEMP/base"
+          python scanner.py --out "$GITHUB_WORKSPACE/out_base" --replay-days 0 >> "$GITHUB_WORKSPACE/research_base.txt" 2>&1 || true
+          python quant.py --out "$GITHUB_WORKSPACE/out_base" --journal none.json >> "$GITHUB_WORKSPACE/research_base.txt" 2>&1 || true
+          python picks.py --out "$GITHUB_WORKSPACE/out_base" --journal none.json >> "$GITHUB_WORKSPACE/research_base.txt" 2>&1 || true
+          tail -15 "$GITHUB_WORKSPACE/research_base.txt"
+
+      - name: v8 universe identity report (collisions, identity states, default-crypto inventory, unverified assets, venue fields, production changes)
+        continue-on-error: true
+        run: |
+          python tools/v8/identity_report.py out_new/data/v8/audit_latest.json --json research_identity.json --base-out out_base > research_identity.txt 2>&1 || true
+          head -60 research_identity.txt
 
       - name: Save the results for review
         if: always()
@@ -95,6 +111,9 @@ jobs:
           cp research_*.txt R/ 2>/dev/null || true
           for f in latest.json journal.csv quant.json picks.json smart.json dashboard.json; do
             if [ -f "out_new/data/$f" ]; then cp "out_new/data/$f" "R/new_$f"; fi
+          done
+          for f in latest.json quant.json picks.json; do
+            if [ -f "out_base/data/$f" ]; then cp "out_base/data/$f" "R/base_$f"; fi
           done
           if [ -f out_new/data/v8/audit_latest.json.gz ]; then cp out_new/data/v8/audit_latest.json.gz R/new_audit_latest.json.gz; fi
           if [ -f research_v8_summary.json ]; then cp research_v8_summary.json R/; fi

@@ -68,10 +68,23 @@ def _f(x):
 
 
 def _rec(venue, raw, norm, mtype, active, skip, price=None, vol=None, oi=None, fund8h=None, tradfi=None,
-         tradfi_why=None, name=None, rcv=None, status=None):
+         tradfi_why=None, name=None, rcv=None, status=None, vmeta=None):
     return {"venue": venue, "raw": raw, "norm": norm, "type": mtype, "active": active, "status": status,
             "skip": skip, "price": price, "vol": vol, "oi": oi, "fund8h": fund8h, "tradfi_override": tradfi,
-            "tradfi_why": tradfi_why, "name": name, "rcv": rcv}
+            "tradfi_why": tradfi_why, "name": name, "rcv": rcv, "vmeta": vmeta}
+
+
+# identity-relevant raw fields each venue's market list sends (v8 Phase 3). Recorded as observed, per contract, so
+# a scan shows what each venue says about its instruments. Only the fields named in v8.identity's rules decide
+# anything (Extended category, Aster underlyingType, the venue symbol, the contract name); the rest is evidence for
+# review, never authority.
+def _vm(src, keys):
+    out = {}
+    for k in keys:
+        v = (src or {}).get(k)
+        if v not in (None, "", [], {}):
+            out[k] = v
+    return out or None
 
 
 def read_hyperliquid(p):
@@ -105,7 +118,7 @@ def read_variational(p):
                         price=_f(L.get("mark_price")), vol=_f(L.get("volume_24h")),
                         oi=(lo or 0) + (so or 0) if lo is not None else None,
                         fund8h=apr * 8 / 8760 if apr is not None else None, name=L.get("name") or sym, rcv=rcv,
-                        status="listed"))
+                        status="listed", vmeta=_vm(L, ("name",))))
     return out
 
 
@@ -124,7 +137,9 @@ def read_aster(p):
         out.append(_rec("aster", sym, base, "perp" if ct == "PERPETUAL" else str(ct).lower(), st == "TRADING", skip,
                         price=_f(tk.get("lastPrice")) or _f(pr.get("markPrice")), vol=_f(tk.get("quoteVolume")),
                         fund8h=_f(pr.get("lastFundingRate")), tradfi=True if ut and ut != "COIN" else None,
-                        tradfi_why=f"VENUE_UNDERLYING:{ut}" if ut and ut != "COIN" else None, rcv=rcv, status=st))
+                        tradfi_why=f"VENUE_UNDERLYING:{ut}" if ut and ut != "COIN" else None, rcv=rcv, status=st,
+                        vmeta=_vm(s, ("baseAsset", "quoteAsset", "marginAsset", "underlyingType",
+                                      "underlyingSubType"))))
     return out
 
 
@@ -150,9 +165,12 @@ def read_lighter(p):
         sym = str(b.get("symbol", ""))
         skip = "NOT_PERPETUAL" if mt != "perp" else "NOT_TRADING" if st != "active" else \
             "EMPTY_SYMBOL" if not sym else None
+        cfgm = b.get("market_config") if isinstance(b.get("market_config"), dict) else {}
+        vm = _vm(b, ("market_flags", "strategy_index")) or {}
+        vm.update(_vm(cfgm, ("trading_hours", "insurance_fund_account_index")) or {})
         out.append(_rec("lighter", sym, sym, str(mt), st == "active", skip,
                         price=_f(b.get("mark_price")) or _f(b.get("last_trade_price")),
-                        vol=_f(b.get("daily_quote_token_volume")), rcv=rcv, status=st))
+                        vol=_f(b.get("daily_quote_token_volume")), rcv=rcv, status=st, vmeta=vm or None))
     return out
 
 
@@ -201,7 +219,8 @@ def read_extended(p):
                         price=_f(st.get("markPrice")) or _f(st.get("lastPrice")), vol=_f(st.get("dailyVolume")),
                         oi=_f(st.get("openInterest")), fund8h=fr * 8 if fr is not None else None,
                         tradfi=True if tf else None, tradfi_why=why, name=m.get("description"), rcv=rcv,
-                        status=m.get("status", "ACTIVE") if m.get("active") is not False else "inactive"))
+                        status=m.get("status", "ACTIVE") if m.get("active") is not False else "inactive",
+                        vmeta=_vm(m, ("category", "assetName", "description"))))
     return out
 
 
@@ -294,7 +313,12 @@ def build(trace, coins, dex_status, dex_ok, scan_ts):
                 "cls_auth": (info or {}).get("auth"), "npx": _r((info or {}).get("npx")),
                 "exposure": (info or {}).get("exp"), "exp_class": (info or {}).get("exp_cls"),
                 "exp_reason": (info or {}).get("exp_why"), "admitted": (info or {}).get("admitted"),
-                "inherited_from": (info or {}).get("inherited_from"), "meta": (info or {}).get("meta")})
+                "inherited_from": (info or {}).get("inherited_from"), "meta": (info or {}).get("meta"),
+                # v8 Phase 3 identity: the exposure's state, whether the contract is in the coin record, every piece of
+                # contract evidence, the parsed venue symbol and its link, and the raw venue identity fields
+                "exp_state": (info or {}).get("exp_state"), "in_record": (info or {}).get("in_record"),
+                "evidence": (info or {}).get("evidence"), "parsed": (info or {}).get("parsed"),
+                "link": (info or {}).get("link"), "vmeta": rec.get("vmeta")})
         # adapter rows the registry could not match to any raw record
         left = sum(len(v) for v in pool.values())
         if left:
@@ -327,7 +351,7 @@ def asset_summary(contracts, coins, dex_ok, ident=None):
         a["contracts"].append(c["id"])
         a["venues"].add(c["venue"])
         a["norms"].add(c["norm"])
-        if c["legacy"] in ("SELECTED", "DUPLICATE_NOT_SELECTED", "PRICE_CONFLICT_DROPPED", "EXPOSURE_NOT_ADMITTED"):
+        if c["legacy"] in ID.KEPT_STATES:
             a["any_kept"] = True
         if c["legacy"] == "SELECTED":
             a["kept_tradfi" if c["tradfi"] else "kept_crypto"] = True
@@ -337,12 +361,12 @@ def asset_summary(contracts, coins, dex_ok, ident=None):
         c = coins.get(t)
         info = ident.asset(t) if ident is not None else None
         if c is not None:
-            if not c.get("tradfi"):
+            if c.get("tradfi"):
+                state = "AMBIGUOUS" if info is not None and info["decision"] == ID.D_AMBIGUOUS else "TRADFI"
+            elif ID.execution_identity_eligible(c):
                 state = "CRYPTO"
-            elif info is not None and info["decision"] == ID.D_AMBIGUOUS:
-                state = "AMBIGUOUS"
             else:
-                state = "TRADFI"
+                state = "UNVERIFIED"          # in the universe, not tradfi, no crypto execution identity (Phase 3)
         elif a["failed"] and not a["any_kept"]:
             state = "VENUE_ADAPTER_FAILED"
         elif not a["any_kept"]:
@@ -352,14 +376,25 @@ def asset_summary(contracts, coins, dex_ok, ident=None):
         out[t] = {"contracts": a["contracts"], "venues": sorted(a["venues"]), "legacy": state,
                   "collision": bool(info and info["collision"]),
                   "aliases": sorted(a["norms"]) if len(a["norms"]) > 1 else None,
-                  "identity": ({"decision": info["decision"], "ticker_list": info["ticker_list"],
-                                "phase1": "TRADFI" if info.get("phase1_tradfi") else "CRYPTO",
-                                "exposures": info["exposures"]} if info is not None else None)}
+                  "identity": (_identity_block(info, c) if info is not None else None)}
     for t, c in coins.items():   # the fallback universe has coins without any contract
         if t not in out:
             out[t] = {"contracts": [], "venues": [], "legacy": "TRADFI" if c.get("tradfi") else "CRYPTO",
                       "collision": False, "aliases": None, "fallback": not dex_ok, "identity": None}
     return out
+
+
+def _identity_block(info, coin):
+    """The asset's identity as the audit shows it: Input -> Rule -> Result -> Effect (v8 Phase 3)."""
+    return {"state": info.get("state"), "decision": info["decision"], "authority": info.get("authority"),
+            "reason": info.get("reason"), "ticker_list": info["ticker_list"], "evidence": info.get("evidence") or [],
+            "discovery_eligible": bool(info.get("discovery_eligible")) and bool((coin or {}).get("venues")),
+            "execution_identity_eligible": ID.execution_identity_eligible(coin),
+            "promotion": info.get("promotion"), "links": info.get("links"),
+            "excluded_unverified": info.get("excluded_unverified"),
+            "phase1": "TRADFI" if info.get("phase1_tradfi") else "CRYPTO",
+            "phase2": (info.get("phase2") or {}).get("state"),
+            "phase2_reasons": (info.get("phase2") or {}).get("reasons"), "exposures": info["exposures"]}
 
 
 def counts(reg):
@@ -391,12 +426,48 @@ def counts(reg):
             "phase1_excluded": sum(1 for a in assets.values() if (a.get("identity") or {}).get("phase1") == "TRADFI"),
             "now_crypto": sum(1 for a in assets.values() if a.get("identity") and a.get("legacy") == "CRYPTO"),
             "now_excluded": sum(1 for a in assets.values() if a.get("identity") and a.get("legacy") in ("TRADFI", "AMBIGUOUS")),
+            # Phase 2 counts kept for continuity: legacy "CRYPTO" now means VERIFIED_CRYPTO only
             "changed_vs_phase1": sorted(t for t, a in assets.items() if a.get("identity") and
                                         (a["identity"]["phase1"] == "CRYPTO") != (a.get("legacy") == "CRYPTO")),
             "by_contract_class": _count(cs, "cls"), "by_exposure_class": _count(cs, "exp_class"),
             "multi_symbol_assets": sorted(t for t, a in assets.items() if a.get("aliases")),
+            **identity_counts(assets, cs),
             "alias_mapped": sorted({c["id"] for c in cs if str(c.get("canon", "")).startswith(("ALIAS", "MULTIPLIER_ALIAS"))}),
             "adapter_mismatches": by_legacy.get("AUDIT_ADAPTER_MISMATCH", 0)}
+
+
+def identity_counts(assets, cs):
+    """v8 Phase 3: the four identity states, discovery vs execution identity, and the before/after against the
+    Phase 2 identity on the same market lists (default-crypto inventory)."""
+    idents = {t: a["identity"] for t, a in assets.items() if a.get("identity")}
+    by_state = {st: 0 for st in ID.STATES}
+    for i in idents.values():
+        if i.get("state") in by_state:
+            by_state[i["state"]] += 1
+    p2_default_only = sorted(t for t, i in idents.items() if i.get("phase2") == "CRYPTO"
+                             and (i.get("phase2_reasons") or []) == ["DEFAULT_CRYPTO"])
+    p2_default_any = sorted(t for t, i in idents.items() if i.get("phase2") == "CRYPTO"
+                            and "DEFAULT_CRYPTO" in (i.get("phase2_reasons") or []))
+    p2_to_state = {}
+    for t in p2_default_any:
+        st = idents[t].get("state")
+        p2_to_state.setdefault(st, []).append(t)
+    p2map = {"CRYPTO": ID.VERIFIED_CRYPTO, "TRADFI": ID.VERIFIED_TRADFI, "AMBIGUOUS": ID.AMBIGUOUS}
+    changed = sorted(t for t, i in idents.items() if i.get("phase2") and p2map.get(i["phase2"]) != i.get("state"))
+    active = [c for c in cs if c.get("type") == "perp" and c.get("active")]
+    return {"identity_states": by_state,
+            "unverified_assets": sorted(t for t, i in idents.items() if i.get("state") == ID.UNVERIFIED),
+            "discovery_visible_assets": sum(1 for i in idents.values() if i.get("discovery_eligible")),
+            "discovery_visible_contracts": sum(1 for c in active if c.get("legacy") in ID.KEPT_STATES),
+            "execution_identity_eligible": sum(1 for i in idents.values() if i.get("execution_identity_eligible")),
+            "phase2_states": {k: sum(1 for i in idents.values() if i.get("phase2") == k)
+                              for k in ("CRYPTO", "TRADFI", "AMBIGUOUS")},
+            "phase2_default_crypto_only": p2_default_only, "phase2_default_crypto_any": p2_default_any,
+            "phase2_default_crypto_now": {k: sorted(v) for k, v in sorted(p2_to_state.items())},
+            "changed_vs_phase2": changed,
+            "changed_vs_phase2_detail": {t: [idents[t].get("phase2"), idents[t].get("state")] for t in changed},
+            "parsed_symbol_links": sorted(c["id"] for c in cs if c.get("link")),
+            "now_unverified": by_state[ID.UNVERIFIED]}
 
 
 def _count(cs, k):

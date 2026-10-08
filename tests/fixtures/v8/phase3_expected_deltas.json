@@ -1,0 +1,359 @@
+{
+ "schema": "v8.delta/2",
+ "phase": "v8 Phase 3: identity coverage hardening and discovery/execution separation",
+ "base": {
+  "sha": "82f8d35a80e561384f2e8be0e1399dd4e5adb99b",
+  "tree": "06d80f744401589f983ac52298650d182e0c2fa5",
+  "golden": "tests/fixtures/v8/legacy_parity_golden_phase3_base.json",
+  "golden_note": "main 82f8d35 (Phase 2) on the Phase 3 fixture: the Phase 2 fixture plus the fixture-world known-crypto declaration (alone: no Phase 2 output changes) and the Phase 3 identity cases (MOONX, NEWCOIN, US100S, SAMSUNGUSD, SKHYNIX/SKHYNIXUSD, HYUNDAI/HYUNDAIUSD, US10Y, BYD, PRLX)"
+ },
+ "head_golden": "tests/fixtures/v8/legacy_parity_golden_phase3.json",
+ "counterfactual_projection": "exclude_without_execution_identity",
+ "rules": {
+  "IDENTITY_UNVERIFIED_NO_EXECUTION": "An exposure without positive identity evidence is UNVERIFIED (Phase 2: CRYPTO by default, DEFAULT_CRYPTO). The coin keeps its Phase 2 record (venues, prices, volumes) and tradfi=false in the universe, and loses crypto execution identity: no engine evaluates it.",
+  "PARSED_SYMBOL_TRADFI": "On a venue whose symbols name the base asset only (Hyperliquid, Lighter, Variational), a symbol ending in USD yields a parsed candidate; it is tradfi evidence when the candidate is on the tradfi list or an FX pair, or when the candidate ticker has a TRADFI exposure within 20% of the contract's price. Never crypto evidence.",
+  "UNVERIFIED_NOT_COUNTED_AS_CRYPTO": "A DEX's count of crypto markets counts only markets admitted with crypto execution identity: unverified markets and markets that became tradfi are no longer counted.",
+  "UNVERIFIED_EXPOSURE_NOT_MERGED": "A price-separated UNVERIFIED exposure next to a VERIFIED_CRYPTO exposure of the same ticker is not merged into the crypto coin (contract state UNVERIFIED_EXPOSURE_NOT_ADMITTED), so the price-conflict note for it is not emitted.",
+  "UNVERIFIED_LISTED_SEPARATELY": "The radar publishes identity-unverified coins in coverage.unverified, not among the non-crypto (tradfi) exclusions in coverage.tradfi: unknown is not tradfi."
+ },
+ "universe": [
+  {
+   "ticker": "BYD",
+   "field": "execution_identity",
+   "base": true,
+   "head": false,
+   "rule": "IDENTITY_UNVERIFIED_NO_EXECUTION",
+   "why": "Lighter BYD (3.02, observed /bin/bash) carries no label and is on no list: no positive evidence. Phase 2 called it crypto by default."
+  },
+  {
+   "ticker": "HYUNDAI",
+   "field": "execution_identity",
+   "base": true,
+   "head": false,
+   "rule": "IDENTITY_UNVERIFIED_NO_EXECUTION",
+   "why": "Aster HYUNDAIUSDT sends underlyingType COIN, which Aster also sends for stocks: no evidence either way."
+  },
+  {
+   "ticker": "HYUNDAIUSD",
+   "field": "execution_identity",
+   "base": true,
+   "head": false,
+   "rule": "IDENTITY_UNVERIFIED_NO_EXECUTION",
+   "why": "Lighter HYUNDAIUSD parses to the candidate HYUNDAI, whose only exposure (Aster, 253.02) is itself UNVERIFIED: the link is recorded, it decides nothing."
+  },
+  {
+   "ticker": "MOONX",
+   "field": "execution_identity",
+   "base": true,
+   "head": false,
+   "rule": "IDENTITY_UNVERIFIED_NO_EXECUTION",
+   "why": "Unknown coin on Hyperliquid and Aster (COIN), liquid, with candles: two unlabeled venues do not prove crypto, and a Hyperliquid listing is not identity evidence (Hyperliquid lists PAXG, a tradfi-list ticker, too)."
+  },
+  {
+   "ticker": "NEWCOIN",
+   "field": "execution_identity",
+   "base": true,
+   "head": false,
+   "rule": "IDENTITY_UNVERIFIED_NO_EXECUTION",
+   "why": "A brand-new Aster-only perp, 8.5k volume, no candles, no label, on no list: discovery-visible, no execution identity."
+  },
+  {
+   "ticker": "SAMSUNGUSD",
+   "field": "tradfi",
+   "base": false,
+   "head": true,
+   "rule": "PARSED_SYMBOL_TRADFI",
+   "why": "Lighter symbols name the base asset only; SAMSUNGUSD parses to SAMSUNG, which is on the repository tradfi list (PARSED_SYMBOL_TRADFI_LIST:SAMSUNG)."
+  },
+  {
+   "ticker": "SAMSUNGUSD",
+   "field": "execution_identity",
+   "base": true,
+   "head": false,
+   "rule": "PARSED_SYMBOL_TRADFI",
+   "why": "as tradfi: VERIFIED_TRADFI"
+  },
+  {
+   "ticker": "SKHYNIXUSD",
+   "field": "tradfi",
+   "base": false,
+   "head": true,
+   "rule": "PARSED_SYMBOL_TRADFI",
+   "why": "SKHYNIXUSD parses to SKHYNIX, whose exposure SKHYNIX#1 (Extended RWA, 1334.15) is TRADFI and within 20% of 1284.48 (PARSED_SYMBOL_EXPOSURE:SKHYNIX#1)."
+  },
+  {
+   "ticker": "SKHYNIXUSD",
+   "field": "execution_identity",
+   "base": true,
+   "head": false,
+   "rule": "PARSED_SYMBOL_TRADFI",
+   "why": "as tradfi: VERIFIED_TRADFI"
+  },
+  {
+   "ticker": "US100S",
+   "field": "execution_identity",
+   "base": true,
+   "head": false,
+   "rule": "IDENTITY_UNVERIFIED_NO_EXECUTION",
+   "why": "Variational US100S (.0B 24h volume in the live scan) has no venue label, no list entry and no tradfi name: UNVERIFIED, not crypto. Phase 2 admitted it as crypto by default."
+  },
+  {
+   "ticker": "US10Y",
+   "field": "execution_identity",
+   "base": true,
+   "head": false,
+   "rule": "IDENTITY_UNVERIFIED_NO_EXECUTION",
+   "why": "Lighter US10Y (a rates-style symbol) has no label and is on no list; no rates pattern is guessed: UNVERIFIED."
+  }
+ ],
+ "dex_status": [
+  {
+   "dex": "aster",
+   "field": "crypto",
+   "base": 8,
+   "head": 5,
+   "rule": "UNVERIFIED_NOT_COUNTED_AS_CRYPTO",
+   "contracts": [
+    "aster:MOONXUSDT",
+    "aster:NEWCOINUSDT",
+    "aster:HYUNDAIUSDT"
+   ]
+  },
+  {
+   "dex": "hyperliquid",
+   "field": "crypto",
+   "base": 41,
+   "head": 40,
+   "rule": "UNVERIFIED_NOT_COUNTED_AS_CRYPTO",
+   "contracts": [
+    "hyperliquid:MOONX"
+   ]
+  },
+  {
+   "dex": "lighter",
+   "field": "crypto",
+   "base": 10,
+   "head": 4,
+   "rule": "UNVERIFIED_NOT_COUNTED_AS_CRYPTO",
+   "contracts": [
+    "lighter:SAMSUNGUSD",
+    "lighter:SKHYNIXUSD",
+    "lighter:HYUNDAIUSD",
+    "lighter:US10Y",
+    "lighter:BYD",
+    "lighter:PRLX"
+   ]
+  },
+  {
+   "dex": "variational",
+   "field": "crypto",
+   "base": 35,
+   "head": 34,
+   "rule": "UNVERIFIED_NOT_COUNTED_AS_CRYPTO",
+   "contracts": [
+    "variational:US100S"
+   ]
+  }
+ ],
+ "notes": {
+  "removed": [
+   "PRLX: Lighter price 1.3400 differs from the main market (0.1111); left out"
+  ],
+  "added": [],
+  "rule": "UNVERIFIED_EXPOSURE_NOT_MERGED"
+ },
+ "code": [
+  {
+   "file": "data/latest.json",
+   "path": [
+    "coverage",
+    "tradfi"
+   ],
+   "kind": "set",
+   "base": [
+    "AAPL",
+    "ACME",
+    "ASTS",
+    "BYD",
+    "EURUSD",
+    "HYUNDAI",
+    "HYUNDAIUSD",
+    "KIOXIA",
+    "KORU",
+    "MOONX",
+    "NEWCOIN",
+    "ONDS",
+    "SAMSUNGUSD",
+    "SECT",
+    "SKHYNIX",
+    "SKHYNIXUSD",
+    "US100S",
+    "US10Y",
+    "XIAOMI"
+   ],
+   "head": [
+    "AAPL",
+    "ACME",
+    "ASTS",
+    "EURUSD",
+    "KIOXIA",
+    "KORU",
+    "ONDS",
+    "SAMSUNGUSD",
+    "SECT",
+    "SKHYNIX",
+    "SKHYNIXUSD",
+    "XIAOMI"
+   ],
+   "rule": "UNVERIFIED_LISTED_SEPARATELY",
+   "why": "the counterfactual hands unverified coins to the base code as tradfi (its only exclusion); HEAD lists them apart"
+  },
+  {
+   "file": "data/latest.json",
+   "path": [
+    "coverage",
+    "unverified"
+   ],
+   "base": "<absent>",
+   "head": [
+    "BYD",
+    "HYUNDAI",
+    "HYUNDAIUSD",
+    "MOONX",
+    "NEWCOIN",
+    "US100S",
+    "US10Y"
+   ],
+   "rule": "UNVERIFIED_LISTED_SEPARATELY",
+   "why": "new list of identity-unverified coins"
+  }
+ ],
+ "decisions": [
+  {
+   "path": [
+    "radar",
+    "tradfi"
+   ],
+   "kind": "set",
+   "base": [
+    "AAPL",
+    "ACME",
+    "ASTS",
+    "BYD",
+    "EURUSD",
+    "HYUNDAI",
+    "HYUNDAIUSD",
+    "KIOXIA",
+    "KORU",
+    "MOONX",
+    "NEWCOIN",
+    "ONDS",
+    "SAMSUNGUSD",
+    "SECT",
+    "SKHYNIX",
+    "SKHYNIXUSD",
+    "US100S",
+    "US10Y",
+    "XIAOMI"
+   ],
+   "head": [
+    "AAPL",
+    "ACME",
+    "ASTS",
+    "EURUSD",
+    "KIOXIA",
+    "KORU",
+    "ONDS",
+    "SAMSUNGUSD",
+    "SECT",
+    "SKHYNIX",
+    "SKHYNIXUSD",
+    "XIAOMI"
+   ],
+   "rule": "UNVERIFIED_LISTED_SEPARATELY"
+  },
+  {
+   "path": [
+    "radar",
+    "unverified"
+   ],
+   "base": null,
+   "head": [
+    "BYD",
+    "HYUNDAI",
+    "HYUNDAIUSD",
+    "MOONX",
+    "NEWCOIN",
+    "US100S",
+    "US10Y"
+   ],
+   "rule": "UNVERIFIED_LISTED_SEPARATELY"
+  }
+ ],
+ "identity_states": {
+  "BTC": "VERIFIED_CRYPTO",
+  "ETH": "VERIFIED_CRYPTO",
+  "FAKE00": "VERIFIED_CRYPTO",
+  "FAKE01": "VERIFIED_CRYPTO",
+  "FAKE02": "VERIFIED_CRYPTO",
+  "FAKE03": "VERIFIED_CRYPTO",
+  "FAKE04": "VERIFIED_CRYPTO",
+  "FAKE05": "VERIFIED_CRYPTO",
+  "FAKE06": "VERIFIED_CRYPTO",
+  "FAKE07": "VERIFIED_CRYPTO",
+  "FAKE08": "VERIFIED_CRYPTO",
+  "FAKE09": "VERIFIED_CRYPTO",
+  "FAKE10": "VERIFIED_CRYPTO",
+  "FAKE11": "VERIFIED_CRYPTO",
+  "FAKE12": "VERIFIED_CRYPTO",
+  "FAKE13": "VERIFIED_CRYPTO",
+  "FAKE14": "VERIFIED_CRYPTO",
+  "FAKE15": "VERIFIED_CRYPTO",
+  "FAKE16": "VERIFIED_CRYPTO",
+  "FAKE17": "VERIFIED_CRYPTO",
+  "FAKE18": "VERIFIED_CRYPTO",
+  "FAKE19": "VERIFIED_CRYPTO",
+  "FAKE20": "VERIFIED_CRYPTO",
+  "FAKE21": "VERIFIED_CRYPTO",
+  "FAKE22": "VERIFIED_CRYPTO",
+  "FAKE23": "VERIFIED_CRYPTO",
+  "FAKE24": "VERIFIED_CRYPTO",
+  "FAKE25": "VERIFIED_CRYPTO",
+  "FAKE26": "VERIFIED_CRYPTO",
+  "FAKE27": "VERIFIED_CRYPTO",
+  "TINY": "VERIFIED_CRYPTO",
+  "NEW40": "VERIFIED_CRYPTO",
+  "NEW10": "VERIFIED_CRYPTO",
+  "THINREF": "VERIFIED_CRYPTO",
+  "ZEROV": "VERIFIED_CRYPTO",
+  "SCALEX": "VERIFIED_CRYPTO",
+  "BB": "VERIFIED_CRYPTO",
+  "PURR": "VERIFIED_CRYPTO",
+  "NOCAND": "VERIFIED_CRYPTO",
+  "MOONX": "UNVERIFIED",
+  "QNT": "VERIFIED_CRYPTO",
+  "VANA": "VERIFIED_CRYPTO",
+  "AAPL": "VERIFIED_TRADFI",
+  "ACME": "VERIFIED_TRADFI",
+  "ONDS": "VERIFIED_TRADFI",
+  "US100S": "UNVERIFIED",
+  "ASTS": "VERIFIED_TRADFI",
+  "KORU": "VERIFIED_TRADFI",
+  "XIAOMI": "AMBIGUOUS",
+  "NEWCOIN": "UNVERIFIED",
+  "HYUNDAI": "UNVERIFIED",
+  "PRLX": "VERIFIED_CRYPTO",
+  "LONLY": "VERIFIED_CRYPTO",
+  "KIOXIA": "VERIFIED_TRADFI",
+  "SAMSUNGUSD": "VERIFIED_TRADFI",
+  "SKHYNIXUSD": "VERIFIED_TRADFI",
+  "HYUNDAIUSD": "UNVERIFIED",
+  "US10Y": "UNVERIFIED",
+  "BYD": "UNVERIFIED",
+  "EXTONLY": "VERIFIED_CRYPTO",
+  "SECT": "AMBIGUOUS",
+  "SKHYNIX": "VERIFIED_TRADFI",
+  "EURUSD": "VERIFIED_TRADFI"
+ },
+ "not_allowed": "Anything else. Outputs of the engines downstream of the universe may differ between BASE and HEAD only as the counterfactual run proves: the base code fed HEAD's universe, with every coin lacking crypto execution identity excluded the base code's own way (tradfi=true), reproduces HEAD's outputs except for the code deltas above."
+}

@@ -24,7 +24,7 @@ import scanner as sc  # noqa: E402
 import quant as Q  # noqa: E402
 import smart as SM  # noqa: E402
 from v8 import audit_quant, audit_radar, audit_smart, health as H, ledger as LG, parts, provenance  # noqa: E402
-from v8 import registry as R, snapshot as SN, taxonomy as T  # noqa: E402
+from v8 import identity as ID, registry as R, snapshot as SN, taxonomy as T  # noqa: E402
 from v8.trace import TRACE, Recorder  # noqa: E402
 
 
@@ -129,21 +129,21 @@ class RegistryAgainstAdapters(unittest.TestCase):
         import legacy_parity as LP
         PX, _, _ = LP._make_exchange()
         fx = PX()
-        old = sc.FETCH
+        old = sc.FETCH, sc.KNOWN_CRYPTO
         sc.FETCH = fx.fetch
+        sc.KNOWN_CRYPTO = sc.KNOWN_CRYPTO | LP.fixture_known_crypto(fx)     # the fixture world (v8 Phase 3)
         try:
             coins, status, ok = sc.build_universe()
             reg = R.build(TRACE, coins, status, ok, fx.now)
         finally:
-            sc.FETCH = old
+            sc.FETCH, sc.KNOWN_CRYPTO = old
         self.assertTrue(ok)
         cs = reg["contracts"]
         self.assertEqual(R.counts(reg)["adapter_mismatches"], 0)
         for dex in sc.DEXES:
             rows = TRACE.rows[dex]
             kept = sorted(f"{dex}:{r['sym']}" for r in rows)
-            got = sorted(c["id"] for c in cs if c["venue"] == dex and c["legacy"] in
-                         ("SELECTED", "DUPLICATE_NOT_SELECTED", "PRICE_CONFLICT_DROPPED", "EXPOSURE_NOT_ADMITTED"))
+            got = sorted(c["id"] for c in cs if c["venue"] == dex and c["legacy"] in ID.KEPT_STATES)
             self.assertEqual(kept, got, dex)
         for t, c in coins.items():
             for dex, v in c["venues"].items():
@@ -320,9 +320,9 @@ class NeverBreaksTheScan(unittest.TestCase):
         self.assertEqual(r.plans, [])
 
     def test_scan_survives_a_broken_audit(self):
-        fx = __import__("fake_exchange").FakeExchange(n_coins=24, days=4, seed=2)
-        old = sc.FETCH
-        sc.FETCH = fx.fetch
+        fxm = __import__("fake_exchange")
+        fx = fxm.FakeExchange(n_coins=24, days=4, seed=2)
+        restore = fxm.install(fx)
         tmp = tempfile.mkdtemp()
         try:
             with mock.patch("v8.audit_radar.radar_part", side_effect=RuntimeError("broken")):
@@ -332,7 +332,7 @@ class NeverBreaksTheScan(unittest.TestCase):
             self.assertFalse(parts.read(os.path.join(tmp, "s"), "radar")["ok"])
             self.assertTrue(parts.read(os.path.join(tmp, "s"), "universe")["ok"])
         finally:
-            sc.FETCH = old
+            restore()
             shutil.rmtree(tmp, ignore_errors=True)
 
 
@@ -342,7 +342,8 @@ class RadarMapping(unittest.TestCase):
     def run_part(self, n=6, stage2_n=2, gate=None, blocks=None, finals=None, picks=(), watch=(), extras=()):
         coins = {f"C{i}": {"t": f"C{i}", "venues": {"hyperliquid": {"sym": f"C{i}", "vol": 5e6, "tradfi": False,
                                                                     "funding8h": 1e-5}},
-                           "tradfi": False, "trade_vol": 5e6, "best_vol": 5e6} for i in range(n)}
+                           "tradfi": False, "trade_vol": 5e6, "best_vol": 5e6, "identity": "VERIFIED_CRYPTO"}
+                 for i in range(n)}
         s1 = {t: {"score": 10 - i, "src": "mexc"} for i, t in enumerate(coins)}
         ranked = list(coins)
         cands = ranked[:stage2_n] + list(extras)
@@ -398,7 +399,8 @@ class TaxonomyDoc(unittest.TestCase):
         with open(os.path.join(ROOT, "docs", "v8", "disposition-taxonomy.md")) as fh:
             doc = fh.read()
         listed = set(re.findall(r"^\| `([A-Z0-9_]+)` \|", doc, re.M))
-        codes = set(T.REASONS) | set(T.STEPS) | set(T.TRADER_REASONS) | set(T.DISPOSITIONS)
+        codes = set(T.REASONS) | set(T.STEPS) | set(T.TRADER_REASONS) | set(T.DISPOSITIONS) | \
+            set(T.IDENTITY_STATES) | set(T.RETIRED_IDENTITY_REASONS)
         self.assertEqual(listed, codes)
         self.assertEqual(set(T.DISPOSITIONS) <= set(re.findall(r"`([A-Z_]+)`", doc)), True)
 

@@ -1,71 +1,107 @@
-"""Universe identity (v8 Phase 2): contract-first classification and price-coherent exposures.
+"""Universe identity (v8 Phase 2, hardened in Phase 3): contract-first classification, price-coherent exposures and
+four explicit identity states.
 
 The single authority that turns the eight DEX market lists into the coin universe every engine reads
-(scanner.build_universe() calls resolve(); quant and picks call build_universe()). It replaces the legacy step that
-keyed everything by ticker and OR-ed the tradfi flag over every market of the ticker: one equity market listed
-under a crypto ticker (QNT, PURR and BB on Extended) hid the crypto coin from every engine, even after the price check
-had dropped that very market.
+(scanner.build_universe() calls resolve(); quant and picks call build_universe()), and the single place that says
+which coins may reach a crypto engine (execution_identity_eligible()).
 
     raw venue contract (one adapter row, venue:raw_symbol)
-      -> contract classification from the contract's own evidence (venue metadata, the contract's name)
+      -> contract evidence from the contract's own metadata, name and venue symbol
       -> price-coherent exposures per ticker (prices per 1 coin: 1000PEPE and kPEPE compare as PEPE)
-      -> exposure class CRYPTO / TRADFI / AMBIGUOUS
-      -> the legacy coin record, built only from the admitted crypto exposure
+      -> exposure class CRYPTO / TRADFI / AMBIGUOUS / UNVERIFIED
+      -> asset identity state VERIFIED_CRYPTO / VERIFIED_TRADFI / AMBIGUOUS / UNVERIFIED
+      -> the legacy coin record (identity field set), built from the deciding exposure only
 
-Rules (deterministic; no statistics, no per-ticker exceptions):
+Phase 3 retires the implicit rule "no tradfi evidence and no crypto evidence = crypto" (Phase 2's DEFAULT_CRYPTO).
+An exposure without positive evidence is UNVERIFIED: it stays in the universe (discovery: the coin record, the
+registry, the audit, every engine's ledger), it is not called tradfi, and it has no crypto execution authority.
 
-1. Contract evidence. Extended category "RWA" (stocks, FX, commodities, indices) or a "_24_5" market: tradfi.
-   Extended category "Crypto": crypto. Any other Extended category: ambiguous (the legacy rule called it tradfi).
-   Aster underlyingType other than "COIN": tradfi; "COIN" is no evidence, because Aster sends "COIN" for the stocks
-   it lists too (Phase 1 live audit). A contract name that matches the tradfi name pattern (Inc, Holdings, ETF, ...)
-   is tradfi unless the ticker is on the known-crypto list, exactly as scanner.is_tradfi() ranks them. Tradfi and
-   crypto evidence on one contract: ambiguous. Hyperliquid, Lighter, dYdX, Paradex and edgeX send no such metadata:
-   their contracts are UNLABELED.
+Rules (deterministic; no statistics, no per-ticker exceptions, no network):
+
+1. Contract evidence.
+   Venue metadata: Extended category "RWA" or a "_24_5" market: tradfi; Extended category "Crypto": crypto; any other
+   Extended category: ambiguous. Aster underlyingType other than "COIN": tradfi; "COIN" is no evidence (Aster sends
+   it for the stocks it lists too). Hyperliquid, Lighter, dYdX, Paradex, edgeX and Variational send no asset-class
+   field.
+   Contract name: a name matching the tradfi name pattern (Inc, Holdings, ETF, ...) is tradfi unless the ticker is
+   on the known-crypto list (the precedence of scanner.is_tradfi()).
+   Venue symbol (Phase 3): on venues whose market symbols name the base asset only (BASE_ONLY_SYMBOL_VENUES; the
+   quote is the venue's settlement currency and is never written), a symbol ending in a quote code
+   (QUOTE_SUFFIXES) yields a parsed underlying candidate: SAMSUNGUSD -> SAMSUNG. The candidate never changes the
+   contract's ticker. It is evidence in one direction only, tradfi: when the candidate is on the repository's tradfi
+   list or an FX code pair, or (rule 3) when the candidate ticker has a TRADFI exposure at a coherent price. It is
+   never crypto evidence: a parsed name is not enough to grant execution authority.
+   Tradfi and crypto evidence on one contract: ambiguous. No evidence: the contract is UNLABELED.
 2. Exposures. The priced contracts of a ticker are grouped around anchors: the contract with the most 24h volume
    anchors the first exposure and takes every contract within 20% of its price (the legacy price-conflict
    tolerance); the most traded of the rest anchors the next, and so on. Contracts without a price never join a
-   priced exposure and never change one: each stays on its own. A ticker with no priced contract at all is one
-   exposure.
-3. Exposure class. A ticker on the tradfi list or an FX pair: TRADFI (the legacy lists, unchanged). Otherwise from
-   the contracts inside the exposure only: tradfi evidence and crypto evidence together: AMBIGUOUS; tradfi evidence:
-   TRADFI, and its unlabeled contracts inherit it (a stock one venue forgot to label stays a stock); ambiguous
-   evidence: AMBIGUOUS; crypto evidence: CRYPTO. Without any contract evidence: CRYPTO when the ticker is on the
-   repository's known-crypto list (unchanged in this phase); AMBIGUOUS when another priced exposure of the same
-   ticker is tradfi or ambiguous (a ticker that names a stock somewhere needs positive crypto evidence: this keeps a
-   stock quoted in another currency on one venue, like XIAOMI, out); else CRYPTO by default, as before.
-4. Admission. The CRYPTO exposures (priced, or the ticker's only exposure) are admitted. Unpriced contracts without
-   tradfi or ambiguous evidence ride along with an admitted exposure, as they always did. The coin record is then
-   built from the admitted contracts with the legacy steps unchanged: one market per venue (most volume), the price
-   check against the most traded market, the reference price, the volumes. A ticker with nothing admitted keeps
-   its legacy record of all contracts with tradfi=True, so every engine excludes it as before.
+   priced exposure and never change one: each stays on its own. A ticker with no priced contract is one exposure.
+3. Parsed-symbol links (one hop, after every ticker is classified on its own contracts): a contract whose parsed
+   candidate is another ticker of this scan, and whose price per coin is within 20% of a TRADFI exposure of that
+   ticker, gains tradfi evidence (PARSED_SYMBOL_EXPOSURE). Every link found is recorded, also when it decides
+   nothing (HYUNDAIUSD -> HYUNDAI, both unverified). Tickers that gained evidence are classified again; the links
+   are not followed further.
+4. Exposure class. A ticker on the tradfi list or an FX pair: TRADFI (unchanged legacy lists). Otherwise from the
+   contracts inside the exposure only: tradfi and crypto evidence together: AMBIGUOUS; tradfi evidence: TRADFI, and
+   its unlabeled contracts inherit it; ambiguous evidence: AMBIGUOUS; crypto evidence: CRYPTO. Without contract
+   evidence: CRYPTO when the ticker is on the repository's known-crypto list; AMBIGUOUS when another priced exposure
+   of the ticker is tradfi or ambiguous; else UNVERIFIED (Phase 2: CRYPTO by default). An unpriced contract alone
+   with no evidence: UNVERIFIED.
+5. Asset state and the coin record. Any CRYPTO exposure: VERIFIED_CRYPTO; the CRYPTO exposures are admitted and the
+   coin record is built from them (plus unpriced contracts without tradfi or ambiguous evidence, as before);
+   price-separated UNVERIFIED exposures of the ticker stay out. Else any UNVERIFIED exposure: UNVERIFIED; the coin
+   record is built from the UNVERIFIED exposures exactly as Phase 2 built it (same venues, prices, volumes), with
+   tradfi=False and identity UNVERIFIED. Else (only TRADFI / AMBIGUOUS): VERIFIED_TRADFI or AMBIGUOUS, the legacy
+   record of all contracts with tradfi=True, as in Phase 2. Every coin record carries `identity` (the state).
 
-A ticker without tradfi evidence anywhere has every contract admitted, so its coin record is exactly the legacy
-one. Volumes: an observed 0 now counts (best_vol, tot_vol, trade_vol are 0.0, not None); None means no venue
-reported a volume (see v8.liquidity)."""
+Discovery is not execution: every coin record is in the universe whatever its state (discovery_eligible()); only
+VERIFIED_CRYPTO may reach a crypto engine (execution_identity_eligible()), and a coin record without an identity
+fails closed. Liquidity, history and strategy gates are separate and unchanged.
+
+Volumes: an observed 0 counts (best_vol, tot_vol, trade_vol are 0.0, not None); None means no venue reported one."""
 from __future__ import annotations
 
 import statistics
 
-VERSION = "v8.identity/1"
+VERSION = "v8.identity/2"
 TOL = 0.2          # price tolerance of one exposure (the legacy price-conflict tolerance)
 
-CRYPTO, TRADFI, AMBIGUOUS, UNLABELED = "CRYPTO", "TRADFI", "AMBIGUOUS", "UNLABELED"
-CLASSES = (CRYPTO, TRADFI, AMBIGUOUS, UNLABELED)
-# authority of a classification
-VENUE_METADATA, CONTRACT_NAME, TICKER_LIST, INHERITED, DEFAULT, NONE = (
-    "VENUE_METADATA", "CONTRACT_NAME", "TICKER_LIST", "INHERITED", "DEFAULT", "NONE")
+# contract classes (a contract's own evidence) and exposure classes
+CRYPTO, TRADFI, AMBIGUOUS, UNLABELED, UNVERIFIED = "CRYPTO", "TRADFI", "AMBIGUOUS", "UNLABELED", "UNVERIFIED"
+CLASSES = (CRYPTO, TRADFI, AMBIGUOUS, UNLABELED, UNVERIFIED)
+# asset identity states (v8 Phase 3)
+VERIFIED_CRYPTO, VERIFIED_TRADFI = "VERIFIED_CRYPTO", "VERIFIED_TRADFI"
+STATES = (VERIFIED_CRYPTO, VERIFIED_TRADFI, AMBIGUOUS, UNVERIFIED)
+STATE_OF = {CRYPTO: VERIFIED_CRYPTO, TRADFI: VERIFIED_TRADFI, AMBIGUOUS: AMBIGUOUS, UNVERIFIED: UNVERIFIED}
+# authority of a classification. DEFAULT is Phase 2's "crypto because nothing said otherwise": retired in Phase 3,
+# kept so older snapshots stay readable; never emitted.
+VENUE_METADATA, CONTRACT_NAME, TICKER_LIST, PARSED_SYMBOL, INHERITED, DEFAULT, NONE = (
+    "VENUE_METADATA", "CONTRACT_NAME", "TICKER_LIST", "PARSED_SYMBOL", "INHERITED", "DEFAULT", "NONE")
 
 # contract states in the universe (registry `legacy` field)
 SELECTED, DUPLICATE, CONFLICT, NOT_ADMITTED = ("SELECTED", "DUPLICATE_NOT_SELECTED", "PRICE_CONFLICT_DROPPED",
                                               "EXPOSURE_NOT_ADMITTED")
+NOT_ADMITTED_UNVERIFIED = "UNVERIFIED_EXPOSURE_NOT_ADMITTED"      # v8 Phase 3
+KEPT_STATES = (SELECTED, DUPLICATE, CONFLICT, NOT_ADMITTED, NOT_ADMITTED_UNVERIFIED)
 # asset decisions
 D_CRYPTO, D_SELECTED = "CRYPTO", "CRYPTO_EXPOSURE_SELECTED"
 D_TRADFI, D_TRADFI_EXPOSURE, D_AMBIGUOUS = "TRADFI_CLASSIFIED", "TRADFI_EXPOSURE_EXCLUDED", "AMBIGUOUS_EXPOSURE"
+D_UNVERIFIED = "IDENTITY_UNVERIFIED"
+STATE_OF_DECISION = {D_CRYPTO: VERIFIED_CRYPTO, D_SELECTED: VERIFIED_CRYPTO, D_TRADFI: VERIFIED_TRADFI,
+                     D_TRADFI_EXPOSURE: VERIFIED_TRADFI, D_AMBIGUOUS: AMBIGUOUS, D_UNVERIFIED: UNVERIFIED}
 
 EXTENDED_TRADFI_CATEGORIES = frozenset({"RWA"})
 EXTENDED_CRYPTO_CATEGORIES = frozenset({"Crypto"})
 ASTER_NEUTRAL_UNDERLYING = frozenset({"COIN"})
 NAMED_VENUES = ("variational", "extended")     # the venues whose market name the legacy coin record keeps
+# venues whose market symbol names the base asset only; the quote (the venue's settlement currency) is never part
+# of the symbol (Hyperliquid "BTC", Lighter "ETH", Variational "SOL"), so a trailing quote code is a lead to parse
+BASE_ONLY_SYMBOL_VENUES = ("hyperliquid", "lighter", "variational")
+QUOTE_SUFFIXES = ("USD",)
+MIN_CANDIDATE_LEN = 2
+PROMOTION = ("positive identity evidence on a price-coherent contract: a venue asset-class label (Extended "
+             "category, Aster underlyingType), the repository's known-crypto or tradfi list, a tradfi contract name, "
+             "or a verified tradfi exposure linked by the venue symbol")
 
 
 class Lists:
@@ -75,9 +111,39 @@ class Lists:
         self.tradfi, self.known_crypto, self.is_fx, self.name_re = tradfi, known_crypto, is_fx, name_re
 
 
+# --------------------------------------------------------------------------- engines: discovery vs execution
+def execution_identity_eligible(coin):
+    """True only for a coin record whose identity is VERIFIED_CRYPTO (and that is not excluded as tradfi). The gate
+    every crypto engine applies before it evaluates a coin. A coin record without an identity fails closed."""
+    return bool(coin) and not coin.get("tradfi") and coin.get("identity") == VERIFIED_CRYPTO
+
+
+def discovery_eligible(coin):
+    """True for every coin record with at least one venue market, whatever its identity state: the system sees it."""
+    return bool(coin) and bool(coin.get("venues"))
+
+
 # --------------------------------------------------------------------------- 1. one contract
-def contract_evidence(row, lists):
-    """[(class, reason, authority), ...]: what the contract itself says, strongest first."""
+def parse_symbol(dex, t):
+    """(candidate, rule) for the ticker of a contract on a base-only-symbol venue whose ticker ends in a quote code,
+    else (None, None). SAMSUNGUSD on Lighter -> ("SAMSUNG", "QUOTE_SUFFIX:USD"). A lead only (see rules 1 and 3)."""
+    if dex not in BASE_ONLY_SYMBOL_VENUES or not t:
+        return None, None
+    u = str(t)
+    for q in QUOTE_SUFFIXES:
+        if u.endswith(q) and len(u) - len(q) >= MIN_CANDIDATE_LEN:
+            return u[:-len(q)], f"QUOTE_SUFFIX:{q}"
+    return None, None
+
+
+def contract_evidence(row, lists, dex=None):
+    """[(class, reason, authority), ...]: what the contract itself says (Phase 2 evidence, then the Phase 3
+    parsed-symbol evidence)."""
+    return base_evidence(row, lists) + parsed_evidence(row, lists, dex)
+
+
+def base_evidence(row, lists):
+    """The Phase 2 evidence of one contract: venue metadata and the contract name."""
     t, dex = row.get("t"), row.get("dex")
     ev = []
     if dex == "extended":
@@ -103,9 +169,21 @@ def contract_evidence(row, lists):
     return ev
 
 
-def classify_contract(row, lists):
-    """(class, reason, authority) of one contract from its own evidence; UNLABELED when it carries none."""
-    ev = contract_evidence(row, lists)
+def parsed_evidence(row, lists, dex=None):
+    """Phase 3: tradfi evidence from a parsed venue symbol whose candidate is on the tradfi list or an FX pair."""
+    t = row.get("t")
+    cand, _ = parse_symbol(dex or row.get("dex"), t)
+    if not cand or t in lists.known_crypto:
+        return []
+    if cand in lists.tradfi:
+        return [(TRADFI, f"PARSED_SYMBOL_TRADFI_LIST:{cand}", PARSED_SYMBOL)]
+    if lists.is_fx(cand):
+        return [(TRADFI, f"PARSED_SYMBOL_FX_PAIR:{cand}", PARSED_SYMBOL)]
+    return []
+
+
+def classify_evidence(ev):
+    """(class, reason, authority) of one contract from its evidence list; UNLABELED when there is none."""
     if not ev:
         return UNLABELED, "NO_CONTRACT_EVIDENCE", NONE
     kinds = {c for c, _, _ in ev}
@@ -116,6 +194,11 @@ def classify_contract(row, lists):
             if c == want:
                 return c, w, a
     return UNLABELED, "NO_CONTRACT_EVIDENCE", NONE   # not reached
+
+
+def classify_contract(row, lists):
+    """(class, reason, authority) of one contract from its own evidence; UNLABELED when it carries none."""
+    return classify_evidence(contract_evidence(row, lists))
 
 
 def ticker_class(t, lists):
@@ -131,26 +214,41 @@ def ticker_class(t, lists):
 
 # --------------------------------------------------------------------------- 2. exposures of one ticker
 class Member:
-    __slots__ = ("dex", "i", "row", "cls", "why", "auth", "npx", "vol")
+    __slots__ = ("dex", "i", "row", "ev2", "ev", "cls", "why", "auth", "cls2", "npx", "vol", "cand", "cand_rule",
+                 "link")
 
     def __init__(self, dex, i, row, lists):
         self.dex, self.i, self.row = dex, i, row
-        self.cls, self.why, self.auth = classify_contract(row, lists)
+        self.ev2 = base_evidence(row, lists)                     # what Phase 2 knew
+        self.ev = self.ev2 + parsed_evidence(row, lists, dex)    # Phase 3
+        self.cls, self.why, self.auth = classify_evidence(self.ev)
+        self.cls2 = classify_evidence(self.ev2)[0]
         p, m = row.get("price"), row.get("mult") or 1.0
         self.npx = p / m if p else None          # price per 1 coin; legacy `if v.get("price")`
         self.vol = row.get("vol") or 0
+        self.cand, self.cand_rule = parse_symbol(dex, row.get("t"))
+        self.link = None
+
+    def add(self, cls, why, auth):
+        self.ev.append((cls, why, auth))
+        self.cls, self.why, self.auth = classify_evidence(self.ev)
+
+    @property
+    def cid(self):
+        return f"{self.dex}:{self.row.get('sym')}"
 
 
 class Exposure:
-    __slots__ = ("id", "members", "anchor", "priced", "single", "cls", "why", "auth", "admitted", "attached")
+    __slots__ = ("id", "members", "anchor", "priced", "single", "cls", "why", "auth", "admitted", "attached",
+                 "recorded")
 
     def __init__(self, xid, members, anchor, priced, single=False):
         self.id, self.members, self.anchor, self.priced, self.single = xid, members, anchor, priced, single
         self.cls = self.why = self.auth = None
-        self.admitted = self.attached = False
+        self.admitted = self.attached = self.recorded = False
 
-    def evidence(self):
-        return {m.cls for m in self.members}
+    def evidence(self, phase2=False):
+        return {(m.cls2 if phase2 else m.cls) for m in self.members}
 
 
 def group(t, members):
@@ -173,12 +271,13 @@ def group(t, members):
     return out
 
 
-def classify_exposures(t, exps, lists):
-    """Sets cls/why/auth of every exposure of ticker t (rules 3 and 4 of the module docstring)."""
+def classify_exposures(t, exps, lists, phase2=False):
+    """Sets cls/why/auth of every exposure of ticker t (rule 4 of the module docstring). phase2=True classifies as
+    Phase 2 did (no parsed-symbol evidence; no evidence = CRYPTO by default), for the before/after only."""
     tcls, twhy = ticker_class(t, lists)
     pending = []
     for g in exps:
-        ev = g.evidence()
+        ev = g.evidence(phase2)
         if tcls == TRADFI:     # the repository's tradfi list or an FX pair settles the whole ticker
             g.cls, g.why, g.auth = TRADFI, twhy, TICKER_LIST
         elif TRADFI in ev and CRYPTO in ev:
@@ -190,7 +289,7 @@ def classify_exposures(t, exps, lists):
         elif CRYPTO in ev:
             g.cls, g.why, g.auth = CRYPTO, "CRYPTO_VENUE_METADATA", VENUE_METADATA
         elif g.single:
-            g.cls, g.why, g.auth = UNLABELED, "UNPRICED_NO_CONTRACT_EVIDENCE", NONE
+            g.cls, g.why, g.auth = (UNLABELED if phase2 else UNVERIFIED), "UNPRICED_NO_CONTRACT_EVIDENCE", NONE
         else:
             pending.append(g)
     # unpriced single contracts never count: a contract without a price cannot redefine another exposure
@@ -200,8 +299,10 @@ def classify_exposures(t, exps, lists):
             g.cls, g.why, g.auth = CRYPTO, twhy, TICKER_LIST
         elif collision:
             g.cls, g.why, g.auth = AMBIGUOUS, "UNLABELED_UNDER_TRADFI_COLLISION", NONE
-        else:
+        elif phase2:
             g.cls, g.why, g.auth = CRYPTO, "DEFAULT_CRYPTO", DEFAULT
+        else:
+            g.cls, g.why, g.auth = UNVERIFIED, "NO_POSITIVE_IDENTITY_EVIDENCE", NONE
     return exps
 
 
@@ -259,18 +360,41 @@ class Resolution:
     """What resolve() decided, for the engines (coins) and for the audit (everything else)."""
 
     def __init__(self):
-        self.coins = {}          # ticker -> legacy coin record (tradfi=True when nothing was admitted)
+        self.coins = {}          # ticker -> legacy coin record with its identity state
         self.rows = {}           # (dex, row index) -> per-contract identity (see _row_info)
-        self.assets = {}         # ticker -> decision and exposures
+        self.assets = {}         # ticker -> decision, state, evidence and exposures
         self.crypto_rows = {}    # dex -> adapter rows whose exposure was admitted to the crypto universe
 
     def asset(self, t):
         return self.assets.get(t)
 
 
+def link_symbols(by_t, exps_of, lists):
+    """Rule 3: parsed-symbol links, one hop. Records every link on its contract; returns the tickers that gained
+    tradfi evidence (they are classified again by the caller)."""
+    changed = set()
+    for t, members in by_t.items():
+        for m in members:
+            c = m.cand
+            if not c or c == t or c not in exps_of:
+                continue
+            cands = [g2 for g2 in exps_of[c] if not g2.single and g2.anchor is not None]
+            hit = next((g2 for g2 in cands if m.npx and abs(m.npx / g2.anchor.npx - 1) <= TOL), None)
+            m.link = {"candidate": c, "rule": m.cand_rule,
+                      "exposures": [[g2.id, g2.cls, _r(g2.anchor.npx)] for g2 in cands],
+                      "coherent_exposure": hit.id if hit is not None else None,
+                      "coherent_class": hit.cls if hit is not None else None, "evidence": None}
+            if hit is not None and hit.cls == TRADFI and t not in lists.known_crypto:
+                why = f"PARSED_SYMBOL_EXPOSURE:{hit.id}"
+                m.add(TRADFI, why, PARSED_SYMBOL)
+                m.link["evidence"] = why
+                changed.add(t)
+    return changed
+
+
 def resolve(results, dexes, lists, in_my_dexes, on_conflict=None):
     """results: {dex: adapter rows or None (the adapter failed)}. Returns a Resolution; .coins is the legacy coin
-    dict in the legacy order (first appearance of each ticker in market-list order)."""
+    dict in the legacy order (first appearance of each ticker in market-list order), each with `identity`."""
     res = Resolution()
     by_t = {}
     for dex in dexes:
@@ -280,17 +404,31 @@ def resolve(results, dexes, lists, in_my_dexes, on_conflict=None):
         res.crypto_rows[dex] = 0
         for i, r in enumerate(rows):
             by_t.setdefault(r["t"], []).append(Member(dex, i, r, lists))
+    exps_of = {t: classify_exposures(t, group(t, ms), lists) for t, ms in by_t.items()}
+    for t in link_symbols(by_t, exps_of, lists):
+        exps_of[t] = classify_exposures(t, group(t, by_t[t]), lists)
     for t, members in by_t.items():
-        exps = classify_exposures(t, group(t, members), lists)
+        exps = exps_of[t]
         lead = [g for g in exps if not g.single]
         admit = [g for g in lead if g.cls == CRYPTO]
-        for g in admit:
-            g.admitted = True
+        unver = [g for g in lead if g.cls == UNVERIFIED]
         if admit:
+            state = VERIFIED_CRYPTO
+            for g in admit:
+                g.admitted = True
+            core = admit
+        elif unver:
+            state = UNVERIFIED
+            for g in unver:
+                g.recorded = True
+            core = unver
+        else:
+            state, core = None, []
+        if core:
             for g in exps:
-                if g.single and g.cls in (CRYPTO, UNLABELED):
+                if g.single and g.cls in (CRYPTO, UNVERIFIED):
                     g.attached = True
-        chosen = {id(m) for g in exps if g.admitted or g.attached for m in g.members}
+        chosen = {id(m) for g in exps if g.admitted or g.recorded or g.attached for m in g.members}
         if chosen:
             use = [m for m in members if id(m) in chosen]
             coin, picked, popped = merge(t, use, in_my_dexes, on_conflict)
@@ -298,24 +436,27 @@ def resolve(results, dexes, lists, in_my_dexes, on_conflict=None):
             use = members
             coin, picked, popped = merge(t, use, in_my_dexes, on_conflict)
             coin["tradfi"] = True
+        info = _asset_info(t, members, exps, state, lists)
+        coin["identity"] = info["state"]
         in_merge = {id(m) for m in use}
         if coin["venues"]:
             res.coins[t] = coin
         for g in exps:
             for m in g.members:
                 if id(m) not in in_merge:
-                    state = NOT_ADMITTED
+                    st = NOT_ADMITTED_UNVERIFIED if g.cls == UNVERIFIED else NOT_ADMITTED
                 elif picked.get(m.dex) is not m.row:
-                    state = DUPLICATE
+                    st = DUPLICATE
                 elif m.dex in popped:
-                    state = CONFLICT
+                    st = CONFLICT
                 else:
-                    state = SELECTED
-                res.rows[(m.dex, m.i)] = _row_info(m, g, state, exps)
-                if g.admitted or g.attached:
+                    st = SELECTED
+                res.rows[(m.dex, m.i)] = _row_info(m, g, st, info["state"])
+                if res.rows[(m.dex, m.i)]["admitted"]:
                     res.crypto_rows[m.dex] = res.crypto_rows.get(m.dex, 0) + 1
-        res.assets[t] = _asset_info(t, exps, bool(chosen), lists)
-        res.assets[t]["phase1_tradfi"] = _phase1_tradfi(t, members, lists)
+        info["phase1_tradfi"] = _phase1_tradfi(t, members, lists)
+        info["phase2"] = _phase2(t, members, lists)
+        res.assets[t] = info
     return res
 
 
@@ -332,14 +473,32 @@ def _phase1_tradfi(t, members, lists):
     return bool(name and lists.name_re.search(str(name)))
 
 
-def _row_info(m, g, state, exps):
+def _phase2(t, members, lists):
+    """What the Phase 2 identity decided for this ticker on the same contracts, for the audit's before/after only:
+    {"state": CRYPTO / TRADFI / AMBIGUOUS, "reasons": the admitted exposures' reasons}. Phase 2 had no parsed-symbol
+    evidence and admitted an exposure without evidence as CRYPTO by default."""
+    exps = classify_exposures(t, group(t, members), lists, phase2=True)
+    lead = [g for g in exps if not g.single]
+    admit = [g for g in lead if g.cls == CRYPTO]
+    if admit:
+        return {"state": "CRYPTO", "reasons": sorted({g.why for g in admit})}
+    if any(g.cls == AMBIGUOUS for g in lead):
+        return {"state": "AMBIGUOUS", "reasons": sorted({g.why for g in lead if g.cls == AMBIGUOUS})}
+    return {"state": "TRADFI", "reasons": sorted({g.why for g in lead if g.cls == TRADFI})}
+
+
+def _row_info(m, g, state, asset_state):
     inherited = None
     if g.cls == TRADFI and m.cls in (UNLABELED,) and g.auth != TICKER_LIST:
         src = next((x for x in g.members if x.cls == TRADFI), None)
         inherited = f"{src.dex}:{src.row.get('sym')}" if src is not None else None
+    in_record = bool(g.admitted or g.recorded or g.attached)
     return {"cls": m.cls, "why": m.why, "auth": m.auth, "npx": m.npx, "exp": g.id, "exp_cls": g.cls,
-            "exp_why": g.why, "admitted": bool(g.admitted or g.attached), "inherited_from": inherited, "state": state,
-            "meta": _meta(m.row)}
+            "exp_why": g.why, "exp_state": STATE_OF.get(g.cls),
+            "admitted": in_record and asset_state == VERIFIED_CRYPTO, "in_record": in_record,
+            "inherited_from": inherited, "state": state, "meta": _meta(m.row),
+            "evidence": [[c, w, a] for c, w, a in m.ev] or None,
+            "parsed": [m.cand, m.cand_rule] if m.cand else None, "link": m.link}
 
 
 def _meta(row):
@@ -350,33 +509,49 @@ def _meta(row):
     return out or None
 
 
-def _asset_info(t, exps, admitted, lists):
+def _asset_info(t, members, exps, state, lists):
     lead = [g for g in exps if not g.single]
     tcls, twhy = ticker_class(t, lists)
-    if admitted:
-        excluded = [g for g in exps if not (g.admitted or g.attached)]
-        decision = D_SELECTED if excluded else D_CRYPTO
+    excluded = [g for g in exps if not (g.admitted or g.recorded or g.attached)]
+    if state == VERIFIED_CRYPTO:
+        decision = D_SELECTED if any(g.cls in (TRADFI, AMBIGUOUS) for g in excluded) else D_CRYPTO
+        deciding = [g for g in exps if g.admitted]
+    elif state == UNVERIFIED:
+        decision, deciding = D_UNVERIFIED, [g for g in exps if g.recorded]
     elif any(g.cls == AMBIGUOUS for g in lead):
-        decision = D_AMBIGUOUS
+        decision, deciding = D_AMBIGUOUS, [g for g in lead if g.cls == AMBIGUOUS]
     elif any(g.auth != TICKER_LIST and any(m.cls != TRADFI for m in g.members) for g in lead):
         decision = D_TRADFI_EXPOSURE      # a contract without tradfi evidence of its own inherited it
+        deciding = [g for g in lead if g.cls == TRADFI]
     else:
-        decision = D_TRADFI
+        decision, deciding = D_TRADFI, [g for g in lead if g.cls == TRADFI]
+    state = STATE_OF_DECISION[decision]
     out = []
     for g in exps:
         px = [m.npx for m in g.members if m.npx]
-        out.append({"id": g.id, "class": g.cls, "reason": g.why, "authority": g.auth, "priced": g.priced,
+        out.append({"id": g.id, "class": g.cls, "state": STATE_OF.get(g.cls), "reason": g.why, "authority": g.auth,
+                    "priced": g.priced,
                     "anchor": f"{g.anchor.dex}:{g.anchor.row.get('sym')}" if g.anchor is not None else None,
                     "anchor_price": _r(g.anchor.npx) if g.anchor is not None else None,
                     "price_range": [_r(min(px)), _r(max(px))] if px else None,
                     "members": [f"{m.dex}:{m.row.get('sym')}" for m in g.members],
-                    "admitted": bool(g.admitted), "attached": bool(g.attached)})
+                    "admitted": bool(g.admitted), "attached": bool(g.attached), "recorded": bool(g.recorded)})
     # a ticker collision: the ticker's own contracts disagree (some carry tradfi or ambiguous evidence, others do
     # not) and no ticker list settles it for the whole ticker
     labels = {m.cls for g in exps for m in g.members}
     collision = tcls != TRADFI and bool(labels & {TRADFI, AMBIGUOUS}) and bool(labels & {UNLABELED, CRYPTO})
-    return {"decision": decision, "admitted": admitted, "exposures": out, "collision": collision,
-            "ticker_list": twhy}
+    evidence = [[m.cid, c, w, a] for m in members for c, w, a in m.ev]
+    if twhy:
+        evidence.append(["ticker:" + t, tcls, twhy, TICKER_LIST])
+    first = deciding[0] if deciding else None
+    return {"decision": decision, "state": state, "admitted": state == VERIFIED_CRYPTO,
+            "authority": first.auth if first is not None else NONE,
+            "reason": first.why if first is not None else None,
+            "evidence": evidence, "exposures": out, "collision": collision, "ticker_list": twhy,
+            "discovery_eligible": True, "execution_identity_eligible": state == VERIFIED_CRYPTO,
+            "promotion": PROMOTION if state == UNVERIFIED else None,
+            "excluded_unverified": [g.id for g in excluded if g.cls == UNVERIFIED and not g.single] or None,
+            "links": [dict(m.link, contract=m.cid) for m in members if m.link] or None}
 
 
 def _r(x, nd=8):

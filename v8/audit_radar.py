@@ -7,6 +7,7 @@ None), from the same inputs; tests/test_v8_audit.py checks it against build_plan
 from __future__ import annotations
 
 from . import common as C
+from . import identity as ID
 from . import health as H
 from . import ledger as LG
 from . import parts
@@ -56,7 +57,7 @@ def universe_part(coins, dex_status, dex_ok, scan_t):
     by_id = {c["id"]: c for c in reg["contracts"]}
     passed = []
     for t, a in sorted(reg["assets"].items()):
-        if a["legacy"] in ("CRYPTO", "TRADFI", "AMBIGUOUS"):     # the coin exists; the radar ledger records it
+        if a["legacy"] in ("CRYPTO", "TRADFI", "AMBIGUOUS", "UNVERIFIED"):   # the coin exists; the radar ledger records it
             passed.append(t)
             continue
         code = a["legacy"]  # NO_ACTIVE_PERP_CONTRACT, PRICE_CONFLICT_ALL_VENUES or VENUE_ADAPTER_FAILED
@@ -107,9 +108,9 @@ def radar_part(scan_t, coins, dex_ok, crypto, res1, s1, ranked, cands, extras, r
     for t in sorted(coins):
         c = coins[t]
         k = C.contract_ids(c)
-        if c.get("tradfi"):
+        if not ID.execution_identity_eligible(c):     # identity gate (v8 Phase 3)
             code, o = C.excluded_code(c)
-            L.final(t, code, "universe", o=o, k=k, h=T.CONFLICTED if code == "AMBIGUOUS_EXPOSURE" else T.HEALTHY)
+            L.final(t, code, "universe", o=o, k=k, h=C.excluded_health(code))
             continue
         steps = []
         fb, _ = H.funding(c)

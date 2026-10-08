@@ -82,7 +82,8 @@ A ticker with no priced contract at all is one exposure.
 3. No contract evidence: CRYPTO when the ticker is on the repository's pre-existing known-crypto list
    (`KNOWN_CRYPTO`, unchanged in this phase); AMBIGUOUS when another **priced** exposure of the ticker is tradfi or
    ambiguous (`UNLABELED_UNDER_TRADFI_COLLISION`: a ticker that names a stock somewhere needs positive crypto
-   evidence); otherwise CRYPTO by default, as before.
+   evidence); otherwise CRYPTO by default, as before. (Retired in Phase 3: such an exposure is now `UNVERIFIED`, see
+   [phase3-identity-coverage.md](phase3-identity-coverage.md).)
 
 Tradfi evidence never crosses from one exposure to another; an unpriced contract never counts.
 

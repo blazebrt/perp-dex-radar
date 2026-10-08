@@ -42,12 +42,13 @@ jobs:
 
       - name: Core tests (a failure stops the scan here, before anything is built or published)
         id: core_tests
-        # The fast unit tests of every engine and of the v8 audit (about 20 seconds). The full suite, the
-        # end-to-end legacy parity check and the research checks run in the CI workflow.
+        # The fast unit tests of every engine and of the v8 audit (about 20 seconds), including the identity
+        # invariants (v8 Phase 3: no coin without positive identity evidence reaches an engine; unverified coins stay
+        # visible). The full suite, the end-to-end legacy parity check and the research checks run in the CI workflow.
         run: >-
           python -m unittest tests.test_v5 tests.test_quant tests.test_picks tests.test_smart
           tests.test_smart_backtest tests.test_dashboard tests.test_analyze tests.test_analyzer_call
-          tests.test_v8_units tests.test_v8_identity
+          tests.test_v8_units tests.test_v8_identity tests.test_v8_phase3
 
       - id: pages
         uses: actions/configure-pages@v5

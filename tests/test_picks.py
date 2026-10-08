@@ -490,7 +490,7 @@ class EndToEnd(unittest.TestCase):
         for c in cls.fx.coins:
             uni[c] = {"t": c, "venues": {"hyperliquid": {"sym": c, "mult": 1.0, "vol": cls.fx.vol24[c], "funding8h": 0.0001}},
                       "trade_vol": cls.fx.vol24[c] * 1.2, "best_vol": cls.fx.vol24[c] * 1.2, "tradfi": False,
-                      "ref_price": cls.fx.c15[c][-1]["c"], "name": c}
+                      "ref_price": cls.fx.c15[c][-1]["c"], "name": c, "identity": "VERIFIED_CRYPTO"}
         cls.uni = uni
         old_min, P.CFG["paper_swing_min"] = P.CFG["paper_swing_min"], 0  # paper trade everything in the test
         cls.restore = old_min

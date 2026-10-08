@@ -231,12 +231,12 @@ def pick_coins(n, min_vol):
         raise SystemExit("no DEX market list could be loaded")
     rows = []
     for t, c in universe.items():
-        if c.get("tradfi"):
+        if not sc.crypto_authorized(c):        # crypto execution identity only (v8 Phase 3)
             continue
         if sc.liquid_enough(c, min_vol):        # a KNOWN volume on your trade DEXs (v8.liquidity)
             rows.append(c)
     rows.sort(key=lambda c: -sc.liq_rank_value(c))
-    if "BTC" in universe and all(c["t"] != "BTC" for c in rows[:n]):
+    if "BTC" in universe and sc.crypto_authorized(universe["BTC"]) and all(c["t"] != "BTC" for c in rows[:n]):
         rows.insert(0, universe["BTC"])
     return rows[:n], status
 
