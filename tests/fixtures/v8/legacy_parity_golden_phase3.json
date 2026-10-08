@@ -1,0 +1,518 @@
+{
+ "audit_files": [
+  "data/v8/identity_authority.json",
+  "data/v8/parts/day.json",
+  "data/v8/parts/quant.json",
+  "data/v8/parts/radar.json",
+  "data/v8/parts/smart.json",
+  "data/v8/parts/swing.json",
+  "data/v8/parts/universe.json"
+ ],
+ "combined": "3af2c45e4279c2d2280fddb791ce2c36a14b00a1df919c6a185d09d7f793b481",
+ "decisions": {
+  "picks": {
+   "daytrade_all": [
+    [
+     "BTC",
+     "long",
+     87.0
+    ],
+    [
+     "FAKE13",
+     "long",
+     87.0
+    ],
+    [
+     "FAKE17",
+     "long",
+     82.0
+    ],
+    [
+     "FAKE05",
+     "long",
+     76.0
+    ],
+    [
+     "FAKE07",
+     "short",
+     72.0
+    ],
+    [
+     "FAKE24",
+     "long",
+     72.0
+    ],
+    [
+     "FAKE25",
+     "long",
+     71.0
+    ],
+    [
+     "QNT",
+     "short",
+     71.0
+    ],
+    [
+     "FAKE00",
+     "long",
+     67.0
+    ],
+    [
+     "FAKE04",
+     "long",
+     67.0
+    ]
+   ],
+   "daytrade_long": [
+    [
+     "BTC",
+     "long",
+     87.0
+    ],
+    [
+     "FAKE13",
+     "long",
+     87.0
+    ],
+    [
+     "FAKE17",
+     "long",
+     82.0
+    ],
+    [
+     "FAKE05",
+     "long",
+     76.0
+    ],
+    [
+     "FAKE24",
+     "long",
+     72.0
+    ],
+    [
+     "FAKE25",
+     "long",
+     71.0
+    ],
+    [
+     "FAKE00",
+     "long",
+     67.0
+    ],
+    [
+     "FAKE04",
+     "long",
+     67.0
+    ],
+    [
+     "FAKE18",
+     "long",
+     67.0
+    ],
+    [
+     "FAKE12",
+     "long",
+     62.0
+    ]
+   ],
+   "daytrade_short": [
+    [
+     "FAKE07",
+     "short",
+     72.0
+    ],
+    [
+     "QNT",
+     "short",
+     71.0
+    ],
+    [
+     "ETH",
+     "short",
+     62.0
+    ],
+    [
+     "FAKE14",
+     "short",
+     56.0
+    ],
+    [
+     "FAKE26",
+     "short",
+     51.0
+    ],
+    [
+     "FAKE23",
+     "short",
+     51.0
+    ],
+    [
+     "FAKE01",
+     "short",
+     51.0
+    ],
+    [
+     "FAKE02",
+     "short",
+     48.0
+    ],
+    [
+     "FAKE16",
+     "short",
+     47.0
+    ],
+    [
+     "FAKE20",
+     "short",
+     47.0
+    ]
+   ],
+   "swing_all": [
+    [
+     "FAKE26",
+     "short",
+     88.0
+    ],
+    [
+     "QNT",
+     "short",
+     87.0
+    ],
+    [
+     "FAKE23",
+     "short",
+     78.0
+    ],
+    [
+     "FAKE07",
+     "short",
+     78.0
+    ],
+    [
+     "FAKE25",
+     "long",
+     75.0
+    ],
+    [
+     "FAKE21",
+     "short",
+     73.0
+    ],
+    [
+     "BB",
+     "long",
+     72.0
+    ],
+    [
+     "FAKE15",
+     "short",
+     68.0
+    ],
+    [
+     "BTC",
+     "long",
+     66.0
+    ],
+    [
+     "FAKE16",
+     "short",
+     63.0
+    ]
+   ],
+   "swing_long": [
+    [
+     "FAKE25",
+     "long",
+     75.0
+    ],
+    [
+     "BB",
+     "long",
+     72.0
+    ],
+    [
+     "BTC",
+     "long",
+     66.0
+    ],
+    [
+     "FAKE12",
+     "long",
+     56.0
+    ],
+    [
+     "FAKE05",
+     "long",
+     56.0
+    ],
+    [
+     "FAKE13",
+     "long",
+     56.0
+    ],
+    [
+     "FAKE09",
+     "long",
+     56.0
+    ],
+    [
+     "FAKE24",
+     "long",
+     52.0
+    ],
+    [
+     "FAKE18",
+     "long",
+     52.0
+    ],
+    [
+     "FAKE17",
+     "long",
+     51.0
+    ]
+   ],
+   "swing_short": [
+    [
+     "FAKE26",
+     "short",
+     88.0
+    ],
+    [
+     "QNT",
+     "short",
+     87.0
+    ],
+    [
+     "FAKE23",
+     "short",
+     78.0
+    ],
+    [
+     "FAKE07",
+     "short",
+     78.0
+    ],
+    [
+     "FAKE21",
+     "short",
+     73.0
+    ],
+    [
+     "FAKE15",
+     "short",
+     68.0
+    ],
+    [
+     "FAKE16",
+     "short",
+     63.0
+    ],
+    [
+     "FAKE20",
+     "short",
+     63.0
+    ],
+    [
+     "FAKE01",
+     "short",
+     63.0
+    ],
+    [
+     "FAKE11",
+     "short",
+     63.0
+    ]
+   ]
+  },
+  "quant": {
+   "coins": 36,
+   "open": [
+    [
+     "BTC",
+     "TSMOM",
+     1
+    ],
+    [
+     "BTC",
+     "XSMOM",
+     1
+    ],
+    [
+     "FAKE08",
+     "XSMOM",
+     1
+    ],
+    [
+     "FAKE13",
+     "TSMOM",
+     1
+    ],
+    [
+     "FAKE17",
+     "TSMOM",
+     1
+    ],
+    [
+     "FAKE19",
+     "TSMOM",
+     1
+    ],
+    [
+     "FAKE19",
+     "XSMOM",
+     1
+    ],
+    [
+     "FAKE22",
+     "TSMOM",
+     1
+    ],
+    [
+     "FAKE25",
+     "TSMOM",
+     1
+    ],
+    [
+     "FAKE27",
+     "XSMOM",
+     1
+    ],
+    [
+     "NEW40",
+     "XSMOM",
+     1
+    ]
+   ],
+   "signals": 11
+  },
+  "radar": {
+   "coins": 64,
+   "crypto": 44,
+   "deep": 36,
+   "dexes": {
+    "aster": [
+     true,
+     13,
+     5
+    ],
+    "dydx": [
+     true,
+     2,
+     2
+    ],
+    "edgex": [
+     true,
+     2,
+     2
+    ],
+    "extended": [
+     true,
+     14,
+     3
+    ],
+    "hyperliquid": [
+     true,
+     41,
+     40
+    ],
+    "lighter": [
+     true,
+     14,
+     4
+    ],
+    "paradex": [
+     true,
+     2,
+     2
+    ],
+    "variational": [
+     true,
+     38,
+     34
+    ]
+   },
+   "nodata": [
+    "EXTONLY",
+    "NOCAND",
+    "PRLX",
+    "SCALEX",
+    "VANA"
+   ],
+   "picks": [],
+   "scanned": 39,
+   "signals": 24,
+   "tradfi": [
+    "AAPL",
+    "ACME",
+    "ADBE",
+    "ASTS",
+    "EURUSD",
+    "KIOXIA",
+    "KORU",
+    "ONDS",
+    "SAMSUNGUSD",
+    "SECT",
+    "SKHYNIX",
+    "SKHYNIXUSD",
+    "US100S",
+    "XIAOMI"
+   ],
+   "unverified": [
+    "BYD",
+    "HYUNDAI",
+    "HYUNDAIUSD",
+    "MOONX",
+    "NEWCOIN",
+    "US10Y"
+   ],
+   "watch": []
+  },
+  "smart": {
+   "info": [
+    "FAKE03"
+   ],
+   "open": [
+    "FAKE02",
+    "FAKE03"
+   ],
+   "positions": 27,
+   "read": 8,
+   "signals": [
+    "FAKE02"
+   ],
+   "traders": 8
+  }
+ },
+ "files": {
+  "analyze.html": "21b859963e9b6c835b398f53ea2aa7ea7076db3b021f76f434254edf1c09902a",
+  "analyze.js": "12ace048e5debf61b1f077d12bc3e839b4efa1fab93998c3d3585954920fd697",
+  "data/dashboard.json": "e1750c0daef6167e65dabbdb3c8a6078881feaf0b3e2cece2773a9a29e1cec03",
+  "data/journal.csv": "ea6fac914cde0e58780332f6361c42c283ac183fbfd622031aa8d564f39c4d73",
+  "data/journal.json": "0a5d2f813ecd4e89a96ba1d77bd72cd7b5d9b9c7ebea1d6cb1ae00c82144a466",
+  "data/latest.json": "519c3d32e92e439aefcafd1ee498a4cf6a7a234ac333e140775858af42601f50",
+  "data/picks.json": "95ecae551ffea0dd4258f88a186701f11a2717c0dce6e34c4784fddf24920238",
+  "data/picks_journal.json": "08de1df3299ca97842538c0c3e4d64c00cfa5106f1442dcc2bed93a80422a7bf",
+  "data/picks_research.json": "83e32dbf258d140c5e534cefe77e08802f0eb7cd17d6762e1bc3aef39d5dfd85",
+  "data/quant.json": "d602f874b531b5f177d7fd7e4c4a1a0618e5a945d173dd3db7992e082537dd82",
+  "data/quant_journal.json": "836a70cd115203fbdba7f7c6fb5344847cfc8a1bc01e3a2af0d2c0a277e68b0f",
+  "data/quant_research.json": "af6153513ee1d66bef7b14214d349a06e2d8692f1f3d62402a2cf8e798db6a1b",
+  "data/smart.json": "7f57419510aaaae59f7391a5b3fcd9d5d0cf1b3cbefd2a3468bafc2a89967a38",
+  "data/smart_journal.json": "96130ccd89a3c5187a634b0c8a179569d7ba2f09118b4494d80c11c271886ab3",
+  "data/smart_research.json": "55138a1057b0be42f3b23763967ec6ada6a8b878bb131acb1af60f5127cc6cc2",
+  "index.html": "27c23a51d81fe34fc24566dec1f1d8397710acd741684b17ac641dfef6873bb4",
+  "picks.html": "9a9c55e6f886d9d81ab539a538331fa855d96f53a1e9f6a40301d5e378fbc5d6",
+  "quant.html": "7d4f2478d81d164d8ca295bb80c5be4bcff50406672595e71c4c5af6cdfc28c7",
+  "radar.html": "b242f2fe3ef4278c1288c19759ba329ac8f0118c43793fdd2277370bc71f112e",
+  "smart.html": "a8024e696f8c3117281162d7adbcd3bb904e59aacd280ebb4df69c93e3fdafad"
+ },
+ "schema": "v8.parity/1",
+ "stages": [
+  "scanner",
+  "smart1",
+  "smart2",
+  "quant",
+  "picks",
+  "dashboard"
+ ],
+ "t_now": 1791014833
+}

@@ -580,9 +580,12 @@ def dex_aster():
         t, mult = canon(base_asset)
         tk, pr = tick.get(sym, {}), prem.get(sym, {})
         ut = s.get("underlyingType")
+        sub = s.get("underlyingSubType")
         out.append(_venue(t, "aster", sym, mult, price=fnum(tk.get("lastPrice")) or fnum(pr.get("markPrice")),
                           vol=fnum(tk.get("quoteVolume")), funding8h=fnum(pr.get("lastFundingRate")),
-                          tradfi=True if ut and ut != "COIN" else None, underlying=ut))
+                          tradfi=True if ut and ut != "COIN" else None, underlying=ut,
+                          # v8 Phase 3: identity evidence only (v8.identity.venue_field_evidence)
+                          **({"subtypes": list(sub)} if isinstance(sub, list) and sub else {})))
     return out
 
 
@@ -684,7 +687,9 @@ def build_universe():
 
     Which markets are one coin and whether it is crypto is decided contract by contract and per price-coherent
     exposure by v8.identity (one authority; see its docstring); a tradfi market no longer hides a crypto coin that
-    shares its ticker, and a stock one venue forgot to label stays out. Coins with nothing admitted keep tradfi=True."""
+    shares its ticker, and a stock one venue forgot to label stays out. Coins with nothing admitted keep tradfi=True.
+    Every coin carries its identity state (v8 Phase 3): VERIFIED_CRYPTO, VERIFIED_TRADFI, AMBIGUOUS or UNVERIFIED.
+    Every coin is in the returned universe (discovery); only crypto_authorized() coins may reach a crypto engine."""
     status = {}
     V8.begin_universe()
     results = parallel(lambda dex: DEX_FETCHERS[dex](), list(DEXES), workers=len(DEXES))
@@ -710,8 +715,17 @@ def build_universe():
         note_error("No DEX market list could be loaded; using the built-in coin list without DEX data")
         V8.event("FALLBACK_UNIVERSE")
         coins = {t: {"t": t, "venues": {}, "name": t, "tradfi": False, "ref_price": None, "best_vol": None,
-                     "tot_vol": None, "trade_vol": None} for t in FALLBACK_CRYPTO}
+                     "tot_vol": None, "trade_vol": None, "identity": IDENTITY.VERIFIED_CRYPTO}
+                 for t in FALLBACK_CRYPTO}      # the built-in list is the known-crypto list: ticker-list authority
     return coins, status, any_ok
+
+
+def crypto_authorized(coin):
+    """Crypto execution identity (v8.identity, Phase 3): True only for a coin whose identity is VERIFIED_CRYPTO.
+    Every crypto engine applies it before it evaluates a coin. UNVERIFIED coins stay in the universe (they are not
+    tradfi) but no engine analyses, ranks, paper-trades or publishes them; a coin without an identity fails closed.
+    Separate from the liquidity gate (liquid_enough) and every strategy gate."""
+    return IDENTITY.execution_identity_eligible(coin)
 
 
 def in_my_dexes(dex):
@@ -4503,7 +4517,7 @@ def run_study(req_text, out_dir):
             n_coins = max(n_coins, 20)  # the built-in engine ranks the market, so it needs a crowd
         now = now_ts()
         coins, _, dex_ok = build_universe()
-        crypto = {t: c for t, c in coins.items() if not c["tradfi"]}
+        crypto = {t: c for t, c in coins.items() if crypto_authorized(c)}
         wanted = [canon(str(x)) for x in (req.get("coin_list") or [])][:CFG["study_max_coins"]]
         pool = [t for t in wanted if t in crypto] or sorted(
             [t for t, c in crypto.items() if (not dex_ok) or liquid_enough(c)],
@@ -4680,10 +4694,12 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
     t0 = time.time()
     scan_t = now_ts()
     coins, dex_status, dex_ok = build_universe()
-    crypto = {t: c for t, c in coins.items() if not c["tradfi"]}
+    crypto = {t: c for t, c in coins.items() if crypto_authorized(c)}
     tradfi = sorted(t for t, c in coins.items() if c["tradfi"])
+    # v8 Phase 3: in the universe, not tradfi, without crypto execution identity (no positive identity evidence)
+    unverified = sorted(t for t, c in coins.items() if not c["tradfi"] and t not in crypto)
     log(f"universe: {len(coins)} coins across {sum(1 for s in dex_status.values() if s['ok'])} DEXs, "
-        f"{len(crypto)} crypto, {len(tradfi)} excluded")
+        f"{len(crypto)} crypto, {len(tradfi)} excluded, {len(unverified)} identity unverified")
 
     J, jsrc = load_journal(pages_url, journal_path, reset, scan_t)
     user_specs, user_raw = load_user_strategies()
@@ -5050,7 +5066,7 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
         "smart_coins": {c: [a["long_n"], a["short_n"], a["long_usd"], a["short_usd"], a.get("d_net")]
                         for c, a in smc.items()},
         "coverage": {"coins": len(coins), "crypto": len(crypto), "scanned": len(s1), "nodata": sorted(nodata),
-                     "tradfi": tradfi, "deep": len(A), "setups": len({x["t"] for x in sigs}), "signals": len(sigs),
+                     "tradfi": tradfi, "unverified": unverified, "deep": len(A), "setups": len({x["t"] for x in sigs}), "signals": len(sigs),
                      "positioning": sum(1 for v in POS.values() if v), "sources": src_count,
                      "dexes": {d: dict(dex_status.get(d, {}), name=DEX_NAME[d], code=DEX_CODE[d]) for d in DEXES},
                      "dex_ok": dex_ok},
@@ -5072,6 +5088,13 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
         json.dump(J, fh, separators=(",", ":"))
     with open(os.path.join(data_dir, "journal.csv"), "w", newline="") as fh:
         fh.write(journal_csv(J))
+    try:  # v8 Phase 3: this scan's identity states, for the engines that do not build the universe (smart money)
+        from v8 import provenance as _prov
+        assets = getattr(getattr(V8, "ident", None), "assets", None)
+        IDENTITY.write_authority(out_dir, coins, scan_t, _prov.scan_id(scan_t),
+                                 assets=assets if isinstance(assets, dict) else None)
+    except Exception as e:  # noqa: BLE001 - without it, smart money fails closed (no signal gets authority)
+        log(f"identity authority not written: {type(e).__name__}: {e}")
     src = index_src or os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
     if os.path.exists(src):
         shutil.copyfile(src, os.path.join(out_dir, "index.html"))

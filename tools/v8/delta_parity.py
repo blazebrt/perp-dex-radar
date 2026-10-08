@@ -1,4 +1,4 @@
-"""Differential qualification of an intentional behaviour change (v8 Phase 2).
+"""Differential qualification of an intentional behaviour change (v8 Phase 2; Phase 3: identity states).
 
 Phase 1's parity check proved that the legacy outputs did not change at all. Phase 2 changes them on purpose, in a
 narrow, approved scope (universe identity, missing-vs-zero liquidity). This tool proves that every difference from
@@ -12,7 +12,19 @@ the base commit is one of the approved ones, and fails on any other:
     2. BASE with its own universe injected reproduces them too   (injecting a universe changes nothing else)
     3. HEAD reproduces its committed golden digests              (no drift on this branch)
     4. universe delta  BASE -> HEAD   == manifest "universe", "dex_status", "notes"   (exactly; nothing more, nothing less)
-    5. code delta      CF   -> HEAD   == manifest "code"                              (exactly)
+       and every HEAD coin's identity state == manifest "identity_states" (when the manifest has it; Phase 3)
+    5. code delta      CF   -> HEAD   == manifest "code" (and "decisions")           (exactly)
+
+Phase 3 (manifest schema v8.delta/2) adds two things. The derived universe field `execution_identity` - whether a
+coin may reach a crypto engine: `not tradfi` for a coin record without an identity (Phase 2 and earlier), and
+`identity == VERIFIED_CRYPTO and not tradfi` with one - is compared like a coin field, so every coin that loses or
+gains crypto execution authority is a listed delta. And the counterfactual expresses HEAD's identity gate in the only
+exclusion the base code has: every HEAD coin without execution identity is handed to the base code with tradfi=True
+(projection "exclude_without_execution_identity"). Then CF -> HEAD isolates what HEAD's changed code does beyond
+that gate (the published lists that tell tradfi from unverified), and every other engine difference is the unchanged
+engine logic responding to the identity gate. Code deltas may be "kind": "set": the list at that path is compared
+as a set (base items -> head items), its elements are not diffed one by one. A changed published source file (not
+JSON: analyze.js) is allowed only by a manifest "files" entry pinning its exact base and head sha256.
 
 4 isolates what the new identity and volume semantics decide; 5 isolates what the changed engine code does with the
 same universe. Every other output difference between BASE and HEAD is then the unchanged legacy logic responding to
@@ -37,7 +49,30 @@ ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 sys.path.insert(0, HERE)
 import legacy_parity as LP  # noqa: E402
 
-COIN_FIELDS = ("t", "name", "tradfi", "ref_price", "best_vol", "tot_vol", "trade_vol")
+COIN_FIELDS = ("t", "name", "tradfi", "ref_price", "best_vol", "tot_vol", "trade_vol", "execution_identity")
+VERIFIED_CRYPTO = "VERIFIED_CRYPTO"
+
+
+def execution_identity(coin):
+    """Whether a coin record may reach a crypto engine, in the semantics of the code that built it: a record without
+    an identity (Phase 2 and earlier) is admitted when not tradfi; with one, only VERIFIED_CRYPTO (v8.identity)."""
+    if "identity" not in coin:
+        return not coin.get("tradfi")
+    return (not coin.get("tradfi")) and coin.get("identity") == VERIFIED_CRYPTO
+
+
+def project(u, projection):
+    """The universe handed to the base code for the counterfactual. "exclude_without_execution_identity": every
+    coin without execution identity gets tradfi=True (the base code's only exclusion); nothing else changes."""
+    if not projection:
+        return u
+    if projection != "exclude_without_execution_identity":
+        raise SystemExit(f"unknown counterfactual projection {projection!r}")
+    out = json.loads(json.dumps(u))
+    for c in out["coins"].values():
+        if not execution_identity(c):
+            c["tradfi"] = True
+    return out
 
 
 # --------------------------------------------------------------------------- running both sides
@@ -91,8 +126,11 @@ def universe_delta(ub, uh):
             out.append({"ticker": t, "field": "present", "base": a is not None, "head": b is not None})
             continue
         for f in COIN_FIELDS:
-            if a.get(f) != b.get(f) or type(a.get(f)) is not type(b.get(f)):
-                out.append({"ticker": t, "field": f, "base": a.get(f), "head": b.get(f)})
+            x, y = (execution_identity(a), execution_identity(b)) if f == "execution_identity" else (a.get(f), b.get(f))
+            if x != y or type(x) is not type(y):
+                out.append({"ticker": t, "field": f, "base": x, "head": y})
+        if "identity" in a and a.get("identity") != b.get("identity"):     # both sides know identity states
+            out.append({"ticker": t, "field": "identity", "base": a.get("identity"), "head": b.get("identity")})
         va = {d: v.get("sym") for d, v in (a.get("venues") or {}).items()}
         vb = {d: v.get("sym") for d, v in (b.get("venues") or {}).items()}
         if va != vb or list(va) != list(vb):
@@ -100,8 +138,9 @@ def universe_delta(ub, uh):
         else:
             for d in va:   # the same markets must carry the same values (the adapters did not change)
                 ra, rb = dict(a["venues"][d]), dict(b["venues"][d])
-                for k in ("underlying", "category"):       # raw metadata HEAD's adapters now pass on
-                    rb.pop(k, None)
+                for k in ("underlying", "category", "subtypes"):   # raw metadata HEAD's adapters now pass on
+                    if k not in ra:
+                        rb.pop(k, None)
                 if ra != rb:
                     out.append({"ticker": t, "field": f"venues.{d}", "base": ra, "head": rb})
     order = [t for t in cb if t in ch] == [t for t in ch if t in cb]
@@ -185,6 +224,13 @@ def check(manifest, ub, uh, cf_out, head_out):
     for side in ("removed", "added"):
         if sorted(notes[side]) != sorted(manifest["notes"][side]):
             fails.append(f"notes {side} differ from the manifest: {notes[side]}")
+    # 4d. identity states of every HEAD coin (Phase 3 manifests)
+    if "identity_states" in manifest:
+        got = {t: c.get("identity") for t, c in uh["coins"].items()}
+        want = manifest["identity_states"]
+        for t in sorted(set(got) | set(want)):
+            if got.get(t) != want.get(t):
+                fails.append(f"identity state of {t}: HEAD {got.get(t)!r}, manifest {want.get(t)!r}")
     # 5. code deltas, counterfactual vs head
     cf_sum, head_sum = summary_of(cf_out), summary_of(head_out)
     files = sorted(set(cf_sum["files"]) | set(head_sum["files"]))
@@ -192,40 +238,90 @@ def check(manifest, ub, uh, cf_out, head_out):
     for e in manifest["code"]:
         want_c.setdefault(e["file"], []).append(e)
     code_seen = []
+    want_f = {e["file"]: e for e in manifest.get("files") or []}
     for f in files:
         if cf_sum["files"].get(f) == head_sum["files"].get(f):
-            if f in want_c:
+            if f in want_c or f in want_f:
                 fails.append(f"expected code delta not observed: {f}")
+            continue
+        if f in want_f:      # an approved change of a published source file, pinned to its exact digests
+            e = want_f[f]
+            if (cf_sum["files"].get(f), head_sum["files"].get(f)) != (e["base_sha256"], e["head_sha256"]):
+                fails.append(f"file delta {f} differs from the manifest: {cf_sum['files'].get(f)} -> "
+                             f"{head_sum['files'].get(f)}")
+            else:
+                code_seen.append({"file": f, "kind": "file", "base": e["base_sha256"], "head": e["head_sha256"],
+                                  "rule": e["rule"]})
             continue
         a, b = load_norm(os.path.join(cf_out, f)), load_norm(os.path.join(head_out, f))
         if not isinstance(a, (dict, list)) or not isinstance(b, (dict, list)):
             fails.append(f"UNEXPECTED code delta in non-JSON file {f}")
             continue
-        got = {d[0]: d for d in json_diff(a, b)}
-        allowed = {}
-        for e in want_c.get(f, []):
-            p = resolve_path(b, e["path"])
-            if p is None:
-                fails.append(f"manifest code path not found in {f}: {e['path']}")
-                continue
-            allowed[p] = e
-        for p, (_, x, y) in got.items():
-            e = allowed.get(p)
-            if e is None:
-                fails.append(f"UNEXPECTED code delta {f} {'/'.join(map(str, p))}: {x!r} -> {y!r}")
-            elif not (_eq(e["base"], x) and _eq(e["head"], y)):
-                fails.append(f"code delta {f} {'/'.join(map(str, p))} differs from the manifest: {x!r} -> {y!r}")
-            else:
-                code_seen.append({"file": f, "path": "/".join(map(str, p)), "base": x, "head": y,
-                                  "rule": e["rule"]})
-        for p in allowed:
-            if p not in got:
-                fails.append(f"expected code delta not observed: {f} {'/'.join(map(str, p))}")
-    if cf_sum["decisions"] != head_sum["decisions"]:
-        dd = json_diff(cf_sum["decisions"], head_sum["decisions"])
-        fails.append(f"UNEXPECTED decision differences between the counterfactual and HEAD: {dd[:5]}")
+        code_seen += match_deltas(f, a, b, want_c.get(f, []), fails)
+    want_d = manifest.get("decisions") or []
+    if cf_sum["decisions"] != head_sum["decisions"] or want_d:
+        code_seen += match_deltas("decisions", cf_sum["decisions"], head_sum["decisions"], want_d, fails)
     report = {"universe": uni, "dex_status": st, "notes": notes, "code": code_seen}
     return report, fails
+
+
+def match_deltas(f, a, b, entries, fails):
+    """Every difference between a (counterfactual) and b (HEAD) must be one of the manifest entries for f, and every
+    entry must occur. A "kind": "set" entry compares the list at its path as a set and hides its elements from the
+    element-by-element diff. Returns the matched deltas; appends failures."""
+    seen, allowed = [], {}
+    a, b = json.loads(json.dumps(a)), json.loads(json.dumps(b))
+    for e in entries:
+        if e.get("kind") == "set":
+            pa, pb = resolve_path(a, e["path"]), resolve_path(b, e["path"])
+            va = _get(a, pa) if pa is not None else "<absent>"
+            vb = _get(b, pb) if pb is not None else "<absent>"
+            sa = sorted(va) if isinstance(va, list) else va
+            sb = sorted(vb) if isinstance(vb, list) else vb
+            if not (_eq(sorted(e["base"]) if isinstance(e["base"], list) else e["base"], sa)
+                    and _eq(sorted(e["head"]) if isinstance(e["head"], list) else e["head"], sb)):
+                fails.append(f"set delta {f} {'/'.join(map(str, e['path']))} differs from the manifest: "
+                             f"{sa!r} -> {sb!r} (manifest {e['base']!r} -> {e['head']!r})")
+            elif sa == sb:
+                fails.append(f"expected set delta not observed: {f} {'/'.join(map(str, e['path']))}")
+            else:
+                seen.append({"file": f, "path": "/".join(map(str, e["path"])), "kind": "set",
+                             "removed": sorted(set(sa or []) - set(sb or [])),
+                             "added": sorted(set(sb or []) - set(sa or [])), "rule": e["rule"]})
+            for doc, p in ((a, pa), (b, pb)):        # hide the compared list from the element diff
+                if p is not None:
+                    _set(doc, p, "<set>")
+            continue
+        p = resolve_path(b, e["path"])
+        if p is None:
+            fails.append(f"manifest code path not found in {f}: {e['path']}")
+            continue
+        allowed[p] = e
+    got = {d[0]: d for d in json_diff(a, b)}
+    for p, (_, x, y) in got.items():
+        e = allowed.get(p)
+        if e is None:
+            fails.append(f"UNEXPECTED code delta {f} {'/'.join(map(str, p))}: {x!r} -> {y!r}")
+        elif not (_eq(e["base"], x) and _eq(e["head"], y)):
+            fails.append(f"code delta {f} {'/'.join(map(str, p))} differs from the manifest: {x!r} -> {y!r}")
+        else:
+            seen.append({"file": f, "path": "/".join(map(str, p)), "base": x, "head": y, "rule": e["rule"]})
+    for p in allowed:
+        if p not in got:
+            fails.append(f"expected code delta not observed: {f} {'/'.join(map(str, p))}")
+    return seen
+
+
+def _get(doc, path):
+    for p in path:
+        doc = doc[p]
+    return doc
+
+
+def _set(doc, path, v):
+    for p in path[:-1]:
+        doc = doc[p]
+    doc[path[-1]] = v
 
 
 def _eq(x, y):
@@ -287,8 +383,14 @@ def main(argv=None):
     step("3 HEAD reproduces its golden digests", rc == 0)
     rc, _ = run(ROOT, ["--dump-universe", W("u_head.json")], log)
     step("  HEAD universe dumped", rc == 0)
-    rc, _ = run(base_root, ["--out", W("cf"), "--universe-from", W("u_head.json")], log)
-    step("  counterfactual (BASE code, HEAD universe) ran", rc == 0)
+    with open(W("u_head.json")) as fh:
+        u_cf = project(json.load(fh), man.get("counterfactual_projection"))
+    with open(W("u_cf.json"), "w") as fh:
+        json.dump(u_cf, fh)
+    rc, _ = run(base_root, ["--out", W("cf"), "--universe-from", W("u_cf.json")], log)
+    step("  counterfactual (BASE code, HEAD universe" + (f", {man['counterfactual_projection']}"
+                                                         if man.get("counterfactual_projection") else "") + ") ran",
+         rc == 0)
     report = {}
     if not fails:
         with open(W("u_base.json")) as fh:

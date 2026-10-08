@@ -1,9 +1,15 @@
 """A fake exchange for offline tests: answers scanner.py's requests (DEX market lists, MEXC
 candles) from a random-walk market, so the whole scan can run without a network.
 
-    from tests.fake_exchange import FakeExchange
+    from tests.fake_exchange import FakeExchange, install
     fx = FakeExchange(n_coins=60, days=16)
-    scanner.FETCH = fx.fetch
+    restore = install(fx)      # scanner.FETCH = fx.fetch, and the fake coins are known crypto
+    ...
+    restore()
+
+v8 Phase 3: a coin reaches a crypto engine only with positive identity evidence. The fake market's coins (FAKE00,
+FAKE01, ...) carry none of their own, so install() declares them known crypto - the fake world's identity
+authority - for as long as the fake exchange answers. Tests of unverified coins leave that out on purpose.
 """
 from __future__ import annotations
 
@@ -93,3 +99,16 @@ class FakeExchange:
         if url == sc.HL_INFO and (body or {}).get("type") == "clearinghouseState":
             return {"assetPositions": []}
         raise sc.HttpError(404, "not in the fake exchange")
+
+
+def install(fx, known=True):
+    """Answer scanner's requests from fx and (known=True) declare its coins known crypto; returns a function that
+    restores scanner.FETCH and scanner.KNOWN_CRYPTO."""
+    old = sc.FETCH, sc.KNOWN_CRYPTO
+    sc.FETCH = fx.fetch
+    if known:
+        sc.KNOWN_CRYPTO = sc.KNOWN_CRYPTO | set(fx.coins)
+
+    def restore():
+        sc.FETCH, sc.KNOWN_CRYPTO = old
+    return restore

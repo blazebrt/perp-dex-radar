@@ -1,5 +1,10 @@
 """End-of-run audit of smart.run(): trader-level selection counts and the smart-money engine's disposition for
-every coin its proven traders hold. Coins of the registry the engine never saw get SMART_NOT_HELD or
+every coin its proven traders hold. Since v8 Phase 3 a crowd on a coin without crypto execution identity is recorded
+with its identity reason (IDENTITY_UNVERIFIED, TRADFI_CLASSIFIED / TRADFI_EXPOSURE_EXCLUDED, AMBIGUOUS_EXPOSURE,
+IDENTITY_AUTHORITY_MISSING) and the step SMART_CROWD_IDENTITY_BLOCKED - never as SMART_NO_CROWD. The part's
+"journal" section shows the evidence state of every paper trade: identity-qualified (in the live record) or without
+entry-time identity proof (LEGACY_NO_IDENTITY_PROOF: kept, never counted); a coin with such an open trade gets the
+step PAPER_LEGACY_NO_IDENTITY_PROOF. Coins of the registry the engine never saw get SMART_NOT_HELD or
 SMART_VENUE_NOT_COVERED when the snapshot is assembled (this process has no registry)."""
 from __future__ import annotations
 
@@ -43,8 +48,29 @@ def trader_reasons(board, traders, snap, cfg):
     return counts, consistent
 
 
-def smart_part(now, cfg, board, traders, snap, coins, open_trades):
+IDENTITY_HEALTH = {"IDENTITY_UNVERIFIED": T.MISSING, "IDENTITY_AUTHORITY_MISSING": T.MISSING,
+                   "AMBIGUOUS_EXPOSURE": T.CONFLICTED}
+
+
+def journal_part(open_trades, closed_trades):
+    """The smart journal's evidence state (v8 Phase 3): every paper trade by evidence class, and each trade without
+    entry-time identity proof (kept for history, never in the live record), with its reason."""
+    import smart as S
+    J = {"open": list(open_trades or []), "closed": list(closed_trades or [])}
+    unq = []
+    for part in ("open", "closed"):
+        for tr in J[part]:
+            if not S.trade_qualified(tr):
+                unq.append({"id": tr.get("id"), "coin": tr.get("coin"), "kind": tr.get("kind", "signal"), "state": part,
+                            "t_in": tr.get("t_in"), "r": tr.get("r"),
+                            "reason": tr.get("identity_unqualified_reason") or "IDENTITY_PROOF_INCOMPLETE"})
+    return {"evidence": S.journal_evidence(J), "unqualified_trades": unq[-200:], "unqualified_n": len(unq),
+            "live_record_rule": "identity_qualified trades only (entry-time VERIFIED_CRYPTO proof)"}
+
+
+def smart_part(now, cfg, board, traders, snap, coins, open_trades, authority=None, closed_trades=None):
     import scanner as sc
+    import smart as SM
     L = LG.Ledger("smart")
     held_any, held_min = {}, set()
     for tid, s in snap.items():
@@ -60,6 +86,7 @@ def smart_part(now, cfg, board, traders, snap, coins, open_trades):
     opened = [tr for tr in open_trades if tr.get("t_in") == now]
     opened_c = {tr["coin"] for tr in opened}
     busy0 = {tr["coin"] for tr in open_trades if tr.get("t_in") != now}
+    legacy_open = {tr["coin"] for tr in open_trades if not SM.trade_qualified(tr)}
     for t in sorted(set(held_any) | set(rows)):
         r = rows.get(t)
         k = [f"hyperliquid:{r['hl']}"] if r else None
@@ -69,7 +96,7 @@ def smart_part(now, cfg, board, traders, snap, coins, open_trades):
             continue
         steps = []
         o = {"n_long": r["n_long"], "n_short": r["n_short"], "new_long": r["new_long"], "new_short": r["new_short"],
-             "side": r.get("side")}
+             "side": r.get("side"), "identity": r.get("identity")}
         th = {"rule": cfg["signal"], "min_traders": cfg["signal_min_traders"], "window_h": cfg["signal_window_h"],
               "signal_sides": list(cfg["signal_sides"])}
         if r.get("side"):
@@ -83,7 +110,17 @@ def smart_part(now, cfg, board, traders, snap, coins, open_trades):
                 steps.append("PAPER_NO_PRICE")
         if t not in published:
             steps.append("NOT_IN_PUBLISHED_LIST")
-        if r.get("signal"):
+        if t in legacy_open:
+            steps.append("PAPER_LEGACY_NO_IDENTITY_PROOF")
+        blk = r.get("identity_block")
+        if blk:
+            # v8 Phase 3: the crowd existed; the coin's identity kept it from being a signal (never SMART_NO_CROWD)
+            o.update(crowd_side=blk.get("crowd_side"), crowd_signal=blk.get("crowd_signal"),
+                     crowd_info=blk.get("crowd_info"), authority=blk.get("authority"))
+            L.final(t, blk["reason"], "identity", o=o, th=dict(th, identity="VERIFIED_CRYPTO"), k=k,
+                    x=steps + ["SMART_CROWD_IDENTITY_BLOCKED"], src="hyperliquid",
+                    h=IDENTITY_HEALTH.get(blk["reason"], T.HEALTHY))
+        elif r.get("signal"):
             L.final(t, "SMART_CROWD_SIGNAL", "signal", o=o, th=th, k=k, x=steps, src="hyperliquid")
         elif r.get("info"):
             L.final(t, "SMART_CROWD_INFO", "signal", o=o, th=th, k=k, x=steps, src="hyperliquid")
@@ -94,12 +131,18 @@ def smart_part(now, cfg, board, traders, snap, coins, open_trades):
     if not consistent:
         L.problem("trader classification differs from smart.select_traders()")
         part["problems"] = L.problems
+    part["journal"] = journal_part(open_trades, closed_trades)
     part["traders"] = {"leaderboard_rows": len((board or {}).get("leaderboardRows") or []), "selected": len(traders),
                        "read": len(snap), "by_reason": counts}
     part["stages"] = {"coins_held": len(held_any), "coins_min_size": len(held_min), "rows": len(rows),
                       "signals": sum(1 for r in coins if r.get("signal")),
                       "info": sum(1 for r in coins if r.get("info")), "paper_opened": len(opened),
-                      "published": len(published)}
+                      "published": len(published),
+                      # v8 Phase 3: crypto execution identity of the rows, and the crowds it blocked
+                      "identity": {st or "NONE": sum(1 for r in coins if r.get("identity") == st)
+                                   for st in sorted({r.get("identity") for r in coins}, key=lambda x: x or "")},
+                      "identity_blocked": sorted(r["coin"] for r in coins if r.get("identity_block")),
+                      "identity_authority": authority}
     return part
 
 

@@ -21,36 +21,60 @@ def identity_of(t, trace=TRACE):
 def exposure_summary(info):
     """A compact, readable account of a ticker's exposures for a ledger record."""
     out = []
+    crypto = (info or {}).get("state", ID.VERIFIED_CRYPTO) == ID.VERIFIED_CRYPTO
     for x in (info or {}).get("exposures") or []:
         out.append({"id": x["id"], "class": x["class"], "reason": x["reason"], "price": x["anchor_price"] or
                     (x["price_range"] or [None])[0], "contracts": x["members"],
-                    "admitted": x["admitted"] or x["attached"]})
+                    "admitted": bool(x["admitted"] or (x["attached"] and crypto))})
     return out
 
 
 def excluded_code(coin, trace=TRACE):
-    """(code, observed) for a coin the universe kept out of the crypto engines (tradfi=True): TRADFI_CLASSIFIED,
-    TRADFI_EXPOSURE_EXCLUDED or AMBIGUOUS_EXPOSURE, with the exposures that decided it."""
+    """(code, observed) for a coin the identity gate keeps out of the crypto engines: TRADFI_CLASSIFIED,
+    TRADFI_EXPOSURE_EXCLUDED or AMBIGUOUS_EXPOSURE (tradfi=True), with the exposures that decided it; or, since v8
+    Phase 3, IDENTITY_UNVERIFIED (in the universe, not tradfi, no positive identity evidence) with the evidence path
+    and what would resolve it."""
     t = (coin or {}).get("t")
     info = identity_of(t, trace)
-    if info is None:          # no identity trace (should not happen): name it, never guess
-        return "AUDIT_UNCLASSIFIED", {"why": "no v8.identity decision recorded for this coin"}
-    code = info["decision"]
-    if code not in (ID.D_TRADFI, ID.D_TRADFI_EXPOSURE, ID.D_AMBIGUOUS):
-        return "AUDIT_UNCLASSIFIED", {"why": f"coin excluded but identity decided {code}"}
-    o = {"exposures": exposure_summary(info), "name": (coin or {}).get("name")}
-    if info.get("ticker_list"):
-        o["ticker_list"] = info["ticker_list"]
-    return code, o
+    if (coin or {}).get("tradfi"):
+        if info is None:          # no identity trace (should not happen): name it, never guess
+            return "AUDIT_UNCLASSIFIED", {"why": "no v8.identity decision recorded for this coin"}
+        code = info["decision"]
+        if code not in (ID.D_TRADFI, ID.D_TRADFI_EXPOSURE, ID.D_AMBIGUOUS):
+            return "AUDIT_UNCLASSIFIED", {"why": f"coin excluded but identity decided {code}"}
+        o = {"exposures": exposure_summary(info), "name": (coin or {}).get("name")}
+        if info.get("ticker_list"):
+            o["ticker_list"] = info["ticker_list"]
+        if info.get("state"):
+            o["state"] = info["state"]
+        return code, o
+    state = (coin or {}).get("identity")
+    o = {"state": state, "discovery": True, "execution_identity": False}
+    if state is None:
+        o["why"] = "the coin record carries no identity (built outside v8.identity): no execution authority"
+    elif state != ID.UNVERIFIED:
+        return "AUDIT_UNCLASSIFIED", {"why": f"coin not tradfi and not execution-eligible, identity {state}"}
+    elif info is not None and info.get("state") == ID.UNVERIFIED:
+        o.update(name=(coin or {}).get("name"), exposures=exposure_summary(info), evidence=info.get("evidence") or None,
+                 links=info.get("links"), promotion=info.get("promotion"))
+    return "IDENTITY_UNVERIFIED", o
+
+
+def excluded_health(code):
+    """Data health of an identity exclusion: conflicting evidence, missing evidence, or a settled classification."""
+    return {"AMBIGUOUS_EXPOSURE": T.CONFLICTED, "IDENTITY_UNVERIFIED": T.MISSING}.get(code, T.HEALTHY)
 
 
 def note_identity_steps(L, tickers, trace=TRACE):
-    """Adds the CRYPTO_EXPOSURE_SELECTED step to the final record of every admitted coin whose ticker also names an
-    excluded exposure (call after the engine loop)."""
+    """Adds the identity steps to the final record of every admitted coin (call after the engine loop):
+    CRYPTO_EXPOSURE_SELECTED when its ticker also names an excluded tradfi or ambiguous exposure, and (v8 Phase 3)
+    UNVERIFIED_EXPOSURE_KEPT_OUT when it also has a price-separated exposure without identity evidence."""
     for t in tickers:
         info = identity_of(t, trace)
         if info and info["decision"] == ID.D_SELECTED:
             L.note(t, "CRYPTO_EXPOSURE_SELECTED")
+        if info and info.get("state") == ID.VERIFIED_CRYPTO and info.get("excluded_unverified"):
+            L.note(t, "UNVERIFIED_EXPOSURE_KEPT_OUT")
 
 
 def liquidity_final(L, t, coin, stage, min_vol, trade_dexes, k=None):

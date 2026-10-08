@@ -1,0 +1,830 @@
+{
+ "schema": "v8.delta/2",
+ "phase": "v8 Phase 3: identity coverage hardening and discovery/execution separation (closures: smart-money identity gate; entry-time identity provenance of smart paper trades)",
+ "base": {
+  "sha": "82f8d35a80e561384f2e8be0e1399dd4e5adb99b",
+  "tree": "06d80f744401589f983ac52298650d182e0c2fa5",
+  "golden": "tests/fixtures/v8/legacy_parity_golden_phase3_base.json",
+  "golden_note": "main 82f8d35 (Phase 2) on the Phase 3 fixture: the Phase 2 fixture plus the fixture-world known-crypto declaration (alone: no Phase 2 output changes) and the Phase 3 identity cases (MOONX, NEWCOIN, US100S, ADBE, SAMSUNGUSD, SKHYNIX/SKHYNIXUSD, HYUNDAI/HYUNDAIUSD, US10Y, BYD, PRLX)"
+ },
+ "head_golden": "tests/fixtures/v8/legacy_parity_golden_phase3.json",
+ "counterfactual_projection": "exclude_without_execution_identity",
+ "rules": {
+  "IDENTITY_UNVERIFIED_NO_EXECUTION": "An exposure without positive identity evidence is UNVERIFIED (Phase 2: CRYPTO by default, DEFAULT_CRYPTO). The coin keeps its Phase 2 record (venues, prices, volumes) and tradfi=false in the universe, and loses crypto execution identity: no engine evaluates it.",
+  "PARSED_SYMBOL_TRADFI": "On a venue whose symbols name the base asset only (Hyperliquid, Lighter, Variational), a symbol ending in USD yields a parsed candidate; it is tradfi evidence when the candidate is on the tradfi list or an FX pair, or when the candidate ticker has a TRADFI exposure within 20% of the contract's price. Never crypto evidence.",
+  "UNVERIFIED_NOT_COUNTED_AS_CRYPTO": "A DEX's count of crypto markets counts only markets admitted with crypto execution identity: unverified markets and markets that became tradfi are no longer counted.",
+  "UNVERIFIED_EXPOSURE_NOT_MERGED": "A price-separated UNVERIFIED exposure next to a VERIFIED_CRYPTO exposure of the same ticker is not merged into the crypto coin (contract state UNVERIFIED_EXPOSURE_NOT_ADMITTED), so the price-conflict note for it is not emitted.",
+  "UNVERIFIED_LISTED_SEPARATELY": "The radar publishes identity-unverified coins in coverage.unverified, not among the non-crypto (tradfi) exclusions in coverage.tradfi: unknown is not tradfi.",
+  "VENUE_FIELD_TRADFI": "A same-venue field the live venue field census showed to be tradfi-only is tradfi evidence: an Aster underlyingSubType in STOCK, ETF, Commodities, Semiconductor, USD1-RWA, or a Variational market name starting 'Swap on ' (scan gh-37782095629-1: 0 such markets in a verified crypto exposure). Tradfi direction only.",
+  "SMART_IDENTITY_FIELDS": "Additive only: every smart-money row carries the coin's identity state from the same-scan identity authority (data/v8/identity_authority.json, written by the scanner), and smart.json names the authority it used. On the fixture every smart coin is VERIFIED_CRYPTO, so every signal, information crowd, paper trade and statistic is unchanged; a crowd on a coin without crypto execution identity would be blocked at the source (tests/test_v8_phase3_smart.py).",
+  "ANALYZER_SMART_IDENTITY_DEFENSE": "analyze.js (published with the site) accepts a smart-money signal only from a row whose identity is VERIFIED_CRYPTO, and explains an identity-blocked crowd as a note: defense in depth behind the smart.py gate.",
+  "SMART_TRADE_IDENTITY_PROVENANCE": "Additive only: every new smart-money paper trade records its entry-time identity proof - identity_state_at_entry, identity_qualified, identity_version, identity_scan_id, identity_decision - from the same-scan identity authority that allowed it, written once and never recomputed. On the fixture both trades (FAKE02 signal, FAKE03 info) are VERIFIED_CRYPTO and qualified; every other trade value (entry, price, stop, hold, kind, id) is unchanged.",
+  "SMART_EVIDENCE_BOUNDARY": "Additive only: smart.json accuracy reports the evidence boundary - evidence (qualified vs unqualified trades, open and closed, signal and info) and legacy_unqualified (trades without entry-time identity proof, kept apart, LEGACY_NO_IDENTITY_PROOF). live, live_info and the verdict count qualified trades only; on a fresh fixture run every trade is qualified, so they are unchanged."
+ },
+ "universe": [
+  {
+   "ticker": "ADBE",
+   "field": "tradfi",
+   "base": false,
+   "head": true,
+   "rule": "VENUE_FIELD_TRADFI",
+   "why": "Aster ADBEUSDT sends underlyingType COIN (no evidence) and underlyingSubType [STOCK] (VENUE_SUBTYPE:STOCK)."
+  },
+  {
+   "ticker": "ADBE",
+   "field": "execution_identity",
+   "base": true,
+   "head": false,
+   "rule": "VENUE_FIELD_TRADFI",
+   "why": "as tradfi: VERIFIED_TRADFI"
+  },
+  {
+   "ticker": "BYD",
+   "field": "execution_identity",
+   "base": true,
+   "head": false,
+   "rule": "IDENTITY_UNVERIFIED_NO_EXECUTION",
+   "why": "Lighter BYD (3.02, observed /bin/bash) carries no label and is on no list: no positive evidence. Phase 2 called it crypto by default."
+  },
+  {
+   "ticker": "HYUNDAI",
+   "field": "execution_identity",
+   "base": true,
+   "head": false,
+   "rule": "IDENTITY_UNVERIFIED_NO_EXECUTION",
+   "why": "Aster HYUNDAIUSDT sends underlyingType COIN, which Aster also sends for stocks: no evidence either way."
+  },
+  {
+   "ticker": "HYUNDAIUSD",
+   "field": "execution_identity",
+   "base": true,
+   "head": false,
+   "rule": "IDENTITY_UNVERIFIED_NO_EXECUTION",
+   "why": "Lighter HYUNDAIUSD parses to the candidate HYUNDAI, whose only exposure (Aster, 253.02) is itself UNVERIFIED: the link is recorded, it decides nothing."
+  },
+  {
+   "ticker": "MOONX",
+   "field": "execution_identity",
+   "base": true,
+   "head": false,
+   "rule": "IDENTITY_UNVERIFIED_NO_EXECUTION",
+   "why": "Unknown coin on Hyperliquid and Aster (COIN), liquid, with candles: two unlabeled venues do not prove crypto, and a Hyperliquid listing is not identity evidence (Hyperliquid lists PAXG, a tradfi-list ticker, too)."
+  },
+  {
+   "ticker": "NEWCOIN",
+   "field": "execution_identity",
+   "base": true,
+   "head": false,
+   "rule": "IDENTITY_UNVERIFIED_NO_EXECUTION",
+   "why": "A brand-new Aster-only perp, 8.5k volume, no candles, no label, on no list: discovery-visible, no execution identity."
+  },
+  {
+   "ticker": "SAMSUNGUSD",
+   "field": "tradfi",
+   "base": false,
+   "head": true,
+   "rule": "PARSED_SYMBOL_TRADFI",
+   "why": "Lighter symbols name the base asset only; SAMSUNGUSD parses to SAMSUNG, which is on the repository tradfi list (PARSED_SYMBOL_TRADFI_LIST:SAMSUNG)."
+  },
+  {
+   "ticker": "SAMSUNGUSD",
+   "field": "execution_identity",
+   "base": true,
+   "head": false,
+   "rule": "PARSED_SYMBOL_TRADFI",
+   "why": "as tradfi: VERIFIED_TRADFI"
+  },
+  {
+   "ticker": "SKHYNIXUSD",
+   "field": "tradfi",
+   "base": false,
+   "head": true,
+   "rule": "PARSED_SYMBOL_TRADFI",
+   "why": "SKHYNIXUSD parses to SKHYNIX, whose exposure SKHYNIX#1 (Extended RWA, 1334.15) is TRADFI and within 20% of 1284.48 (PARSED_SYMBOL_EXPOSURE:SKHYNIX#1)."
+  },
+  {
+   "ticker": "SKHYNIXUSD",
+   "field": "execution_identity",
+   "base": true,
+   "head": false,
+   "rule": "PARSED_SYMBOL_TRADFI",
+   "why": "as tradfi: VERIFIED_TRADFI"
+  },
+  {
+   "ticker": "US100S",
+   "field": "tradfi",
+   "base": false,
+   "head": true,
+   "rule": "VENUE_FIELD_TRADFI",
+   "why": "Variational names it 'Swap on US Non-Financial 100' (VENUE_NAME:swap on), as in the live scan; Phase 2 admitted it (.0B a day) as crypto by default."
+  },
+  {
+   "ticker": "US100S",
+   "field": "execution_identity",
+   "base": true,
+   "head": false,
+   "rule": "VENUE_FIELD_TRADFI",
+   "why": "as tradfi: VERIFIED_TRADFI"
+  },
+  {
+   "ticker": "US10Y",
+   "field": "execution_identity",
+   "base": true,
+   "head": false,
+   "rule": "IDENTITY_UNVERIFIED_NO_EXECUTION",
+   "why": "Lighter US10Y (a rates-style symbol) has no label and is on no list; no rates pattern is guessed: UNVERIFIED."
+  }
+ ],
+ "dex_status": [
+  {
+   "dex": "aster",
+   "field": "crypto",
+   "base": 9,
+   "head": 5,
+   "rule": "UNVERIFIED_NOT_COUNTED_AS_CRYPTO",
+   "contracts": [
+    "aster:MOONXUSDT",
+    "aster:NEWCOINUSDT",
+    "aster:HYUNDAIUSDT",
+    "aster:ADBEUSDT"
+   ]
+  },
+  {
+   "dex": "hyperliquid",
+   "field": "crypto",
+   "base": 41,
+   "head": 40,
+   "rule": "UNVERIFIED_NOT_COUNTED_AS_CRYPTO",
+   "contracts": [
+    "hyperliquid:MOONX"
+   ]
+  },
+  {
+   "dex": "lighter",
+   "field": "crypto",
+   "base": 10,
+   "head": 4,
+   "rule": "UNVERIFIED_NOT_COUNTED_AS_CRYPTO",
+   "contracts": [
+    "lighter:SAMSUNGUSD",
+    "lighter:SKHYNIXUSD",
+    "lighter:HYUNDAIUSD",
+    "lighter:US10Y",
+    "lighter:BYD",
+    "lighter:PRLX"
+   ]
+  },
+  {
+   "dex": "variational",
+   "field": "crypto",
+   "base": 35,
+   "head": 34,
+   "rule": "VENUE_FIELD_TRADFI",
+   "contracts": [
+    "variational:US100S"
+   ],
+   "why": "variational:US100S is now tradfi"
+  }
+ ],
+ "notes": {
+  "removed": [
+   "PRLX: Lighter price 1.3400 differs from the main market (0.1111); left out"
+  ],
+  "added": [],
+  "rule": "UNVERIFIED_EXPOSURE_NOT_MERGED"
+ },
+ "code": [
+  {
+   "file": "data/latest.json",
+   "path": [
+    "coverage",
+    "tradfi"
+   ],
+   "kind": "set",
+   "base": [
+    "AAPL",
+    "ACME",
+    "ADBE",
+    "ASTS",
+    "BYD",
+    "EURUSD",
+    "HYUNDAI",
+    "HYUNDAIUSD",
+    "KIOXIA",
+    "KORU",
+    "MOONX",
+    "NEWCOIN",
+    "ONDS",
+    "SAMSUNGUSD",
+    "SECT",
+    "SKHYNIX",
+    "SKHYNIXUSD",
+    "US100S",
+    "US10Y",
+    "XIAOMI"
+   ],
+   "head": [
+    "AAPL",
+    "ACME",
+    "ADBE",
+    "ASTS",
+    "EURUSD",
+    "KIOXIA",
+    "KORU",
+    "ONDS",
+    "SAMSUNGUSD",
+    "SECT",
+    "SKHYNIX",
+    "SKHYNIXUSD",
+    "US100S",
+    "XIAOMI"
+   ],
+   "rule": "UNVERIFIED_LISTED_SEPARATELY",
+   "why": "the counterfactual hands unverified coins to the base code as tradfi (its only exclusion); HEAD lists them apart"
+  },
+  {
+   "file": "data/latest.json",
+   "path": [
+    "coverage",
+    "unverified"
+   ],
+   "base": "<absent>",
+   "head": [
+    "BYD",
+    "HYUNDAI",
+    "HYUNDAIUSD",
+    "MOONX",
+    "NEWCOIN",
+    "US10Y"
+   ],
+   "rule": "UNVERIFIED_LISTED_SEPARATELY",
+   "why": "new list of identity-unverified coins"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "coins",
+    {
+     "key": [
+      "coin",
+      "FAKE02"
+     ]
+    },
+    "identity"
+   ],
+   "base": "<absent>",
+   "head": "VERIFIED_CRYPTO",
+   "rule": "SMART_IDENTITY_FIELDS"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "coins",
+    {
+     "key": [
+      "coin",
+      "FAKE03"
+     ]
+    },
+    "identity"
+   ],
+   "base": "<absent>",
+   "head": "VERIFIED_CRYPTO",
+   "rule": "SMART_IDENTITY_FIELDS"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "coins",
+    {
+     "key": [
+      "coin",
+      "BTC"
+     ]
+    },
+    "identity"
+   ],
+   "base": "<absent>",
+   "head": "VERIFIED_CRYPTO",
+   "rule": "SMART_IDENTITY_FIELDS"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "identity_authority"
+   ],
+   "base": "<absent>",
+   "head": {
+    "coins": 64,
+    "ok": true,
+    "scan_id": "local-1791014833",
+    "source": "data/v8/identity_authority.json",
+    "ts": 1791014833,
+    "why": "SAME_SCAN"
+   },
+   "rule": "SMART_IDENTITY_FIELDS",
+   "why": "the parity harness runs offline: a local scan id and the frozen scan time; smart1 runs one hour before the scan time, inside the offline 6-hour window"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_state_at_entry"
+   ],
+   "base": "<absent>",
+   "head": "VERIFIED_CRYPTO",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_qualified"
+   ],
+   "base": "<absent>",
+   "head": true,
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "<absent>",
+   "head": "v8.identity/2",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_scan_id"
+   ],
+   "base": "<absent>",
+   "head": "local-1791014833",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_decision"
+   ],
+   "base": "<absent>",
+   "head": "CRYPTO",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_state_at_entry"
+   ],
+   "base": "<absent>",
+   "head": "VERIFIED_CRYPTO",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_qualified"
+   ],
+   "base": "<absent>",
+   "head": true,
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "<absent>",
+   "head": "v8.identity/2",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_scan_id"
+   ],
+   "base": "<absent>",
+   "head": "local-1791014833",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_decision"
+   ],
+   "base": "<absent>",
+   "head": "CRYPTO",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_state_at_entry"
+   ],
+   "base": "<absent>",
+   "head": "VERIFIED_CRYPTO",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_qualified"
+   ],
+   "base": "<absent>",
+   "head": true,
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "<absent>",
+   "head": "v8.identity/2",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_scan_id"
+   ],
+   "base": "<absent>",
+   "head": "local-1791014833",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_decision"
+   ],
+   "base": "<absent>",
+   "head": "CRYPTO",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_state_at_entry"
+   ],
+   "base": "<absent>",
+   "head": "VERIFIED_CRYPTO",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_qualified"
+   ],
+   "base": "<absent>",
+   "head": true,
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "<absent>",
+   "head": "v8.identity/2",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_scan_id"
+   ],
+   "base": "<absent>",
+   "head": "local-1791014833",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_decision"
+   ],
+   "base": "<absent>",
+   "head": "CRYPTO",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "accuracy",
+    "evidence"
+   ],
+   "base": "<absent>",
+   "head": {
+    "qualified": {
+     "closed_info": 0,
+     "closed_signal": 0,
+     "open_info": 1,
+     "open_signal": 1
+    },
+    "unqualified": {
+     "closed_info": 0,
+     "closed_signal": 0,
+     "open_info": 0,
+     "open_signal": 0
+    },
+    "unqualified_reasons": {}
+   },
+   "rule": "SMART_EVIDENCE_BOUNDARY"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "accuracy",
+    "legacy_unqualified"
+   ],
+   "base": "<absent>",
+   "head": {
+    "info": {
+     "n": 0
+    },
+    "reason": "LEGACY_NO_IDENTITY_PROOF",
+    "signal": {
+     "n": 0
+    }
+   },
+   "rule": "SMART_EVIDENCE_BOUNDARY"
+  }
+ ],
+ "decisions": [
+  {
+   "path": [
+    "radar",
+    "tradfi"
+   ],
+   "kind": "set",
+   "base": [
+    "AAPL",
+    "ACME",
+    "ADBE",
+    "ASTS",
+    "BYD",
+    "EURUSD",
+    "HYUNDAI",
+    "HYUNDAIUSD",
+    "KIOXIA",
+    "KORU",
+    "MOONX",
+    "NEWCOIN",
+    "ONDS",
+    "SAMSUNGUSD",
+    "SECT",
+    "SKHYNIX",
+    "SKHYNIXUSD",
+    "US100S",
+    "US10Y",
+    "XIAOMI"
+   ],
+   "head": [
+    "AAPL",
+    "ACME",
+    "ADBE",
+    "ASTS",
+    "EURUSD",
+    "KIOXIA",
+    "KORU",
+    "ONDS",
+    "SAMSUNGUSD",
+    "SECT",
+    "SKHYNIX",
+    "SKHYNIXUSD",
+    "US100S",
+    "XIAOMI"
+   ],
+   "rule": "UNVERIFIED_LISTED_SEPARATELY"
+  },
+  {
+   "path": [
+    "radar",
+    "unverified"
+   ],
+   "base": null,
+   "head": [
+    "BYD",
+    "HYUNDAI",
+    "HYUNDAIUSD",
+    "MOONX",
+    "NEWCOIN",
+    "US10Y"
+   ],
+   "rule": "UNVERIFIED_LISTED_SEPARATELY"
+  }
+ ],
+ "identity_states": {
+  "BTC": "VERIFIED_CRYPTO",
+  "ETH": "VERIFIED_CRYPTO",
+  "FAKE00": "VERIFIED_CRYPTO",
+  "FAKE01": "VERIFIED_CRYPTO",
+  "FAKE02": "VERIFIED_CRYPTO",
+  "FAKE03": "VERIFIED_CRYPTO",
+  "FAKE04": "VERIFIED_CRYPTO",
+  "FAKE05": "VERIFIED_CRYPTO",
+  "FAKE06": "VERIFIED_CRYPTO",
+  "FAKE07": "VERIFIED_CRYPTO",
+  "FAKE08": "VERIFIED_CRYPTO",
+  "FAKE09": "VERIFIED_CRYPTO",
+  "FAKE10": "VERIFIED_CRYPTO",
+  "FAKE11": "VERIFIED_CRYPTO",
+  "FAKE12": "VERIFIED_CRYPTO",
+  "FAKE13": "VERIFIED_CRYPTO",
+  "FAKE14": "VERIFIED_CRYPTO",
+  "FAKE15": "VERIFIED_CRYPTO",
+  "FAKE16": "VERIFIED_CRYPTO",
+  "FAKE17": "VERIFIED_CRYPTO",
+  "FAKE18": "VERIFIED_CRYPTO",
+  "FAKE19": "VERIFIED_CRYPTO",
+  "FAKE20": "VERIFIED_CRYPTO",
+  "FAKE21": "VERIFIED_CRYPTO",
+  "FAKE22": "VERIFIED_CRYPTO",
+  "FAKE23": "VERIFIED_CRYPTO",
+  "FAKE24": "VERIFIED_CRYPTO",
+  "FAKE25": "VERIFIED_CRYPTO",
+  "FAKE26": "VERIFIED_CRYPTO",
+  "FAKE27": "VERIFIED_CRYPTO",
+  "TINY": "VERIFIED_CRYPTO",
+  "NEW40": "VERIFIED_CRYPTO",
+  "NEW10": "VERIFIED_CRYPTO",
+  "THINREF": "VERIFIED_CRYPTO",
+  "ZEROV": "VERIFIED_CRYPTO",
+  "SCALEX": "VERIFIED_CRYPTO",
+  "BB": "VERIFIED_CRYPTO",
+  "PURR": "VERIFIED_CRYPTO",
+  "NOCAND": "VERIFIED_CRYPTO",
+  "MOONX": "UNVERIFIED",
+  "QNT": "VERIFIED_CRYPTO",
+  "VANA": "VERIFIED_CRYPTO",
+  "AAPL": "VERIFIED_TRADFI",
+  "ACME": "VERIFIED_TRADFI",
+  "ONDS": "VERIFIED_TRADFI",
+  "US100S": "VERIFIED_TRADFI",
+  "ASTS": "VERIFIED_TRADFI",
+  "KORU": "VERIFIED_TRADFI",
+  "XIAOMI": "AMBIGUOUS",
+  "NEWCOIN": "UNVERIFIED",
+  "HYUNDAI": "UNVERIFIED",
+  "PRLX": "VERIFIED_CRYPTO",
+  "ADBE": "VERIFIED_TRADFI",
+  "LONLY": "VERIFIED_CRYPTO",
+  "KIOXIA": "VERIFIED_TRADFI",
+  "SAMSUNGUSD": "VERIFIED_TRADFI",
+  "SKHYNIXUSD": "VERIFIED_TRADFI",
+  "HYUNDAIUSD": "UNVERIFIED",
+  "US10Y": "UNVERIFIED",
+  "BYD": "UNVERIFIED",
+  "EXTONLY": "VERIFIED_CRYPTO",
+  "SECT": "AMBIGUOUS",
+  "SKHYNIX": "VERIFIED_TRADFI",
+  "EURUSD": "VERIFIED_TRADFI"
+ },
+ "not_allowed": "Anything else. Outputs of the engines downstream of the universe may differ between BASE and HEAD only as the counterfactual run proves: the base code fed HEAD's universe, with every coin lacking crypto execution identity excluded the base code's own way (tradfi=true), reproduces HEAD's outputs except for the code deltas above. A published source file may change only to the exact digest pinned in \"files\".",
+ "files": [
+  {
+   "file": "analyze.js",
+   "base_sha256": "a9ce353eb93057bfeae6141013061f1b2173b8f4878702232f91444eeee7cb71",
+   "head_sha256": "12ace048e5debf61b1f077d12bc3e839b4efa1fab93998c3d3585954920fd697",
+   "rule": "ANALYZER_SMART_IDENTITY_DEFENSE"
+  }
+ ]
+}

@@ -47,7 +47,7 @@ const quant = (open) => ({strategies: {TSMOM: {name: "Daily trend rider", desc: 
 const smart = (row, trade, verdict) => ({generated: NOW - 3 * H, traders_n: 200,
   accuracy: {verdict: verdict || "Promising", tested: {n: 31, win: 0.613, r: 0.145, period: "Sep 05 to Oct 02 2026"}, live: {n: 0}},
   coins: row ? [Object.assign({coin: "AAA", hl: "AAA", side: "short", signal: true, info: false, proven: false, text: "3 proven traders opened shorts in 24 h",
-    traders: 10, n_long: 4, n_short: 6}, row)] : [],
+    traders: 10, n_long: 4, n_short: 6, identity: "VERIFIED_CRYPTO"}, row)] : [],
   open: trade ? [Object.assign({coin: "AAA", hl: "AAA", d: -1, t_in: NOW - 3 * H, px: 101, last_px: 100.4, stop_pct: 0.03, t_out_by: NOW + 21 * H, kind: "signal"}, trade)] : []});
 const call = (src, o) => TA.decide(Object.assign({coin: "AAA", price: 100.5, d1: d1(), now: NOW, account: 500, risk: 0.02, src}, o || {}));
 const brief = (r) => ({verdict: r.verdict, side: r.side, tier: r.tier, lead: r.lead && r.lead.src, plan: r.plan, conflict: r.conflict, headline: r.headline,
@@ -68,6 +68,14 @@ const out = {T0, SIG_DAY, TODAY, NOW,
   smartNoTrade: brief(call({smart: smart({}, null)})),
   longCrowd: brief(call({smart: smart({side: "long", signal: false, info: true, text: "3 proven traders opened longs in 24 h"}, null)})),
   smartProvenLive: brief(call({smart: smart({proven: true}, {})})),
+  // v8 Phase 3: what smart.py publishes for a crowd on a coin without crypto execution identity, one per state
+  blocked: ["UNVERIFIED", "VERIFIED_TRADFI", "AMBIGUOUS", null].map((st) => brief(call({smart: smart({side: null, signal: false, info: false,
+    identity: st, identity_block: {reason: st === null ? "IDENTITY_AUTHORITY_MISSING" : st === "UNVERIFIED" ? "IDENTITY_UNVERIFIED"
+      : st === "AMBIGUOUS" ? "AMBIGUOUS_EXPOSURE" : "TRADFI_CLASSIFIED", state: st, crowd_side: "short", crowd_signal: true, crowd_info: false}}, null)}))),
+  // defense in depth: a row that claims a signal without verified identity (an older or altered file) is still refused
+  forged: ["UNVERIFIED", "VERIFIED_TRADFI", "AMBIGUOUS", null].map((st) => brief(call({smart: smart({identity: st}, {})}))),
+  noIdentity: brief(call({smart: (() => { const s = smart({}, {}); delete s.coins[0].identity; return s; })()})),
+  coinsBlocked: ["UNVERIFIED", "VERIFIED_TRADFI", "AMBIGUOUS", null].map((st) => TA.signalCoins({smart: smart({identity: st}, {})}, NOW)),
   quantThrough: brief(call({quant: quant([qpos({res: {stop_now: 101, last_px: 100}})]), quantResearch})),
   quantRejected: brief(call({quant: quant([qpos({s: "OLD"})]), quantResearch})),
   quantPending: brief(call({quant: quant([qpos({px: null, res: null, t_in: NOW + H})]), quantResearch})),
@@ -192,6 +200,16 @@ class AnalyzerCall(unittest.TestCase):
         self.assertAlmostEqual(fresh["stopPct"], 0.015, places=9)           # flat daily closes: the 1.5% minimum
         self.assertEqual(fresh["exitBy"], R["NOW"] - 3 * 3600 + 24 * 3600)
         self.assertEqual(R["smartProvenLive"]["tier"], "Proven")
+
+    def test_smart_signal_needs_verified_crypto_identity(self):
+        """v8 Phase 3, defense in depth: whatever smart.json says, the Analyzer takes a smart-money signal only from a
+        coin whose identity is VERIFIED_CRYPTO; an identity-blocked crowd is a note, never a trade."""
+        R = self.R
+        for r in R["blocked"] + R["forged"] + [R["noIdentity"]]:
+            self.assertEqual((r["verdict"], r["signals"], r["plan"]), ("WAIT", [], None))
+            self.assertIn("not verified as a crypto coin", r["notes"][0][1])
+        self.assertEqual(R["coinsBlocked"], [[], [], [], []])
+        self.assertEqual(R["smartOnly"]["verdict"], "SHORT", "a verified crypto smart signal is unchanged")
 
     def test_long_crowds_are_information(self):
         r = self.R["longCrowd"]

@@ -40,6 +40,10 @@ REASONS = {
     "EXPOSURE_NOT_ADMITTED": (None, "the market belongs to a separate exposure of its ticker (a different price "
                                     "level) that is tradfi or ambiguous; it is not merged into the admitted crypto "
                                     "coin (v8 Phase 2)"),
+    "UNVERIFIED_EXPOSURE_NOT_ADMITTED": (None, "the market belongs to a separate exposure of its ticker (a "
+                                               "different price level) without any identity evidence, next to a "
+                                               "verified crypto exposure; it is not merged into the crypto coin and "
+                                               "stays in the registry (v8 Phase 3)"),
     # ---- shared universe (asset level)
     "TRADFI_CLASSIFIED": (MODEL_INELIGIBLE, "classified tradfi (stock, index, FX, commodity); legacy engines "
                                             "are crypto only"),
@@ -55,6 +59,16 @@ REASONS = {
                                               "(conflicting or unrecognised venue labels, or unlabelled markets of a "
                                               "ticker that is a stock or real-world asset elsewhere, at another "
                                               "price, and not a known crypto coin); not admitted (v8 Phase 2)"),
+    "IDENTITY_UNVERIFIED": (INSUFFICIENT_DATA, "no positive crypto or tradfi identity evidence (no venue asset-class "
+                                               "label, no known-crypto or tradfi list entry, no tradfi name, no "
+                                               "verified exposure linked by price or symbol): the coin stays in the "
+                                               "universe and the audit (discovery), is not tradfi, and has no crypto "
+                                               "execution authority, so no engine evaluates it (v8 Phase 3)"),
+    "IDENTITY_AUTHORITY_MISSING": (INSUFFICIENT_DATA, "no same-scan identity authority names this coin (the "
+                                                      "scanner's identity file is missing, unreadable, from another "
+                                                      "scan or identity version, or the coin is not in the scan's "
+                                                      "universe): it fails closed and has no crypto execution "
+                                                      "authority (v8 Phase 3)"),
     "NO_ACTIVE_PERP_CONTRACT": (NOT_EXECUTABLE, "every contract for this asset was skipped by the legacy "
                                                 "adapters (delisted, inactive, builder, non-perpetual)"),
     "PRICE_CONFLICT_ALL_VENUES": (INSUFFICIENT_DATA, "every venue's price was dropped as a price conflict"),
@@ -140,6 +154,47 @@ STEPS = {
     "EXTRA_DEEP_DIVE": "deep-dived as a stage-2 extra (smart money long or dip in an uptrend)",
     "CRYPTO_EXPOSURE_SELECTED": "the ticker also names an unrelated tradfi or ambiguous exposure at another price; "
                                 "the crypto exposure was admitted and the other kept out (v8 Phase 2)",
+    "PAPER_LEGACY_NO_IDENTITY_PROOF": "an open smart-money paper trade on this coin was opened before entry-time "
+                                      "identity proof existed: followed to its close for history, never counted in "
+                                      "the live record or the verdict (v8 Phase 3)",
+    "SMART_CROWD_IDENTITY_BLOCKED": "proven traders crowded into a side under the smart-money rule, but the coin has no "
+                                    "crypto execution identity: kept as an observation, not a signal, no paper trade "
+                                    "(the final reason names the identity state) (v8 Phase 3)",
+    "UNVERIFIED_EXPOSURE_KEPT_OUT": "the ticker also has a price-separated exposure without identity evidence; the "
+                                    "verified crypto exposure was admitted and the unverified one kept out of the coin "
+                                    "(it stays in the registry) (v8 Phase 3)",
+}
+
+# asset identity states (v8 Phase 3, v8.identity): every asset with an active perp has exactly one
+IDENTITY_STATES = {
+    "VERIFIED_CRYPTO": "positive crypto evidence (a venue crypto label, the known-crypto list) and no contrary "
+                       "evidence in its exposure: discovery yes, crypto execution identity yes",
+    "VERIFIED_TRADFI": "positive tradfi evidence (venue RWA / stock / FX label, the tradfi list, a tradfi name, a "
+                       "parsed venue symbol, or inherited within a price-coherent exposure): discovery yes, crypto "
+                       "execution no",
+    "AMBIGUOUS": "conflicting or unrecognised evidence, or unlabelled markets of a ticker that is tradfi elsewhere: "
+                 "discovery yes, crypto execution no",
+    "UNVERIFIED": "no positive evidence either way: discovery yes, crypto execution no, not tradfi; resolves when "
+                  "positive evidence appears (each scan records what was known then)",
+}
+
+# entry-time identity provenance of a smart-money paper trade (v8 Phase 3; smart.stamp_identity, smart.mark_legacy)
+TRADE_IDENTITY = {
+    "IDENTITY_QUALIFIED": "VERIFIED_CRYPTO was proven by the same-scan identity authority when the trade was opened "
+                          "(identity_qualified true, with state, version, scan id and decision): the trade counts in "
+                          "the live record; a later identity change never rewrites it",
+    "LEGACY_NO_IDENTITY_PROOF": "opened before entry-time identity proof existed: kept with its prices, stop, times and "
+                                "result, followed to its close, reported apart, never counted in the live record or "
+                                "the verdict; never re-qualified from a later scan's identity",
+    "NOT_VERIFIED_AT_ENTRY": "opened without VERIFIED_CRYPTO in the same-scan authority (not reachable through the "
+                             "engine, whose source gate opens trades on verified crypto only): never counted",
+    "IDENTITY_PROOF_INCOMPLETE": "carries identity fields but not a complete VERIFIED_CRYPTO proof: never counted",
+}
+
+# identity exposure reasons that are no longer produced (older snapshots keep them)
+RETIRED_IDENTITY_REASONS = {
+    "DEFAULT_CRYPTO": "v8 Phase 3: an exposure without positive evidence is UNVERIFIED (NO_POSITIVE_IDENTITY_EVIDENCE), "
+                      "never crypto by default",
 }
 
 # codes kept for older snapshots, never emitted since v8 Phase 2 (never reuse them for another meaning)

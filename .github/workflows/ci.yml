@@ -42,21 +42,23 @@ jobs:
       - name: All unit tests
         run: python -m unittest discover -s tests -v
 
-      - name: v8 tests (Phase 1 audit; Phase 2 identity, liquidity and the delta validator)
-        run: python -m unittest tests.test_v8_units tests.test_v8_audit tests.test_v8_identity tests.test_v8_delta -v
+      - name: v8 tests (Phase 1 audit; Phase 2 identity, liquidity and the delta validator; Phase 3 identity coverage, smart-money identity and journal provenance)
+        run: python -m unittest tests.test_v8_units tests.test_v8_audit tests.test_v8_identity tests.test_v8_delta tests.test_v8_phase3 tests.test_v8_phase3_smart tests.test_v8_phase3_journal -v
 
       - name: Legacy parity against this branch's committed golden digests
-        run: python tools/v8/legacy_parity.py --out "$RUNNER_TEMP/parity_head" --check tests/fixtures/v8/legacy_parity_golden_phase2.json
+        run: python tools/v8/legacy_parity.py --out "$RUNNER_TEMP/parity_head" --check tests/fixtures/v8/legacy_parity_golden_phase3.json
 
       - name: Differential parity against the phase base (approved deltas only)
-        # Phase 2 changes legacy outputs on purpose. The base commit named in the expected-delta manifest is
-        # rebuilt on this runner; it must reproduce its own golden digests, and every difference between it and this
-        # checkout must be one the manifest lists (tools/v8/delta_parity.py): anything else fails the job.
+        # Phase 3 changes legacy outputs on purpose. The phase base named in the expected-delta manifest (main
+        # 82f8d35, Phase 2) is rebuilt on this runner; it must reproduce its own golden digests, and every difference
+        # between it and this checkout must be one the manifest lists (tools/v8/delta_parity.py): anything else fails
+        # the job. The Phase 2 manifest (pinned to 15a3794) is kept for the record and no longer checked.
         run: |
-          BASE_SHA=$(python -c "import json; print(json.load(open('tests/fixtures/v8/phase2_expected_deltas.json'))['base']['sha'])")
+          MANIFEST=tests/fixtures/v8/phase3_expected_deltas.json
+          BASE_SHA=$(python -c "import json; print(json.load(open('$MANIFEST'))['base']['sha'])")
           git merge-base --is-ancestor "$BASE_SHA" HEAD
           git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA"
-          python tools/v8/delta_parity.py --base-root "$RUNNER_TEMP/base" --manifest tests/fixtures/v8/phase2_expected_deltas.json --work "$RUNNER_TEMP/delta" --write-report "$RUNNER_TEMP/delta/report.json"
+          python tools/v8/delta_parity.py --base-root "$RUNNER_TEMP/base" --manifest "$MANIFEST" --work "$RUNNER_TEMP/delta" --write-report "$RUNNER_TEMP/delta/report.json"
 
       - name: Workflow files parse
         run: |

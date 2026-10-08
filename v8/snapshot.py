@@ -8,6 +8,8 @@ previous scan's first-seen map, and writes
                                    legacy_output_refs, storage)
     data/v8/audit_latest.json.gz   the same, gzip (deterministic: no file name or time in the header)
     data/v8/first_seen.json        contract id -> [first seen, last seen], carried from scan to scan via the site
+    data/v8/identity_state.json    asset -> [identity state, since] (v8 Phase 3), carried the same way; state changes
+                                   since the previous scan are listed in the snapshot (coverage.summary.identity)
 With --archive-dir the gzip copy is also appended to a bounded archive (an Actions artifact with a retention
 period in the Scan workflow); nothing is stored permanently and no external service is used.
 
@@ -37,10 +39,14 @@ CONTRACT_FIELDS = ("id", "venue", "raw", "norm", "asset", "mult", "canon", "type
                    "health", "basis", "legacy",
                    # v8 Phase 2 identity (v8.identity; None for markets the adapters skip)
                    "cls", "cls_reason", "cls_auth", "npx", "exposure", "exp_class", "exp_reason", "admitted",
-                   "inherited_from", "meta")
+                   "inherited_from", "meta",
+                   # v8 Phase 3 identity (exposure state, in the coin record, evidence, parsed symbol and its link, raw
+                   # venue identity fields)
+                   "exp_state", "in_record", "evidence", "parsed", "link", "vmeta")
 LEGACY_FILES = ("latest.json", "journal.json", "journal.csv", "quant.json", "quant_journal.json", "picks.json",
                 "picks_journal.json", "smart.json", "smart_journal.json", "dashboard.json")
 FIRST_SEEN_KEEP_S = 400 * 86400
+IDENTITY_FILE = "identity_state.json"     # asset -> [identity state, since ts], carried from scan to scan via the site
 
 
 def _load_json_url(url, timeout=30):
@@ -64,6 +70,45 @@ def load_first_seen(out_dir, pages_url=None, path=None):
         except Exception:  # noqa: BLE001 - the first scan with v8 has none
             return {}, "unavailable"
     return {}, "none"
+
+
+def load_identity_state(pages_url=None, path=None):
+    """The previous scan's identity states (asset -> [state, since]): an explicit file, else the published one."""
+    if path:
+        try:
+            with open(path) as fh:
+                d = json.load(fh)
+            return (d if isinstance(d, dict) else {}), "file"
+        except (OSError, ValueError):
+            return {}, "missing"
+    if pages_url:
+        try:
+            d = _load_json_url(pages_url.rstrip("/") + "/data/v8/" + IDENTITY_FILE)
+            return (d if isinstance(d, dict) else {}), "site"
+        except Exception:  # noqa: BLE001 - the first scan with Phase 3 has none
+            return {}, "unavailable"
+    return {}, "none"
+
+
+def identity_transitions(assets, prev, ts):
+    """(new map, transitions): every asset's identity state now, carried 'since' when unchanged, and every state
+    change against the previous scan. Each scan records what was known then; nothing earlier is rewritten."""
+    now, moves = {}, []
+    for t, a in sorted((assets or {}).items()):
+        st = (a.get("identity") or {}).get("state")
+        if not st:
+            continue
+        old = prev.get(t) if isinstance(prev.get(t), list) and len(prev.get(t)) == 2 else None
+        if old and old[0] == st:
+            now[t] = [st, old[1]]
+        else:
+            now[t] = [st, ts]
+            if old:
+                moves.append({"asset": t, "from": old[0], "to": st, "prev_since": old[1], "ts": ts})
+    for t, v in prev.items():          # keep assets not seen this scan for a while (they may come back)
+        if t not in now and isinstance(v, list) and len(v) == 2 and ts and ts - (v[1] or 0) <= FIRST_SEEN_KEEP_S:
+            now[t] = v
+    return now, moves
 
 
 def file_ref(path, rel):
@@ -100,7 +145,7 @@ def _smart_fill(smart, registry):
                by_reason=dict(sorted(by_c.items())))
 
 
-def build(out_dir, pages_url=None, first_seen_path=None):
+def build(out_dir, pages_url=None, first_seen_path=None, identity_path=None):
     data = os.path.join(out_dir, "data")
     P = {e: PT.read(out_dir, e) for e in ENGINES}
     uni = P.get("universe") or {}
@@ -119,6 +164,8 @@ def build(out_dir, pages_url=None, first_seen_path=None):
         for cid, v in prev.items():        # keep markets not returned this scan for a while (they may come back)
             if cid not in fs and isinstance(v, list) and len(v) == 2 and ts and ts - (v[1] or 0) <= FIRST_SEEN_KEEP_S:
                 fs[cid] = v
+    prev_id, id_src = load_identity_state(pages_url, identity_path)
+    id_map, id_moves = identity_transitions((reg or {}).get("assets"), prev_id, ts)
     _smart_fill(P.get("smart"), reg)
     # dispositions and coverage
     dispositions, coverage, problems = {}, {}, {}
@@ -132,6 +179,8 @@ def build(out_dir, pages_url=None, first_seen_path=None):
             continue
         dispositions[e] = p.get("records") or []
         coverage[e] = dict(p.get("coverage") or {}, status="OK", stages=p.get("stages"))
+        if p.get("journal"):       # v8 Phase 3: the smart journal's evidence state (qualified vs legacy trades)
+            coverage[e]["journal"] = p["journal"]
         if p.get("problems"):
             problems[e] = p["problems"]
     radar_in = {r["a"] for r in dispositions.get("radar", [])}
@@ -182,6 +231,18 @@ def build(out_dir, pages_url=None, first_seen_path=None):
         "unaccounted": {"registry_assets": len(universe_unaccounted),
                         **{e: (coverage.get(e) or {}).get("unaccounted") for e in ENGINES}},
         "unaccounted_registry_assets": universe_unaccounted[:50],
+        # v8 Phase 3: identity states, discovery vs execution identity, transitions since the previous scan
+        "identity": {"states": rc.get("identity_states"), "discovery_visible_assets": rc.get("discovery_visible_assets"),
+                     "discovery_visible_contracts": rc.get("discovery_visible_contracts"),
+                     "execution_identity_eligible": rc.get("execution_identity_eligible"),
+                     "unverified_exclusions_radar": n_code("radar", "IDENTITY_UNVERIFIED"),
+                     "unverified_exclusions": {e: n_code(e, "IDENTITY_UNVERIFIED") for e in ("radar", "quant", "swing", "day")},
+                     "unverified_assets": rc.get("unverified_assets") or [],
+                     "phase2_states": rc.get("phase2_states"), "changed_vs_phase2": rc.get("changed_vs_phase2") or [],
+                     "phase2_default_crypto_only": len(rc.get("phase2_default_crypto_only") or []),
+                     "phase2_default_crypto_any": len(rc.get("phase2_default_crypto_any") or []),
+                     "phase2_default_crypto_now": {k: len(v) for k, v in (rc.get("phase2_default_crypto_now") or {}).items()},
+                     "transitions": id_moves, "transitions_source": id_src},
         "engine_universe_differences": diffs,
     }
     # data health
@@ -225,6 +286,7 @@ def build(out_dir, pages_url=None, first_seen_path=None):
             refs.append(file_ref(p, f"data/{name}"))
     manifest = {
         "schema": SCHEMA, "audit_version": ENGINE_VERSION, "identity_version": rc.get("identity_version"),
+        "identity_config_hash": hdr.get("identity_config_hash"),
         "liquidity_version": LIQUIDITY_VERSION, "scan_id": hdr.get("scan_id"), "ts": ts,
         "repo": hdr.get("repo"), "ref": hdr.get("git_ref"), "git_sha": hdr.get("git_sha"),
         "engine_versions": {e: ((P.get(e) or {}).get("header") or {}).get("engine_version") for e in ENGINES},
@@ -245,7 +307,7 @@ def build(out_dir, pages_url=None, first_seen_path=None):
             "data_health": data_health, "dispositions": dispositions,
             "reasons": {k: {"disposition": v[0], "text": v[1]} for k, v in T.REASONS.items()},
             "steps": T.STEPS, "legacy_output_refs": refs}
-    return snap, fs
+    return snap, fs, id_map
 
 
 def columns(contracts):
@@ -304,8 +366,8 @@ class ArchiveDir:
         return p
 
 
-def write(out_dir, pages_url=None, first_seen_path=None, archive_dir=None, keep_parts=False):
-    snap, fs = build(out_dir, pages_url, first_seen_path)
+def write(out_dir, pages_url=None, first_seen_path=None, archive_dir=None, keep_parts=False, identity_path=None):
+    snap, fs, id_map = build(out_dir, pages_url, first_seen_path, identity_path)
     raw = dumps({k: v for k, v in snap.items()})
     z = gz(raw)
     snap["storage"] = storage(len(raw), len(z), snap)
@@ -319,6 +381,8 @@ def write(out_dir, pages_url=None, first_seen_path=None, archive_dir=None, keep_
         fh.write(z)
     with open(os.path.join(d, "first_seen.json"), "wb") as fh:
         fh.write(dumps(fs))
+    with open(os.path.join(d, IDENTITY_FILE), "wb") as fh:
+        fh.write(dumps(id_map))
     arch = ArchiveDir(archive_dir).append(snap["manifest"]["scan_id"] or "unknown", z) if archive_dir else None
     if not keep_parts:
         shutil.rmtree(os.path.join(out_dir, PT.PART_DIR), ignore_errors=True)
@@ -330,10 +394,12 @@ def main(argv=None):
     ap.add_argument("--out", default="site")
     ap.add_argument("--pages-url", default=os.environ.get("PAGES_URL"))
     ap.add_argument("--first-seen", default=None, help="previous first_seen.json (default: read from the site)")
+    ap.add_argument("--identity-state", default=None,
+                    help="previous identity_state.json (default: read from the site)")
     ap.add_argument("--archive-dir", default=None, help="append the gzip snapshot to this bounded archive folder")
     ap.add_argument("--keep-parts", action="store_true")
     a = ap.parse_args(argv)
-    snap, n, z, arch = write(a.out, a.pages_url, a.first_seen, a.archive_dir, a.keep_parts)
+    snap, n, z, arch = write(a.out, a.pages_url, a.first_seen, a.archive_dir, a.keep_parts, a.identity_state)
     s = snap["coverage"]["summary"]
     print(f"[v8] audit snapshot {snap['manifest']['scan_id']}: {s['raw_contracts']} contracts, "
           f"{s['canonical_assets']} assets, {snap['manifest']['dispositions']} dispositions, unaccounted "

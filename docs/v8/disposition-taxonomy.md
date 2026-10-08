@@ -1,4 +1,4 @@
-# Disposition taxonomy (v8 Phase 1, extended in Phase 2)
+# Disposition taxonomy (v8 Phase 1, extended in Phases 2 and 3)
 
 Every asset an engine receives ends with exactly **one final disposition** in that engine's ledger, with a
 stable **reason code**, the observed input, the rule it was compared with, the data health of the inputs and the
@@ -8,7 +8,8 @@ or reused. There is deliberately no generic `FILTERED` code; an audit that canno
 
 Source of truth: `v8/taxonomy.py`. `tests/test_v8_units.py` checks that every code below is in that module and
 the other way round. Phase 2 added the identity and missing-volume codes and retired two codes (marked
-[retired in v8 Phase 2]: kept for older snapshots, never emitted again, never reused).
+[retired in v8 Phase 2]: kept for older snapshots, never emitted again, never reused). Phase 3 added the four
+identity states and `IDENTITY_UNVERIFIED`, and retired the exposure reason `DEFAULT_CRYPTO`.
 
 ## Final dispositions
 
@@ -26,7 +27,7 @@ the other way round. Phase 2 added the identity and missing-volume codes and ret
 | Engine | Input (every asset gets one record) | Written by |
 |---|---|---|
 | `universe` | registry assets the legacy universe never kept (all contracts skipped, every venue dropped as a price conflict, or only on venues whose adapter failed) | scanner.py |
-| `radar` | every coin of the scanner's legacy universe, tradfi included | scanner.py |
+| `radar` | every coin of the scanner's legacy universe, tradfi and identity-unverified included | scanner.py |
 | `quant` | every coin of the quant desk's own universe | quant.py |
 | `swing` | every coin of the coin-picks universe (swing scores) | picks.py |
 | `day` | every coin of the coin-picks universe (day-trade scores) | picks.py |
@@ -50,10 +51,13 @@ appear in the registry, never as an asset's final disposition.
 | `ADAPTER_FAILED` |  | the venue's legacy adapter raised an error this scan, so legacy used none of its markets |
 | `AUDIT_ADAPTER_MISMATCH` |  | the registry's reading of the raw market disagrees with the legacy adapter (an observability defect; legacy output is unaffected) |
 | `EXPOSURE_NOT_ADMITTED` |  | the market belongs to a separate exposure of its ticker (a different price level) that is tradfi or ambiguous; it is not merged into the admitted crypto coin (v8 Phase 2) |
+| `UNVERIFIED_EXPOSURE_NOT_ADMITTED` |  | the market belongs to a separate exposure of its ticker (a different price level) without any identity evidence, next to a verified crypto exposure; it is not merged into the crypto coin and stays in the registry (v8 Phase 3) |
 | `TRADFI_CLASSIFIED` | `MODEL_INELIGIBLE` | classified tradfi (stock, index, FX, commodity); legacy engines are crypto only |
 | `TRADFI_TICKER_COLLISION` | `MODEL_INELIGIBLE` | venues disagree: a tradfi listing shares the ticker of a market listed as crypto; legacy marks the whole ticker tradfi (a real crypto coin is excluded when known_crypto is true) [retired in v8 Phase 2] |
 | `TRADFI_EXPOSURE_EXCLUDED` | `MODEL_INELIGIBLE` | a tradfi exposure: a market with tradfi evidence (venue category or underlying type, contract name) and markets at the same price that no venue labelled; they are one stock or real-world asset and all stay out (v8 Phase 2) |
 | `AMBIGUOUS_EXPOSURE` | `INSUFFICIENT_DATA` | the markets' own evidence cannot establish a crypto identity (conflicting or unrecognised venue labels, or unlabelled markets of a ticker that is a stock or real-world asset elsewhere, at another price, and not a known crypto coin); not admitted (v8 Phase 2) |
+| `IDENTITY_UNVERIFIED` | `INSUFFICIENT_DATA` | no positive crypto or tradfi identity evidence (no venue asset-class label, no known-crypto or tradfi list entry, no tradfi name, no verified exposure linked by price or symbol): the coin stays in the universe and the audit (discovery), is not tradfi, and has no crypto execution authority, so no engine evaluates it (v8 Phase 3) |
+| `IDENTITY_AUTHORITY_MISSING` | `INSUFFICIENT_DATA` | no same-scan identity authority names this coin (the scanner's identity file is missing, unreadable, from another scan or identity version, or the coin is not in the scan's universe): it fails closed and has no crypto execution authority (v8 Phase 3) |
 | `NO_ACTIVE_PERP_CONTRACT` | `NOT_EXECUTABLE` | every contract for this asset was skipped by the legacy adapters (delisted, inactive, builder, non-perpetual) |
 | `PRICE_CONFLICT_ALL_VENUES` | `INSUFFICIENT_DATA` | every venue's price was dropped as a price conflict |
 | `VENUE_ADAPTER_FAILED` | `INSUFFICIENT_DATA` | listed only on venues whose legacy adapter failed this scan |
@@ -121,6 +125,37 @@ Noted on a record next to its final disposition (field `x`); never a final dispo
 | `PLAN_REJECTED` | a strategy fired but its trade plan was rejected (see the plan list) |
 | `EXTRA_DEEP_DIVE` | deep-dived as a stage-2 extra (smart money long or dip in an uptrend) |
 | `CRYPTO_EXPOSURE_SELECTED` | the ticker also names an unrelated tradfi or ambiguous exposure at another price; the crypto exposure was admitted and the other kept out (v8 Phase 2) |
+| `PAPER_LEGACY_NO_IDENTITY_PROOF` | an open smart-money paper trade on this coin was opened before entry-time identity proof existed: followed to its close for history, never counted in the live record or the verdict (v8 Phase 3) |
+| `SMART_CROWD_IDENTITY_BLOCKED` | proven traders crowded into a side under the smart-money rule, but the coin has no crypto execution identity: kept as an observation, not a signal, no paper trade (the final reason names the identity state) (v8 Phase 3) |
+| `UNVERIFIED_EXPOSURE_KEPT_OUT` | the ticker also has a price-separated exposure without identity evidence; the verified crypto exposure was admitted and the unverified one kept out of the coin (it stays in the registry) (v8 Phase 3) |
+
+## Identity states (v8 Phase 3)
+
+Every asset with an active perp has exactly one state (registry `assets[t].identity.state`, coin record `identity`). Only `VERIFIED_CRYPTO` has crypto execution identity; every state is discovery-visible.
+
+| State | Meaning |
+|---|---|
+| `VERIFIED_CRYPTO` | positive crypto evidence (a venue crypto label, the known-crypto list) and no contrary evidence in its exposure: discovery yes, crypto execution identity yes |
+| `VERIFIED_TRADFI` | positive tradfi evidence (venue RWA / stock / FX label, the tradfi list, a tradfi name, a parsed venue symbol, or inherited within a price-coherent exposure): discovery yes, crypto execution no |
+| `AMBIGUOUS` | conflicting or unrecognised evidence, or unlabelled markets of a ticker that is tradfi elsewhere: discovery yes, crypto execution no |
+| `UNVERIFIED` | no positive evidence either way: discovery yes, crypto execution no, not tradfi; resolves when positive evidence appears (each scan records what was known then) |
+
+Retired identity reasons (older snapshots only):
+
+| Reason | Replaced by |
+|---|---|
+| `DEFAULT_CRYPTO` | v8 Phase 3: an exposure without positive evidence is UNVERIFIED (NO_POSITIVE_IDENTITY_EVIDENCE), never crypto by default |
+
+## Smart-money paper-trade identity (v8 Phase 3)
+
+Entry-time identity provenance of each smart paper trade (`identity_qualified`, `identity_unqualified_reason`). Only `IDENTITY_QUALIFIED` trades count in the live record (`accuracy.live`, `live_info`, the verdict).
+
+| Code | Meaning |
+|---|---|
+| `IDENTITY_QUALIFIED` | VERIFIED_CRYPTO was proven by the same-scan identity authority when the trade was opened (identity_qualified true, with state, version, scan id and decision): the trade counts in the live record; a later identity change never rewrites it |
+| `LEGACY_NO_IDENTITY_PROOF` | opened before entry-time identity proof existed: kept with its prices, stop, times and result, followed to its close, reported apart, never counted in the live record or the verdict; never re-qualified from a later scan's identity |
+| `NOT_VERIFIED_AT_ENTRY` | opened without VERIFIED_CRYPTO in the same-scan authority (not reachable through the engine, whose source gate opens trades on verified crypto only): never counted |
+| `IDENTITY_PROOF_INCOMPLETE` | carries identity fields but not a complete VERIFIED_CRYPTO proof: never counted |
 
 ## Smart-money trader outcomes
 
@@ -145,6 +180,7 @@ Counts per scan in the smart part (`traders.by_reason`), one per leaderboard row
 | One market per asset and venue (highest volume kept) | contract state `DUPLICATE_NOT_SELECTED` |
 | Price more than 20% from the main market | contract state `PRICE_CONFLICT_DROPPED` (CONFLICTED); asset `PRICE_CONFLICT_ALL_VENUES` |
 | Universe identity (Phase 2, v8.identity): contract evidence, price-coherent exposures, tradfi lists | `TRADFI_CLASSIFIED`, `TRADFI_EXPOSURE_EXCLUDED`, `AMBIGUOUS_EXPOSURE`; contract state `EXPOSURE_NOT_ADMITTED`; step `CRYPTO_EXPOSURE_SELECTED` (Phase 1: `TRADFI_TICKER_COLLISION`, retired) |
+| Identity execution gate (Phase 3, v8.identity): only VERIFIED_CRYPTO reaches a crypto engine (radar, quant, swing, day) or becomes a smart-money signal (same-scan identity authority) | `IDENTITY_UNVERIFIED`, `IDENTITY_AUTHORITY_MISSING`; contract state `UNVERIFIED_EXPOSURE_NOT_ADMITTED`; steps `UNVERIFIED_EXPOSURE_KEPT_OUT`, `SMART_CROWD_IDENTITY_BLOCKED` |
 | No DEX market list at all (built-in coin list) | manifest `fallback_universe`, `FALLBACK_UNIVERSE` event |
 | $1M 24h volume on your trade DEXs (radar stage 2, quant, picks; v8.liquidity since Phase 2) | `DEX_VOLUME_BELOW_LEGACY_MIN` (observed, an observed 0 included), `DEX_VOLUME_MISSING` (no volume reported), `NOT_ON_TRADE_DEX` (Phase 1: `DEX_VOLUME_MISSING_LEGACY_ZERO`, retired) |
 | Candle source chain and price-scale check | `NO_SUPPORTED_CANDLES`, `PRICE_SCALE_CONFLICT` |
@@ -159,4 +195,4 @@ Counts per scan in the smart part (`traders.by_reason`), one per leaderboard row
 | Picks: last-day sync, $5M last-day volume, 90 daily candles, swing inputs | `LAST_DAY_NOT_SYNCED` (STALE), `REF_VOLUME_BELOW_LEGACY_MIN`, `INSUFFICIENT_90D_HISTORY`, `SWING_INPUTS_UNAVAILABLE` |
 | Picks: day candidates (top 50 liquid or swing 60+), hourly candles, top-10 lists, labels | `DAY_CANDIDATE_NOT_SELECTED`, `NO_HOURLY_CANDLES`, `SWING_READY`, `SWING_SETTING_UP`, `DAY_READY`, `DAY_SETTING_UP`, `LISTED_BELOW_WATCH`, `OUTPUT_TOP_N_CUTOFF`, `SCORE_BELOW_THRESHOLD` |
 | Picks paper trades (80+ swing, 85+ day) | step `PAPER_OPENED` |
-| Smart: trader eligibility, $10k position minimum, entry rule, 60 published rows, 12 open paper trades | trader outcomes above, `SMART_POSITIONS_BELOW_MIN`, `SMART_CROWD_SIGNAL`, `SMART_CROWD_INFO`, `SMART_NO_CROWD`, steps `NOT_IN_PUBLISHED_LIST`, `PAPER_LIMIT_REACHED`, `PAPER_BUSY`, `PAPER_NO_PRICE`, `PAPER_OPENED` |
+| Smart: trader eligibility, $10k position minimum, entry rule, 60 published rows, 12 open paper trades | trader outcomes above, `SMART_POSITIONS_BELOW_MIN`, `SMART_CROWD_SIGNAL`, `SMART_CROWD_INFO`, `SMART_NO_CROWD`, identity-blocked crowds (Phase 3: `IDENTITY_UNVERIFIED`, `TRADFI_CLASSIFIED` / `TRADFI_EXPOSURE_EXCLUDED`, `AMBIGUOUS_EXPOSURE`, `IDENTITY_AUTHORITY_MISSING` with step `SMART_CROWD_IDENTITY_BLOCKED`), steps `NOT_IN_PUBLISHED_LIST`, `PAPER_LEGACY_NO_IDENTITY_PROOF`, `PAPER_LIMIT_REACHED`, `PAPER_BUSY`, `PAPER_NO_PRICE`, `PAPER_OPENED` |
