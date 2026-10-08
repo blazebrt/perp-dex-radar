@@ -127,6 +127,9 @@ Noted on a record next to its final disposition (field `x`); never a final dispo
 | `CRYPTO_EXPOSURE_SELECTED` | the ticker also names an unrelated tradfi or ambiguous exposure at another price; the crypto exposure was admitted and the other kept out (v8 Phase 2) |
 | `PAPER_LEGACY_NO_IDENTITY_PROOF` | an open smart-money paper trade on this coin was opened before entry-time identity proof existed: followed to its close for history, never counted in the live record or the verdict (v8 Phase 3) |
 | `SMART_CROWD_IDENTITY_BLOCKED` | proven traders crowded into a side under the smart-money rule, but the coin has no crypto execution identity: kept as an observation, not a signal, no paper trade (the final reason names the identity state) (v8 Phase 3) |
+| `QUANT_POSITION_IDENTITY_BLOCKED` | the quant journal holds an open paper position on this coin, but the coin has no crypto execution identity this scan: the position runs to its normal stop or time exit and is published as an observation (quant.json blocked_open), never as an actionable position or signal (v8 Phase 3 closure) |
+| `QUANT_LEGACY_NO_IDENTITY_PROOF` | an open quant paper position on this coin carries no entry-time identity proof (opened before it existed): followed to its close, never counted in the quant live record (v8 Phase 3 closure) |
+| `RADAR_LEGACY_NO_IDENTITY_PROOF` | an open live radar paper trade on this coin carries no entry-time identity proof (opened before it existed): followed to its close, never counted as forward evidence - tournament, live edge against twins, lessons, tuning, live picks (v8 Phase 3 closure) |
 | `UNVERIFIED_EXPOSURE_KEPT_OUT` | the ticker also has a price-separated exposure without identity evidence; the verified crypto exposure was admitted and the unverified one kept out of the coin (it stays in the registry) (v8 Phase 3) |
 
 ## Identity states (v8 Phase 3)
@@ -192,6 +195,7 @@ Counts per scan in the smart part (`traders.by_reason`), one per leaderboard row
 | Market gate, strategy status, forward test, learned adjustments | `MARKET_GATE_BLOCKED`, `STRATEGY_NOT_PASSED`, `VARIANT_FORWARD_TEST`, `ADJUSTMENT_BLOCKED` |
 | Minimum pick score, top 10, 8 watch slots | `SCORE_BELOW_THRESHOLD`, `OUTPUT_TOP_N_CUTOFF`, `RADAR_PICK`, `RADAR_WATCH` |
 | Quant: 4h candles, 30 days, $5M reference volume, stop above 20%, XSMOM rank, new bars only | `INSUFFICIENT_4H_HISTORY`, `INSUFFICIENT_30D_HISTORY`, `REF_VOLUME_BELOW_LEGACY_MIN`, `STOP_TOO_WIDE`, `NO_STRATEGY_SIGNAL` (with the XSMOM rank), `QUANT_SIGNAL_NOT_ACTED`, `QUANT_NEW_SIGNAL`, `QUANT_POSITION_OPEN` |
+| Paper-trade evidence (Phase 3 closure, v8.evidence): an open quant position is actionable only while its coin is VERIFIED_CRYPTO; quant and live radar trades count as forward evidence only with entry-time identity proof | steps `QUANT_POSITION_IDENTITY_BLOCKED`, `QUANT_LEGACY_NO_IDENTITY_PROOF`, `RADAR_LEGACY_NO_IDENTITY_PROOF` (trade class `LEGACY_NO_IDENTITY_PROOF`) |
 | Picks: last-day sync, $5M last-day volume, 90 daily candles, swing inputs | `LAST_DAY_NOT_SYNCED` (STALE), `REF_VOLUME_BELOW_LEGACY_MIN`, `INSUFFICIENT_90D_HISTORY`, `SWING_INPUTS_UNAVAILABLE` |
 | Picks: day candidates (top 50 liquid or swing 60+), hourly candles, top-10 lists, labels | `DAY_CANDIDATE_NOT_SELECTED`, `NO_HOURLY_CANDLES`, `SWING_READY`, `SWING_SETTING_UP`, `DAY_READY`, `DAY_SETTING_UP`, `LISTED_BELOW_WATCH`, `OUTPUT_TOP_N_CUTOFF`, `SCORE_BELOW_THRESHOLD` |
 | Picks paper trades (80+ swing, 85+ day) | step `PAPER_OPENED` |

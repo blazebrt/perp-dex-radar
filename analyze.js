@@ -615,14 +615,27 @@
       }
     }
     const Q = src.quant, strategies = (Q && Q.strategies) || {};
+    // v8 Phase 3 closure (defense in depth; quant.py already keeps them out of "open"): an open quant position is a
+    // signal only while its coin is VERIFIED_CRYPTO in the scan that published it; any other one - and an entry
+    // without an identity - is a historical paper position, not a trade
+    let quantBlocked = false;
+    const blockedNote = (o) => {
+      const st = strategies[o.s] || {};
+      quantBlocked = true;
+      notes.push({src: "quant", text: "The quant journal still contains this historical paper position (" + (st.name || o.s) + " " +
+                  (o.d > 0 ? "long" : "short") + " since " + dayTxt(o.t_in) + "), but " + coin + " is not currently verified as crypto (" +
+                  (o.identity || "no identity") + "), so it is not a trade signal."});
+    };
     for (const o of (Q && Q.open) || []) {
       if (o.c !== coin || !(o.d === 1 || o.d === -1)) continue;
+      if (o.identity !== "VERIFIED_CRYPTO") { blockedNote(o); continue; }
       const rec = quantRecord(src.quantResearch, o.s), st = strategies[o.s] || {}, side = o.d > 0 ? "long" : "short";
       if (rec && rec.tier === "No edge") continue;
       signals.push({src: "quant", name: SOURCE.quant, side, tier: "Proven", rec, pos: o, sid: o.s, strategy: st.name || o.s, desc: st.desc || "",
                     text: (st.name || o.s) + " is " + side + (o.px == null ? ", in at the next open" : " since " + dayTxt(o.t_in))});
     }
-    if (Q && !signals.some((s) => s.src === "quant")) {
+    for (const o of (Q && Q.blocked_open) || []) if (o.c === coin) blockedNote(o);
+    if (Q && !quantBlocked && !signals.some((s) => s.src === "quant")) {
       notes.push({src: "quant", text: "The quant desk has no position in " + coin + ".",
                   want: "Quant desk: one of its strategies opening a trade on " + coin + " (they check every 4 hours and at each daily close)."});
     }
@@ -780,7 +793,7 @@
       : s.src === "smart" ? ((s.trade && s.trade.t_out_by) || (s.t || now) + SMART.hours * HOUR) - now > SMART.lateHours * HOUR : true;
     const coins = new Set(), P = src.picks, readyAt = (P && P.settings && P.settings.ready) || SWING.readyAt;
     for (const [c, x] of Object.entries((P && P.scores) || {})) if (x && x.score >= readyAt) coins.add(c);
-    for (const o of (src.quant && src.quant.open) || []) coins.add(o.c);
+    for (const o of (src.quant && src.quant.open) || []) if (o.identity === "VERIFIED_CRYPTO") coins.add(o.c);
     for (const r of (src.smart && src.smart.coins) || []) if (r.signal && r.identity === "VERIFIED_CRYPTO") coins.add(r.coin);
     const out = [];
     for (const c of coins) {

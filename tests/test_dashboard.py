@@ -46,8 +46,11 @@ def picks_research():
 
 def quant_json():
     return {"generated": T, "strategies": {"TSMOM": {"name": "Daily trend rider"}, "XSMOM": {"name": "Momentum rotation"}},
-            "open": [{"c": "BTC", "s": "TSMOM", "d": 1, "t_in": T - 3600, "res": {"r": 0.15, "gross": 0.02}},
-                     {"c": "HYPE", "s": "XSMOM", "d": -1, "t_in": T - 7200, "res": {"r": -0.05, "gross": -0.01}}],
+            # v8 Phase 3 closure: quant.py publishes the coin's current identity with every actionable position
+            "open": [{"c": "BTC", "s": "TSMOM", "d": 1, "t_in": T - 3600, "res": {"r": 0.15, "gross": 0.02},
+                      "identity": "VERIFIED_CRYPTO"},
+                     {"c": "HYPE", "s": "XSMOM", "d": -1, "t_in": T - 7200, "res": {"r": -0.05, "gross": -0.01},
+                      "identity": "VERIFIED_CRYPTO"}],
             "signals": [], "live_all": {"n": 0}}
 
 

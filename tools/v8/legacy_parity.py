@@ -414,16 +414,34 @@ def run_stage(stage, out, now):
         with open(inject) as fh:
             U = json.load(fh)
 
+        class ReplayedDecisions:
+            """The identity decision of every ticker of the dumped universe (v8 Phase 3 closure): build_universe()
+            records it on the trace and the identity authority carries it (decision beside state), so a replayed
+            universe must carry it too or the same code would write other provenance. Decisions only; nothing else
+            of the identity trace is replayed."""
+
+            def __init__(self, decisions):
+                self.assets = {t: {"decision": d} for t, d in decisions.items()}
+                self.coins, self.rows, self.crypto_rows = {}, {}, {}
+
+            def asset(self, t):
+                return self.assets.get(t)
+
         def injected_universe():
             for m in U["notes"]:
                 sc.note_error(m)
+            if U.get("identity_decisions") is not None and hasattr(getattr(sc, "V8", None), "identity"):
+                sc.V8.identity(ReplayedDecisions(U["identity_decisions"]))
             return copy.deepcopy(U["coins"]), copy.deepcopy(U["status"]), U["ok"]
         sc.build_universe = injected_universe
     if stage == "universe":
         n0 = len(sc.ERRORS)
         coins, status, ok = sc.build_universe()
+        res = getattr(getattr(sc, "V8", None), "ident", None)
+        dec = {t: a.get("decision") for t, a in sorted(res.assets.items())} if res is not None else None
         with open(out, "w") as fh:
-            json.dump({"coins": coins, "status": status, "ok": ok, "notes": sc.ERRORS[n0:]}, fh)
+            json.dump({"coins": coins, "status": status, "ok": ok, "notes": sc.ERRORS[n0:],
+                       "identity_decisions": dec}, fh)
         return
     if stage == "scanner":
         sc.run(out, replay_days=2)

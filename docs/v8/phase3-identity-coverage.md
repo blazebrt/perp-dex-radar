@@ -185,6 +185,10 @@ reported as `legacy_unqualified`. The verdict stays "Promising": 10 was below th
 record to decide anyway. Each Research run repeats this accounting on the latest published journal
 (`research_smart_journal.json`).
 
+The same two rules - current identity for actionability, entry-time proof for evidence - were extended to the quant
+desk and to live radar paper trades by the production-evidence closure after the first production scan of merged
+Phase 3: see [phase3-production-evidence-closure.md](phase3-production-evidence-closure.md).
+
 ## How identity changes over time
 
 An `UNVERIFIED` asset resolves when positive evidence appears: a venue labels it, it is added to a repository list,

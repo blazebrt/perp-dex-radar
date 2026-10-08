@@ -14,6 +14,9 @@ Runs after scanner.py in every scan (see .github/workflows/scan.yml):
      stop and time limit, after taker fees, slippage and funding (the same rules as the backtest).
   5. Output: data/quant.json (signals, open and closed trades, live record) for quant.html, and
      data/quant_journal.json (the record, carried between runs through the published site).
+     v8 Phase 3 closure (v8/evidence.py): "open" lists only positions whose coin is VERIFIED_CRYPTO in this scan
+     (the others stay in the journal and are published apart in "blocked_open"), and the live record counts only
+     trades with entry-time identity proof (older trades are kept and reported in "legacy_unqualified").
 
 Standard library only. Python 3.10+.
 """
@@ -28,6 +31,7 @@ import sys
 import time
 
 import scanner as sc
+from v8 import evidence as EV
 
 VERSION = "1.0.0"
 ENGINE = 1
@@ -466,16 +470,75 @@ def live_stats(closed):
             "long_n": sum(1 for t in closed if t["d"] > 0), "short_n": sum(1 for t in closed if t["d"] < 0)}
 
 
+# --------------------------------------------------------------------------- identity of open positions
+ENTRY_FIELDS = EV.TRADE_IDENTITY_FIELDS + ("identity_unqualified_reason",)
+
+
+def split_open(open_trades, universe, auth):
+    """(actionable, blocked) open positions under this scan's identity (v8 Phase 3 closure). Each is a copy of the
+    journal trade - the journal never stores a current identity - with "identity", the coin's state now. A blocked
+    one also gets identity_reason, its normal exits and why it is not a trade; its entry-time proof is reported as
+    it was written."""
+    actionable, blocked = [], []
+    for tr in open_trades:
+        st, why = EV.current_identity(universe.get(tr["c"]), auth.decision(tr["c"]))
+        if why is None:
+            actionable.append(dict(tr, identity=st))
+            continue
+        res = tr.get("res") or {}
+        blocked.append({
+            "id": tr["id"], "s": tr["s"], "c": tr["c"], "d": tr["d"], "t_sig": tr.get("t_sig"), "t_in": tr["t_in"],
+            "px": tr.get("px"), "stop_pct": tr.get("stop_pct"), "trail_pct": tr.get("trail_pct"),
+            "hold_h": tr.get("hold_h"), "res": res, "r_now": res.get("r"),
+            "exit_stop": res.get("stop_now", tr.get("stop")), "exit_time": tr["t_in"] + (tr.get("hold_h") or 0) * H,
+            "identity": st, "identity_reason": why, "actionable": False,
+            **{k: tr[k] for k in ENTRY_FIELDS if k in tr},
+            "why": (f"The quant journal still holds this paper position until its normal stop or time exit, but "
+                    f"{tr['c']} is not currently verified as crypto ({st or 'no identity in this scan'}), so it is "
+                    f"not a trade signal."),
+        })
+    return actionable, blocked
+
+
+def journal_evidence(J, actionable, blocked):
+    """The journal by evidence class: qualified (entry-time VERIFIED_CRYPTO proof, in the live record) or not (kept,
+    never counted), open and closed; the open positions by current actionability; entry-proof completeness."""
+    out = {"qualified": {"open": 0, "closed": 0}, "unqualified": {"open": 0, "closed": 0}, "unqualified_reasons": {},
+           "proof_complete": {"open": 0, "closed": 0}, "actionable_open": len(actionable),
+           "blocked_open": len(blocked), "blocked_coins": sorted({b["c"] for b in blocked}), "blocked_reasons": {},
+           "live_record_rule": "identity-qualified closed trades only (entry-time VERIFIED_CRYPTO proof)"}
+    for part in ("open", "closed"):
+        for tr in J.get(part) or []:
+            q = EV.qualified(tr)
+            out["qualified" if q else "unqualified"][part] += 1
+            out["proof_complete"][part] += 1 if EV.proof_complete(tr) else 0
+            if not q:
+                why = EV.unqualified_reason(tr)
+                out["unqualified_reasons"][why] = out["unqualified_reasons"].get(why, 0) + 1
+    for b in blocked:
+        out["blocked_reasons"][b["identity_reason"]] = out["blocked_reasons"].get(b["identity_reason"], 0) + 1
+    return out
+
+
 # --------------------------------------------------------------------------- run
 def run(out_dir, pages_url=None, journal_path=None, universe=None):
     t_start = time.time()
     now = sc.now_ts()
     J, jsrc = load_journal(pages_url, journal_path, now)
-    log(f"journal ({jsrc}): {len(J['open'])} open, {len(J['closed'])} closed")
+    # v8 Phase 3 closure: trades written before entry-time identity proof existed are kept unchanged and marked
+    # LEGACY_NO_IDENTITY_PROOF (never inferred from today's identity); they finish their paper life normally but never
+    # enter the live record
+    legacy_new = EV.mark_legacy(J["open"] + J["closed"])
+    log(f"journal ({jsrc}): {len(J['open'])} open, {len(J['closed'])} closed"
+        + (f", {legacy_new} marked {EV.LEGACY_NO_IDENTITY_PROOF}" if legacy_new else ""))
     if universe is None:
         universe, _, ok = sc.build_universe()
         if not ok:
             raise SystemExit("quant: no DEX market list could be loaded")
+    # this scan's identity: the universe quant gates on, as the same record the scanner publishes as its authority
+    from v8 import provenance
+    assets = getattr(getattr(sc.V8, "ident", None), "assets", None)
+    auth = EV.universe_authority(universe, now, provenance.scan_id(now), assets if isinstance(assets, dict) else None)
     # coins with crypto execution identity (v8 Phase 3: VERIFIED_CRYPTO only; an unverified coin is never
     # evaluated) and a KNOWN 24h volume of at least min_dex_vol on your trade DEXs (v8.liquidity: a missing
     # volume never passes, and is no longer read as $0); ranked by that volume
@@ -595,9 +658,10 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
         if t_in < busy.get((sid, t), 0):
             continue
         busy[(sid, t)] = float("inf")
-        new.append({"id": f"{t}-{sid}-{t_in}", "s": sid, "c": t, "d": d, "t_sig": t_in, "t_in": t_in,
-                    "stop_pct": round(stop, 6), "trail_pct": round(trail, 6), "hold_h": STRATS[sid]["params"]["hold_h"],
-                    "slip": slip_of(sc.liq_of(data[t]["coin"])), "src": data[t]["src"], "px": None, "res": None})
+        new.append(EV.stamp({"id": f"{t}-{sid}-{t_in}", "s": sid, "c": t, "d": d, "t_sig": t_in, "t_in": t_in,
+                             "stop_pct": round(stop, 6), "trail_pct": round(trail, 6),
+                             "hold_h": STRATS[sid]["params"]["hold_h"], "slip": slip_of(sc.liq_of(data[t]["coin"])),
+                             "src": data[t]["src"], "px": None, "res": None}, t, auth))
     log(f"{len(signals)} signals, {len(new)} new paper trades")
     if new:
         opened, closed_new = replay(new)
@@ -607,7 +671,17 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
     J["updated"], J["scans"] = now, J.get("scans", 0) + 1
     log(f"{len(closed_now)} trades closed this scan, {len(J['open'])} open")
 
-    # 4) market state for the page
+    # 4) current identity of every open position (v8 Phase 3 closure): only a coin that is VERIFIED_CRYPTO in this
+    #    scan's universe can be an actionable position; any other one stays in the journal (its paper trade runs to
+    #    its normal stop or time exit) and is published apart, as an observation (blocked_open)
+    actionable, blocked = split_open(J["open"], universe, auth)
+    if blocked:
+        log(f"{len(blocked)} open position(s) without current crypto execution identity kept out of the actionable "
+            "set: " + ", ".join(f"{b['c']} {b['s']} ({b['identity_reason']})" for b in blocked))
+    qual = [t for t in J["closed"] if EV.qualified(t)]
+    unq = [t for t in J["closed"] if not EV.qualified(t)]
+
+    # 5) market state for the page
     btc = daily.get("BTC") or []
     bf = daily_feats(btc) if len(btc) > 60 else None
     btc_state = None
@@ -631,13 +705,19 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
         "strategies": {sid: {k: v for k, v in STRATS[sid].items()} for sid in ORDER},
         "signals": [{"s": t["s"], "c": t["c"], "d": t["d"], "t": t["t_in"], "stop_pct": t["stop_pct"],
                      "trail_pct": t["trail_pct"]} for t in new],
-        "open": J["open"], "closed": J["closed"][-150:],
-        "live": {sid: live_stats([t for t in J["closed"] if t["s"] == sid]) for sid in ORDER},
-        "live_all": live_stats(J["closed"]),
+        "open": actionable, "blocked_open": blocked, "closed": J["closed"][-150:],
+        # v8 Phase 3 closure: the live record counts identity-qualified trades only (entry-time VERIFIED_CRYPTO proof)
+        "live": {sid: live_stats([t for t in qual if t["s"] == sid]) for sid in ORDER},
+        "live_all": live_stats(qual),
+        "legacy_unqualified": {"reason": EV.LEGACY_NO_IDENTITY_PROOF,
+                               "live": {sid: live_stats([t for t in unq if t["s"] == sid]) for sid in ORDER},
+                               "live_all": live_stats(unq)},
+        "evidence": journal_evidence(J, actionable, blocked),
         "next_scan_min": sc.CFG["schedule_every_min"],
     }
     for sid in ORDER:
-        out["strategies"][sid]["open"] = sum(1 for t in J["open"] if t["s"] == sid)
+        out["strategies"][sid]["open"] = sum(1 for t in actionable if t["s"] == sid)
+        out["strategies"][sid]["blocked_open"] = sum(1 for t in blocked if t["s"] == sid)
     data_dir = os.path.join(out_dir, "data")
     os.makedirs(data_dir, exist_ok=True)
     with open(os.path.join(data_dir, "quant.json"), "w") as fh:
@@ -654,7 +734,7 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
     try:  # v8 audit: every coin's disposition from this run's own values (never changes them)
         from v8 import audit_quant
         audit_quant.audit(out_dir, now, universe=universe, coins=coins, got=got, data=data, daily=daily, lastd=lastd,
-                          new=new, open_trades=J["open"])
+                          new=new, open_trades=actionable, blocked_open=blocked, journal=J)
     except Exception as e:  # noqa: BLE001 - observability must never stop a run
         log(f"v8 audit skipped: {type(e).__name__}: {e}")
     log(f"done in {out['duration_s']}s: {len(new)} new signals, {len(J['open'])} open trades")

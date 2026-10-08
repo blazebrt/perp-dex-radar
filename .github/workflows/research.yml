@@ -78,13 +78,13 @@ jobs:
           python -c "import json; s = json.load(open('out_new/data/v8/audit_latest.json')); json.dump({'manifest': s['manifest'], 'summary': s['coverage']['summary'], 'engines': s['coverage']['engines'], 'registry_counts': s['registry']['counts'], 'data_health': {k: v for k, v in s['data_health'].items() if k != 'registry_venues'}, 'venues': s['data_health'].get('registry_venues'), 'storage': s['storage']}, open('research_v8_summary.json', 'w'), indent=1)" >> research_v8.txt 2>&1 || true
 
       - name: Phase base engines on the same live data (comparison only, nothing published)
-        # v8 Phase 3: the phase base (the base commit of the expected-delta manifest, main before this phase) runs the
-        # scanner, the quant desk and the coin picks on live data right after this branch, so the identity report can
-        # list every production output the identity gate removes or adds. The two runs are minutes apart; the report
-        # says which differences identity explains.
+        # The phase base (the base commit of the expected-delta manifest: since the Phase 3 production-evidence closure,
+        # production main f8648fe) runs the scanner, the quant desk and the coin picks on live data right after this
+        # branch, so the reports can list every production output the change removes or adds. The two runs are
+        # minutes apart; the reports say which differences the change explains.
         continue-on-error: true
         run: |
-          BASE_SHA=$(python -c "import json; print(json.load(open('tests/fixtures/v8/phase3_expected_deltas.json'))['base']['sha'])")
+          BASE_SHA=$(python -c "import json; print(json.load(open('tests/fixtures/v8/phase3_closure_expected_deltas.json'))['base']['sha'])")
           echo "phase base $BASE_SHA" > research_base.txt
           git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA" >> research_base.txt 2>&1 || true
           cd "$RUNNER_TEMP/base"
@@ -106,6 +106,34 @@ jobs:
           python tools/v8/smart_journal_evidence.py published_smart_journal.json --json research_smart_journal.json >> research_smart_journal.txt 2>&1 || true
           head -60 research_smart_journal.txt
 
+      - name: Published quant journal replayed by this branch and by the base (live data, nothing published)
+        # v8 Phase 3 closure: the production quant journal (the copy on the journal-data branch) runs through both
+        # versions of quant.py; the report shows the actionable and identity-blocked open positions, every open
+        # position's current identity, qualified vs legacy trades, the live record before and after, the dashboard's
+        # quant signals and the Analyzer's answer for every blocked coin. The input file is never written.
+        continue-on-error: true
+        run: |
+          git show origin/journal-data:quant_journal.json > published_quant_journal.json 2> research_quant_evidence.txt || true
+          python quant.py --out out_pubq --journal published_quant_journal.json >> research_quant_evidence.txt 2>&1 || true
+          (cd "$RUNNER_TEMP/base" && python quant.py --out "$GITHUB_WORKSPACE/out_pubq_base" --journal "$GITHUB_WORKSPACE/published_quant_journal.json") >> research_quant_evidence.txt 2>&1 || true
+          python tools/v8/closure_evidence_report.py quant --head out_pubq --base out_pubq_base --journal published_quant_journal.json --json research_quant_evidence.json >> research_quant_evidence.txt 2>&1 || true
+          tail -80 research_quant_evidence.txt
+
+      - name: Published radar journal under the base's and this branch's learning, and one scan each with it (nothing published)
+        # v8 Phase 3 closure: the production radar journal (journal.json from the published site) is classified -
+        # backtest, identity-qualified live, legacy live, twins and their pairs, the identity of the coins of legacy
+        # rows - and learned by both versions (strategy statuses and live records before and after the quarantine);
+        # then both versions scan live data with it, to list every published output the quarantine changes.
+        continue-on-error: true
+        run: |
+          curl -fsS "https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/data/journal.json" -o published_radar_journal.json 2> research_radar_evidence.txt || true
+          cp published_radar_journal.json radar_journal_head.json 2>/dev/null || true
+          cp published_radar_journal.json radar_journal_base.json 2>/dev/null || true
+          python scanner.py --out out_pubr --journal radar_journal_head.json --replay-days 0 >> research_radar_evidence.txt 2>&1 || true
+          (cd "$RUNNER_TEMP/base" && python scanner.py --out "$GITHUB_WORKSPACE/out_pubr_base" --journal "$GITHUB_WORKSPACE/radar_journal_base.json" --replay-days 0) >> research_radar_evidence.txt 2>&1 || true
+          python tools/v8/closure_evidence_report.py radar --journal published_radar_journal.json --base-root "$RUNNER_TEMP/base" --authority out_new/data/v8/identity_authority.json --head-latest out_pubr/data/latest.json --base-latest out_pubr_base/data/latest.json --json research_radar_evidence.json >> research_radar_evidence.txt 2>&1 || true
+          tail -80 research_radar_evidence.txt
+
       - name: Save the results for review
         if: always()
         env:
@@ -126,6 +154,11 @@ jobs:
           if [ -f research_v8_summary.json ]; then cp research_v8_summary.json R/; fi
           if [ -f research_identity.json ]; then cp research_identity.json R/; fi
           if [ -f research_smart_journal.json ]; then cp research_smart_journal.json R/; fi
+          for f in research_quant_evidence.json research_radar_evidence.json; do
+            if [ -f "$f" ]; then cp "$f" R/; fi
+          done
+          if [ -f out_pubq/data/quant.json ]; then cp out_pubq/data/quant.json R/pub_quant.json; fi
+          if [ -f out_pubq_base/data/quant.json ]; then cp out_pubq_base/data/quant.json R/pub_base_quant.json; fi
           echo "$GITHUB_REF_NAME $GITHUB_SHA $(date -u +%Y-%m-%dT%H:%MZ)" > R/run.txt
           export GIT_INDEX_FILE="$RUNNER_TEMP/research.index"
           git read-tree --empty

@@ -22,6 +22,7 @@ What is new:
 | Phase 0 recommendations | NON-AUTHORITATIVE notes for later phases; nothing reads them at runtime | [phase0-requalification.md](phase0-requalification.md) |
 | Universe identity (Phase 2) | Which markets are one coin, crypto or not, decided per contract and per price-coherent exposure; missing volume is not $0 | [phase2-universe-identity.md](phase2-universe-identity.md) |
 | Identity coverage (Phase 3) | Four identity states; unknown coins stay visible but never reach an engine or become a signal (smart money included, through the scanner's same-scan identity authority); venue-symbol parsing; identity transitions per scan | [phase3-identity-coverage.md](phase3-identity-coverage.md) |
+| Production-evidence closure (Phase 3) | A quant position on a coin without crypto identity now is never actionable (published apart as blocked); quant and live radar trades count as forward evidence only with entry-time identity proof; legacy trades are kept and reported apart | [phase3-production-evidence-closure.md](phase3-production-evidence-closure.md) |
 
 ## How it runs
 

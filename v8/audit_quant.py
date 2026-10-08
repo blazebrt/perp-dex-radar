@@ -36,10 +36,34 @@ def _why_not_tsmom(q, f, k):
     return None
 
 
-def quant_part(now, universe, coins, got, data, daily, lastd, new, open_trades):
+def journal_part(J, actionable, blocked):
+    """The quant journal's evidence state (v8 Phase 3 closure): actionable and identity-blocked open positions,
+    qualified and legacy/unqualified trades (open and closed), entry-proof completeness, and every trade outside
+    the live record with its reason."""
+    import quant as q
+    from . import evidence as EV
+    unq = []
+    for part in ("open", "closed"):
+        for tr in (J or {}).get(part) or []:
+            if not EV.qualified(tr):
+                unq.append({"id": tr.get("id"), "coin": tr.get("c"), "s": tr.get("s"), "state": part,
+                            "t_in": tr.get("t_in"), "r": tr.get("r", (tr.get("res") or {}).get("r")),
+                            "reason": EV.unqualified_reason(tr)})
+    return {"evidence": q.journal_evidence(J or {}, actionable or [], blocked or []),
+            "blocked_open": [{k: b.get(k) for k in ("id", "c", "s", "d", "t_in", "r_now", "exit_stop", "exit_time",
+                                                     "identity", "identity_reason", "identity_qualified",
+                                                     "identity_unqualified_reason")} for b in blocked or []],
+            "unqualified_trades": unq[-200:], "unqualified_n": len(unq),
+            "qualified_closed_n": sum(1 for t in (J or {}).get("closed") or [] if EV.qualified(t))}
+
+
+def quant_part(now, universe, coins, got, data, daily, lastd, new, open_trades, blocked_open=None, journal=None):
     import quant as q
     import scanner as sc
     cfg = q.CFG
+    blocked_by = {}
+    for b in blocked_open or []:
+        blocked_by.setdefault(b["c"], []).append(b)
     L = LG.Ledger("quant")
     L.expect(sorted(universe))
     chosen = {c["t"] for c in coins}
@@ -72,7 +96,11 @@ def quant_part(now, universe, coins, got, data, daily, lastd, new, open_trades):
         k = C.contract_ids(c)
         if not ID.execution_identity_eligible(c):     # identity gate (v8 Phase 3)
             code, o = C.excluded_code(c)
-            L.final(t, code, "universe", o=o, k=k, h=C.excluded_health(code))
+            x = None
+            if t in blocked_by:      # v8 Phase 3 closure: a journal position kept, not actionable
+                o = dict(o or {}, blocked_open=[[b["s"], b["d"], b["t_in"]] for b in blocked_by[t]])
+                x = ["QUANT_POSITION_IDENTITY_BLOCKED"]
+            L.final(t, code, "universe", o=o, k=k, h=C.excluded_health(code), x=x)
             continue
         if t not in chosen:
             C.liquidity_final(L, t, c, "universe", cfg["min_dex_vol"], sc.CFG["trade_dexes"], k=k)
@@ -147,15 +175,27 @@ def quant_part(now, universe, coins, got, data, daily, lastd, new, open_trades):
         else:
             L.final(t, "NO_STRATEGY_SIGNAL", "signal", o=o or None, src=src, k=k)
     C.note_identity_steps(L, sorted(universe))
+    from . import evidence as EV
+    for tr in list(open_trades) + list(blocked_open or []):      # positions outside the live record (v8 Phase 3 closure)
+        if not EV.qualified(tr):
+            L.note(tr["c"], "QUANT_LEGACY_NO_IDENTITY_PROOF")
     part = L.to_part()
     published = set(new_by) | set(open_by)
     led = {r["a"] for r in L.records.values() if r["d"] == T.SURFACED}
     if published & set(universe) != led:
         L.problem("published quant signals/positions differ from the ledger's SURFACED")
         part["problems"] = L.problems
+    off = sorted(set(blocked_by) - set(universe))
+    if off:      # a blocked position on a coin outside this universe: no record to carry the step (still reported)
+        part.setdefault("notes", []).append({"blocked_open_outside_universe": off})
+    if any(b in led for b in blocked_by):
+        L.problem("an identity-blocked quant position is recorded as SURFACED")
+        part["problems"] = L.problems
     part["stages"] = {"universe": len(universe), "liquid_crypto": len(chosen), "with_4h": len(data),
                       "eligible_latest_day": len(feats), "xsmom_ranked": len(xs), "new_signals": len(new),
-                      "open": len(open_trades), "latest_day": lastd}
+                      "open": len(open_trades), "blocked_open": len(blocked_open or []), "latest_day": lastd}
+    if journal is not None:
+        part["journal"] = journal_part(journal, open_trades, blocked_open)
     return part
 
 

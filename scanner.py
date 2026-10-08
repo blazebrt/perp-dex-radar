@@ -91,6 +91,9 @@ except ImportError:  # pragma: no cover - the scan runs the same without the v8 
 # decided by these two shared modules, the one authority for scanner, quant and picks. Not optional.
 from v8 import identity as IDENTITY  # noqa: E402
 from v8 import liquidity as LIQUIDITY  # noqa: E402
+# v8 Phase 3 closure: entry-time identity proof of live paper trades (the same rule as smart money's), so a live trade
+# without it can never become forward evidence (tournament, live edge, lessons, tuning, live picks)
+from v8 import evidence as EVIDENCE  # noqa: E402
 
 VERSION = "5.0.0"
 
@@ -3358,11 +3361,45 @@ def coin_cooldowns(trades, now):
     return out
 
 
+# ---- forward evidence (v8 Phase 3 closure)
+# A live paper trade is forward evidence only with entry-time identity proof (v8.evidence: VERIFIED_CRYPTO in the scan
+# that opened it). Live trades written before that proof existed are kept in the journal - prices, results, open or
+# closed - and followed to their close, but marked LEGACY_NO_IDENTITY_PROOF and left out of every evidence-derived
+# output: strategy status (the tournament), live statistics, live edge against twins, tuned targets and stops,
+# lessons, cool-downs and the published live-picks record. A random twin carries its pair's proof, so a pair is in or
+# out as a whole. Backtest trades (bt=1) are unchanged: they never had, and never need, entry-time proof here.
+EV_BACKTEST, EV_QUALIFIED, EV_LEGACY = "backtest", "qualified", "legacy"
+
+
+def evidence_class(t):
+    """'backtest' (bt=1, unchanged), 'qualified' (a live trade with entry-time proof) or 'legacy' (a live trade
+    without it: kept, never forward evidence)."""
+    if t.get("bt"):
+        return EV_BACKTEST
+    return EV_QUALIFIED if EVIDENCE.qualified(t) else EV_LEGACY
+
+
+def evidence_pool(trades):
+    """The trades every evidence-derived output may use: backtest trades and identity-qualified live trades. Pair
+    integrity: a live twin whose trade is out is out too, and a live trade whose twin is out is out too."""
+    out_ids = {t.get("id") for t in trades if evidence_class(t) == EV_LEGACY}
+    twin_out = {t.get("pair") for t in trades if t.get("pair") and evidence_class(t) == EV_LEGACY}
+    keep = []
+    for t in trades:
+        if evidence_class(t) == EV_LEGACY:
+            continue
+        if not t.get("bt") and (t.get("pair") in out_ids or t.get("id") in twin_out):
+            continue
+        keep.append(t)
+    return keep
+
+
 def learn(J, now):
     """Recompute statuses, tuned targets, stop factors, lessons and cool-downs from the
-    journal. Returns the learning state used to score this scan's signals."""
+    journal. Returns the learning state used to score this scan's signals. Only backtest
+    trades and identity-qualified live trades count (evidence_pool)."""
     horizon = now - CFG["journal_days"] * 86400
-    trades = [t for t in J["closed"] + J["open"] if t["t"] >= horizon and not t.get("dup")]
+    trades = [t for t in evidence_pool(J["closed"] + J["open"]) if t["t"] >= horizon and not t.get("dup")]
     done = sorted((t for t in trades if t["res"].get("done")), key=lambda t: t["res"].get("xt") or t["t"])
     status, lst = J.setdefault("status", {}), J.setdefault("learn", {})
     sks = lst.setdefault("sk", {})
@@ -3917,7 +3954,7 @@ def current_tuning(J, now):
     if not CFG["auto_tune"]:
         return {"tp_r": {}, "sk": {}}
     horizon = now - CFG["journal_days"] * 86400
-    done = sorted((t for t in J["closed"] + J["open"] if t["t"] >= horizon and not t.get("dup")
+    done = sorted((t for t in evidence_pool(J["closed"] + J["open"]) if t["t"] >= horizon and not t.get("dup")
                    and t["res"].get("done")), key=lambda t: t["res"].get("xt") or t["t"])
     out = {"tp_r": {}, "sk": dict((J.get("learn") or {}).get("sk") or {})}
     for sp in active_specs():
@@ -4029,7 +4066,7 @@ def promotion_check(J, v, st, now):
     need = CFG["forward_min_days"]
     if age < need:
         return False, f"needs {need} days of live testing ({age:.1f} so far)"
-    pool = J["closed"] + J["open"]
+    pool = evidence_pool(J["closed"] + J["open"])
     days = len({t["t"] // 86400 for t in pool if t["s"] == v["id"] and t["res"].get("done") and not t.get("dup")})
     if days < need - 1:
         return False, f"its trades fall on only {days} different days (needs {need - 1})"
@@ -4145,9 +4182,65 @@ def picks_stats(trs):
             "sd_r": round(statistics.pstdev([t["res"]["r"] for t in closed]), 3) if len(closed) > 1 else None}
 
 
-def journal_summary(J, L, now, sig_now):
+def journal_evidence(J, ident=None):
+    """Every journal trade by evidence class (v8 Phase 3 closure), exactly: backtest, identity-qualified live and
+    legacy/unqualified live, strategy trades and random twins apart, open and closed; pair integrity of the live
+    twins; the reasons; and the coins of the legacy live trades with their identity in this scan (ident: coin ->
+    state, when known)."""
+    rows = J["closed"] + J["open"]
+    pool = {id(t) for t in evidence_pool(rows)}
+    out = {"backtest": {}, "qualified_live": {}, "legacy_live": {}, "pair_excluded_live": {}, "unqualified_reasons": {}}
+
+    def add(d, t, part):
+        k = ("twin" if is_twin(t["s"]) else "strategy") + "_" + part + ("_copy" if t.get("dup") else "")
+        d[k] = d.get(k, 0) + 1
+
+    for part, lst in (("closed", J["closed"]), ("open", J["open"])):
+        for t in lst:
+            cl = evidence_class(t)
+            if cl == EV_BACKTEST:
+                add(out["backtest"], t, part)
+            elif cl == EV_LEGACY:
+                add(out["legacy_live"], t, part)
+                why = EVIDENCE.unqualified_reason(t)
+                out["unqualified_reasons"][why] = out["unqualified_reasons"].get(why, 0) + 1
+            elif id(t) in pool:
+                add(out["qualified_live"], t, part)
+            else:
+                add(out["pair_excluded_live"], t, part)
+    for k in ("backtest", "qualified_live", "legacy_live", "pair_excluded_live"):
+        out[k] = dict(sorted(out[k].items()))
+        out[k]["total"] = sum(out[k].values())
+    live_tw = [t for t in rows if not t.get("bt") and is_twin(t["s"])]
+    live_sig = {t.get("id"): t for t in rows if not t.get("bt") and not is_twin(t["s"])}
+    paired = [t for t in live_tw if t.get("pair")]
+    # a twin is logged for every signal; its own trade may have been skipped by log_signal (a filled trade of the same
+    # strategy was already open on the coin) - the twin methodology is unchanged, so not every twin has its trade here
+    out["pairs"] = {"live_twins": len(live_tw), "with_pair_link": len(paired),
+                    "pair_trade_in_journal": sum(1 for t in paired if t["pair"] in live_sig),
+                    "pair_class_mismatch": sum(1 for t in paired if t["pair"] in live_sig
+                                               and evidence_class(t) != evidence_class(live_sig[t["pair"]])),
+                    "legacy_twins_unlinked": sum(1 for t in live_tw if not t.get("pair"))}
+    leg = sorted({t["c"] for t in rows if evidence_class(t) == EV_LEGACY})
+    out["legacy_coins"] = len(leg)
+    if ident is not None:
+        by = {}
+        for c in leg:
+            st = ident.get(c) or "NOT_IN_UNIVERSE"
+            by.setdefault(st, []).append(c)
+        out["legacy_coin_identity"] = {k: {"n": len(v), "coins": v[:40]} for k, v in sorted(by.items())}
+    out["rule"] = ("forward evidence = backtest trades + identity-qualified live trades (entry-time VERIFIED_CRYPTO "
+                   "proof); legacy live trades are kept and reported here, never counted")
+    return out
+
+
+def journal_summary(J, L, now, sig_now, ident=None):
     horizon = now - CFG["journal_days"] * 86400
-    everything = [t for t in J["closed"] + J["open"] if t["t"] >= horizon]
+    window = [t for t in J["closed"] + J["open"] if t["t"] >= horizon]
+    # v8 Phase 3 closure: every statistic below uses the forward-evidence pool (backtest + identity-qualified live
+    # trades); legacy live trades are reported apart (legacy_unqualified) and still listed in the trade table
+    everything = evidence_pool(window)
+    legacy = [t for t in window if evidence_class(t) == EV_LEGACY]
     trades = [t for t in everything if not t.get("dup")]  # copies of published picks count for the picks only
     done = sorted((t for t in trades if t["res"].get("done")), key=lambda t: t["res"].get("xt") or t["t"])
     strategies = []
@@ -4230,7 +4323,7 @@ def journal_summary(J, L, now, sig_now):
     live_picks = [t for t in everything if t.get("rk") and not t.get("bt")]
     bt_picks = [t for t in everything if t.get("rk") and t.get("bt")]
     day = [t for t in live_picks if now - t["t"] <= 86400]
-    shown = [t for t in everything if not is_twin(t["s"]) and (t["res"].get("state") != "superseded" or t.get("rk"))]
+    shown = [t for t in window if not is_twin(t["s"]) and (t["res"].get("state") != "superseded" or t.get("rk"))]
     recent = sorted(shown, key=lambda t: (-t["t"], t.get("rk") or 99))[:240]
     rows = []
     for t in recent:
@@ -4238,7 +4331,21 @@ def journal_summary(J, L, now, sig_now):
         rows.append([t["t"], t["c"], t["s"], t["st"], t.get("fs"), t.get("rk"), res.get("state"),
                      res.get("ro") if res.get("state") in ("open", "tp_open") else res.get("r"),
                      res.get("mfe"), res.get("mae"), t.get("tags") or [], t.get("bt", 0), t.get("blk"),
-                     t["lo"], t["hi"], t["sl"], t["tp"][0], res.get("hunt")])
+                     t["lo"], t["hi"], t["sl"], t["tp"][0], res.get("hunt"), evidence_class(t)])
+    leg_trades = [t for t in legacy if not t.get("dup")]
+    leg_done = [t for t in leg_trades if t["res"].get("done")]
+    leg_picks = [t for t in legacy if t.get("rk")]
+    legacy_unqualified = {
+        "reason": EVIDENCE.LEGACY_NO_IDENTITY_PROOF,
+        "counts": {"live": sum(1 for t in leg_trades if not is_twin(t["s"])),
+                   "done": sum(1 for t in leg_done if not is_twin(t["s"])),
+                   "twins": sum(1 for t in leg_done if is_twin(t["s"]))},
+        "strategies": {sid: {k: rnd(v, 3) for k, v in trade_stats(
+            sorted((t for t in leg_done if t["s"] == sid and not gated(t)),
+                   key=lambda t: t["res"].get("xt") or t["t"])).items() if k in ("n", "wr", "exp", "pf", "days")}
+            for sid in sorted({t["s"] for t in leg_done if not is_twin(t["s"])})},
+        "picks": picks_stats([t for t in leg_picks]),
+    }
     changes = sorted(J.get("changes") or [], key=lambda c: -c["t"])[:24]
     return {
         "since": J.get("created"), "scans": J.get("scans", 0), "bt": J.get("bt"),
@@ -4249,7 +4356,10 @@ def journal_summary(J, L, now, sig_now):
                    "done": sum(1 for t in done if not is_twin(t["s"])),
                    "live": sum(1 for t in trades if not t.get("bt") and not is_twin(t["s"])),
                    "replay": sum(1 for t in trades if t.get("bt") and not is_twin(t["s"])),
-                   "twins": sum(1 for t in done if is_twin(t["s"]))},
+                   "twins": sum(1 for t in done if is_twin(t["s"])),
+                   "legacy_live": legacy_unqualified["counts"]["live"]},
+        "evidence": journal_evidence(J, ident),
+        "legacy_unqualified": legacy_unqualified,
         "strategies": strategies,
         "lessons": (L.get("lessons") or [])[:30],
         "mistakes": mistakes, "losses": len(losses), "calib": calib,
@@ -4296,7 +4406,7 @@ CSV_COLS = ["id", "time_utc", "coin", "strategy", "source", "status_at_scan", "r
             "result", "r_net", "r_gross", "costs_r", "fill_price", "fill_time_utc", "exit_time_utc", "mfe_r", "mae_r",
             "stop_hunt",
             "btc_move", "tags", "rsi", "adx", "vol_ratio", "atr_above_ema21", "regime", "smart_long_share",
-            "dex_vol_24h", "funding_8h", "market_gate"]
+            "dex_vol_24h", "funding_8h", "market_gate", "evidence", "identity_at_entry", "identity_scan_id"]
 
 
 def journal_csv(J):
@@ -4318,7 +4428,8 @@ def journal_csv(J):
                     "" if res.get("hunt") is None else int(res["hunt"]), res.get("btc", ""),
                     " ".join(t.get("tags") or []), f.get("rsi"), f.get("adx"), f.get("vr"), f.get("ext"),
                     f.get("reg"), "" if f.get("sm") is None else f["sm"], f.get("liq"),
-                    "" if f.get("fund") is None else f["fund"], 1 if f.get("gate") else 0])
+                    "" if f.get("fund") is None else f["fund"], 1 if f.get("gate") else 0,
+                    evidence_class(t), t.get("identity_state_at_entry") or "", t.get("identity_scan_id") or ""])
     return buf.getvalue()
 
 
@@ -4707,6 +4818,12 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
     if user_specs:
         log(f"your strategies: {', '.join(sp['name'] for sp in user_specs)}")
     load_specs(J)
+    # v8 Phase 3 closure: live trades written before entry-time identity proof existed are kept unchanged and marked
+    # LEGACY_NO_IDENTITY_PROOF (never inferred from today's identity); backtest trades are left as they are
+    legacy_new = EVIDENCE.mark_legacy(t for t in J["open"] + J["closed"] if not t.get("bt"))
+    if legacy_new:
+        log(f"journal: {legacy_new} live trades without entry-time identity proof marked "
+            f"{EVIDENCE.LEGACY_NO_IDENTITY_PROOF} (kept, never forward evidence)")
     log(f"journal ({jsrc}): {len(J['open'])} open and {len(J['closed'])} closed trades, "
         f"{sum(1 for sp in SPECS.values() if sp['stage'] in ('forward', 'promoted'))} active variants")
     if jsrc in ("new", "upgraded") and pages_url and not J.get("smart_prev"):
@@ -4990,11 +5107,18 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
     # 4. paper-trade this scan's signals (every strategy, published or not), each with a random
     #    twin on another coin of this scan: the benchmark every strategy has to beat
     rank_of = {(x["t"], x["s"]["sid"]): i + 1 for i, x in enumerate(pick_sigs)}
-    new = [new_trade(x["t"], x["s"], x["a"], x["a"].get("_t", scan_t), x["f"], x["conv"]["score"], x["final"],
-                     rank_of.get((x["t"], x["s"]["sid"])), x["block"], px=x["a"].get("_px")) for x in sigs]
+    #    v8 Phase 3 closure: every new live trade carries entry-time identity proof from this scan's identity (the
+    #    same record the scanner publishes as its authority); a twin carries its pair's proof and a link to it
+    from v8 import provenance as _prov_ev
+    assets_ev = getattr(getattr(V8, "ident", None), "assets", None)
+    auth_ev = EVIDENCE.universe_authority(coins, scan_t, _prov_ev.scan_id(scan_t),
+                                          assets_ev if isinstance(assets_ev, dict) else None)
+    new = [EVIDENCE.stamp(new_trade(x["t"], x["s"], x["a"], x["a"].get("_t", scan_t), x["f"], x["conv"]["score"],
+                                    x["final"], rank_of.get((x["t"], x["s"]["sid"])), x["block"],
+                                    px=x["a"].get("_px")), x["t"], auth_ev) for x in sigs]
     if CFG["twins"]:
         pool = sorted(t for t, a in A.items() if a.get("_px"))
-        for x in sigs:
+        for x, parent in zip(sigs, list(new)):
             c2 = twin_coin(x["t"], x["s"]["sid"], scan_t, pool)
             if c2 is None:
                 continue
@@ -5002,8 +5126,9 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
             s2 = twin_signal(x["s"], x["a"].get("_px") or x["a"]["last"], a2["_px"])
             f2 = trade_features(a2, s1[c2], s2, 0.0, regime, crypto[c2], smc.get(c2), btc3, scan_t)
             f2["gate"] = x["f"].get("gate", 0)
-            new.append(new_trade(c2, s2, a2, a2.get("_t", scan_t), f2, 0.0, 0.0, None,
-                                 "Random benchmark: never published", px=a2["_px"]))
+            new.append(EVIDENCE.stamp_pair(new_trade(c2, s2, a2, a2.get("_t", scan_t), f2, 0.0, 0.0, None,
+                                                     "Random benchmark: never published", px=a2["_px"]),
+                                           parent, c2, auth_ev))
     added = journal_add(J, new)
     J["last_picks"] = [x["t"] for x in pick_sigs]
     J["scans"] = J.get("scans", 0) + 1
@@ -5011,7 +5136,7 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
     J["version"] = 1
     if smart:
         J["smart_prev"] = {c: [a["long_usd"], a["short_usd"]] for c, a in smc.items()}
-    journal = journal_summary(J, L, scan_t, sig_now)
+    journal = journal_summary(J, L, scan_t, sig_now, ident={t: c.get("identity") for t, c in coins.items()})
     log(f"journal: {added} new paper trades, {moved} closed this scan, {len(J['open'])} open, "
         f"{len(J['closed'])} closed in total")
 
@@ -5102,7 +5227,7 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
         from v8 import audit_radar
         audit_radar.audit(out_dir, scan_t, coins=coins, dex_status=dex_status, dex_ok=dex_ok, crypto=crypto,
                           res1=res1, s1=s1, ranked=ranked, cands=cands, extras=extras, res2=res2, A=A, sigs=sigs,
-                          best=best, pick_sigs=pick_sigs, watch_sigs=watch_sigs, gate=gate)
+                          best=best, pick_sigs=pick_sigs, watch_sigs=watch_sigs, gate=gate, journal=J)
     except Exception as e:  # noqa: BLE001 - observability must never stop a scan
         log(f"v8 audit skipped: {type(e).__name__}: {e}")
     log(f"done in {out['duration_s']}s: {len(picks)} picks, regime {regime['label']}, {len(ERRORS)} notes"

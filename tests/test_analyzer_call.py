@@ -41,7 +41,7 @@ const picks = (scores) => ({day: SIG_DAY, settings: {ready: 80}, scores});
 const quantResearch = {window_3y: [1703793600, 1791072000], strategies: {
   TSMOM: {verdict: "live", three_year: {n: 1181, wr: 0.4141, avg: 0.0564}, years: [{from: 1759536000, to: 1791072000, n: 483, avg: 0.0977}, {from: 1728000000, to: 1759536000, n: 430, avg: 0.0249}]},
   OLD: {verdict: "rejected", three_year: {n: 900, wr: 0.4, avg: -0.02}, years: []}}};
-const qpos = (o) => Object.assign({s: "TSMOM", c: "AAA", d: 1, t_sig: T0 + 58 * DAY, t_in: T0 + 58 * DAY, px: 95, stop_pct: 0.1, trail_pct: 0.1, hold_h: 504,
+const qpos = (o) => Object.assign({s: "TSMOM", c: "AAA", d: 1, t_sig: T0 + 58 * DAY, t_in: T0 + 58 * DAY, px: 95, stop_pct: 0.1, trail_pct: 0.1, hold_h: 504, identity: "VERIFIED_CRYPTO",
   res: {state: "open", stop_now: 90, last_px: 100, r: 0.3}, stop: 85.5}, o);
 const quant = (open) => ({strategies: {TSMOM: {name: "Daily trend rider", desc: "trend"}, OLD: {name: "Old one"}}, open});
 const smart = (row, trade, verdict) => ({generated: NOW - 3 * H, traders_n: 200,

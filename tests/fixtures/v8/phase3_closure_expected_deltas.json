@@ -1,0 +1,433 @@
+{
+ "schema": "v8.delta/2",
+ "phase": "v8 Phase 3 production-evidence closure: quarantine legacy quant and radar evidence",
+ "base": {
+  "sha": "f8648fe9006a9409b9bd4ecde092e411f8de37a1",
+  "tree": "bb296e427e06b246d9e30efd85961b826debec58",
+  "golden": "tests/fixtures/v8/legacy_parity_golden_phase3.json",
+  "golden_note": "main f8648fe (Phase 3, PR #13) on the unchanged Phase 3 fixture: the Phase 3 branch golden"
+ },
+ "head_golden": "tests/fixtures/v8/legacy_parity_golden_closure.json",
+ "counterfactual_projection": null,
+ "rules": {
+  "QUANT_ENTRY_IDENTITY_PROVENANCE": "every new quant paper trade carries immutable entry-time identity proof (state, qualified, identity version, scan id, decision) from the scan that opens it; the fixture's trades are all VERIFIED_CRYPTO and qualified",
+  "QUANT_CURRENT_IDENTITY_GATE": "quant.json 'open' is the actionable set: each position carries its coin's current identity and only VERIFIED_CRYPTO stays; every other one is published apart in 'blocked_open' (none in the fixture)",
+  "QUANT_EVIDENCE_BOUNDARY": "the quant live record counts identity-qualified closed trades only; legacy / unqualified trades and the evidence breakdown are reported apart",
+  "RADAR_ENTRY_IDENTITY_PROVENANCE": "every new live radar paper trade carries entry-time identity proof from the scan that opens it",
+  "RADAR_TWIN_PAIR_PROVENANCE": "every new live random twin carries its pair's proof, the id of the trade it benchmarks (pair: another coin, the twin's own strategy, the signal time) and its own coin's state at entry",
+  "RADAR_EVIDENCE_BOUNDARY": "radar forward evidence = backtest + identity-qualified live trades; the journal summary reports the evidence classes, legacy live trades apart, and the trade table and journal.csv name each trade's evidence class",
+  "ANALYZER_QUANT_IDENTITY_DEFENSE": "analyze.js: an open quant position is a signal only when its current identity is VERIFIED_CRYPTO; a blocked position is a note, not a signal"
+ },
+ "universe": [],
+ "dex_status": [],
+ "notes": {
+  "removed": [],
+  "added": []
+ },
+ "code": [
+  {
+   "file": "data/quant_journal.json",
+   "kind": "each",
+   "path": [
+    "open"
+   ],
+   "fields": {
+    "identity_state_at_entry": "VERIFIED_CRYPTO",
+    "identity_qualified": true,
+    "identity_version": "v8.identity/2",
+    "identity_scan_id": "local-1791014833",
+    "identity_decision": {
+     "one_of": [
+      "CRYPTO",
+      "CRYPTO_EXPOSURE_SELECTED"
+     ]
+    }
+   },
+   "count": 11,
+   "rule": "QUANT_ENTRY_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/quant.json",
+   "kind": "each",
+   "path": [
+    "open"
+   ],
+   "fields": {
+    "identity_state_at_entry": "VERIFIED_CRYPTO",
+    "identity_qualified": true,
+    "identity_version": "v8.identity/2",
+    "identity_scan_id": "local-1791014833",
+    "identity_decision": {
+     "one_of": [
+      "CRYPTO",
+      "CRYPTO_EXPOSURE_SELECTED"
+     ]
+    },
+    "identity": "VERIFIED_CRYPTO"
+   },
+   "count": 11,
+   "rule": "QUANT_CURRENT_IDENTITY_GATE"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "blocked_open"
+   ],
+   "base": "<absent>",
+   "head": [],
+   "rule": "QUANT_CURRENT_IDENTITY_GATE"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "strategies",
+    "TSMOM",
+    "blocked_open"
+   ],
+   "base": "<absent>",
+   "head": 0,
+   "rule": "QUANT_CURRENT_IDENTITY_GATE"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "strategies",
+    "TREND_EMA",
+    "blocked_open"
+   ],
+   "base": "<absent>",
+   "head": 0,
+   "rule": "QUANT_CURRENT_IDENTITY_GATE"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "strategies",
+    "XSMOM",
+    "blocked_open"
+   ],
+   "base": "<absent>",
+   "head": 0,
+   "rule": "QUANT_CURRENT_IDENTITY_GATE"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "legacy_unqualified"
+   ],
+   "base": "<absent>",
+   "head": {
+    "live": {
+     "TREND_EMA": {
+      "n": 0
+     },
+     "TSMOM": {
+      "n": 0
+     },
+     "XSMOM": {
+      "n": 0
+     }
+    },
+    "live_all": {
+     "n": 0
+    },
+    "reason": "LEGACY_NO_IDENTITY_PROOF"
+   },
+   "rule": "QUANT_EVIDENCE_BOUNDARY"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "evidence"
+   ],
+   "base": "<absent>",
+   "head": {
+    "actionable_open": 11,
+    "blocked_coins": [],
+    "blocked_open": 0,
+    "blocked_reasons": {},
+    "live_record_rule": "identity-qualified closed trades only (entry-time VERIFIED_CRYPTO proof)",
+    "proof_complete": {
+     "closed": 0,
+     "open": 11
+    },
+    "qualified": {
+     "closed": 0,
+     "open": 11
+    },
+    "unqualified": {
+     "closed": 0,
+     "open": 0
+    },
+    "unqualified_reasons": {}
+   },
+   "rule": "QUANT_EVIDENCE_BOUNDARY"
+  },
+  {
+   "file": "data/journal.json",
+   "kind": "each",
+   "path": [
+    "open"
+   ],
+   "where": [
+    "s",
+    "not_prefix",
+    "RAND:"
+   ],
+   "fields": {
+    "identity_state_at_entry": "VERIFIED_CRYPTO",
+    "identity_qualified": true,
+    "identity_version": "v8.identity/2",
+    "identity_scan_id": "local-1791014833",
+    "identity_decision": {
+     "one_of": [
+      "CRYPTO",
+      "CRYPTO_EXPOSURE_SELECTED"
+     ]
+    }
+   },
+   "count": 6,
+   "rule": "RADAR_ENTRY_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/journal.json",
+   "kind": "each",
+   "path": [
+    "open"
+   ],
+   "where": [
+    "s",
+    "prefix",
+    "RAND:"
+   ],
+   "fields": {
+    "identity_state_at_entry": "VERIFIED_CRYPTO",
+    "identity_qualified": true,
+    "identity_version": "v8.identity/2",
+    "identity_scan_id": "local-1791014833",
+    "identity_decision": {
+     "one_of": [
+      "CRYPTO",
+      "CRYPTO_EXPOSURE_SELECTED"
+     ]
+    },
+    "pair": {
+     "twin_pair": true
+    },
+    "identity_coin_state_at_entry": "VERIFIED_CRYPTO"
+   },
+   "count": 15,
+   "rule": "RADAR_TWIN_PAIR_PROVENANCE"
+  },
+  {
+   "file": "data/journal.json",
+   "kind": "each",
+   "path": [
+    "closed"
+   ],
+   "where": [
+    "s",
+    "prefix",
+    "RAND:"
+   ],
+   "fields": {
+    "identity_state_at_entry": "VERIFIED_CRYPTO",
+    "identity_qualified": true,
+    "identity_version": "v8.identity/2",
+    "identity_scan_id": "local-1791014833",
+    "identity_decision": {
+     "one_of": [
+      "CRYPTO",
+      "CRYPTO_EXPOSURE_SELECTED"
+     ]
+    },
+    "pair": {
+     "twin_pair": true
+    },
+    "identity_coin_state_at_entry": "VERIFIED_CRYPTO"
+   },
+   "count": 1,
+   "rule": "RADAR_TWIN_PAIR_PROVENANCE"
+  },
+  {
+   "file": "data/latest.json",
+   "path": [
+    "journal",
+    "evidence"
+   ],
+   "base": "<absent>",
+   "head": {
+    "backtest": {
+     "strategy_closed": 413,
+     "strategy_closed_copy": 30,
+     "strategy_open": 73,
+     "strategy_open_copy": 13,
+     "total": 1160,
+     "twin_closed": 529,
+     "twin_open": 102
+    },
+    "legacy_coin_identity": {},
+    "legacy_coins": 0,
+    "legacy_live": {
+     "total": 0
+    },
+    "pair_excluded_live": {
+     "total": 0
+    },
+    "pairs": {
+     "legacy_twins_unlinked": 0,
+     "live_twins": 16,
+     "pair_class_mismatch": 0,
+     "pair_trade_in_journal": 3,
+     "with_pair_link": 16
+    },
+    "qualified_live": {
+     "strategy_open": 6,
+     "total": 22,
+     "twin_closed": 1,
+     "twin_open": 15
+    },
+    "rule": "forward evidence = backtest trades + identity-qualified live trades (entry-time VERIFIED_CRYPTO proof); legacy live trades are kept and reported here, never counted",
+    "unqualified_reasons": {}
+   },
+   "rule": "RADAR_EVIDENCE_BOUNDARY"
+  },
+  {
+   "file": "data/latest.json",
+   "path": [
+    "journal",
+    "legacy_unqualified"
+   ],
+   "base": "<absent>",
+   "head": {
+    "counts": {
+     "done": 0,
+     "live": 0,
+     "twins": 0
+    },
+    "picks": {
+     "avg_r": null,
+     "closed": 0,
+     "filled": 0,
+     "missed": 0,
+     "picks": 0,
+     "sd_r": null,
+     "stopped": 0,
+     "total_r": 0,
+     "tp1": 0,
+     "tp1_rate": null,
+     "win_rate": null
+    },
+    "reason": "LEGACY_NO_IDENTITY_PROOF",
+    "strategies": {}
+   },
+   "rule": "RADAR_EVIDENCE_BOUNDARY"
+  },
+  {
+   "file": "data/latest.json",
+   "path": [
+    "journal",
+    "counts",
+    "legacy_live"
+   ],
+   "base": "<absent>",
+   "head": 0,
+   "rule": "RADAR_EVIDENCE_BOUNDARY"
+  },
+  {
+   "file": "data/latest.json",
+   "kind": "append",
+   "path": [
+    "journal",
+    "rows"
+   ],
+   "counts": {
+    "backtest": 234,
+    "qualified": 6
+   },
+   "rule": "RADAR_EVIDENCE_BOUNDARY"
+  }
+ ],
+ "decisions": [],
+ "files": [
+  {
+   "file": "analyze.js",
+   "base_sha256": "12ace048e5debf61b1f077d12bc3e839b4efa1fab93998c3d3585954920fd697",
+   "head_sha256": "a56a30c7acdb83f13c458b1c7b0d690f1365953b2ddf7982fe140c2878e31024",
+   "rule": "ANALYZER_QUANT_IDENTITY_DEFENSE"
+  },
+  {
+   "file": "data/journal.csv",
+   "base_sha256": "ea6fac914cde0e58780332f6361c42c283ac183fbfd622031aa8d564f39c4d73",
+   "head_sha256": "0cdd54d8a211df3cf4b93244636654d0f14e48831b26574b71e9c767fd8287f2",
+   "rule": "RADAR_EVIDENCE_BOUNDARY"
+  }
+ ],
+ "identity_states": {
+  "BTC": "VERIFIED_CRYPTO",
+  "ETH": "VERIFIED_CRYPTO",
+  "FAKE00": "VERIFIED_CRYPTO",
+  "FAKE01": "VERIFIED_CRYPTO",
+  "FAKE02": "VERIFIED_CRYPTO",
+  "FAKE03": "VERIFIED_CRYPTO",
+  "FAKE04": "VERIFIED_CRYPTO",
+  "FAKE05": "VERIFIED_CRYPTO",
+  "FAKE06": "VERIFIED_CRYPTO",
+  "FAKE07": "VERIFIED_CRYPTO",
+  "FAKE08": "VERIFIED_CRYPTO",
+  "FAKE09": "VERIFIED_CRYPTO",
+  "FAKE10": "VERIFIED_CRYPTO",
+  "FAKE11": "VERIFIED_CRYPTO",
+  "FAKE12": "VERIFIED_CRYPTO",
+  "FAKE13": "VERIFIED_CRYPTO",
+  "FAKE14": "VERIFIED_CRYPTO",
+  "FAKE15": "VERIFIED_CRYPTO",
+  "FAKE16": "VERIFIED_CRYPTO",
+  "FAKE17": "VERIFIED_CRYPTO",
+  "FAKE18": "VERIFIED_CRYPTO",
+  "FAKE19": "VERIFIED_CRYPTO",
+  "FAKE20": "VERIFIED_CRYPTO",
+  "FAKE21": "VERIFIED_CRYPTO",
+  "FAKE22": "VERIFIED_CRYPTO",
+  "FAKE23": "VERIFIED_CRYPTO",
+  "FAKE24": "VERIFIED_CRYPTO",
+  "FAKE25": "VERIFIED_CRYPTO",
+  "FAKE26": "VERIFIED_CRYPTO",
+  "FAKE27": "VERIFIED_CRYPTO",
+  "TINY": "VERIFIED_CRYPTO",
+  "NEW40": "VERIFIED_CRYPTO",
+  "NEW10": "VERIFIED_CRYPTO",
+  "THINREF": "VERIFIED_CRYPTO",
+  "ZEROV": "VERIFIED_CRYPTO",
+  "SCALEX": "VERIFIED_CRYPTO",
+  "BB": "VERIFIED_CRYPTO",
+  "PURR": "VERIFIED_CRYPTO",
+  "NOCAND": "VERIFIED_CRYPTO",
+  "MOONX": "UNVERIFIED",
+  "QNT": "VERIFIED_CRYPTO",
+  "VANA": "VERIFIED_CRYPTO",
+  "AAPL": "VERIFIED_TRADFI",
+  "ACME": "VERIFIED_TRADFI",
+  "ONDS": "VERIFIED_TRADFI",
+  "US100S": "VERIFIED_TRADFI",
+  "ASTS": "VERIFIED_TRADFI",
+  "KORU": "VERIFIED_TRADFI",
+  "XIAOMI": "AMBIGUOUS",
+  "NEWCOIN": "UNVERIFIED",
+  "HYUNDAI": "UNVERIFIED",
+  "PRLX": "VERIFIED_CRYPTO",
+  "ADBE": "VERIFIED_TRADFI",
+  "LONLY": "VERIFIED_CRYPTO",
+  "KIOXIA": "VERIFIED_TRADFI",
+  "SAMSUNGUSD": "VERIFIED_TRADFI",
+  "SKHYNIXUSD": "VERIFIED_TRADFI",
+  "HYUNDAIUSD": "UNVERIFIED",
+  "US10Y": "UNVERIFIED",
+  "BYD": "UNVERIFIED",
+  "EXTONLY": "VERIFIED_CRYPTO",
+  "SECT": "AMBIGUOUS",
+  "SKHYNIX": "VERIFIED_TRADFI",
+  "EURUSD": "VERIFIED_TRADFI"
+ },
+ "not_allowed": "any other BASE -> HEAD difference: universe, identity states, DEX status, notes, engine decisions, strategy statistics or statuses, backtest trades, published picks, smart money, picks, dashboard"
+}
