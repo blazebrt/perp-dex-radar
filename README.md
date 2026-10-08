@@ -318,7 +318,7 @@ Nothing runs on your computer.
 | `picks.html` | The coin picks page (`picks.html`; the radar moves to `radar.html`) |
 | `dashboard.py` | Builds the dashboard data (`data/dashboard.json`) from the scan's files and publishes the front page |
 | `dashboard.html` | The dashboard, published as the front page (`index.html`) |
-| `smart.py` | Smart money: Hyperliquid's proven traders, their entries and positions per coin, signals and a paper record (signals only on coins the scan verified as crypto) |
+| `smart.py` | Smart money: Hyperliquid's proven traders, their entries and positions per coin, signals and a paper record (signals only on coins the scan verified as crypto; the live record counts only paper trades with entry-time identity proof) |
 | `smart.html` | The smart money page: accuracy, signals, fresh moves, paper trades, every coin they hold |
 | `smart_research.json` | The smart-money test results shown on the page (`tools/research/smart_backtest.py`) |
 | `picks_research.json` | The test results behind the scores, shown on the picks page (`tools/research/picks_export.py`) |
@@ -335,6 +335,7 @@ Nothing runs on your computer.
 | `tools/v8/delta_parity.py` | Proves that every output difference from the phase's base commit is one of the approved deltas in `tests/fixtures/v8/phase3_expected_deltas.json` |
 | `tools/v8/identity_report.py` | Identity states, the default-crypto inventory, unverified assets, venue field census, collisions and production changes of an audit snapshot (run by `research.yml`) |
 | `tools/v8/rescore_identity.py` | Re-resolves an earlier scan's market lists (from its audit snapshot) with the current identity rules |
+| `tools/v8/smart_journal_evidence.py` | Reads a smart-money journal (read-only) and reports its paper trades as identity-qualified or legacy, with the live record under the Phase 3 rules |
 | `.github/workflows/data.yml` | Downloads a year of 1h and three years of 4h candles, funding, futures statistics and CoinGecko fundamentals to the `market-data` branch |
 | `tests/` | Unit tests and full runs on a fake exchange |
 | `tools/no_edge_check.py` | The strategies on a random market: shows costs and catches look-ahead bugs |

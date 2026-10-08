@@ -15,7 +15,10 @@ Each scan:
      the tested one;
   5. (v8 Phase 3) only a coin with crypto execution identity (VERIFIED_CRYPTO in the identity authority the scanner
      wrote for this scan) can be a signal, an information-only crowd or a paper trade. Any other coin stays visible
-     with its positioning and an identity_block; without a same-scan authority nothing gets signal authority.
+     with its positioning and an identity_block; without a same-scan authority nothing gets signal authority;
+  6. (v8 Phase 3) every new paper trade records its entry-time identity proof; only trades with that proof count in
+     the live record (accuracy live / live_info and the verdict). Trades opened before Phase 3 are kept, followed to
+     their close and reported apart as LEGACY_NO_IDENTITY_PROOF.
 
 Writes site/data/smart.json (the page and the dashboard) and site/data/smart_journal.json (read back next scan).
 Trader addresses are never published: they are replaced by a short hash.
@@ -340,11 +343,18 @@ def accuracy(research, J, cfg=CFG):
     """The tested record (smart_research.json, a test without hindsight) and the live paper record of the same
     rule, with a plain verdict. The test sets the verdict ("Promising" when positive but too small to be sure);
     after LIVE_MIN live trades the live record decides: Proven (positive, t 2+), No edge (not positive), or the
-    test's verdict while it is still unclear. Paper trades of the information side are reported separately."""
+    test's verdict while it is still unclear. Paper trades of the information side are reported separately.
+
+    v8 Phase 3: live and live_info - and so the verdict - count identity-qualified trades only (trade_qualified():
+    VERIFIED_CRYPTO proven by the same-scan identity authority when the trade was opened). Trades without that
+    entry-time proof (opened before Phase 3) are kept and reported apart in legacy_unqualified; they never reach
+    live, live_info or the verdict."""
     t = (research or {}).get("tested") or {}
     closed = J.get("closed") or []
-    live = live_stats([x for x in closed if x.get("kind", "signal") == "signal"])
-    info = live_stats([x for x in closed if x.get("kind") == "info"])
+    qualified = [x for x in closed if trade_qualified(x)]
+    legacy = [x for x in closed if not trade_qualified(x)]
+    live = live_stats([x for x in qualified if x.get("kind", "signal") == "signal"])
+    info = live_stats([x for x in qualified if x.get("kind") == "info"])
     if research and research.get("verdict"):
         verdict, tone = research["verdict"], research.get("tone") or "warn"
     elif t.get("n"):
@@ -364,7 +374,75 @@ def accuracy(research, J, cfg=CFG):
             "sub": (research or {}).get("sub") or "Hyperliquid's proven traders",
             "tested": {k: t.get(k) for k in ("n", "win", "r", "ret", "hit", "excess", "period", "note")},
             "live": live, "live_info": info, "rule": (research or {}).get("rule"),
-            "longs": (research or {}).get("longs"), "full_window": (research or {}).get("full_window")}
+            "longs": (research or {}).get("longs"), "full_window": (research or {}).get("full_window"),
+            # v8 Phase 3: the evidence boundary (never mixed into live, live_info or the verdict above)
+            "legacy_unqualified": {"reason": LEGACY_NO_IDENTITY_PROOF,
+                                   "signal": live_stats([x for x in legacy if x.get("kind", "signal") == "signal"]),
+                                   "info": live_stats([x for x in legacy if x.get("kind") == "info"])},
+            "evidence": journal_evidence(J)}
+
+
+# --------------------------------------------------------------------------- entry-time identity of paper trades
+# v8 Phase 3. Current identity controls NEW execution authority (apply_identity). Entry-time identity provenance
+# controls whether a paper trade belongs to the live evidence record: a trade counts only when VERIFIED_CRYPTO was
+# proven by the same-scan identity authority at the moment it was opened. It is written once, when the trade opens,
+# and never recomputed from a later scan's identity - in either direction (no hindsight).
+LEGACY_NO_IDENTITY_PROOF = "LEGACY_NO_IDENTITY_PROOF"
+TRADE_IDENTITY_FIELDS = ("identity_state_at_entry", "identity_qualified", "identity_version", "identity_scan_id",
+                         "identity_decision")
+
+
+def stamp_identity(tr, coin, auth):
+    """Entry-time identity provenance of a new paper trade, from the authority of the scan that opens it."""
+    st = auth.state(coin)
+    ok = bool(auth.ok) and st == IDENTITY.VERIFIED_CRYPTO
+    tr.update(identity_state_at_entry=st, identity_qualified=ok, identity_version=auth.version,
+              identity_scan_id=auth.scan_id, identity_decision=auth.decision(coin))
+    if not ok:              # not reachable through run(): the source gate opens trades on VERIFIED_CRYPTO only
+        tr["identity_unqualified_reason"] = "NOT_VERIFIED_AT_ENTRY"
+    return tr
+
+
+def trade_qualified(tr):
+    """Whether a paper trade belongs to the live evidence record: complete entry-time proof of VERIFIED_CRYPTO."""
+    return (tr.get("identity_qualified") is True and tr.get("identity_state_at_entry") == IDENTITY.VERIFIED_CRYPTO
+            and bool(tr.get("identity_scan_id")) and bool(tr.get("identity_version")))
+
+
+def mark_legacy(J):
+    """Trades with no entry-time identity provenance (opened before Phase 3) are kept unchanged - prices, returns,
+    stops, times, kind - and marked identity_qualified=False, LEGACY_NO_IDENTITY_PROOF. Nothing is inferred from the
+    coin's current identity. Open ones are still followed to their close. Returns the number newly marked."""
+    n = 0
+    for tr in (J.get("open") or []) + (J.get("closed") or []):
+        if "identity_qualified" not in tr:
+            tr["identity_state_at_entry"] = None
+            tr["identity_qualified"] = False
+            tr["identity_unqualified_reason"] = LEGACY_NO_IDENTITY_PROOF
+            n += 1
+    return n
+
+
+def journal_evidence(J):
+    """Paper trades by evidence class, open and closed, signal and information side: qualified (in the live record)
+    and unqualified (kept, never counted), with the reasons."""
+    out = {"qualified": {}, "unqualified": {}, "unqualified_reasons": {}}
+    for part in ("open", "closed"):
+        for tr in J.get(part) or []:
+            q = trade_qualified(tr)
+            key = f"{part}_{tr.get('kind', 'signal')}"
+            d = out["qualified" if q else "unqualified"]
+            d[key] = d.get(key, 0) + 1
+            if not q:
+                why = tr.get("identity_unqualified_reason") or "IDENTITY_PROOF_INCOMPLETE"
+                out["unqualified_reasons"][why] = out["unqualified_reasons"].get(why, 0) + 1
+    for d in (out["qualified"], out["unqualified"]):
+        for part in ("open", "closed"):
+            for k in ("signal", "info"):
+                d.setdefault(f"{part}_{k}", 0)
+    out["qualified"] = dict(sorted(out["qualified"].items()))
+    out["unqualified"] = dict(sorted(out["unqualified"].items()))
+    return out
 
 
 # --------------------------------------------------------------------------- journal
@@ -440,6 +518,7 @@ def run(out_dir, pages_url=None, journal_path=None, fetch=None, now=None, cfg=CF
         from v8 import provenance
         identity = IDENTITY.load_authority(out_dir, now, provenance.scan_id(now))
     J, jsrc = load_journal(pages_url, journal_path, now)
+    n_legacy = mark_legacy(J)          # v8 Phase 3: before accuracy() decides proven_rule
     board = fetch(LEADERBOARD, timeout=120)
     traders = select_traders(board, cfg)
     if not traders:
@@ -476,9 +555,12 @@ def run(out_dir, pages_url=None, journal_path=None, fetch=None, now=None, cfg=CF
             break
         if c["coin"] in busy:
             continue
+        if identity.state(c["coin"]) != IDENTITY.VERIFIED_CRYPTO:    # defensive: apply_identity removed its side
+            continue
         tr = open_trade(c, mids, now, fetch, cfg)
         if tr:
             tr["kind"] = "signal" if c["signal"] else "info"
+            stamp_identity(tr, c["coin"], identity)             # v8 Phase 3: entry-time provenance, written once
             J["open"].append(tr)
             busy.add(c["coin"])
     J["snap"] = {"t": now, "traders": snap}
@@ -527,14 +609,16 @@ def run(out_dir, pages_url=None, journal_path=None, fetch=None, now=None, cfg=CF
     try:  # v8 audit: trader selection and every held coin's disposition (never changes this run)
         from v8 import audit_smart
         audit_smart.audit(out_dir, now, cfg=cfg, board=board, traders=traders, snap=snap, coins=coins,
-                          open_trades=J["open"], authority=identity.summary())
+                          open_trades=J["open"], authority=identity.summary(), closed_trades=J["closed"])
     except Exception as e:  # noqa: BLE001 - observability must never stop a run
         sc.log(f"v8 audit skipped: {type(e).__name__}: {e}")
     sc.log(f"smart money: {len(snap)} of {len(traders)} proven traders read, {len(new)} new entries, "
            f"{sum(1 for c in crowds if c['signal'])} signals and {sum(1 for c in crowds if c['info'])} long crowds, "
            f"{len(J['open'])} paper trades open, {len(J['closed'])} closed; "
            f"{sum(1 for c in coins if c.get('identity_block'))} crowds without crypto identity "
-           f"(identity authority: {identity.why})")
+           f"(identity authority: {identity.why}); "
+           f"{sum(1 for t in J['open'] + J['closed'] if not trade_qualified(t))} paper trades without entry-time "
+           f"identity proof kept out of the live record ({n_legacy} marked this scan)")
     return out
 
 

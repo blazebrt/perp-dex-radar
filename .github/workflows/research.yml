@@ -99,6 +99,13 @@ jobs:
           python tools/v8/identity_report.py out_new/data/v8/audit_latest.json --json research_identity.json --base-out out_base > research_identity.txt 2>&1 || true
           head -60 research_identity.txt
 
+      - name: Published smart journal under the Phase 3 evidence rules (read-only; the copy on the journal-data branch)
+        continue-on-error: true
+        run: |
+          git show origin/journal-data:smart_journal.json > published_smart_journal.json 2> research_smart_journal.txt || true
+          python tools/v8/smart_journal_evidence.py published_smart_journal.json --json research_smart_journal.json >> research_smart_journal.txt 2>&1 || true
+          head -60 research_smart_journal.txt
+
       - name: Save the results for review
         if: always()
         env:
@@ -118,6 +125,7 @@ jobs:
           if [ -f out_new/data/v8/audit_latest.json.gz ]; then cp out_new/data/v8/audit_latest.json.gz R/new_audit_latest.json.gz; fi
           if [ -f research_v8_summary.json ]; then cp research_v8_summary.json R/; fi
           if [ -f research_identity.json ]; then cp research_identity.json R/; fi
+          if [ -f research_smart_journal.json ]; then cp research_smart_journal.json R/; fi
           echo "$GITHUB_REF_NAME $GITHUB_SHA $(date -u +%Y-%m-%dT%H:%MZ)" > R/run.txt
           export GIT_INDEX_FILE="$RUNNER_TEMP/research.index"
           git read-tree --empty

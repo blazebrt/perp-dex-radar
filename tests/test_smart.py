@@ -17,6 +17,9 @@ from v8 import identity as ID  # noqa: E402
 
 # v8 Phase 3: the test world's coins are verified crypto (in a scan, the scanner's identity authority says so)
 WORLD = ID.Authority.from_states({c: ID.VERIFIED_CRYPTO for c in ("BTC", "ETH", "SOL", "PEPE")})
+# entry-time identity proof of a paper trade opened under that world (smart.stamp_identity)
+QUALIFIED = {"identity_state_at_entry": ID.VERIFIED_CRYPTO, "identity_qualified": True, "identity_version": ID.VERSION,
+             "identity_scan_id": "given", "identity_decision": ID.VERIFIED_CRYPTO}
 
 T0 = 1791000000
 
@@ -161,13 +164,17 @@ class PaperTrades(unittest.TestCase):
 
     def test_the_live_record_decides_after_enough_trades(self):
         research = {"verdict": "Promising", "tone": "warn", "why": "w", "tested": {"n": 31, "r": 0.14}}
-        win = [{"kind": "signal", "r": 0.6, "ret": 0.01}, {"kind": "signal", "r": -0.2, "ret": -0.004}] * 25
+        # v8 Phase 3: the live record is made of trades with entry-time identity proof
+        win = [dict(QUALIFIED, kind="signal", r=0.6, ret=0.01), dict(QUALIFIED, kind="signal", r=-0.2, ret=-0.004)] * 25
         self.assertEqual(SM.accuracy(research, {"closed": win[:10]})["verdict"], "Promising", "too few live trades")
         self.assertEqual(SM.accuracy(research, {"closed": win})["verdict"], "Proven")
-        lose = [{"kind": "signal", "r": -0.3, "ret": -0.01}, {"kind": "signal", "r": 0.2, "ret": 0.004}] * 25
+        lose = [dict(QUALIFIED, kind="signal", r=-0.3, ret=-0.01), dict(QUALIFIED, kind="signal", r=0.2, ret=0.004)] * 25
         self.assertEqual(SM.accuracy(research, {"closed": lose})["verdict"], "No edge")
         info = [dict(x, kind="info") for x in win]
         self.assertEqual(SM.accuracy(research, {"closed": info})["verdict"], "Promising", "information trades never count")
+        legacy = [{k: v for k, v in x.items() if not k.startswith("identity")} for x in win]
+        self.assertEqual(SM.accuracy(research, {"closed": legacy})["verdict"], "Promising",
+                         "trades without entry-time identity proof never count")
 
     def test_live_stats(self):
         self.assertEqual(SM.live_stats([]), {"n": 0})

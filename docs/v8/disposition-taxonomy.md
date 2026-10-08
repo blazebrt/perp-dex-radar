@@ -125,6 +125,7 @@ Noted on a record next to its final disposition (field `x`); never a final dispo
 | `PLAN_REJECTED` | a strategy fired but its trade plan was rejected (see the plan list) |
 | `EXTRA_DEEP_DIVE` | deep-dived as a stage-2 extra (smart money long or dip in an uptrend) |
 | `CRYPTO_EXPOSURE_SELECTED` | the ticker also names an unrelated tradfi or ambiguous exposure at another price; the crypto exposure was admitted and the other kept out (v8 Phase 2) |
+| `PAPER_LEGACY_NO_IDENTITY_PROOF` | an open smart-money paper trade on this coin was opened before entry-time identity proof existed: followed to its close for history, never counted in the live record or the verdict (v8 Phase 3) |
 | `SMART_CROWD_IDENTITY_BLOCKED` | proven traders crowded into a side under the smart-money rule, but the coin has no crypto execution identity: kept as an observation, not a signal, no paper trade (the final reason names the identity state) (v8 Phase 3) |
 | `UNVERIFIED_EXPOSURE_KEPT_OUT` | the ticker also has a price-separated exposure without identity evidence; the verified crypto exposure was admitted and the unverified one kept out of the coin (it stays in the registry) (v8 Phase 3) |
 
@@ -144,6 +145,17 @@ Retired identity reasons (older snapshots only):
 | Reason | Replaced by |
 |---|---|
 | `DEFAULT_CRYPTO` | v8 Phase 3: an exposure without positive evidence is UNVERIFIED (NO_POSITIVE_IDENTITY_EVIDENCE), never crypto by default |
+
+## Smart-money paper-trade identity (v8 Phase 3)
+
+Entry-time identity provenance of each smart paper trade (`identity_qualified`, `identity_unqualified_reason`). Only `IDENTITY_QUALIFIED` trades count in the live record (`accuracy.live`, `live_info`, the verdict).
+
+| Code | Meaning |
+|---|---|
+| `IDENTITY_QUALIFIED` | VERIFIED_CRYPTO was proven by the same-scan identity authority when the trade was opened (identity_qualified true, with state, version, scan id and decision): the trade counts in the live record; a later identity change never rewrites it |
+| `LEGACY_NO_IDENTITY_PROOF` | opened before entry-time identity proof existed: kept with its prices, stop, times and result, followed to its close, reported apart, never counted in the live record or the verdict; never re-qualified from a later scan's identity |
+| `NOT_VERIFIED_AT_ENTRY` | opened without VERIFIED_CRYPTO in the same-scan authority (not reachable through the engine, whose source gate opens trades on verified crypto only): never counted |
+| `IDENTITY_PROOF_INCOMPLETE` | carries identity fields but not a complete VERIFIED_CRYPTO proof: never counted |
 
 ## Smart-money trader outcomes
 
@@ -183,4 +195,4 @@ Counts per scan in the smart part (`traders.by_reason`), one per leaderboard row
 | Picks: last-day sync, $5M last-day volume, 90 daily candles, swing inputs | `LAST_DAY_NOT_SYNCED` (STALE), `REF_VOLUME_BELOW_LEGACY_MIN`, `INSUFFICIENT_90D_HISTORY`, `SWING_INPUTS_UNAVAILABLE` |
 | Picks: day candidates (top 50 liquid or swing 60+), hourly candles, top-10 lists, labels | `DAY_CANDIDATE_NOT_SELECTED`, `NO_HOURLY_CANDLES`, `SWING_READY`, `SWING_SETTING_UP`, `DAY_READY`, `DAY_SETTING_UP`, `LISTED_BELOW_WATCH`, `OUTPUT_TOP_N_CUTOFF`, `SCORE_BELOW_THRESHOLD` |
 | Picks paper trades (80+ swing, 85+ day) | step `PAPER_OPENED` |
-| Smart: trader eligibility, $10k position minimum, entry rule, 60 published rows, 12 open paper trades | trader outcomes above, `SMART_POSITIONS_BELOW_MIN`, `SMART_CROWD_SIGNAL`, `SMART_CROWD_INFO`, `SMART_NO_CROWD`, identity-blocked crowds (Phase 3: `IDENTITY_UNVERIFIED`, `TRADFI_CLASSIFIED` / `TRADFI_EXPOSURE_EXCLUDED`, `AMBIGUOUS_EXPOSURE`, `IDENTITY_AUTHORITY_MISSING` with step `SMART_CROWD_IDENTITY_BLOCKED`), steps `NOT_IN_PUBLISHED_LIST`, `PAPER_LIMIT_REACHED`, `PAPER_BUSY`, `PAPER_NO_PRICE`, `PAPER_OPENED` |
+| Smart: trader eligibility, $10k position minimum, entry rule, 60 published rows, 12 open paper trades | trader outcomes above, `SMART_POSITIONS_BELOW_MIN`, `SMART_CROWD_SIGNAL`, `SMART_CROWD_INFO`, `SMART_NO_CROWD`, identity-blocked crowds (Phase 3: `IDENTITY_UNVERIFIED`, `TRADFI_CLASSIFIED` / `TRADFI_EXPOSURE_EXCLUDED`, `AMBIGUOUS_EXPOSURE`, `IDENTITY_AUTHORITY_MISSING` with step `SMART_CROWD_IDENTITY_BLOCKED`), steps `NOT_IN_PUBLISHED_LIST`, `PAPER_LEGACY_NO_IDENTITY_PROOF`, `PAPER_LIMIT_REACHED`, `PAPER_BUSY`, `PAPER_NO_PRICE`, `PAPER_OPENED` |

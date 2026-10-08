@@ -8,7 +8,7 @@
   "data/v8/parts/swing.json",
   "data/v8/parts/universe.json"
  ],
- "combined": "da1ca1a91d1452a402c69399e9b3faa6a0ef281f1aaa44b9576622cc68721ca6",
+ "combined": "3af2c45e4279c2d2280fddb791ce2c36a14b00a1df919c6a185d09d7f793b481",
  "decisions": {
   "picks": {
    "daytrade_all": [
@@ -496,8 +496,8 @@
   "data/quant.json": "d602f874b531b5f177d7fd7e4c4a1a0618e5a945d173dd3db7992e082537dd82",
   "data/quant_journal.json": "836a70cd115203fbdba7f7c6fb5344847cfc8a1bc01e3a2af0d2c0a277e68b0f",
   "data/quant_research.json": "af6153513ee1d66bef7b14214d349a06e2d8692f1f3d62402a2cf8e798db6a1b",
-  "data/smart.json": "4d5679ccb86a8c1a6a9e19219851d059f08f3f107313ff44b04b100d441ff16f",
-  "data/smart_journal.json": "0797411f7c99cdc5331bcbee0c8e01d9ab19dcad97e529d86deb2e3f2efb35d0",
+  "data/smart.json": "7f57419510aaaae59f7391a5b3fcd9d5d0cf1b3cbefd2a3468bafc2a89967a38",
+  "data/smart_journal.json": "96130ccd89a3c5187a634b0c8a179569d7ba2f09118b4494d80c11c271886ab3",
   "data/smart_research.json": "55138a1057b0be42f3b23763967ec6ada6a8b878bb131acb1af60f5127cc6cc2",
   "index.html": "27c23a51d81fe34fc24566dec1f1d8397710acd741684b17ac641dfef6873bb4",
   "picks.html": "9a9c55e6f886d9d81ab539a538331fa855d96f53a1e9f6a40301d5e378fbc5d6",

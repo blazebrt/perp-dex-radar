@@ -40,7 +40,9 @@ symbols, links and raw venue fields, and `coverage.summary.identity`; see [contr
 and [phase3-identity-coverage.md](phase3-identity-coverage.md)). Next to it, `data/v8/identity_state.json` (Phase 3:
 asset -> [identity state, since], read back from the site next scan to list identity transitions), and
 `data/v8/identity_authority.json`, which the scanner writes for the engines of the same scan that do not build the
-universe (smart money; see [phase3-identity-coverage.md](phase3-identity-coverage.md#smart-money-the-same-scan-identity-authority)):
+universe (smart money; see [phase3-identity-coverage.md](phase3-identity-coverage.md#smart-money-the-same-scan-identity-authority)).
+The smart part's journal evidence - identity-qualified and legacy-unqualified paper trades - appears in the snapshot
+as `coverage.engines.smart.journal`:
 
 | Section | Contents |
 |---|---|

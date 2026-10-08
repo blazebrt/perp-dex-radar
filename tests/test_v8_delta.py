@@ -252,22 +252,41 @@ class Phase3Validator(unittest.TestCase):
         self.assertEqual(man["base"]["sha"], "82f8d35a80e561384f2e8be0e1399dd4e5adb99b")
         self.assertEqual(man["schema"], "v8.delta/2")
         self.assertLessEqual(len(man["universe"]), 16)
-        self.assertLessEqual(len(man["code"]), 6)
         self.assertEqual({e["field"] for e in man["universe"]}, {"execution_identity", "tradfi"})
+        prov = [e for e in man["code"] if e["rule"] == "SMART_TRADE_IDENTITY_PROVENANCE"]
+        other = [e for e in man["code"] if e["rule"] != "SMART_TRADE_IDENTITY_PROVENANCE"]
+        self.assertLessEqual(len(other), 8)
         # the smart-money closure only adds identity fields: every smart row's added identity is VERIFIED_CRYPTO
-        smart = [e for e in man["code"] if e["file"] == "data/smart.json"]
-        self.assertEqual({e["rule"] for e in smart}, {"SMART_IDENTITY_FIELDS"})
+        smart = [e for e in other if e["file"] in ("data/smart.json", "data/smart_journal.json")]
+        self.assertEqual({e["rule"] for e in smart}, {"SMART_IDENTITY_FIELDS", "SMART_EVIDENCE_BOUNDARY"})
         for e in smart:
             self.assertEqual(e["base"], "<absent>", e)
             if e["path"][-1] == "identity":
                 self.assertEqual(e["head"], "VERIFIED_CRYPTO", e)
+            if e["rule"] == "SMART_EVIDENCE_BOUNDARY":
+                self.assertIn(e["path"], (["accuracy", "evidence"], ["accuracy", "legacy_unqualified"]))
+                self.assertEqual(e["file"], "data/smart.json")
+        # the journal closure: additive entry-time provenance, one field of one trade (by id) per entry, and every
+        # fixture trade is a VERIFIED_CRYPTO, qualified trade - nothing else of a trade may change
+        import smart as SM
+        self.assertEqual(len(prov), 2 * 2 * len(SM.TRADE_IDENTITY_FIELDS))     # 2 files x 2 trades x 5 fields
+        for e in prov:
+            self.assertIn(e["file"], ("data/smart.json", "data/smart_journal.json"))
+            self.assertEqual((e["base"], e["path"][0], list(e["path"][1])), ("<absent>", "open", ["key"]), e)
+            self.assertEqual(e["path"][1]["key"][0], "id")
+            self.assertIn(e["path"][2], SM.TRADE_IDENTITY_FIELDS)
+            if e["path"][2] == "identity_state_at_entry":
+                self.assertEqual(e["head"], "VERIFIED_CRYPTO")
+            if e["path"][2] == "identity_qualified":
+                self.assertIs(e["head"], True)
         self.assertEqual([f["file"] for f in man["files"]], ["analyze.js"])
         self.assertTrue(all(len(f["base_sha256"]) == len(f["head_sha256"]) == 64 for f in man["files"]))
         # every universe delta takes execution authority away; none grants it
         for e in man["universe"]:
             if e["field"] == "execution_identity":
                 self.assertEqual((e["base"], e["head"]), (True, False), e)
-        self.assertEqual({e["path"][0] for e in man["code"]}, {"coverage", "coins", "identity_authority"})
+        self.assertEqual({e["path"][0] for e in man["code"]}, {"coverage", "coins", "identity_authority", "open",
+                                                              "accuracy"})
         self.assertNotIn("*", json.dumps(man))
 
 

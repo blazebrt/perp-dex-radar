@@ -400,7 +400,7 @@ class TaxonomyDoc(unittest.TestCase):
             doc = fh.read()
         listed = set(re.findall(r"^\| `([A-Z0-9_]+)` \|", doc, re.M))
         codes = set(T.REASONS) | set(T.STEPS) | set(T.TRADER_REASONS) | set(T.DISPOSITIONS) | \
-            set(T.IDENTITY_STATES) | set(T.RETIRED_IDENTITY_REASONS)
+            set(T.IDENTITY_STATES) | set(T.RETIRED_IDENTITY_REASONS) | set(T.TRADE_IDENTITY)
         self.assertEqual(listed, codes)
         self.assertEqual(set(T.DISPOSITIONS) <= set(re.findall(r"`([A-Z_]+)`", doc)), True)
 

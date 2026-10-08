@@ -154,6 +154,9 @@ STEPS = {
     "EXTRA_DEEP_DIVE": "deep-dived as a stage-2 extra (smart money long or dip in an uptrend)",
     "CRYPTO_EXPOSURE_SELECTED": "the ticker also names an unrelated tradfi or ambiguous exposure at another price; "
                                 "the crypto exposure was admitted and the other kept out (v8 Phase 2)",
+    "PAPER_LEGACY_NO_IDENTITY_PROOF": "an open smart-money paper trade on this coin was opened before entry-time "
+                                      "identity proof existed: followed to its close for history, never counted in "
+                                      "the live record or the verdict (v8 Phase 3)",
     "SMART_CROWD_IDENTITY_BLOCKED": "proven traders crowded into a side under the smart-money rule, but the coin has no "
                                     "crypto execution identity: kept as an observation, not a signal, no paper trade "
                                     "(the final reason names the identity state) (v8 Phase 3)",
@@ -173,6 +176,19 @@ IDENTITY_STATES = {
                  "discovery yes, crypto execution no",
     "UNVERIFIED": "no positive evidence either way: discovery yes, crypto execution no, not tradfi; resolves when "
                   "positive evidence appears (each scan records what was known then)",
+}
+
+# entry-time identity provenance of a smart-money paper trade (v8 Phase 3; smart.stamp_identity, smart.mark_legacy)
+TRADE_IDENTITY = {
+    "IDENTITY_QUALIFIED": "VERIFIED_CRYPTO was proven by the same-scan identity authority when the trade was opened "
+                          "(identity_qualified true, with state, version, scan id and decision): the trade counts in "
+                          "the live record; a later identity change never rewrites it",
+    "LEGACY_NO_IDENTITY_PROOF": "opened before entry-time identity proof existed: kept with its prices, stop, times and "
+                                "result, followed to its close, reported apart, never counted in the live record or "
+                                "the verdict; never re-qualified from a later scan's identity",
+    "NOT_VERIFIED_AT_ENTRY": "opened without VERIFIED_CRYPTO in the same-scan authority (not reachable through the "
+                             "engine, whose source gate opens trades on verified crypto only): never counted",
+    "IDENTITY_PROOF_INCOMPLETE": "carries identity fields but not a complete VERIFIED_CRYPTO proof: never counted",
 }
 
 # identity exposure reasons that are no longer produced (older snapshots keep them)

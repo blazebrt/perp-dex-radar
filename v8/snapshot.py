@@ -179,6 +179,8 @@ def build(out_dir, pages_url=None, first_seen_path=None, identity_path=None):
             continue
         dispositions[e] = p.get("records") or []
         coverage[e] = dict(p.get("coverage") or {}, status="OK", stages=p.get("stages"))
+        if p.get("journal"):       # v8 Phase 3: the smart journal's evidence state (qualified vs legacy trades)
+            coverage[e]["journal"] = p["journal"]
         if p.get("problems"):
             problems[e] = p["problems"]
     radar_in = {r["a"] for r in dispositions.get("radar", [])}

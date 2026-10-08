@@ -141,7 +141,49 @@ classifier, a ticker list or the fact that Hyperliquid lists a market:
   step `SMART_CROWD_IDENTITY_BLOCKED`, never as `SMART_NO_CROWD`; the smart part's stages count rows by identity and
   list the blocked crowds. For a `VERIFIED_CRYPTO` coin nothing changes: crowd detection, signal side, tested /
   promising / proven reading, paper trade, stop, holding period and statistics are the same (differential parity:
-  `smart.json` differs from the base only by the added identity fields).
+  `smart.json` and `smart_journal.json` differ from the base only by additive identity and provenance fields).
+
+### Entry-time identity of smart paper trades (the live evidence record)
+
+> **Current identity controls NEW execution authority.**
+>
+> **Entry-time identity provenance controls whether a historical smart paper trade belongs to the production live
+> evidence record.**
+
+The gate above keeps a non-verified crowd from opening a paper trade. The live record (`accuracy.live`, `live_info`
+and, after 40 live trades, the verdict that the page, the dashboard and the Analyzer read) must also be built only
+from trades that had that authority. Whether a trade belongs to it is decided once, when it is opened, never later:
+
+* **New trades carry their proof.** Every paper trade the engine opens records, once and immutably (`stamp_identity`):
+  `identity_state_at_entry` (`VERIFIED_CRYPTO`), `identity_qualified` (`true`), `identity_version`
+  (`v8.identity/2`), `identity_scan_id` (the same-scan authority it was opened under) and `identity_decision`.
+* **Only proven trades count.** `trade_qualified()` requires all of it: `identity_qualified` true,
+  `identity_state_at_entry` `VERIFIED_CRYPTO`, a scan id and an identity version. `accuracy()` builds `live`,
+  `live_info` and the verdict from qualified closed trades only. `kind == "signal"` alone no longer qualifies a trade.
+* **Legacy trades are kept, not trusted.** A trade written before Phase 3 has none of these fields. The engine keeps
+  it as it is - prices, stop, times, kind, return, R - and marks it `identity_qualified: false`,
+  `identity_unqualified_reason: LEGACY_NO_IDENTITY_PROOF`, `identity_state_at_entry: null` (`mark_legacy`, right
+  after the journal is loaded, so before `proven_rule` is decided). Its validity is never inferred from the coin's
+  current identity. An open legacy trade is still followed to its stop or time limit and closed for continuity (it
+  keeps its coin's one paper-trade slot until then, at most 24 hours); its result never enters the live record.
+* **No hindsight in either direction.** A trade opened under `VERIFIED_CRYPTO` stays qualified when a later scan
+  makes the coin `UNVERIFIED`, `VERIFIED_TRADFI` or `AMBIGUOUS`, or when that later scan has no authority file: the
+  current identity blocks a new signal and a new Analyzer call, never the historical fact. A legacy trade is never
+  re-qualified by a later scan either.
+* **The boundary is inspectable.** `smart.json` `accuracy` adds `evidence` (qualified and unqualified trades, open
+  and closed, signal and information side, with the reasons) and `legacy_unqualified` (the unqualified closed trades'
+  statistics, apart). Trade records in `open` / `closed` carry their provenance. The audit's smart part (and the
+  snapshot's `coverage.engines.smart.journal`) lists every unqualified trade with its reason; a coin with an open
+  legacy trade gets the step `PAPER_LEGACY_NO_IDENTITY_PROOF`. Trade-level codes: `IDENTITY_QUALIFIED`,
+  `LEGACY_NO_IDENTITY_PROOF`, `NOT_VERIFIED_AT_ENTRY`, `IDENTITY_PROOF_INCOMPLETE` (taxonomy `TRADE_IDENTITY`).
+
+The published journal when this closure was built (the `journal-data` copy of 2026-10-08 15:03 UTC, read-only:
+`tools/v8/smart_journal_evidence.py`) holds 36 trades, none with entry-time proof: 11 open (5 signal: UNI, ETH, SOL,
+NEAR, XRP; 6 information: HYPE, TAO, ZEC, PUMP, ENA, BTC) and 25 closed (10 signal, 15 information). Under these
+rules the production live record drops from 10 trades (R 0.829) to 0; all 36 stay in the journal and on the page,
+reported as `legacy_unqualified`. The verdict stays "Promising": 10 was below the 40 trades needed for the live
+record to decide anyway. Each Research run repeats this accounting on the latest published journal
+(`research_smart_journal.json`).
 
 ## How identity changes over time
 
@@ -221,8 +263,11 @@ Result: 14 universe deltas (`execution_identity` true -> false for `ADBE`, `BYD`
 DEX crypto-count deltas, 1 price-conflict note no longer emitted (`PRLX`), 2 code deltas plus the 2 matching
 decision-summary deltas; with the smart-money closure, 4 additive `smart.json` fields (`identity` on the three smart
 rows, all `VERIFIED_CRYPTO`, and `identity_authority`) and `analyze.js` pinned to its exact base and head digests
-(`files`); 0 unexpected. `smart_journal.json` is byte-identical to the base: every smart signal, information crowd
-and paper trade is unchanged. On the fixture the base code opened quant TSMOM and XSMOM positions on the
+(`files`); and, with the journal closure, the five entry-time provenance fields on each of the fixture's two fresh
+paper trades (`FAKE02` signal, `FAKE03` information; both `VERIFIED_CRYPTO`, qualified) in `smart.json` and
+`smart_journal.json` (20 values, each pinned by trade id and field) plus `accuracy.evidence` and
+`accuracy.legacy_unqualified`; 0 unexpected. Every other smart value - signals, information crowds, entries, prices,
+stops, holding periods, `live`, `live_info`, the verdict - is unchanged. On the fixture the base code opened quant TSMOM and XSMOM positions on the
 unknown `MOONX`; Phase 3 does not, and with `MOONX` out of the cross-section `FAKE27` enters the XSMOM top set - the
 unchanged XSMOM ranking responding to a smaller universe, as the counterfactual proves.
 

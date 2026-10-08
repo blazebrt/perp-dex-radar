@@ -1,7 +1,10 @@
 """End-of-run audit of smart.run(): trader-level selection counts and the smart-money engine's disposition for
 every coin its proven traders hold. Since v8 Phase 3 a crowd on a coin without crypto execution identity is recorded
 with its identity reason (IDENTITY_UNVERIFIED, TRADFI_CLASSIFIED / TRADFI_EXPOSURE_EXCLUDED, AMBIGUOUS_EXPOSURE,
-IDENTITY_AUTHORITY_MISSING) and the step SMART_CROWD_IDENTITY_BLOCKED - never as SMART_NO_CROWD. Coins of the registry the engine never saw get SMART_NOT_HELD or
+IDENTITY_AUTHORITY_MISSING) and the step SMART_CROWD_IDENTITY_BLOCKED - never as SMART_NO_CROWD. The part's
+"journal" section shows the evidence state of every paper trade: identity-qualified (in the live record) or without
+entry-time identity proof (LEGACY_NO_IDENTITY_PROOF: kept, never counted); a coin with such an open trade gets the
+step PAPER_LEGACY_NO_IDENTITY_PROOF. Coins of the registry the engine never saw get SMART_NOT_HELD or
 SMART_VENUE_NOT_COVERED when the snapshot is assembled (this process has no registry)."""
 from __future__ import annotations
 
@@ -49,8 +52,25 @@ IDENTITY_HEALTH = {"IDENTITY_UNVERIFIED": T.MISSING, "IDENTITY_AUTHORITY_MISSING
                    "AMBIGUOUS_EXPOSURE": T.CONFLICTED}
 
 
-def smart_part(now, cfg, board, traders, snap, coins, open_trades, authority=None):
+def journal_part(open_trades, closed_trades):
+    """The smart journal's evidence state (v8 Phase 3): every paper trade by evidence class, and each trade without
+    entry-time identity proof (kept for history, never in the live record), with its reason."""
+    import smart as S
+    J = {"open": list(open_trades or []), "closed": list(closed_trades or [])}
+    unq = []
+    for part in ("open", "closed"):
+        for tr in J[part]:
+            if not S.trade_qualified(tr):
+                unq.append({"id": tr.get("id"), "coin": tr.get("coin"), "kind": tr.get("kind", "signal"), "state": part,
+                            "t_in": tr.get("t_in"), "r": tr.get("r"),
+                            "reason": tr.get("identity_unqualified_reason") or "IDENTITY_PROOF_INCOMPLETE"})
+    return {"evidence": S.journal_evidence(J), "unqualified_trades": unq[-200:], "unqualified_n": len(unq),
+            "live_record_rule": "identity_qualified trades only (entry-time VERIFIED_CRYPTO proof)"}
+
+
+def smart_part(now, cfg, board, traders, snap, coins, open_trades, authority=None, closed_trades=None):
     import scanner as sc
+    import smart as SM
     L = LG.Ledger("smart")
     held_any, held_min = {}, set()
     for tid, s in snap.items():
@@ -66,6 +86,7 @@ def smart_part(now, cfg, board, traders, snap, coins, open_trades, authority=Non
     opened = [tr for tr in open_trades if tr.get("t_in") == now]
     opened_c = {tr["coin"] for tr in opened}
     busy0 = {tr["coin"] for tr in open_trades if tr.get("t_in") != now}
+    legacy_open = {tr["coin"] for tr in open_trades if not SM.trade_qualified(tr)}
     for t in sorted(set(held_any) | set(rows)):
         r = rows.get(t)
         k = [f"hyperliquid:{r['hl']}"] if r else None
@@ -89,6 +110,8 @@ def smart_part(now, cfg, board, traders, snap, coins, open_trades, authority=Non
                 steps.append("PAPER_NO_PRICE")
         if t not in published:
             steps.append("NOT_IN_PUBLISHED_LIST")
+        if t in legacy_open:
+            steps.append("PAPER_LEGACY_NO_IDENTITY_PROOF")
         blk = r.get("identity_block")
         if blk:
             # v8 Phase 3: the crowd existed; the coin's identity kept it from being a signal (never SMART_NO_CROWD)
@@ -108,6 +131,7 @@ def smart_part(now, cfg, board, traders, snap, coins, open_trades, authority=Non
     if not consistent:
         L.problem("trader classification differs from smart.select_traders()")
         part["problems"] = L.problems
+    part["journal"] = journal_part(open_trades, closed_trades)
     part["traders"] = {"leaderboard_rows": len((board or {}).get("leaderboardRows") or []), "selected": len(traders),
                        "read": len(snap), "by_reason": counts}
     part["stages"] = {"coins_held": len(held_any), "coins_min_size": len(held_min), "rows": len(rows),

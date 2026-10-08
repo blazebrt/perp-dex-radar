@@ -626,6 +626,7 @@ class Authority:
         self.ok, self.why = ok, why
         rec = record or {}
         self.scan_id, self.ts = rec.get("scan_id"), rec.get("ts")
+        self.version = rec.get("identity_version")
         self.states = (rec.get("states") or {}) if ok else {}
 
     def state(self, t):
@@ -643,7 +644,7 @@ class Authority:
     @classmethod
     def from_states(cls, states, scan_id="given", ts=0):
         """An authority built in memory (tests): {coin: state} or {coin: [state, decision]}."""
-        rec = {"scan_id": scan_id, "ts": ts,
+        rec = {"scan_id": scan_id, "ts": ts, "identity_version": VERSION,
                "states": {t: (v if isinstance(v, list) else [v, v]) for t, v in (states or {}).items()}}
         return cls(True, "given", rec)
 

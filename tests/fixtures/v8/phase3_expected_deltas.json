@@ -1,6 +1,6 @@
 {
  "schema": "v8.delta/2",
- "phase": "v8 Phase 3: identity coverage hardening and discovery/execution separation (closure: smart-money identity gate)",
+ "phase": "v8 Phase 3: identity coverage hardening and discovery/execution separation (closures: smart-money identity gate; entry-time identity provenance of smart paper trades)",
  "base": {
   "sha": "82f8d35a80e561384f2e8be0e1399dd4e5adb99b",
   "tree": "06d80f744401589f983ac52298650d182e0c2fa5",
@@ -17,7 +17,9 @@
   "UNVERIFIED_LISTED_SEPARATELY": "The radar publishes identity-unverified coins in coverage.unverified, not among the non-crypto (tradfi) exclusions in coverage.tradfi: unknown is not tradfi.",
   "VENUE_FIELD_TRADFI": "A same-venue field the live venue field census showed to be tradfi-only is tradfi evidence: an Aster underlyingSubType in STOCK, ETF, Commodities, Semiconductor, USD1-RWA, or a Variational market name starting 'Swap on ' (scan gh-37782095629-1: 0 such markets in a verified crypto exposure). Tradfi direction only.",
   "SMART_IDENTITY_FIELDS": "Additive only: every smart-money row carries the coin's identity state from the same-scan identity authority (data/v8/identity_authority.json, written by the scanner), and smart.json names the authority it used. On the fixture every smart coin is VERIFIED_CRYPTO, so every signal, information crowd, paper trade and statistic is unchanged; a crowd on a coin without crypto execution identity would be blocked at the source (tests/test_v8_phase3_smart.py).",
-  "ANALYZER_SMART_IDENTITY_DEFENSE": "analyze.js (published with the site) accepts a smart-money signal only from a row whose identity is VERIFIED_CRYPTO, and explains an identity-blocked crowd as a note: defense in depth behind the smart.py gate."
+  "ANALYZER_SMART_IDENTITY_DEFENSE": "analyze.js (published with the site) accepts a smart-money signal only from a row whose identity is VERIFIED_CRYPTO, and explains an identity-blocked crowd as a note: defense in depth behind the smart.py gate.",
+  "SMART_TRADE_IDENTITY_PROVENANCE": "Additive only: every new smart-money paper trade records its entry-time identity proof - identity_state_at_entry, identity_qualified, identity_version, identity_scan_id, identity_decision - from the same-scan identity authority that allowed it, written once and never recomputed. On the fixture both trades (FAKE02 signal, FAKE03 info) are VERIFIED_CRYPTO and qualified; every other trade value (entry, price, stop, hold, kind, id) is unchanged.",
+  "SMART_EVIDENCE_BOUNDARY": "Additive only: smart.json accuracy reports the evidence boundary - evidence (qualified vs unqualified trades, open and closed, signal and info) and legacy_unqualified (trades without entry-time identity proof, kept apart, LEGACY_NO_IDENTITY_PROOF). live, live_info and the verdict count qualified trades only; on a fresh fixture run every trade is qualified, so they are unchanged."
  },
  "universe": [
   {
@@ -322,6 +324,368 @@
    },
    "rule": "SMART_IDENTITY_FIELDS",
    "why": "the parity harness runs offline: a local scan id and the frozen scan time; smart1 runs one hour before the scan time, inside the offline 6-hour window"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_state_at_entry"
+   ],
+   "base": "<absent>",
+   "head": "VERIFIED_CRYPTO",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_qualified"
+   ],
+   "base": "<absent>",
+   "head": true,
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "<absent>",
+   "head": "v8.identity/2",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_scan_id"
+   ],
+   "base": "<absent>",
+   "head": "local-1791014833",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_decision"
+   ],
+   "base": "<absent>",
+   "head": "CRYPTO",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_state_at_entry"
+   ],
+   "base": "<absent>",
+   "head": "VERIFIED_CRYPTO",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_qualified"
+   ],
+   "base": "<absent>",
+   "head": true,
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "<absent>",
+   "head": "v8.identity/2",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_scan_id"
+   ],
+   "base": "<absent>",
+   "head": "local-1791014833",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_decision"
+   ],
+   "base": "<absent>",
+   "head": "CRYPTO",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_state_at_entry"
+   ],
+   "base": "<absent>",
+   "head": "VERIFIED_CRYPTO",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_qualified"
+   ],
+   "base": "<absent>",
+   "head": true,
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "<absent>",
+   "head": "v8.identity/2",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_scan_id"
+   ],
+   "base": "<absent>",
+   "head": "local-1791014833",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_decision"
+   ],
+   "base": "<absent>",
+   "head": "CRYPTO",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_state_at_entry"
+   ],
+   "base": "<absent>",
+   "head": "VERIFIED_CRYPTO",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_qualified"
+   ],
+   "base": "<absent>",
+   "head": true,
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "<absent>",
+   "head": "v8.identity/2",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_scan_id"
+   ],
+   "base": "<absent>",
+   "head": "local-1791014833",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_decision"
+   ],
+   "base": "<absent>",
+   "head": "CRYPTO",
+   "rule": "SMART_TRADE_IDENTITY_PROVENANCE"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "accuracy",
+    "evidence"
+   ],
+   "base": "<absent>",
+   "head": {
+    "qualified": {
+     "closed_info": 0,
+     "closed_signal": 0,
+     "open_info": 1,
+     "open_signal": 1
+    },
+    "unqualified": {
+     "closed_info": 0,
+     "closed_signal": 0,
+     "open_info": 0,
+     "open_signal": 0
+    },
+    "unqualified_reasons": {}
+   },
+   "rule": "SMART_EVIDENCE_BOUNDARY"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "accuracy",
+    "legacy_unqualified"
+   ],
+   "base": "<absent>",
+   "head": {
+    "info": {
+     "n": 0
+    },
+    "reason": "LEGACY_NO_IDENTITY_PROOF",
+    "signal": {
+     "n": 0
+    }
+   },
+   "rule": "SMART_EVIDENCE_BOUNDARY"
   }
  ],
  "decisions": [

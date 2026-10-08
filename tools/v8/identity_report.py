@@ -188,6 +188,13 @@ def smart_identity(snap, head_out):
             "actionable_signals": [[r["coin"], r.get("side"), r.get("identity")] for r in rows if r.get("signal")],
             "info_crowds": [[r["coin"], r.get("side"), r.get("identity")] for r in rows if r.get("info")],
             "published_rows": len(rows),
+            # the smart journal's evidence boundary (final closure): only qualified trades are in the live record
+            "journal_evidence": (sm.get("accuracy") or {}).get("evidence"),
+            "live": (sm.get("accuracy") or {}).get("live"), "live_info": (sm.get("accuracy") or {}).get("live_info"),
+            "legacy_unqualified": (sm.get("accuracy") or {}).get("legacy_unqualified"),
+            "verdict": (sm.get("accuracy") or {}).get("verdict"),
+            "unqualified_trades": ((((snap.get("coverage") or {}).get("engines") or {}).get("smart") or {})
+                                   .get("journal") or {}).get("unqualified_trades"),
             "published_by_identity": {k: sum(1 for r in rows if (r.get("identity") or "NONE") == k)
                                       for k in sorted({r.get("identity") or "NONE" for r in rows})}}
 
@@ -266,6 +273,9 @@ def text(rep):
     L.append(f"   crowds blocked by identity: {smr.get('identity_blocked_all')} (would-be signals "
              f"{smr.get('blocked_signals')}, information crowds {smr.get('blocked_info')})")
     L.append(f"   actionable smart signals: {smr.get('actionable_signals')}; information crowds: {smr.get('info_crowds')}")
+    L.append(f"   journal evidence: {smr.get('journal_evidence')}")
+    L.append(f"   live record (qualified only): {smr.get('live')}; info {smr.get('live_info')}; verdict {smr.get('verdict')}")
+    L.append(f"   legacy without entry-time identity proof (kept, never counted): {smr.get('legacy_unqualified')}")
     if rep.get("production"):
         p = rep["production"]
         L.append("")

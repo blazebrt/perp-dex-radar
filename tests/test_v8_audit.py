@@ -346,6 +346,19 @@ class PipelineAudit(unittest.TestCase):
         self.assertTrue(any(c["signal"] for c in sm["coins"]))
         part = self.snap["coverage"]["engines"]["smart"]["stages"]
         self.assertEqual(part["identity_blocked"], [])
+        # final closure: every paper trade carries its entry-time identity proof, and the audit shows the boundary
+        with open(os.path.join(self.out, "data", "smart_journal.json")) as fh:
+            J = json.load(fh)
+        self.assertTrue(J["open"])
+        for tr in J["open"]:
+            self.assertEqual((tr["identity_state_at_entry"], tr["identity_qualified"], tr["identity_version"],
+                              tr["identity_scan_id"]), ("VERIFIED_CRYPTO", True, "v8.identity/2", "local-1791014833"))
+        jn = self.snap["coverage"]["engines"]["smart"]["journal"]
+        self.assertEqual(jn["evidence"]["qualified"]["open_signal"] + jn["evidence"]["qualified"]["open_info"],
+                         len(J["open"]))
+        self.assertEqual((jn["unqualified_n"], jn["unqualified_trades"]), (0, []))
+        self.assertEqual(sm["accuracy"]["evidence"], jn["evidence"])
+        self.assertEqual(sm["accuracy"]["legacy_unqualified"]["reason"], "LEGACY_NO_IDENTITY_PROOF")
 
     def test_identity_transitions_are_recorded_not_rewritten(self):
         ts = self.snap["manifest"]["ts"]
