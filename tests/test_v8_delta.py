@@ -211,6 +211,26 @@ class Phase3Validator(unittest.TestCase):
         _, fails = DP.check(man, self.ub, self.uh, self.cf, self.head)
         self.assertTrue(any("UNEXPECTED code delta decisions radar/tradfi" in f for f in fails), fails)
 
+    def test_source_file_change_needs_its_exact_digests(self):
+        for d, body in ((self.cf, "var a = 1;"), (self.head, "var a = 2;")):
+            with open(os.path.join(d, "analyze.js"), "w") as fh:
+                fh.write(body)
+        _, fails = DP.check(self.man, self.ub, self.uh, self.cf, self.head)
+        self.assertTrue(any("UNEXPECTED code delta in non-JSON file analyze.js" in f for f in fails), fails)
+        import hashlib
+        dg = lambda b: hashlib.sha256(b.encode()).hexdigest()  # noqa: E731
+        man = copy.deepcopy(self.man)
+        man["files"] = [{"file": "analyze.js", "base_sha256": dg("var a = 1;"), "head_sha256": dg("var a = 2;"), "rule": "R"}]
+        _, fails = DP.check(man, self.ub, self.uh, self.cf, self.head)
+        self.assertEqual(fails, [])
+        man["files"][0]["head_sha256"] = dg("var a = 3;")
+        _, fails = DP.check(man, self.ub, self.uh, self.cf, self.head)
+        self.assertTrue(any("file delta analyze.js differs" in f for f in fails), fails)
+        with open(os.path.join(self.head, "analyze.js"), "w") as fh:
+            fh.write("var a = 1;")
+        _, fails = DP.check(man, self.ub, self.uh, self.cf, self.head)
+        self.assertTrue(any("expected code delta not observed: analyze.js" in f for f in fails), fails)
+
     def test_set_delta_not_observed_fails(self):
         self.write(self.cf, {"coverage": {"tradfi": ["AAPL"]}})
         man = copy.deepcopy(self.man)
@@ -232,13 +252,22 @@ class Phase3Validator(unittest.TestCase):
         self.assertEqual(man["base"]["sha"], "82f8d35a80e561384f2e8be0e1399dd4e5adb99b")
         self.assertEqual(man["schema"], "v8.delta/2")
         self.assertLessEqual(len(man["universe"]), 16)
-        self.assertLessEqual(len(man["code"]), 2)
+        self.assertLessEqual(len(man["code"]), 6)
         self.assertEqual({e["field"] for e in man["universe"]}, {"execution_identity", "tradfi"})
+        # the smart-money closure only adds identity fields: every smart row's added identity is VERIFIED_CRYPTO
+        smart = [e for e in man["code"] if e["file"] == "data/smart.json"]
+        self.assertEqual({e["rule"] for e in smart}, {"SMART_IDENTITY_FIELDS"})
+        for e in smart:
+            self.assertEqual(e["base"], "<absent>", e)
+            if e["path"][-1] == "identity":
+                self.assertEqual(e["head"], "VERIFIED_CRYPTO", e)
+        self.assertEqual([f["file"] for f in man["files"]], ["analyze.js"])
+        self.assertTrue(all(len(f["base_sha256"]) == len(f["head_sha256"]) == 64 for f in man["files"]))
         # every universe delta takes execution authority away; none grants it
         for e in man["universe"]:
             if e["field"] == "execution_identity":
                 self.assertEqual((e["base"], e["head"]), (True, False), e)
-        self.assertEqual({e["path"][0] for e in man["code"]}, {"coverage"})
+        self.assertEqual({e["path"][0] for e in man["code"]}, {"coverage", "coins", "identity_authority"})
         self.assertNotIn("*", json.dumps(man))
 
 

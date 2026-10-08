@@ -1,7 +1,7 @@
 # v8 Phase 3: identity coverage hardening, discovery separated from execution
 
 Phase 3 is a narrow correctness phase. It **intentionally changes legacy behaviour** in one scope: which coins may
-reach a crypto engine. It changes no strategy, threshold, score, stop, target, trailing rule, paper-trade rule,
+reach a crypto engine or become a production signal (radar, quant, swing, day and smart money). It changes no strategy, threshold, score, stop, target, trailing rule, paper-trade rule,
 top-N limit, history requirement, liquidity gate ($1M DEX, $5M reference), strategy authority (`FINAL`, `ORDER`) or
 data source, and it adds no API. Every output difference from the Phase 2 base (main `82f8d35`) is proven to be an
 approved one (see [Differential parity](#differential-parity)).
@@ -86,6 +86,9 @@ Aster, Extended, dYdX, Paradex and edgeX already split base and quote in their p
   every engine is `IDENTITY_UNVERIFIED` (`INSUFFICIENT_DATA`, health `MISSING`) with the evidence path and the
   promotion condition. Identity is a separate gate: liquidity, history and strategy gates are unchanged and still
   apply after it.
+* **Smart money** (which reads Hyperliquid positions, not the universe) applies the same authority at its source;
+  see [Smart money](#smart-money-the-same-scan-identity-authority). No production signal source - radar, quant, swing,
+  day or smart money - confers actionable crypto authority on a coin that is not `VERIFIED_CRYPTO`.
 * A price-separated `UNVERIFIED` exposure next to a `VERIFIED_CRYPTO` exposure of the same ticker is not merged into
   the crypto coin (contract state `UNVERIFIED_EXPOSURE_NOT_ADMITTED`, step `UNVERIFIED_EXPOSURE_KEPT_OUT`).
 
@@ -106,6 +109,39 @@ raw symbol: lighter:SAMSUNGUSD         parsed: SAMSUNG (QUOTE_SUFFIX:USD)
 tradfi evidence: PARSED_SYMBOL_TRADFI_LIST:SAMSUNG (authority PARSED_SYMBOL)
 result: VERIFIED_TRADFI (TRADFI_CLASSIFIED)   discovery: included   crypto execution: blocked
 ```
+
+## Smart money: the same-scan identity authority
+
+Smart money (`smart.py`) does not build the coin universe: it reads proven Hyperliquid traders' positions and
+canonicalises each position's coin. It gets its coins' identity from the scanner of the same scan, never from a second
+classifier, a ticker list or the fact that Hyperliquid lists a market:
+
+* **Mechanism.** At the end of `scanner.run()` (next to `latest.json`) the scanner writes
+  `data/v8/identity_authority.json` (`v8.identity.write_authority`): every coin of the universe it just resolved,
+  `[identity state, decision]`, with the scan id, the scan time and the identity version. In the Scan and Research
+  workflows `smart.py` runs right after the scanner in the same job and the same output folder, so it reads that file
+  (`v8.identity.load_authority`) instead of rebuilding the universe.
+* **Same scan, or nothing.** The file is accepted only when its identity version is this code's and it belongs to
+  this scan: in GitHub Actions the scan ids (`gh-<run>-<attempt>`) must be equal; offline (local scan ids, the parity
+  harness and tests) the file must be within 6 hours of the smart run. Anything else - no file, an unreadable file,
+  another scan, another identity version, a stale file - gives an authority with no states.
+* **The gate, at the source.** A crowd on a coin whose state is not `VERIFIED_CRYPTO` (or that no usable same-scan
+  authority names) is not a signal, not an information-only crowd, not tested or proven, has no side and opens no
+  paper trade. The row stays in `smart.json` as an observation - traders, long and short counts, new positions,
+  money, the crowd's text - with `identity` and `identity_block` (`reason`, `state`, the crowd side and whether it
+  would have been a signal). Every row carries `identity`; `smart.json` names the authority it used
+  (`identity_authority`: ok, why, scan id, time, coins, source).
+* **Fail closed.** Without a same-scan authority no crowd gets authority (`IDENTITY_AUTHORITY_MISSING`); the
+  observations are still published.
+* **Downstream.** The dashboard's signal aggregation and the Smart Money page use `signal` / `info`, which a blocked
+  row never has. The Analyzer (`analyze.js`) also checks, as defense in depth, that a smart signal's row is
+  `VERIFIED_CRYPTO` before `testedSignals()` or `signalCoins()` accept it, and explains a blocked crowd as a note.
+* **Audit.** The smart ledger records a blocked crowd with its identity reason - `IDENTITY_UNVERIFIED`,
+  `TRADFI_CLASSIFIED` / `TRADFI_EXPOSURE_EXCLUDED`, `AMBIGUOUS_EXPOSURE` or `IDENTITY_AUTHORITY_MISSING` - and the
+  step `SMART_CROWD_IDENTITY_BLOCKED`, never as `SMART_NO_CROWD`; the smart part's stages count rows by identity and
+  list the blocked crowds. For a `VERIFIED_CRYPTO` coin nothing changes: crowd detection, signal side, tested /
+  promising / proven reading, paper trade, stop, holding period and statistics are the same (differential parity:
+  `smart.json` differs from the base only by the added identity fields).
 
 ## How identity changes over time
 
@@ -183,7 +219,10 @@ Result: 14 universe deltas (`execution_identity` true -> false for `ADBE`, `BYD`
 `NEWCOIN`, `SAMSUNGUSD`, `SKHYNIXUSD`, `US100S`, `US10Y`; `tradfi` false -> true for `ADBE`, `SAMSUNGUSD`,
 `SKHYNIXUSD`, `US100S`), 4
 DEX crypto-count deltas, 1 price-conflict note no longer emitted (`PRLX`), 2 code deltas plus the 2 matching
-decision-summary deltas; 0 unexpected. On the fixture the base code opened quant TSMOM and XSMOM positions on the
+decision-summary deltas; with the smart-money closure, 4 additive `smart.json` fields (`identity` on the three smart
+rows, all `VERIFIED_CRYPTO`, and `identity_authority`) and `analyze.js` pinned to its exact base and head digests
+(`files`); 0 unexpected. `smart_journal.json` is byte-identical to the base: every smart signal, information crowd
+and paper trade is unchanged. On the fixture the base code opened quant TSMOM and XSMOM positions on the
 unknown `MOONX`; Phase 3 does not, and with `MOONX` out of the cross-section `FAKE27` enters the XSMOM top set - the
 unchanged XSMOM ranking responding to a smaller universe, as the counterfactual proves.
 
@@ -200,9 +239,6 @@ unchanged XSMOM ranking responding to a smaller universe, as the counterfactual 
 * **Instruments with no label anywhere** (`US10Y` and `BYD` on Lighter; Aster stocks without a subtype; pre-launch
   tokens like `VARIATIONAL`) stay `UNVERIFIED`: no pattern is guessed. That blocks them, but does not call them
   tradfi.
-* **Smart money** reads Hyperliquid positions and does not consult the universe identity at all (it never did, for
-  tradfi either). It published no signal on an unverified or tradfi coin in the Phase 2 live run (`BSV` and `PAXG`
-  appeared as information rows only), but nothing prevents it.
 * **One-hop links only.** A parsed-symbol link is not followed further, and it never moves a contract to another
   ticker.
 * The legacy row field `tradfi_reason` still says `DEFAULT_CRYPTO` for an unlabeled row: it mirrors the legacy

@@ -21,7 +21,7 @@ What is new:
 | Known legacy behaviour | What the audit shows that is still wrong and was deliberately left alone | [known-legacy-behavior.md](known-legacy-behavior.md) |
 | Phase 0 recommendations | NON-AUTHORITATIVE notes for later phases; nothing reads them at runtime | [phase0-requalification.md](phase0-requalification.md) |
 | Universe identity (Phase 2) | Which markets are one coin, crypto or not, decided per contract and per price-coherent exposure; missing volume is not $0 | [phase2-universe-identity.md](phase2-universe-identity.md) |
-| Identity coverage (Phase 3) | Four identity states; unknown coins stay visible but never reach an engine; venue-symbol parsing; identity transitions per scan | [phase3-identity-coverage.md](phase3-identity-coverage.md) |
+| Identity coverage (Phase 3) | Four identity states; unknown coins stay visible but never reach an engine or become a signal (smart money included, through the scanner's same-scan identity authority); venue-symbol parsing; identity transitions per scan | [phase3-identity-coverage.md](phase3-identity-coverage.md) |
 
 ## How it runs
 

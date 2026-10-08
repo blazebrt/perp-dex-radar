@@ -23,7 +23,8 @@ exclusion the base code has: every HEAD coin without execution identity is hande
 (projection "exclude_without_execution_identity"). Then CF -> HEAD isolates what HEAD's changed code does beyond
 that gate (the published lists that tell tradfi from unverified), and every other engine difference is the unchanged
 engine logic responding to the identity gate. Code deltas may be "kind": "set": the list at that path is compared
-as a set (base items -> head items), its elements are not diffed one by one.
+as a set (base items -> head items), its elements are not diffed one by one. A changed published source file (not
+JSON: analyze.js) is allowed only by a manifest "files" entry pinning its exact base and head sha256.
 
 4 isolates what the new identity and volume semantics decide; 5 isolates what the changed engine code does with the
 same universe. Every other output difference between BASE and HEAD is then the unchanged legacy logic responding to
@@ -237,10 +238,20 @@ def check(manifest, ub, uh, cf_out, head_out):
     for e in manifest["code"]:
         want_c.setdefault(e["file"], []).append(e)
     code_seen = []
+    want_f = {e["file"]: e for e in manifest.get("files") or []}
     for f in files:
         if cf_sum["files"].get(f) == head_sum["files"].get(f):
-            if f in want_c:
+            if f in want_c or f in want_f:
                 fails.append(f"expected code delta not observed: {f}")
+            continue
+        if f in want_f:      # an approved change of a published source file, pinned to its exact digests
+            e = want_f[f]
+            if (cf_sum["files"].get(f), head_sum["files"].get(f)) != (e["base_sha256"], e["head_sha256"]):
+                fails.append(f"file delta {f} differs from the manifest: {cf_sum['files'].get(f)} -> "
+                             f"{head_sum['files'].get(f)}")
+            else:
+                code_seen.append({"file": f, "kind": "file", "base": e["base_sha256"], "head": e["head_sha256"],
+                                  "rule": e["rule"]})
             continue
         a, b = load_norm(os.path.join(cf_out, f)), load_norm(os.path.join(head_out, f))
         if not isinstance(a, (dict, list)) or not isinstance(b, (dict, list)):

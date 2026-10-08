@@ -13,6 +13,10 @@ sys.path.insert(0, os.path.dirname(HERE))
 
 import smart as SM  # noqa: E402
 import scanner as sc  # noqa: E402
+from v8 import identity as ID  # noqa: E402
+
+# v8 Phase 3: the test world's coins are verified crypto (in a scan, the scanner's identity authority says so)
+WORLD = ID.Authority.from_states({c: ID.VERIFIED_CRYPTO for c in ("BTC", "ETH", "SOL", "PEPE")})
 
 T0 = 1791000000
 
@@ -187,14 +191,14 @@ class EndToEnd(unittest.TestCase):
         for c in ("SOL", "ETH"):
             f.candles[c] = hourly(float(f.mids[c]), T0 - 8 * 86400, 8 * 24 + 40)
         jp = os.path.join(self.tmp, "j.json")
-        out1 = SM.run(self.tmp, journal_path=jp, fetch=f, now=T0)
+        out1 = SM.run(self.tmp, journal_path=jp, fetch=f, now=T0, identity=WORLD)
         self.assertEqual(out1["traders_n"], 6)
         self.assertEqual(out1["recent"], [], "the first scan only takes a snapshot")
         shutil.copyfile(os.path.join(self.tmp, "data", "smart_journal.json"), jp)
         f.pos[addr(0)] = [("SOL", 1000.0, 120.0), ("ETH", -20.0, 2500.0)]
         f.pos[addr(1)] = [("SOL", 500.0, 120.0)]
         f.pos[addr(2)] = [("ETH", -20.0, 2500.0)]
-        out2 = SM.run(self.tmp, journal_path=jp, fetch=f, now=T0 + 1200)
+        out2 = SM.run(self.tmp, journal_path=jp, fetch=f, now=T0 + 1200, identity=WORLD)
         coins = {c["coin"]: c for c in out2["coins"]}
         self.assertEqual((coins["ETH"]["side"], coins["ETH"]["signal"]), ("short", True), "two proven traders shorted")
         self.assertEqual((coins["SOL"]["side"], coins["SOL"]["signal"], coins["SOL"]["info"]), ("long", False, True))
@@ -203,7 +207,7 @@ class EndToEnd(unittest.TestCase):
         self.assertEqual(sorted((t["coin"], t["kind"]) for t in out2["open"]), [("ETH", "signal"), ("SOL", "info")])
         self.assertNotIn(addr(0), json.dumps(out2), "addresses are never published")
         shutil.copyfile(os.path.join(self.tmp, "data", "smart_journal.json"), jp)
-        out3 = SM.run(self.tmp, journal_path=jp, fetch=f, now=T0 + 1200 + 25 * 3600)
+        out3 = SM.run(self.tmp, journal_path=jp, fetch=f, now=T0 + 1200 + 25 * 3600, identity=WORLD)
         self.assertEqual(out3["open"], [], "closed after the holding time")
         self.assertEqual((out3["accuracy"]["live"]["n"], out3["accuracy"]["live_info"]["n"]), (1, 1),
                          "the signal and the information side are counted apart")

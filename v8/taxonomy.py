@@ -64,6 +64,11 @@ REASONS = {
                                                "verified exposure linked by price or symbol): the coin stays in the "
                                                "universe and the audit (discovery), is not tradfi, and has no crypto "
                                                "execution authority, so no engine evaluates it (v8 Phase 3)"),
+    "IDENTITY_AUTHORITY_MISSING": (INSUFFICIENT_DATA, "no same-scan identity authority names this coin (the "
+                                                      "scanner's identity file is missing, unreadable, from another "
+                                                      "scan or identity version, or the coin is not in the scan's "
+                                                      "universe): it fails closed and has no crypto execution "
+                                                      "authority (v8 Phase 3)"),
     "NO_ACTIVE_PERP_CONTRACT": (NOT_EXECUTABLE, "every contract for this asset was skipped by the legacy "
                                                 "adapters (delisted, inactive, builder, non-perpetual)"),
     "PRICE_CONFLICT_ALL_VENUES": (INSUFFICIENT_DATA, "every venue's price was dropped as a price conflict"),
@@ -149,6 +154,9 @@ STEPS = {
     "EXTRA_DEEP_DIVE": "deep-dived as a stage-2 extra (smart money long or dip in an uptrend)",
     "CRYPTO_EXPOSURE_SELECTED": "the ticker also names an unrelated tradfi or ambiguous exposure at another price; "
                                 "the crypto exposure was admitted and the other kept out (v8 Phase 2)",
+    "SMART_CROWD_IDENTITY_BLOCKED": "proven traders crowded into a side under the smart-money rule, but the coin has no "
+                                    "crypto execution identity: kept as an observation, not a signal, no paper trade "
+                                    "(the final reason names the identity state) (v8 Phase 3)",
     "UNVERIFIED_EXPOSURE_KEPT_OUT": "the ticker also has a price-separated exposure without identity evidence; the "
                                     "verified crypto exposure was admitted and the unverified one kept out of the coin "
                                     "(it stays in the registry) (v8 Phase 3)",

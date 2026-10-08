@@ -318,7 +318,7 @@ Nothing runs on your computer.
 | `picks.html` | The coin picks page (`picks.html`; the radar moves to `radar.html`) |
 | `dashboard.py` | Builds the dashboard data (`data/dashboard.json`) from the scan's files and publishes the front page |
 | `dashboard.html` | The dashboard, published as the front page (`index.html`) |
-| `smart.py` | Smart money: Hyperliquid's proven traders, their entries and positions per coin, signals and a paper record |
+| `smart.py` | Smart money: Hyperliquid's proven traders, their entries and positions per coin, signals and a paper record (signals only on coins the scan verified as crypto) |
 | `smart.html` | The smart money page: accuracy, signals, fresh moves, paper trades, every coin they hold |
 | `smart_research.json` | The smart-money test results shown on the page (`tools/research/smart_backtest.py`) |
 | `picks_research.json` | The test results behind the scores, shown on the picks page (`tools/research/picks_export.py`) |
@@ -330,7 +330,7 @@ Nothing runs on your computer.
 | `.github/workflows/backtest.yml` | Strategy tests started from the Studio tab |
 | `.github/workflows/research.yml` | Tests a `v5...` / `v6...` / `v7...` / `v8/phase-...` branch on live exchange data (nothing published) |
 | `.github/workflows/ci.yml` | Blocking checks on every pull request and push to main: all tests, legacy parity, simulator and no-edge checks |
-| `v8/` | v8 audit (Phase 1; observes): every DEX contract, why each coin was or was not shown by each engine, data health and provenance, published as `data/v8/audit_latest.json`. Since Phase 2 also the universe identity (`v8/identity.py`: which markets are one coin, crypto or not) and the shared liquidity evaluation (`v8/liquidity.py`), which decide; since Phase 3 four identity states, and only verified crypto reaches an engine. See `docs/v8/` |
+| `v8/` | v8 audit (Phase 1; observes): every DEX contract, why each coin was or was not shown by each engine, data health and provenance, published as `data/v8/audit_latest.json`. Since Phase 2 also the universe identity (`v8/identity.py`: which markets are one coin, crypto or not) and the shared liquidity evaluation (`v8/liquidity.py`), which decide; since Phase 3 four identity states, and only verified crypto reaches an engine or becomes a signal (smart money reads the scanner's same-scan identity authority). See `docs/v8/` |
 | `tools/v8/legacy_parity.py` | Runs the whole pipeline offline on a fixed fake market and checks its outputs against golden digests |
 | `tools/v8/delta_parity.py` | Proves that every output difference from the phase's base commit is one of the approved deltas in `tests/fixtures/v8/phase3_expected_deltas.json` |
 | `tools/v8/identity_report.py` | Identity states, the default-crypto inventory, unverified assets, venue field census, collisions and production changes of an audit snapshot (run by `research.yml`) |

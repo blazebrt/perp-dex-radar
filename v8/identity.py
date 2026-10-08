@@ -64,6 +64,8 @@ fails closed. Liquidity, history and strategy gates are separate and unchanged.
 Volumes: an observed 0 counts (best_vol, tot_vol, trade_vol are 0.0, not None); None means no venue reported one."""
 from __future__ import annotations
 
+import json
+import os
 import statistics
 
 VERSION = "v8.identity/2"
@@ -585,3 +587,88 @@ def _r(x, nd=8):
     if x is None:
         return None
     return float(f"{float(x):.{nd}g}")
+
+
+# --------------------------------------------------------------------------- 5. same-scan identity authority
+# The scanner resolves the universe and writes every coin's identity once per scan; engines that do not build the
+# universe themselves (smart money, which reads Hyperliquid positions) read it from the same output folder instead of
+# rebuilding it. It is the same authority the other engines use, never a second classifier.
+AUTHORITY_FILE = os.path.join("data", "v8", "identity_authority.json")
+AUTHORITY_SCHEMA = "v8.identity-authority/1"
+AUTHORITY_MAX_AGE_S = 6 * 3600      # offline only: in GitHub Actions the scan ids must be equal
+
+
+def authority_record(coins, ts, scan_id, assets=None):
+    """{coin: [state, decision]} for every coin of a universe (decision from the Resolution when given, else the
+    state's own name), with the scan it belongs to."""
+    states = {}
+    for t, c in (coins or {}).items():
+        st = c.get("identity")
+        dec = ((assets or {}).get(t) or {}).get("decision") if assets else None
+        states[t] = [st, dec or st]
+    return {"schema": AUTHORITY_SCHEMA, "identity_version": VERSION, "scan_id": scan_id, "ts": int(ts),
+            "n": len(states), "states": dict(sorted(states.items()))}
+
+
+def write_authority(out_dir, coins, ts, scan_id, assets=None):
+    path = os.path.join(out_dir, AUTHORITY_FILE)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as fh:
+        json.dump(authority_record(coins, ts, scan_id, assets), fh, sort_keys=True, separators=(",", ":"))
+    return path
+
+
+class Authority:
+    """Identity states of one scan as an engine reads them. state(t) is None whenever the authority is not usable
+    or does not name the coin: the caller treats None as no execution identity (fail closed)."""
+
+    def __init__(self, ok, why, record=None):
+        self.ok, self.why = ok, why
+        rec = record or {}
+        self.scan_id, self.ts = rec.get("scan_id"), rec.get("ts")
+        self.states = (rec.get("states") or {}) if ok else {}
+
+    def state(self, t):
+        v = self.states.get(t)
+        return v[0] if isinstance(v, list) and v else None
+
+    def decision(self, t):
+        v = self.states.get(t)
+        return v[1] if isinstance(v, list) and len(v) > 1 else None
+
+    def summary(self):
+        return {"ok": self.ok, "why": self.why, "scan_id": self.scan_id, "ts": self.ts, "coins": len(self.states),
+                "source": AUTHORITY_FILE.replace(os.sep, "/")}
+
+    @classmethod
+    def from_states(cls, states, scan_id="given", ts=0):
+        """An authority built in memory (tests): {coin: state} or {coin: [state, decision]}."""
+        rec = {"scan_id": scan_id, "ts": ts,
+               "states": {t: (v if isinstance(v, list) else [v, v]) for t, v in (states or {}).items()}}
+        return cls(True, "given", rec)
+
+
+def load_authority(out_dir, now, scan_id):
+    """The scanner's identity authority of this scan, from out_dir. Fails closed: a missing, unreadable, other-version
+    or other-scan file gives an authority with no states (every coin None). Same scan: equal GitHub Actions scan ids
+    (gh-<run>-<attempt>); offline (local scan ids) the file must be at most AUTHORITY_MAX_AGE_S away in time."""
+    path = os.path.join(out_dir, AUTHORITY_FILE)
+    try:
+        with open(path) as fh:
+            rec = json.load(fh)
+    except FileNotFoundError:
+        return Authority(False, "NO_AUTHORITY_FILE")
+    except (OSError, ValueError) as e:
+        return Authority(False, f"UNREADABLE:{type(e).__name__}", None)
+    if not isinstance(rec, dict) or rec.get("schema") != AUTHORITY_SCHEMA:
+        return Authority(False, "WRONG_SCHEMA", rec if isinstance(rec, dict) else None)
+    if rec.get("identity_version") != VERSION:
+        return Authority(False, f"OTHER_IDENTITY_VERSION:{rec.get('identity_version')}", rec)
+    a, b = str(rec.get("scan_id") or ""), str(scan_id or "")
+    if a.startswith("gh-") or b.startswith("gh-"):
+        if a != b:
+            return Authority(False, "OTHER_SCAN", rec)
+    elif not isinstance(rec.get("ts"), (int, float)) or abs(int(now) - int(rec["ts"])) > AUTHORITY_MAX_AGE_S:
+        return Authority(False, "STALE", rec)
+    return Authority(True, "SAME_SCAN", rec)
+

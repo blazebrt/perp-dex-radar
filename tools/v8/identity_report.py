@@ -17,6 +17,7 @@ Phase 3 part:
   the raw venue identity fields, and whether the $1M liquidity gate would pass for it;
 * the venue field census: every identity-relevant raw field each venue sent, with its values counted per identity
   state of the contract's own exposure, so a later phase can decide - from data - whether a field is reliable evidence;
+* smart money under the identity gate: rows by identity state, crowds blocked only by identity, actionable signals;
 * with --base-out (the phase base's engines run on the same live data minutes apart): every production output
   (radar pick or watch, quant signal or position, swing or day listing) the base published that this run did not,
   and the other way round, each with the asset's identity state now - the identity gate's effect on production.
@@ -98,6 +99,7 @@ def report(snap, base_out=None, head_out=None):
     out["observed_zero_volume"] = zero
     out["missing_volume_quant"] = sorted(t for t, r in recs["quant"].items() if r["c"] == "DEX_VOLUME_MISSING")
     out.update(phase3(snap, assets, by_id, counts))
+    out["smart"] = smart_identity(snap, head_out)
     if base_out and head_out:
         out["production"] = production_diff(base_out, head_out, assets)
     return out
@@ -157,6 +159,37 @@ def phase3(snap, assets, by_id, counts):
             "unverified": [unver[t] for t in sorted(unver, key=lambda x: -(unver[x]["best_vol"] or 0))],
             "unverified_liquid": sorted(t for t, r in unver.items() if r["liquidity_gate_would_pass"]),
             "venue_field_census": census}
+
+
+def smart_identity(snap, head_out):
+    """Smart money under the identity gate (v8 Phase 3 closure): every row's identity state (all rows, from the smart
+    part's stages), the crowds blocked only by identity (each blocked row keeps the crowd it would have been), the
+    actionable signals left, and the authority the engine used. Verified-crypto rows are unchanged by construction
+    (proven by the differential parity), so the blocked crowds are the whole difference."""
+    st = (((snap.get("coverage") or {}).get("engines") or {}).get("smart") or {}).get("stages") or {}
+    sm = {}
+    if head_out:
+        try:
+            with open(os.path.join(head_out, "data", "smart.json")) as fh:
+                sm = json.load(fh)
+        except (OSError, ValueError):
+            sm = {}
+    rows = sm.get("coins") or []
+    blocked = [{"coin": r["coin"], "identity": r.get("identity"), "reason": (r.get("identity_block") or {}).get("reason"),
+                "would_have_been": "signal" if (r.get("identity_block") or {}).get("crowd_signal") else "info",
+                "side": (r.get("identity_block") or {}).get("crowd_side"), "traders": r.get("traders"),
+                "new_long": r.get("new_long"), "new_short": r.get("new_short")}
+               for r in rows if r.get("identity_block")]
+    return {"authority": sm.get("identity_authority"), "rows_by_identity": st.get("identity"),
+            "rows": st.get("rows"), "identity_blocked_all": st.get("identity_blocked"),
+            "blocked_crowds_published": blocked,
+            "blocked_signals": sum(1 for b in blocked if b["would_have_been"] == "signal"),
+            "blocked_info": sum(1 for b in blocked if b["would_have_been"] == "info"),
+            "actionable_signals": [[r["coin"], r.get("side"), r.get("identity")] for r in rows if r.get("signal")],
+            "info_crowds": [[r["coin"], r.get("side"), r.get("identity")] for r in rows if r.get("info")],
+            "published_rows": len(rows),
+            "published_by_identity": {k: sum(1 for r in rows if (r.get("identity") or "NONE") == k)
+                                      for k in sorted({r.get("identity") or "NONE" for r in rows})}}
 
 
 def _published(out_dir):
@@ -225,6 +258,14 @@ def text(rep):
     for v, fields in sorted((rep.get("venue_field_census") or {}).items()):
         for k, vals in sorted(fields.items()):
             L.append(f"   {v}.{k}: " + "; ".join(f"{val} {cnt}" for val, cnt in sorted(vals.items())[:40]))
+    smr = rep.get("smart") or {}
+    L.append("")
+    L.append(f"== smart money identity: authority {(smr.get('authority') or {}).get('why')} "
+             f"({(smr.get('authority') or {}).get('coins')} coins); rows by identity {smr.get('rows_by_identity')} "
+             f"of {smr.get('rows')}; published {smr.get('published_by_identity')}")
+    L.append(f"   crowds blocked by identity: {smr.get('identity_blocked_all')} (would-be signals "
+             f"{smr.get('blocked_signals')}, information crowds {smr.get('blocked_info')})")
+    L.append(f"   actionable smart signals: {smr.get('actionable_signals')}; information crowds: {smr.get('info_crowds')}")
     if rep.get("production"):
         p = rep["production"]
         L.append("")
@@ -258,7 +299,7 @@ def main(argv=None):
     ap.add_argument("--head-out", default=None, help="this run's output folder (default: next to the snapshot)")
     a = ap.parse_args(argv)
     head_out = a.head_out or os.path.abspath(os.path.join(os.path.dirname(a.snapshot), "..", ".."))
-    rep = report(load(a.snapshot), base_out=a.base_out, head_out=head_out if a.base_out else None)
+    rep = report(load(a.snapshot), base_out=a.base_out, head_out=head_out)
     if a.json:
         with open(a.json, "w") as fh:
             json.dump(rep, fh, indent=1, sort_keys=True)

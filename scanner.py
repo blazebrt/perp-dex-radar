@@ -5088,6 +5088,13 @@ def run(out_dir, pages_url=None, journal_path=None, index_src=None, reset=False,
         json.dump(J, fh, separators=(",", ":"))
     with open(os.path.join(data_dir, "journal.csv"), "w", newline="") as fh:
         fh.write(journal_csv(J))
+    try:  # v8 Phase 3: this scan's identity states, for the engines that do not build the universe (smart money)
+        from v8 import provenance as _prov
+        assets = getattr(getattr(V8, "ident", None), "assets", None)
+        IDENTITY.write_authority(out_dir, coins, scan_t, _prov.scan_id(scan_t),
+                                 assets=assets if isinstance(assets, dict) else None)
+    except Exception as e:  # noqa: BLE001 - without it, smart money fails closed (no signal gets authority)
+        log(f"identity authority not written: {type(e).__name__}: {e}")
     src = index_src or os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
     if os.path.exists(src):
         shutil.copyfile(src, os.path.join(out_dir, "index.html"))

@@ -95,7 +95,8 @@ class PipelineAudit(unittest.TestCase):
             self.assertTrue(e["ticker"] and e["field"])
         for e in man["code"]:
             self.assertIn(e["rule"], man["rules"])
-            self.assertGreaterEqual(len(e["path"]), 2)
+            # one value of one row, or (Phase 3 closure) one new top-level provenance key that did not exist before
+            self.assertTrue(len(e["path"]) >= 2 or (len(e["path"]) == 1 and e["base"] == "<absent>"), e)
 
     def test_snapshot_step_leaves_legacy_files_alone(self):
         after = LP.summary(self.out)
@@ -323,6 +324,28 @@ class PipelineAudit(unittest.TestCase):
                          ("CRYPTO", "VERIFIED_CRYPTO", ["PRLX#2"]))
         self.assertEqual(self.contracts["extended:PRLX-USD"]["cls_reason"], "VENUE_CATEGORY:Crypto")
         self.assertIn("UNVERIFIED_EXPOSURE_KEPT_OUT", self.recs["radar"]["PRLX"].get("x") or [])
+
+    def test_smart_money_uses_the_same_scan_identity_authority(self):
+        """The scanner wrote this scan's identity states; smart money read them (same scan) and every smart row
+        carries its coin's state; on the fixture every smart coin is verified crypto, so nothing is blocked."""
+        with open(os.path.join(self.out, "data", "v8", "identity_authority.json")) as fh:
+            auth = json.load(fh)
+        self.assertEqual(auth["identity_version"], "v8.identity/2")
+        self.assertEqual({t: v[0] for t, v in auth["states"].items()},
+                         {t: a["identity"]["state"] for t, a in self.snap["registry"]["assets"].items()
+                          if a["legacy"] in ("CRYPTO", "TRADFI", "AMBIGUOUS", "UNVERIFIED")})
+        self.assertEqual(auth["states"]["NEWCOIN"], ["UNVERIFIED", "IDENTITY_UNVERIFIED"])
+        with open(os.path.join(self.out, "data", "smart.json")) as fh:
+            sm = json.load(fh)
+        self.assertEqual((sm["identity_authority"]["ok"], sm["identity_authority"]["why"]), (True, "SAME_SCAN"))
+        self.assertTrue(sm["coins"])
+        for c in sm["coins"]:
+            self.assertEqual(c["identity"], "VERIFIED_CRYPTO", c["coin"])
+            self.assertNotIn("identity_block", c)
+            self.assertEqual(self.recs["smart"][c["coin"]]["o"]["identity"], "VERIFIED_CRYPTO")
+        self.assertTrue(any(c["signal"] for c in sm["coins"]))
+        part = self.snap["coverage"]["engines"]["smart"]["stages"]
+        self.assertEqual(part["identity_blocked"], [])
 
     def test_identity_transitions_are_recorded_not_rewritten(self):
         ts = self.snap["manifest"]["ts"]

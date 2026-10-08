@@ -629,13 +629,19 @@
     const S = src.smart;
     if (S) {
       const row = (S.coins || []).find((c) => c.coin === coin), rec = smartRecord(S);
-      if (row && row.signal && (row.side === "long" || row.side === "short") && rec && (row.proven || rec.tier !== "No edge")) {
+      // v8 Phase 3 (defense in depth; smart.py already blocks at the source): only a verified crypto coin can be a
+      // smart-money signal
+      const verified = !!row && row.identity === "VERIFIED_CRYPTO";
+      if (row && verified && row.signal && (row.side === "long" || row.side === "short") && rec && (row.proven || rec.tier !== "No edge")) {
         const trade = (S.open || []).find((t) => t.coin === coin && (t.kind || "signal") === "signal") || null;
         signals.push({src: "smart", name: SOURCE.smart, side: row.side, tier: row.proven ? "Proven" : rec.tier, rec, row, trade, text: row.text,
                       t: trade ? trade.t_in : S.generated, cluster: (S.coins || []).filter((c) => c.signal).length});
       } else {
         const want = (now) => "Smart money: 2 or more proven traders opening shorts on " + coin + " within 24 hours (" + now + ").";
-        if (row && row.signal) {
+        if (row && (row.identity_block || ((row.signal || row.info) && !verified))) {
+          notes.push({src: "smart", text: (row.text || "Proven traders crowd into it") + ", but " + coin + " is not verified as a crypto coin (" +
+                      (row.identity || "no identity") + "), so it is not a signal."});
+        } else if (row && row.signal) {
           notes.push({src: "smart", side: row.side, text: row.text + ", but the rule lost money in its live record, so it is not a signal."});
         } else if (row && row.info) {
           notes.push({src: "smart", side: row.side, text: row.text + ": information only. In the test, coins they bought together did no better than the market.",
@@ -775,7 +781,7 @@
     const coins = new Set(), P = src.picks, readyAt = (P && P.settings && P.settings.ready) || SWING.readyAt;
     for (const [c, x] of Object.entries((P && P.scores) || {})) if (x && x.score >= readyAt) coins.add(c);
     for (const o of (src.quant && src.quant.open) || []) coins.add(o.c);
-    for (const r of (src.smart && src.smart.coins) || []) if (r.signal) coins.add(r.coin);
+    for (const r of (src.smart && src.smart.coins) || []) if (r.signal && r.identity === "VERIFIED_CRYPTO") coins.add(r.coin);
     const out = [];
     for (const c of coins) {
       const sig = testedSignals(c, src).signals.filter(timely), proven = sig.filter((s) => s.tier === "Proven"), pool = proven.length ? proven : sig;

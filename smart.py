@@ -12,7 +12,10 @@ Each scan:
      so one whale cannot outvote everyone), what they opened in the last 24 hours, their average entries;
   4. signals follow the rule that held up in the test (tools/research/smart_backtest.py, results in
      smart_research.json). Every signal is paper-traded with the tested rule, so a live record builds up next to
-     the tested one.
+     the tested one;
+  5. (v8 Phase 3) only a coin with crypto execution identity (VERIFIED_CRYPTO in the identity authority the scanner
+     wrote for this scan) can be a signal, an information-only crowd or a paper trade. Any other coin stays visible
+     with its positioning and an identity_block; without a same-scan authority nothing gets signal authority.
 
 Writes site/data/smart.json (the page and the dashboard) and site/data/smart_journal.json (read back next scan).
 Trader addresses are never published: they are replaced by a short hash.
@@ -29,6 +32,7 @@ import sys
 import time
 
 import scanner as sc
+from v8 import identity as IDENTITY
 
 VERSION = "1.0.0"
 ENGINE = 1
@@ -390,10 +394,51 @@ def load_journal(pages_url, path, now):
     return J, "site"
 
 
-def run(out_dir, pages_url=None, journal_path=None, fetch=None, now=None, cfg=CFG):
+# --------------------------------------------------------------------------- crypto execution identity (v8 Phase 3)
+def identity_block(row, auth):
+    """None when the coin has crypto execution identity (VERIFIED_CRYPTO in this scan's identity authority), else
+    the reason a crowd on it cannot be a signal: the coin's identity state as the scanner resolved it this scan, or
+    IDENTITY_AUTHORITY_MISSING when no same-scan authority names it (fail closed)."""
+    st = auth.state(row["coin"])
+    if st == IDENTITY.VERIFIED_CRYPTO:
+        return None
+    if st == IDENTITY.UNVERIFIED:
+        reason = "IDENTITY_UNVERIFIED"
+    elif st == IDENTITY.AMBIGUOUS:
+        reason = "AMBIGUOUS_EXPOSURE"
+    elif st == IDENTITY.VERIFIED_TRADFI:
+        dec = auth.decision(row["coin"])
+        reason = dec if dec in ("TRADFI_CLASSIFIED", "TRADFI_EXPOSURE_EXCLUDED") else "TRADFI_CLASSIFIED"
+    else:
+        reason = "IDENTITY_AUTHORITY_MISSING"
+    return {"reason": reason, "state": st,
+            "authority": "SAME_SCAN" if auth.ok else auth.why, "in_authority": st is not None}
+
+
+def apply_identity(row, auth):
+    """The identity gate at the source. A crowd on a coin without crypto execution identity stays observable (traders,
+    long and short counts, new positions, the crowd's text) but is not a signal, not information-only, not tested,
+    has no side and opens no paper trade; the crowd it would have been is kept in identity_block. A verified crypto
+    coin only gains its identity field."""
+    row["identity"] = auth.state(row["coin"])
+    blk = identity_block(row, auth)
+    if blk is not None and row.get("side"):
+        blk.update(crowd_side=row["side"], crowd_signal=row["signal"], crowd_info=row["info"])
+        row["identity_block"] = blk
+        row["side"] = None
+        row["signal"] = row["info"] = row["tested"] = row["proven"] = False
+    return row
+
+
+def run(out_dir, pages_url=None, journal_path=None, fetch=None, now=None, cfg=CFG, identity=None):
+    """identity: an IDENTITY.Authority (tests); by default this scan's authority written by the scanner into out_dir
+    (data/v8/identity_authority.json). Without a usable one no crowd gets signal authority (fail closed)."""
     t0 = time.time()
     now = int(now or time.time())
     fetch = fetch or sc.FETCH
+    if identity is None:
+        from v8 import provenance
+        identity = IDENTITY.load_authority(out_dir, now, provenance.scan_id(now))
     J, jsrc = load_journal(pages_url, journal_path, now)
     board = fetch(LEADERBOARD, timeout=120)
     traders = select_traders(board, cfg)
@@ -419,7 +464,8 @@ def run(out_dir, pages_url=None, journal_path=None, fetch=None, now=None, cfg=CF
         row["signal"] = bool(side) and bool(tested)           # the tested side: a signal
         row["info"] = bool(side) and tested is False           # the other side: shown as information only
         row["tested"] = row["proven"] = row["signal"] and proven_rule
-        if side:
+        apply_identity(row, identity)                          # v8 Phase 3: VERIFIED_CRYPTO only
+        if row["side"]:
             crowds.append(row)
     # paper trades: close what is due, then trade every new crowd with the tested rule (one trade per coin at a
     # time); the signal side builds the live record, the information side is kept apart to show what it is worth
@@ -463,6 +509,7 @@ def run(out_dir, pages_url=None, journal_path=None, fetch=None, now=None, cfg=CF
                          "positions": len((snap.get(t["id"]) or {}).get("pos") or {})} for t in traders[:25]],
         "open": J["open"], "closed": J["closed"][-60:],
         "accuracy": accuracy(research, J, cfg),
+        "identity_authority": identity.summary(),
     }
     data_dir = os.path.join(out_dir, "data")
     os.makedirs(data_dir, exist_ok=True)
@@ -480,12 +527,14 @@ def run(out_dir, pages_url=None, journal_path=None, fetch=None, now=None, cfg=CF
     try:  # v8 audit: trader selection and every held coin's disposition (never changes this run)
         from v8 import audit_smart
         audit_smart.audit(out_dir, now, cfg=cfg, board=board, traders=traders, snap=snap, coins=coins,
-                          open_trades=J["open"])
+                          open_trades=J["open"], authority=identity.summary())
     except Exception as e:  # noqa: BLE001 - observability must never stop a run
         sc.log(f"v8 audit skipped: {type(e).__name__}: {e}")
     sc.log(f"smart money: {len(snap)} of {len(traders)} proven traders read, {len(new)} new entries, "
            f"{sum(1 for c in crowds if c['signal'])} signals and {sum(1 for c in crowds if c['info'])} long crowds, "
-           f"{len(J['open'])} paper trades open, {len(J['closed'])} closed")
+           f"{len(J['open'])} paper trades open, {len(J['closed'])} closed; "
+           f"{sum(1 for c in coins if c.get('identity_block'))} crowds without crypto identity "
+           f"(identity authority: {identity.why})")
     return out
 
 

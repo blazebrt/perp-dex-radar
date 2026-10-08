@@ -1,6 +1,6 @@
 {
  "schema": "v8.delta/2",
- "phase": "v8 Phase 3: identity coverage hardening and discovery/execution separation",
+ "phase": "v8 Phase 3: identity coverage hardening and discovery/execution separation (closure: smart-money identity gate)",
  "base": {
   "sha": "82f8d35a80e561384f2e8be0e1399dd4e5adb99b",
   "tree": "06d80f744401589f983ac52298650d182e0c2fa5",
@@ -15,7 +15,9 @@
   "UNVERIFIED_NOT_COUNTED_AS_CRYPTO": "A DEX's count of crypto markets counts only markets admitted with crypto execution identity: unverified markets and markets that became tradfi are no longer counted.",
   "UNVERIFIED_EXPOSURE_NOT_MERGED": "A price-separated UNVERIFIED exposure next to a VERIFIED_CRYPTO exposure of the same ticker is not merged into the crypto coin (contract state UNVERIFIED_EXPOSURE_NOT_ADMITTED), so the price-conflict note for it is not emitted.",
   "UNVERIFIED_LISTED_SEPARATELY": "The radar publishes identity-unverified coins in coverage.unverified, not among the non-crypto (tradfi) exclusions in coverage.tradfi: unknown is not tradfi.",
-  "VENUE_FIELD_TRADFI": "A same-venue field the live venue field census showed to be tradfi-only is tradfi evidence: an Aster underlyingSubType in STOCK, ETF, Commodities, Semiconductor, USD1-RWA, or a Variational market name starting 'Swap on ' (scan gh-37782095629-1: 0 such markets in a verified crypto exposure). Tradfi direction only."
+  "VENUE_FIELD_TRADFI": "A same-venue field the live venue field census showed to be tradfi-only is tradfi evidence: an Aster underlyingSubType in STOCK, ETF, Commodities, Semiconductor, USD1-RWA, or a Variational market name starting 'Swap on ' (scan gh-37782095629-1: 0 such markets in a verified crypto exposure). Tradfi direction only.",
+  "SMART_IDENTITY_FIELDS": "Additive only: every smart-money row carries the coin's identity state from the same-scan identity authority (data/v8/identity_authority.json, written by the scanner), and smart.json names the authority it used. On the fixture every smart coin is VERIFIED_CRYPTO, so every signal, information crowd, paper trade and statistic is unchanged; a crowd on a coin without crypto execution identity would be blocked at the source (tests/test_v8_phase3_smart.py).",
+  "ANALYZER_SMART_IDENTITY_DEFENSE": "analyze.js (published with the site) accepts a smart-money signal only from a row whose identity is VERIFIED_CRYPTO, and explains an identity-blocked crowd as a note: defense in depth behind the smart.py gate."
  },
  "universe": [
   {
@@ -255,6 +257,71 @@
    ],
    "rule": "UNVERIFIED_LISTED_SEPARATELY",
    "why": "new list of identity-unverified coins"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "coins",
+    {
+     "key": [
+      "coin",
+      "FAKE02"
+     ]
+    },
+    "identity"
+   ],
+   "base": "<absent>",
+   "head": "VERIFIED_CRYPTO",
+   "rule": "SMART_IDENTITY_FIELDS"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "coins",
+    {
+     "key": [
+      "coin",
+      "FAKE03"
+     ]
+    },
+    "identity"
+   ],
+   "base": "<absent>",
+   "head": "VERIFIED_CRYPTO",
+   "rule": "SMART_IDENTITY_FIELDS"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "coins",
+    {
+     "key": [
+      "coin",
+      "BTC"
+     ]
+    },
+    "identity"
+   ],
+   "base": "<absent>",
+   "head": "VERIFIED_CRYPTO",
+   "rule": "SMART_IDENTITY_FIELDS"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "identity_authority"
+   ],
+   "base": "<absent>",
+   "head": {
+    "coins": 64,
+    "ok": true,
+    "scan_id": "local-1791014833",
+    "source": "data/v8/identity_authority.json",
+    "ts": 1791014833,
+    "why": "SAME_SCAN"
+   },
+   "rule": "SMART_IDENTITY_FIELDS",
+   "why": "the parity harness runs offline: a local scan id and the frozen scan time; smart1 runs one hour before the scan time, inside the offline 6-hour window"
   }
  ],
  "decisions": [
@@ -387,5 +454,13 @@
   "SKHYNIX": "VERIFIED_TRADFI",
   "EURUSD": "VERIFIED_TRADFI"
  },
- "not_allowed": "Anything else. Outputs of the engines downstream of the universe may differ between BASE and HEAD only as the counterfactual run proves: the base code fed HEAD's universe, with every coin lacking crypto execution identity excluded the base code's own way (tradfi=true), reproduces HEAD's outputs except for the code deltas above."
+ "not_allowed": "Anything else. Outputs of the engines downstream of the universe may differ between BASE and HEAD only as the counterfactual run proves: the base code fed HEAD's universe, with every coin lacking crypto execution identity excluded the base code's own way (tradfi=true), reproduces HEAD's outputs except for the code deltas above. A published source file may change only to the exact digest pinned in \"files\".",
+ "files": [
+  {
+   "file": "analyze.js",
+   "base_sha256": "a9ce353eb93057bfeae6141013061f1b2173b8f4878702232f91444eeee7cb71",
+   "head_sha256": "12ace048e5debf61b1f077d12bc3e839b4efa1fab93998c3d3585954920fd697",
+   "rule": "ANALYZER_SMART_IDENTITY_DEFENSE"
+  }
+ ]
 }
