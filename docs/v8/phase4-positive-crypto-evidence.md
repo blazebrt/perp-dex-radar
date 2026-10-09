@@ -38,16 +38,19 @@ crypto evidence**, assuming none is trustworthy until proven.
 
 ## Observations
 
-| Observation | Source | Code | Contracts |
+| Observation | Source | Code | Raw contracts |
 |---|---|---|---|
-| `gh-37833625441-1` | Research, 2026-10-08 ~19:40 UTC (live) | 7732369 | 11,558 raw |
-| `gh-37883045144-1` | Research, 2026-10-09 04:29 UTC (live) | 0557926 | 12,588 raw |
-| `gh-37887949009-1` | production scan, 2026-10-09 05:19 UTC | d011bcb | 12,588 raw |
-| this branch's Research | exact head on live data, plus the latest production audit and the previous Research audit | head | see the Research output `research_candidate_census.json` |
+| `gh-37833625441-1` | Research, 2026-10-08 ~19:40 UTC (live) | 7732369 | 11,558 |
+| `gh-37883045144-1` | Research, 2026-10-09 04:29 UTC (live) | 0557926 | 12,588 |
+| `gh-37887949009-1` | production scan, 2026-10-09 05:19 UTC | d011bcb | 12,588 |
+| `gh-37895463141-1` | production scan, 2026-10-09 06:48 UTC (read by this branch's Research) | d011bcb | 12,588 |
+| `gh-37903026421-1` | this branch's Research: the exact head on live data, 2026-10-09 ~08:08 UTC | c0b12c8 | 12,782 |
 
-No older snapshot is retained: the research branch keeps one commit, and Actions artifacts last 14 days but cannot be
-read from the review environment. Every per-value count was identical across the three observations, so their
-agreement shows stability within about 10 hours of one listing set. It is not independent evidence over time.
+Every Research run of this branch adds its own live observation, plus the latest production audit and the previous
+Research audit (`research_candidate_census.json` on the research branch). Every per-value count and every gate result
+was identical in all five observations, and the resolver reproduced each one's 853 recorded asset states exactly.
+That shows stability over about 12 hours of one listing set. It is not independent evidence over time: the research
+branch keeps one commit, and Actions artifacts last 14 days but cannot be read from the review environment.
 
 **What the venues send** (live payloads read on 2026-10-09):
 * **Lighter** `orderBookDetails` has no asset-class field. `strategy_index` is **absent from Lighter's published
@@ -64,7 +67,7 @@ agreement shows stability within about 10 hours of one listing set. It is not in
   `["STORAGE"]`), with no definition or enum.
 * **edgeX:** returned 503 and was down in production too, so there is nothing to observe.
 
-## Census (production scan `gh-37887949009-1`; contracts by exposure state)
+## Census (contracts by exposure state; identical in all five observations)
 
 | Venue field = value | Contracts | VERIFIED_CRYPTO | VERIFIED_TRADFI | UNVERIFIED |
 |---|---|---|---|---|
@@ -86,7 +89,7 @@ agreement shows stability within about 10 hours of one listing set. It is not in
 
 | Rule | Failed | Why |
 |---|---|---|
-| Aster `underlyingSubType == [AI]` (also with `COIN`) | A | Data-clean (B to E pass in every observation), but "AI" is a sector/theme tag that applies to tokens and companies alike. A crypto reading rests on an undocumented convention (that Aster adds STOCK/ETF/… to every tradfi listing), and Aster's own type field already breaks it: all 136 tradfi Aster contracts are sent as `COIN`. Projected impact if activated: 6 assets UNVERIFIED → VERIFIED_CRYPTO (GRIFFAIN $1.99M, SKYAI $102k, SENT $57k, AVAAI $22k, PUNDIAI $7k, AIW3 $4k); only GRIFFAIN would pass the $1M gate. |
+| Aster `underlyingSubType == [AI]` (also with `COIN`) | A | Data-clean (B to E pass in every observation), but "AI" is a sector/theme tag that applies to tokens and companies alike. A crypto reading rests on an undocumented convention (that Aster adds STOCK/ETF/… to every tradfi listing), and Aster's own type field already breaks it: all 136 tradfi Aster contracts are sent as `COIN`. Projected impact if activated: 6 assets UNVERIFIED → VERIFIED_CRYPTO (GRIFFAIN $1.82-1.99M, SKYAI ~$100k, SENT ~$55k, AVAAI $22k, PUNDIAI $7k, AIW3 $3-4k); only GRIFFAIN would pass the $1M gate. |
 | Aster `[Meme]` / contains Meme | A, B | A theme tag. It selects the memecoin CAT (1000CAT at about $0.000002), whose ticker is on the tradfi list (Caterpillar), so it sits on a VERIFIED_TRADFI asset. |
 | Aster `[Top]`, `[AOS2]` | A | A tier tag and a programme tag. They are data-clean but have **no impact**: every contract carrying them is already verified crypto. |
 | Aster contains AOS2 / pre-launch / Semiconductor / STOCK / ETF / Commodities / USD1-RWA | A, B, D | They appear on tradfi listings. As crypto evidence they would turn tradfi assets AMBIGUOUS or UNVERIFIED. The tradfi tags stay tradfi evidence (Phase 3). |
