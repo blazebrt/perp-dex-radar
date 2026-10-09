@@ -3,9 +3,10 @@ offline on the parity fixture (tools/v8/legacy_parity.py), each engine in its ow
 then the audit snapshot is assembled. Checks:
 
 * no drift: every legacy output file is byte-identical (after dropping wall-clock durations and sorting error
-  notes) to this branch's golden digests (tests/fixtures/v8/legacy_parity_golden_phase3.json). That file differs
-  from the phase base's digests (legacy_parity_golden_phase3_base.json: main 82f8d35 on the same fixture) only as
-  tools/v8/delta_parity.py proves against the expected-delta manifest (phase3_expected_deltas.json); CI runs it;
+  notes) to this branch's golden digests (tests/fixtures/v8/legacy_parity_golden_closure.json). That file differs
+  from production main's digests (legacy_parity_golden_phase3.json: main f8648fe on the same fixture) only as
+  tools/v8/delta_parity.py proves against the closure manifest (phase3_closure_expected_deltas.json); CI runs it.
+  The Phase 3 manifest (base 82f8d35) is kept for the record;
 * the contract registry keeps every market (also the ones the legacy adapters skip) under venue:raw_symbol;
 * universe identity (Phase 2): the crypto coins of the BB, PURR, QNT collision class are admitted with their
   crypto exposure only, the unrelated tradfi markets stay out and stay in the registry, the stocks a venue did not
@@ -39,7 +40,12 @@ import legacy_parity as LP  # noqa: E402
 from v8 import snapshot as SN  # noqa: E402
 from v8 import taxonomy as T  # noqa: E402
 
-GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase3.json")
+# v8 Phase 3 production-evidence closure: this branch's golden; its base (main f8648fe = the Phase 3 golden) and the
+# closure manifest (phase3_closure_expected_deltas.json) are checked by tools/v8/delta_parity.py in CI. The Phase 3
+# manifest and its goldens are kept for the record and still checked for consistency below.
+GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_closure.json")
+PHASE3_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase3.json")
+CLOSURE_MANIFEST = os.path.join(HERE, "fixtures", "v8", "phase3_closure_expected_deltas.json")
 BASE_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase3_base.json")
 MANIFEST = os.path.join(HERE, "fixtures", "v8", "phase3_expected_deltas.json")
 # the fixture's coins without positive identity evidence (v8 Phase 3; tools/v8/legacy_parity.py)
@@ -97,6 +103,35 @@ class PipelineAudit(unittest.TestCase):
             self.assertIn(e["rule"], man["rules"])
             # one value of one row, or (Phase 3 closure) one new top-level provenance key that did not exist before
             self.assertTrue(len(e["path"]) >= 2 or (len(e["path"]) == 1 and e["base"] == "<absent>"), e)
+
+    def test_closure_manifest_is_pinned_to_production_main(self):
+        """The closure is measured from production main f8648fe (Phase 3 merged), whose fixture golden is the Phase 3
+        branch golden; universe, DEX status, notes, identity states and engine decisions may not change at all."""
+        with open(CLOSURE_MANIFEST) as fh:
+            man = json.load(fh)
+        with open(PHASE3_GOLDEN) as fh:
+            base = json.load(fh)
+        self.assertEqual(man["base"]["sha"], "f8648fe9006a9409b9bd4ecde092e411f8de37a1")
+        self.assertEqual(man["base"]["tree"], "bb296e427e06b246d9e30efd85961b826debec58")
+        self.assertEqual(man["base"]["golden"], "tests/fixtures/v8/legacy_parity_golden_phase3.json")
+        self.assertEqual(man["head_golden"], "tests/fixtures/v8/legacy_parity_golden_closure.json")
+        self.assertIsNone(man["counterfactual_projection"])
+        self.assertEqual((man["universe"], man["dex_status"], man["decisions"]), ([], [], []))
+        self.assertEqual(man["notes"], {"removed": [], "added": []})
+        self.assertNotEqual(base["combined"], self.summary["combined"])     # the closure changes outputs on purpose
+        self.assertEqual(base["decisions"], self.summary["decisions"])     # ... but no engine decision
+        self.assertEqual(man["identity_states"],
+                         {t: a["identity"]["state"] for t, a in self.snap["registry"]["assets"].items()
+                          if a["legacy"] in ("CRYPTO", "TRADFI", "AMBIGUOUS", "UNVERIFIED")})
+        # only quant and radar outputs (and the Analyzer source) change; smart money, picks and dashboard do not
+        files = {e["file"] for e in man["code"]} | {f["file"] for f in man["files"]}
+        self.assertEqual(files, {"data/quant.json", "data/quant_journal.json", "data/journal.json", "data/latest.json",
+                                 "data/journal.csv", "analyze.js"})
+        for e in man["code"] + man["files"]:
+            self.assertIn(e["rule"], man["rules"])
+        for f in ("data/smart.json", "data/smart_journal.json", "data/picks.json", "data/picks_journal.json",
+                  "data/dashboard.json", "data/quant_research.json", "data/picks_research.json"):
+            self.assertEqual(base["files"][f], self.summary["files"][f], f)
 
     def test_snapshot_step_leaves_legacy_files_alone(self):
         after = LP.summary(self.out)
@@ -359,6 +394,28 @@ class PipelineAudit(unittest.TestCase):
         self.assertEqual((jn["unqualified_n"], jn["unqualified_trades"]), (0, []))
         self.assertEqual(sm["accuracy"]["evidence"], jn["evidence"])
         self.assertEqual(sm["accuracy"]["legacy_unqualified"]["reason"], "LEGACY_NO_IDENTITY_PROOF")
+
+    def test_quant_and_radar_journal_evidence_in_the_snapshot(self):
+        """v8 Phase 3 closure: the quant and radar journal evidence reaches the snapshot; on the fixture every live
+        trade is new, so all of it is qualified, and the published quant positions are the actionable ones."""
+        with open(os.path.join(self.out, "data", "quant.json")) as fh:
+            q = json.load(fh)
+        jq = self.snap["coverage"]["engines"]["quant"]["journal"]
+        self.assertEqual(jq["evidence"], q["evidence"])
+        self.assertEqual((jq["evidence"]["actionable_open"], jq["evidence"]["blocked_open"]), (len(q["open"]), 0))
+        self.assertEqual(jq["evidence"]["qualified"]["open"], len(q["open"]))
+        self.assertEqual((jq["unqualified_n"], jq["blocked_open"]), (0, []))
+        self.assertTrue(all(o["identity"] == "VERIFIED_CRYPTO" for o in q["open"]))
+        jr = self.snap["coverage"]["engines"]["radar"]["journal"]
+        with open(os.path.join(self.out, "data", "latest.json")) as fh:
+            lt = json.load(fh)
+        self.assertEqual(jr["evidence"]["legacy_live"], {"total": 0})
+        self.assertGreater(jr["evidence"]["qualified_live"]["total"], 0)
+        self.assertGreater(jr["evidence"]["backtest"]["total"], 0)
+        self.assertEqual(jr["evidence"]["pairs"]["pair_class_mismatch"], 0)
+        self.assertEqual(jr["evidence"]["qualified_live"], lt["journal"]["evidence"]["qualified_live"])
+        for e in ("quant", "radar"):
+            self.assertEqual(self.snap["coverage"]["engines"][e]["unaccounted"], 0)
 
     def test_identity_transitions_are_recorded_not_rewritten(self):
         ts = self.snap["manifest"]["ts"]

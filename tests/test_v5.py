@@ -189,7 +189,8 @@ class EndToEnd(unittest.TestCase):
     def test_csv_has_gate_column(self):
         with open(os.path.join(self.tmp, "s2", "data", "journal.csv")) as fh:
             rows = list(csv.reader(io.StringIO(fh.read())))
-        self.assertEqual(rows[0][-1], "market_gate")
+        # v8 Phase 3 closure appends the evidence columns after the market gate
+        self.assertEqual(rows[0][-4:], ["market_gate", "evidence", "identity_at_entry", "identity_scan_id"])
 
     def test_strategy_rows_have_v5_fields(self):
         for s in self.out2["journal"]["strategies"]:

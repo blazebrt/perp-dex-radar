@@ -79,7 +79,7 @@ def universe_part(coins, dex_status, dex_ok, scan_t):
 
 
 def radar_part(scan_t, coins, dex_ok, crypto, res1, s1, ranked, cands, extras, res2, A, sigs, best, pick_sigs,
-               watch_sigs, gate):
+               watch_sigs, gate, journal=None):
     import scanner as sc
     cfg = sc.CFG
     L = LG.Ledger("radar")
@@ -196,6 +196,9 @@ def radar_part(scan_t, coins, dex_ok, crypto, res1, s1, ranked, cands, extras, r
             L.final(t, "NO_STRATEGY_SIGNAL", "signal", o={"setups_checked": "all active 15m strategies"}, src=src,
                     k=k, x=steps)
     C.note_identity_steps(L, sorted(coins))
+    jp = journal_part(journal, coins) if journal is not None else None
+    for t in (jp or {}).get("legacy_open_coins") or []:      # an open live trade outside the forward evidence
+        L.note(t, "RADAR_LEGACY_NO_IDENTITY_PROOF")
     part = L.to_part()
     # consistency: what was published must be what the ledger says was surfaced or watched
     led_s = {r["a"] for r in L.records.values() if r["d"] == T.SURFACED}
@@ -208,14 +211,29 @@ def radar_part(scan_t, coins, dex_ok, crypto, res1, s1, ranked, cands, extras, r
                       "signals": len(sigs), "signal_coins": len(by_coin), "publishable": len(best),
                       "picks": len(pick_sigs), "watch": len(watch_sigs), "plan_rejections": len(TRACE.plans),
                       "market_gate": gate}
+    if jp is not None:
+        part["journal"] = jp
     return part
 
 
+def journal_part(J, coins):
+    """The radar journal's evidence state (v8 Phase 3 closure): backtest, identity-qualified live and legacy live
+    trades (strategy trades and random twins), pair integrity, reasons, and the coins of legacy live trades with
+    their identity in this scan. Read only."""
+    import scanner as sc
+    ev = sc.journal_evidence(J, {t: c.get("identity") for t, c in (coins or {}).items()})
+    open_leg = sorted({t["c"] for t in J.get("open") or [] if sc.evidence_class(t) == sc.EV_LEGACY
+                       and not sc.is_twin(t["s"]) and t["c"] in (coins or {})})
+    return {"evidence": ev, "legacy_open_coins": open_leg,
+            "live_record_rule": "backtest trades + identity-qualified live trades only; legacy live trades are kept "
+                                "and reported, never forward evidence"}
+
+
 def audit(out_dir, scan_t, coins, dex_status, dex_ok, crypto, res1, s1, ranked, cands, extras, res2, A, sigs, best,
-          pick_sigs, watch_sigs, gate):
+          pick_sigs, watch_sigs, gate, journal=None):
     """Called once at the end of scanner.run(). Writes data/v8/parts/universe.json and radar.json. Never raises."""
     parts.safe_audit("universe", out_dir, universe_part, ts=scan_t, coins=coins, dex_status=dex_status,
                      dex_ok=dex_ok, scan_t=scan_t)
     parts.safe_audit("radar", out_dir, radar_part, ts=scan_t, scan_t=scan_t, coins=coins, dex_ok=dex_ok,
                      crypto=crypto, res1=res1, s1=s1, ranked=ranked, cands=cands, extras=extras, res2=res2, A=A,
-                     sigs=sigs, best=best, pick_sigs=pick_sigs, watch_sigs=watch_sigs, gate=gate)
+                     sigs=sigs, best=best, pick_sigs=pick_sigs, watch_sigs=watch_sigs, gate=gate, journal=journal)

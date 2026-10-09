@@ -272,6 +272,12 @@ def match_deltas(f, a, b, entries, fails):
     seen, allowed = [], {}
     a, b = json.loads(json.dumps(a)), json.loads(json.dumps(b))
     for e in entries:
+        if e.get("kind") == "each":
+            seen += _match_each(f, a, b, e, fails)
+            continue
+        if e.get("kind") == "append":
+            seen += _match_append(f, a, b, e, fails)
+            continue
         if e.get("kind") == "set":
             pa, pb = resolve_path(a, e["path"]), resolve_path(b, e["path"])
             va = _get(a, pa) if pa is not None else "<absent>"
@@ -310,6 +316,110 @@ def match_deltas(f, a, b, entries, fails):
         if p not in got:
             fails.append(f"expected code delta not observed: {f} {'/'.join(map(str, p))}")
     return seen
+
+
+def _where(item, where):
+    """Whether a list element matches an "each" entry's filter [key, op, value] (op: eq, prefix, not_prefix)."""
+    if not where:
+        return True
+    k, op, v = where
+    x = item.get(k) if isinstance(item, dict) else None
+    if op == "eq":
+        return _eq(x, v)
+    if op == "prefix":
+        return isinstance(x, str) and x.startswith(v)
+    if op == "not_prefix":
+        return not (isinstance(x, str) and x.startswith(v))
+    raise SystemExit(f"unknown where operator {op!r}")
+
+
+def _spec_ok(v, spec, b, item=None):
+    """A field value against its manifest spec: a literal (exactly equal); {"one_of": [literal, ...]} (equal to one
+    of them); {"id_in": [path, ...]} - the value is the "id" of an element of one of those lists in the HEAD
+    document (a link to another record of the same file); or {"twin_pair": true} - the id of the trade a radar
+    random twin benchmarks: "<another coin>-<the twin's own strategy without RAND:>-<time>"."""
+    if isinstance(spec, dict) and set(spec) == {"one_of"}:
+        return any(_eq(s, v) for s in spec["one_of"])
+    if isinstance(spec, dict) and set(spec) == {"twin_pair"}:
+        s, c = (item or {}).get("s"), (item or {}).get("c")
+        if spec["twin_pair"] is not True or not isinstance(v, str) or not isinstance(s, str) or \
+                not s.startswith("RAND:"):
+            return False
+        parts = v.rsplit("-", 2)
+        return len(parts) == 3 and bool(parts[0]) and parts[0] != c and parts[1] == s[5:] and parts[2].isdigit()
+    if isinstance(spec, dict) and set(spec) == {"id_in"}:
+        ids = set()
+        for p in spec["id_in"]:
+            q = resolve_path(b, p)
+            for x in (_get(b, q) if q is not None else None) or []:
+                if isinstance(x, dict) and x.get("id") is not None:
+                    ids.add(x["id"])
+        return isinstance(v, str) and v in ids
+    return _eq(spec, v)
+
+
+def _match_each(f, a, b, e, fails):
+    """kind "each" (v8 Phase 3 closure): every element of the list at path that matches "where" gains exactly the
+    keys of "fields" - absent in the base element, each with the spec's value - and the number of elements that
+    gained them is exactly "count". Nothing else of an element may change: the added keys are removed from the HEAD
+    copy afterwards, so any other difference is still an UNEXPECTED delta of the element-by-element diff."""
+    name = f"each delta {f} {'/'.join(map(str, e['path']))}"
+    pa, pb = resolve_path(a, e["path"]), resolve_path(b, e["path"])
+    la = _get(a, pa) if pa is not None else None
+    lb = _get(b, pb) if pb is not None else None
+    if not isinstance(la, list) or not isinstance(lb, list) or len(la) != len(lb):
+        fails.append(f"{name}: not two lists of the same length")
+        return []
+    want = set(e["fields"])
+    n, bad = 0, 0
+    for x, y in zip(la, lb):
+        if not isinstance(x, dict) or not isinstance(y, dict) or not _where(y, e.get("where")):
+            continue
+        added = {k for k in y if k not in x}
+        if not added:
+            continue
+        if added != want or not all(_spec_ok(y[k], e["fields"][k], b, y) for k in want):
+            bad += 1
+            continue
+        n += 1
+        for k in want:
+            del y[k]
+    if bad:
+        fails.append(f"{name}: {bad} element(s) gained other fields or other values than the manifest's")
+    if n != e["count"]:
+        fails.append(f"{name}: {n} elements gained the fields, manifest {e['count']}")
+    elif n == 0:
+        fails.append(f"expected each delta not observed: {name}")
+    return [{"file": f, "path": "/".join(map(str, e["path"])), "kind": "each", "count": n,
+             "fields": sorted(want), "where": e.get("where"), "rule": e["rule"]}] if n and not bad else []
+
+
+def _match_append(f, a, b, e, fails):
+    """kind "append" (v8 Phase 3 closure): every row (a list) of the list at path gains exactly one trailing value,
+    every other item of the row unchanged; the values are counted and must equal "counts" exactly."""
+    name = f"append delta {f} {'/'.join(map(str, e['path']))}"
+    pa, pb = resolve_path(a, e["path"]), resolve_path(b, e["path"])
+    la = _get(a, pa) if pa is not None else None
+    lb = _get(b, pb) if pb is not None else None
+    if not isinstance(la, list) or not isinstance(lb, list) or len(la) != len(lb):
+        fails.append(f"{name}: not two lists of the same length")
+        return []
+    got = {}
+    for x, y in zip(la, lb):
+        if not isinstance(x, list) or not isinstance(y, list) or len(y) != len(x) + 1 or not _eq(x, y[:-1]):
+            fails.append(f"{name}: a row is not its base row plus one value")
+            return []
+        v = y[-1]
+        if not isinstance(v, str):
+            fails.append(f"{name}: appended value {v!r} is not a string")
+            return []
+        got[v] = got.get(v, 0) + 1
+    if got != e["counts"]:
+        fails.append(f"{name}: appended values {got}, manifest {e['counts']}")
+        return []
+    for y in lb:
+        y.pop()
+    return [{"file": f, "path": "/".join(map(str, e["path"])), "kind": "append", "counts": got, "rule": e["rule"]}]
 
 
 def _get(doc, path):

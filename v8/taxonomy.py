@@ -160,7 +160,18 @@ STEPS = {
     "SMART_CROWD_IDENTITY_BLOCKED": "proven traders crowded into a side under the smart-money rule, but the coin has no "
                                     "crypto execution identity: kept as an observation, not a signal, no paper trade "
                                     "(the final reason names the identity state) (v8 Phase 3)",
-    "UNVERIFIED_EXPOSURE_KEPT_OUT": "the ticker also has a price-separated exposure without identity evidence; the "
+    "QUANT_POSITION_IDENTITY_BLOCKED": "the quant journal holds an open paper position on this coin, but the coin has no "
+                                       "crypto execution identity this scan: the position runs to its normal stop or "
+                                       "time exit and is published as an observation (quant.json blocked_open), never "
+                                       "as an actionable position or signal (v8 Phase 3 closure)",
+    "QUANT_LEGACY_NO_IDENTITY_PROOF": "an open quant paper position on this coin carries no entry-time identity proof "
+                                      "(opened before it existed): followed to its close, never counted in the quant "
+                                      "live record (v8 Phase 3 closure)",
+    "RADAR_LEGACY_NO_IDENTITY_PROOF": "an open live radar paper trade on this coin carries no entry-time identity proof "
+                                      "(opened before it existed): followed to its close, never counted as forward "
+                                      "evidence - tournament, live edge against twins, lessons, tuning, live picks "
+                                      "(v8 Phase 3 closure)",
+    "UNVERIFIED_EXPOSURE_KEPT_OUT":"the ticker also has a price-separated exposure without identity evidence; the "
                                     "verified crypto exposure was admitted and the unverified one kept out of the coin "
                                     "(it stays in the registry) (v8 Phase 3)",
 }
@@ -178,7 +189,8 @@ IDENTITY_STATES = {
                   "positive evidence appears (each scan records what was known then)",
 }
 
-# entry-time identity provenance of a smart-money paper trade (v8 Phase 3; smart.stamp_identity, smart.mark_legacy)
+# entry-time identity provenance of a paper trade (v8 Phase 3: smart money, smart.stamp_identity / mark_legacy; the
+# production-evidence closure applies the same rule to quant paper trades and live radar paper trades, v8.evidence)
 TRADE_IDENTITY = {
     "IDENTITY_QUALIFIED": "VERIFIED_CRYPTO was proven by the same-scan identity authority when the trade was opened "
                           "(identity_qualified true, with state, version, scan id and decision): the trade counts in "

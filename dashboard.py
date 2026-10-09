@@ -259,8 +259,15 @@ def picks_card(P, acc_swing, acc_day):
             "open_paper": open_n, "accuracy": [acc_swing, acc_day]}
 
 
+def quant_actionable(Q):
+    """Open quant positions that may count as signals: the coin is VERIFIED_CRYPTO in the scan that published them
+    (v8 Phase 3 closure; quant.py already keeps every other one out of "open" - this is defense in depth, and an
+    "open" entry without an identity fails closed)."""
+    return [o for o in (Q or {}).get("open") or [] if o.get("identity") == "VERIFIED_CRYPTO"]
+
+
 def quant_card(Q, acc):
-    op = (Q or {}).get("open") or []
+    op = quant_actionable(Q)
     names = {k: v.get("name") for k, v in ((Q or {}).get("strategies") or {}).items()}
     items = []
     for o in sorted(op, key=lambda o: -(o.get("t_in") or 0)):
@@ -323,7 +330,7 @@ def signals(P, Q, R, S):
         if (r.get("score") or 0) >= 80:
             add(r.get("coin"), "day", r.get("side"), f"{r.get('side')} {r.get('score', 0):.0f}", False)
     names = {k: v.get("name") for k, v in ((Q or {}).get("strategies") or {}).items()}
-    for o in (Q or {}).get("open") or []:
+    for o in quant_actionable(Q):
         side = "long" if (o.get("d") or 0) > 0 else "short"
         add(o.get("c"), "quant", side, f"{side} · {names.get(o.get('s'), o.get('s'))}", True)
     for p in (R or {}).get("picks") or []:

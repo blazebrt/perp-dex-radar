@@ -290,5 +290,123 @@ class Phase3Validator(unittest.TestCase):
         self.assertNotIn("*", json.dumps(man))
 
 
+class ClosureValidator(unittest.TestCase):
+    """The v8 Phase 3 closure kinds: "each" (every matching element gains exactly these fields, with these values, an
+    exact number of times) and "append" (every row gains one trailing value, with exact counts) - each fails closed:
+    another field, another value, another count, any other change of an element or row."""
+
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp(prefix="v8delta4")
+        self.cf, self.head = os.path.join(self.tmp, "cf"), os.path.join(self.tmp, "head")
+        for d in (self.cf, self.head):
+            os.makedirs(os.path.join(d, "data"))
+        self.base_doc = {"open": [{"id": "AAA-PB-1", "c": "AAA", "s": "PB", "r": 1},
+                                  {"id": "ZZZ-RAND:PB-1", "c": "ZZZ", "s": "RAND:PB", "r": 2},
+                                  {"id": "BBB-PB-1", "c": "BBB", "s": "PB", "bt": 1, "r": 3}],
+                         "rows": [[1, "AAA"], [2, "BBB"]]}
+        h = copy.deepcopy(self.base_doc)
+        h["open"][0].update(q=True, dec="CRYPTO")
+        h["open"][1].update(q=True, dec="CRYPTO", pair="AAA-PB-1")
+        h["rows"][0].append("qualified")
+        h["rows"][1].append("backtest")
+        self.head_doc = h
+        self.u = universe()
+        self.man = {"rules": {"R": "r"}, "universe": [], "dex_status": [], "notes": {"removed": [], "added": []},
+                    "code": [{"file": "data/journal.json", "kind": "each", "path": ["open"],
+                              "where": ["s", "not_prefix", "RAND:"],
+                              "fields": {"q": True, "dec": {"one_of": ["CRYPTO", "CRYPTO_EXPOSURE_SELECTED"]}},
+                              "count": 1, "rule": "R"},
+                             {"file": "data/journal.json", "kind": "each", "path": ["open"],
+                              "where": ["s", "prefix", "RAND:"],
+                              "fields": {"q": True, "dec": "CRYPTO", "pair": {"twin_pair": True}}, "count": 1,
+                              "rule": "R"},
+                             {"file": "data/journal.json", "kind": "append", "path": ["rows"],
+                              "counts": {"backtest": 1, "qualified": 1}, "rule": "R"}]}
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def check(self, head=None, man=None):
+        for root, doc in ((self.cf, self.base_doc), (self.head, head or self.head_doc)):
+            with open(os.path.join(root, "data", "journal.json"), "w") as fh:
+                json.dump(doc, fh)
+        return DP.check(man or self.man, self.u, self.u, self.cf, self.head)
+
+    def test_exact_manifest_passes(self):
+        rep, fails = self.check()
+        self.assertEqual(fails, [])
+        self.assertEqual([c["kind"] for c in rep["code"]], ["each", "each", "append"])
+
+    def test_another_field_or_value_fails(self):
+        for change in (lambda h: h["open"][0].update(extra=1), lambda h: h["open"][0].update(dec="OTHER"),
+                       lambda h: h["open"][1].update(pair="AAA-MOM-1"), lambda h: h["open"][1].update(pair="ZZZ-PB-1"),
+                       lambda h: h["open"][2].update(q=True, dec="CRYPTO")):
+            h = copy.deepcopy(self.head_doc)
+            change(h)
+            _, fails = self.check(h)
+            self.assertTrue(fails, change)
+
+    def test_a_changed_existing_value_fails(self):
+        h = copy.deepcopy(self.head_doc)
+        h["open"][0]["r"] = 9                       # the element also gained the allowed fields: still caught
+        _, fails = self.check(h)
+        self.assertTrue(any("UNEXPECTED code delta data/journal.json open/0/r" in f for f in fails), fails)
+
+    def test_count_and_counts_are_exact(self):
+        man = copy.deepcopy(self.man)
+        man["code"][0]["count"] = 2
+        _, fails = self.check(man=man)
+        self.assertTrue(any("1 elements gained the fields, manifest 2" in f for f in fails), fails)
+        man = copy.deepcopy(self.man)
+        man["code"][2]["counts"] = {"qualified": 2}
+        _, fails = self.check(man=man)
+        self.assertTrue(any("appended values" in f for f in fails), fails)
+
+    def test_append_requires_the_base_row_unchanged(self):
+        h = copy.deepcopy(self.head_doc)
+        h["rows"][0][1] = "XXX"
+        _, fails = self.check(h)
+        self.assertTrue(any("not its base row plus one value" in f for f in fails), fails)
+
+    def test_each_entry_not_observed_fails(self):
+        h = copy.deepcopy(self.head_doc)
+        for k in ("q", "dec"):
+            del h["open"][0][k]
+        _, fails = self.check(h)
+        self.assertTrue(any("0 elements gained the fields, manifest 1" in f for f in fails), fails)
+
+    def test_repository_closure_manifest_is_narrow_and_pinned(self):
+        with open(os.path.join(ROOT, "tests", "fixtures", "v8", "phase3_closure_expected_deltas.json")) as fh:
+            man = json.load(fh)
+        self.assertEqual(man["base"]["sha"], "f8648fe9006a9409b9bd4ecde092e411f8de37a1")
+        self.assertEqual(man["base"]["tree"], "bb296e427e06b246d9e30efd85961b826debec58")
+        self.assertEqual(man["schema"], "v8.delta/2")
+        self.assertEqual((man["universe"], man["dex_status"], man["decisions"]), ([], [], []))
+        self.assertLessEqual(len(man["code"]), 16)
+        self.assertEqual(set(man["rules"]), {e["rule"] for e in man["code"] + man["files"]})
+        # every per-trade delta adds proof only: VERIFIED_CRYPTO, qualified, the identity version, the fixture scan
+        from v8 import evidence as EV
+        from v8 import identity as ID
+        for e in man["code"]:
+            if e.get("kind") == "each":
+                f = e["fields"]
+                self.assertTrue(set(EV.TRADE_IDENTITY_FIELDS) <= set(f), e)
+                self.assertEqual((f["identity_state_at_entry"], f["identity_qualified"], f["identity_version"]),
+                                 (ID.VERIFIED_CRYPTO, True, ID.VERSION))
+                self.assertLessEqual(set(f) - set(EV.TRADE_IDENTITY_FIELDS),
+                                     {"identity", "pair", "identity_coin_state_at_entry"})
+                if "identity" in f:
+                    self.assertEqual(f["identity"], ID.VERIFIED_CRYPTO)
+                self.assertGreater(e["count"], 0)
+            elif e.get("kind") == "append":
+                self.assertEqual(e["path"], ["journal", "rows"])
+                self.assertLessEqual(set(e["counts"]), {"backtest", "qualified", "legacy"})
+            else:
+                self.assertEqual(e["base"], "<absent>", e)             # everything else is a new key
+        self.assertEqual(sorted(f["file"] for f in man["files"]), ["analyze.js", "data/journal.csv"])
+        self.assertTrue(all(len(f["base_sha256"]) == len(f["head_sha256"]) == 64 for f in man["files"]))
+        self.assertNotIn("*", json.dumps(man))
+
+
 if __name__ == "__main__":
     unittest.main()
