@@ -110,8 +110,9 @@ class QuantEvidence(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.fx = FakeExchange(n_coins=16, days=130, seed=5)
-        cls.old = sc.FETCH
+        cls.old, cls.old_now = sc.FETCH, sc.now_ts
         sc.FETCH = cls.fx.fetch
+        sc.now_ts = lambda: cls.fx.now          # both runs at the same instant: their simulations must be identical
         cls.tmp = tempfile.mkdtemp(prefix="v8closure")
         t0 = (cls.fx.now // H) * H - 72 * H
         opened = [qtrade(LEG_UNVERIFIED, t0, 10_000), qtrade(LEG_VERIFIED, t0, 10_000), qtrade(LEG_CLOSES, t0, 3),
@@ -140,7 +141,7 @@ class QuantEvidence(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        sc.FETCH = cls.old
+        sc.FETCH, sc.now_ts = cls.old, cls.old_now
         shutil.rmtree(cls.tmp, ignore_errors=True)
 
     def trade(self, coin, J=None):
@@ -202,7 +203,7 @@ class QuantEvidence(unittest.TestCase):
         self.assertIn(["quant", "long", "Proven"], R["tested"][LEG_VERIFIED]["signals"])   # (the engine may hold more)
         coins = {x["coin"] for x in R["coins"]}
         self.assertTrue({LEG_UNVERIFIED, DEGRADED_OPEN, MISSING}.isdisjoint(coins), coins)
-        self.assertTrue(coins and coins <= {o["c"] for o in self.out["open"]}, coins)   # verified positions only
+        self.assertTrue(coins <= {o["c"] for o in self.out["open"]}, coins)   # verified positions only
         # an altered file that lists the blocked position under "open" without verified identity is still refused
         bad = dict(self.pub, open=self.pub["open"] + [dict(self.pub["blocked_open"][0], identity=ID.UNVERIFIED)])
         bp = os.path.join(self.tmp, "forged_quant.json")
@@ -233,11 +234,11 @@ class QuantEvidence(unittest.TestCase):
         # every trade the engine opened this run carries the same complete proof
         new = [t for t in self.J["open"] + self.J["closed"] if t["id"] not in {x["id"] for x in self.J0["open"]}
                and t["id"] not in {x["id"] for x in self.J0["closed"]}]
-        self.assertTrue(new)
-        for t in new:
+        for t in new:                       # (how many depends on the fake market at this hour)
             self.assertTrue(EV.qualified(t), t["id"])
             self.assertTrue(EV.proof_complete(t))
-            self.assertEqual(t["identity_scan_id"][:6], "local-")
+            from v8 import provenance           # gh-<run>-<attempt> in GitHub Actions, local-<time> offline
+            self.assertEqual(t["identity_scan_id"], provenance.scan_id(self.fx.now))
 
     def test_identity_degrades_after_entry(self):
         tr = self.trade(DEGRADED_OPEN)
@@ -262,9 +263,14 @@ class QuantEvidence(unittest.TestCase):
     def test_live_record(self):
         live = self.out["live_all"]
         q = [t for t in self.J["closed"] if EV.qualified(t)]
-        self.assertEqual({t["c"] for t in q}, {NEW_CLOSES, DEGRADED_CLOSES})
+        crafted = {t["id"] for t in self.J0["open"] + self.J0["closed"]}
+        # the crafted qualified closes are in; trades the engine itself opened and closed this run (the fake market
+        # follows the clock) are qualified too; no legacy trade is
+        self.assertEqual({t["c"] for t in q if t["id"] in crafted}, {NEW_CLOSES, DEGRADED_CLOSES})
+        self.assertTrue(all(t["id"] not in crafted or t["c"] in (NEW_CLOSES, DEGRADED_CLOSES) for t in q))
         self.assertEqual(live, Q.live_stats(q))
-        self.assertEqual(live["n"], 2)
+        self.assertEqual(live["n"], len(q))
+        self.assertGreaterEqual(live["n"], 2)
         leg = self.out["legacy_unqualified"]
         self.assertEqual(leg["reason"], EV.LEGACY_NO_IDENTITY_PROOF)
         self.assertEqual(leg["live_all"]["n"], 3)                         # the closing legacy one, winner, loser

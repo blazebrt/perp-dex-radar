@@ -74,7 +74,9 @@ def quant_report(head, base, journal):
     ids0 = {t["id"] for t in (J0.get("open") or []) + (J0.get("closed") or [])}
     ids1 = {t["id"] for t in jh["open"] + jh["closed"]}
     sig_h = {c: [x for x in v if x["src"] == "quant"] for c, v in D.signals(None, qh, None, None).items()}
-    sig_b = {c: [x for x in v if x["src"] == "quant"] for c, v in D.signals(None, qb or {}, None, None).items()}
+    # the base's dashboard added every "open" position of its quant.json as a proven quant signal (base rule; this
+    # branch's dashboard would refuse the base file's entries, which carry no identity)
+    sig_b = {o.get("c") for o in (qb or {}).get("open") or [] if o.get("d") in (1, -1)}
     act_h = sorted({o["c"] for o in qh.get("open") or []})
     act_b = sorted({o["c"] for o in (qb or {}).get("open") or []})
     blocked = qh.get("blocked_open") or []
