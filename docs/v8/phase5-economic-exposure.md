@@ -293,7 +293,46 @@ Zero unexpected deltas. The Phase 2, 3, closure and 4 manifests are kept for the
 * **Scan gate.** `ScanGateInvariants` runs in the Scan workflow's pre-publication core tests.
 * **Changed earlier tests.** The Phase 3/4 tests that pinned Extended Crypto as crypto evidence now pin the /3 result and the /2 result (`previous`) side by side.
 
-## 10. Known limits
+## 10. Live Research on the implementation head
+
+Research run `37982448561` on head `1cec534` (scan `gh-37982448561-1`, 2026-10-09 ~19:46 UTC) passed: 346 tests OK. The observation itself:
+
+* 12,297 raw contracts, 2,018 active perps, 1,040 assets.
+* `v8.identity/3`, identity config hash `3ceec43e...`, audit `v8.audit/4` / `v8-phase5.0`.
+* Unaccounted 0 in every scope.
+
+**States: 434 VERIFIED_CRYPTO / 267 VERIFIED_TRADFI / 0 AMBIGUOUS / 153 UNVERIFIED.** The same contracts under /2 give 467 / 263 / 0 / 124. The transitions are:
+
+* **33 × VERIFIED_CRYPTO → UNVERIFIED**, exactly the Stage A list (`WRAPPER_ONLY_NO_ECONOMIC_EVIDENCE`; PRL's deciding exposure is its unlabeled Lighter market). GRAM ($11.4M) and LYN ($1.43M) were ≥ $1M at this scan.
+* **4 × UNVERIFIED → VERIFIED_TRADFI**: BYD, H100, STABLECOINX, US10Y (Lighter token-list RWA).
+* Nothing became crypto or ambiguous.
+
+**Wrapper vs economic evidence:**
+
+* `wrapper_crypto_assets` = 195: 160 crypto by the known-crypto list, 33 wrapper-only UNVERIFIED, 2 tradfi by economic evidence (PAXG, XAUT).
+* `economic_crypto_verified` = 434 and `economic_tradfi_verified` = 267.
+* `economic_conflicts` = [] and `wrapper_unaccounted` = 0.
+
+**Lighter token list:** state OK, 261 tokens (244 PERPS). All 213 kept Lighter markets were checked: RWA 95, CRYPTO 118, none without a check. Exposure-check-blocked assets: none.
+
+**Controls:**
+
+* PAXG and XAUT are VERIFIED_TRADFI. Their wrapper `VENUE_CATEGORY:Crypto` is recorded beside the economic evidence: name `gold`, the tradfi list and, for PAXG, Lighter RWA and the Aster Commodities subtype.
+* SPY, NVDA, TSLA, XAU, US500, US10Y, BYD, SAMSUNGUSD, HYUNDAIUSD and XIAOMI are VERIFIED_TRADFI.
+* BTC, ETH, SOL, QNT, PURR and BB are VERIFIED_CRYPTO. QNT, PURR and BB select their crypto exposure. The Lighter BB stock carries its own `VENUE_ASSET_TYPE:RWA`.
+
+**Engines:**
+
+* The 33 assets are `IDENTITY_UNVERIFIED` in radar, quant, swing and day.
+* The 4 new tradfi assets are `TRADFI_CLASSIFIED`.
+* Smart money read the same-scan v3 authority (854 coins); no crowd was blocked by identity.
+* Quant analysed 85 coins against the base's 87 (GRAM and LYN). The quant signals are identical to the base's.
+* The radar published no pick or watch on either side.
+* Swing/day: 2 listings differ each way (DOGE day and CRV swing out; UNI day and ASTER swing in). All four are VERIFIED_CRYPTO on both sides. The picks universe was 61 coins on both sides (no transitioned asset was in it), and every score moved by about ±2 between the two runs, which were ~3 minutes apart. That is a market move at the top-10 cut-off, not an identity effect.
+
+The exposure-safety report on the three observations (this head, production `gh-37981368889-1` on main 3288b15, the previous Research `gh-37904572317-1`) reproduces every recorded state (0 differences). It gives the same inventory every time: 274 / 33 / 160 / 0. The candidate census qualifies no positive rule.
+
+## 11. Known limits
 
 These are also in [known-legacy-behavior.md](known-legacy-behavior.md):
 
