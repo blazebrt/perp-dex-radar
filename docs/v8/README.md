@@ -1,4 +1,4 @@
-# v8: observable decisions (Phase 1), universe identity (Phase 2), identity coverage (Phase 3)
+# v8: observable decisions (Phase 1), universe identity (Phase 2), identity coverage (Phase 3), candidate identity evidence (Phase 4)
 
 Phase 1 made the existing engines **observable** without changing what they decide. Phase 2 corrects, in a narrow
 and approved scope, **which markets form the coin universe** and **what a missing 24h volume means** - see
@@ -23,6 +23,7 @@ What is new:
 | Universe identity (Phase 2) | Which markets are one coin, crypto or not, decided per contract and per price-coherent exposure; missing volume is not $0 | [phase2-universe-identity.md](phase2-universe-identity.md) |
 | Identity coverage (Phase 3) | Four identity states; unknown coins stay visible but never reach an engine or become a signal (smart money included, through the scanner's same-scan identity authority); venue-symbol parsing; identity transitions per scan | [phase3-identity-coverage.md](phase3-identity-coverage.md) |
 | Production-evidence closure (Phase 3) | A quant position on a coin without crypto identity now is never actionable (published apart as blocked); quant and live radar trades count as forward evidence only with entry-time identity proof; legacy trades are kept and reported apart | [phase3-production-evidence-closure.md](phase3-production-evidence-closure.md) |
+| Candidate identity evidence (Phase 4) | Which venue fields could be positive crypto evidence: a census and qualification gate over the retained and live scans (none qualified; no identity change), and observed candidate evidence recorded in every audit apart from authoritative evidence | [phase4-positive-crypto-evidence.md](phase4-positive-crypto-evidence.md) |
 
 ## How it runs
 
@@ -58,8 +59,10 @@ or refused, so two runs of the same code produce identical files.
   runner, checks it reproduces its golden file, then compares the base's and this branch's universes (coin fields,
   the derived `execution_identity`, every identity state) and, with a counterfactual run (the base's code fed this
   branch's universe, coins without execution identity excluded the base code's own way), the engines' outputs.
-  Every difference must be listed in `tests/fixtures/v8/phase3_expected_deltas.json`, and every listed difference
-  must occur.
+  Every difference must be listed in the phase's manifest, and every listed difference must occur. Since Phase 4 the
+  manifest is `tests/fixtures/v8/phase4_expected_deltas.json` (base: production main d011bcb), which lists no
+  difference at all; the earlier manifests (`phase3_expected_deltas.json`, `phase3_closure_expected_deltas.json`) are
+  kept for the record.
 * Only files under `data/v8/` are excluded; wall-clock durations (`duration_s`) are dropped and error notes are
   sorted before hashing (they are collected by parallel threads, in no fixed order).
 
@@ -67,10 +70,11 @@ or refused, so two runs of the same code produce identical files.
 
 ```
 python -m unittest discover -s tests                     # everything, about 40 seconds
-python tools/v8/legacy_parity.py --out /tmp/parity --check tests/fixtures/v8/legacy_parity_golden_phase3.json
-git worktree add --detach /tmp/base 82f8d35a80e561384f2e8be0e1399dd4e5adb99b
-python tools/v8/delta_parity.py --base-root /tmp/base --manifest tests/fixtures/v8/phase3_expected_deltas.json --work /tmp/delta
+python tools/v8/legacy_parity.py --out /tmp/parity --check tests/fixtures/v8/legacy_parity_golden_phase4.json
+git worktree add --detach /tmp/base d011bcb634f2e348b60f3d1317be2f9ec5d57767
+python tools/v8/delta_parity.py --base-root /tmp/base --manifest tests/fixtures/v8/phase4_expected_deltas.json --work /tmp/delta
 python -m v8.snapshot --out /tmp/parity --keep-parts     # assemble a snapshot from the parity run
 python tools/v8/identity_report.py /tmp/parity/data/v8/audit_latest.json   # identity states, inventory, collisions
 python tools/v8/rescore_identity.py research_snapshot.json.gz   # re-resolve an earlier scan's market lists
+python tools/v8/candidate_census.py a.json b.json.gz --json census.json   # candidate fields and the Phase 4 gate
 ```

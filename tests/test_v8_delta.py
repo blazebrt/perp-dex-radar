@@ -375,6 +375,19 @@ class ClosureValidator(unittest.TestCase):
         _, fails = self.check(h)
         self.assertTrue(any("0 elements gained the fields, manifest 1" in f for f in fails), fails)
 
+    def test_repository_phase4_manifest_allows_nothing(self):
+        with open(os.path.join(ROOT, "tests", "fixtures", "v8", "phase4_expected_deltas.json")) as fh:
+            man = json.load(fh)
+        self.assertEqual(man["base"]["sha"], "d011bcb634f2e348b60f3d1317be2f9ec5d57767")
+        self.assertEqual(man["base"]["tree"], "c08c2a006393001e8c7a82545642b0bb6ea38bd1")
+        self.assertEqual(man["schema"], "v8.delta/2")
+        self.assertEqual((man["universe"], man["dex_status"], man["decisions"], man["code"], man["files"]),
+                         ([], [], [], [], []))
+        self.assertEqual(man["rules"], {})
+        with open(os.path.join(ROOT, "tests", "fixtures", "v8", "phase3_closure_expected_deltas.json")) as fh:
+            closure = json.load(fh)
+        self.assertEqual(man["identity_states"], closure["identity_states"])    # no identity state may move
+
     def test_repository_closure_manifest_is_narrow_and_pinned(self):
         with open(os.path.join(ROOT, "tests", "fixtures", "v8", "phase3_closure_expected_deltas.json")) as fh:
             man = json.load(fh)

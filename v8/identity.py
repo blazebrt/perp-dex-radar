@@ -61,6 +61,12 @@ Discovery is not execution: every coin record is in the universe whatever its st
 VERIFIED_CRYPTO may reach a crypto engine (execution_identity_eligible()), and a coin record without an identity
 fails closed. Liquidity, history and strategy gates are separate and unchanged.
 
+Candidate evidence (Phase 4, Stage A): venue fields that are not evidence in either direction (CANDIDATE_FIELDS:
+Aster underlyingType COIN and the non-tradfi underlyingSubType tags, Lighter strategy_index, insurance fund and market
+flags) are recorded per contract as observed candidate evidence (candidate_evidence()) for the audit, apart from the
+authoritative evidence above. Phase 4 qualified no candidate rule (QUALIFIED_CRYPTO_RULES is empty), so the rules
+above and VERSION are unchanged.
+
 Volumes: an observed 0 counts (best_vol, tot_vol, trade_vol are 0.0, not None); None means no venue reported one."""
 from __future__ import annotations
 
@@ -114,6 +120,39 @@ MIN_CANDIDATE_LEN = 2
 PROMOTION = ("positive identity evidence on a price-coherent contract: a venue asset-class label (Extended "
              "category, Aster underlyingType), the repository's known-crypto or tradfi list, a tradfi contract name, "
              "or a verified tradfi exposure linked by the venue symbol")
+
+# v8 Phase 4 (Stage A): candidate evidence. Venue fields that could look like an asset class but are NOT evidence.
+# Phase 4 censused every value of them against the identity states of the retained and live scans and put each one
+# through the positive-crypto qualification gate (tools/v8/candidate_census.py, docs/v8/phase4-positive-crypto-
+# evidence.md). None qualified: no value states a crypto asset class (Aster underlyingSubType values are sectors,
+# themes, tiers, programmes or listing stages; Lighter's strategy_index is absent from its API schema), and the
+# values a venue files as crypto include tokenized gold (PAXG) and tickers on the repository's tradfi list. They are
+# recorded per contract as OBSERVED candidate evidence (the audit trace), apart from the authoritative evidence of
+# contract_evidence(), and they decide nothing. A value used as authority already (an Aster underlyingType other
+# than COIN, an Aster tradfi subtype) is authoritative evidence and is not repeated here.
+CANDIDATE_FIELDS = {"aster": ("underlyingType", "underlyingSubType"),
+                    "lighter": ("strategy_index", "insurance_fund_account_index", "market_flags")}
+QUALIFIED_CRYPTO_RULES = ()      # Phase 4: no candidate rule qualified as positive crypto evidence
+CANDIDATE_STATUS = "OBSERVED_NOT_AUTHORITY"
+
+
+def candidate_evidence(venue, vmeta):
+    """[[field, value], ...]: the candidate values one contract's raw venue fields carry (strings; one entry per element
+    of a list field), never authority. Authoritative values (Aster underlyingType other than COIN, the Aster tradfi
+    subtypes) are left out: they are contract evidence already. A missing field gives nothing."""
+    out = []
+    for field in CANDIDATE_FIELDS.get(venue, ()):
+        v = (vmeta or {}).get(field)
+        if v is None or v == "":
+            continue
+        for x in (v if isinstance(v, list) else [v]):
+            x = str(x)
+            if venue == "aster" and field == "underlyingType" and x not in ASTER_NEUTRAL_UNDERLYING:
+                continue
+            if venue == "aster" and field == "underlyingSubType" and x in ASTER_TRADFI_SUBTYPES:
+                continue
+            out.append([field, x])
+    return out
 
 
 class Lists:
