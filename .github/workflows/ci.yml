@@ -42,20 +42,20 @@ jobs:
       - name: All unit tests
         run: python -m unittest discover -s tests -v
 
-      - name: v8 tests (Phase 1 audit; Phase 2 identity, liquidity and the delta validator; Phase 3 identity coverage, smart-money identity and journal provenance; Phase 3 closure quant and radar evidence)
-        run: python -m unittest tests.test_v8_units tests.test_v8_audit tests.test_v8_identity tests.test_v8_delta tests.test_v8_phase3 tests.test_v8_phase3_smart tests.test_v8_phase3_journal tests.test_v8_phase3_closure -v
+      - name: v8 tests (Phase 1 audit; Phase 2 identity, liquidity and the delta validator; Phase 3 identity coverage, smart-money identity and journal provenance; Phase 3 closure quant and radar evidence; Phase 4 candidate identity evidence)
+        run: python -m unittest tests.test_v8_units tests.test_v8_audit tests.test_v8_identity tests.test_v8_delta tests.test_v8_phase3 tests.test_v8_phase3_smart tests.test_v8_phase3_journal tests.test_v8_phase3_closure tests.test_v8_phase4 -v
 
       - name: Legacy parity against this branch's committed golden digests
-        run: python tools/v8/legacy_parity.py --out "$RUNNER_TEMP/parity_head" --check tests/fixtures/v8/legacy_parity_golden_closure.json
+        run: python tools/v8/legacy_parity.py --out "$RUNNER_TEMP/parity_head" --check tests/fixtures/v8/legacy_parity_golden_phase4.json
 
       - name: Differential parity against the phase base (approved deltas only)
-        # The Phase 3 production-evidence closure changes legacy outputs on purpose. Its base, production main
-        # f8648fe (Phase 3 merged), named in the closure manifest, is rebuilt on this runner; it must reproduce its own
-        # golden digests, and every difference between it and this checkout must be one the manifest lists
-        # (tools/v8/delta_parity.py): anything else fails the job. The Phase 3 manifest (pinned to 82f8d35) and the
-        # Phase 2 manifest (15a3794) are kept for the record and no longer checked.
+        # Phase 4 (Stage A) changes no legacy output and no identity decision. Its base, production main d011bcb (the
+        # Phase 3 closure merged), named in the Phase 4 manifest, is rebuilt on this runner; it must reproduce its own
+        # golden digests, and the manifest lists no difference at all, so any difference between it and this checkout
+        # fails the job (tools/v8/delta_parity.py). The closure manifest (pinned to f8648fe), the Phase 3 manifest
+        # (82f8d35) and the Phase 2 manifest (15a3794) are kept for the record and no longer checked.
         run: |
-          MANIFEST=tests/fixtures/v8/phase3_closure_expected_deltas.json
+          MANIFEST=tests/fixtures/v8/phase4_expected_deltas.json
           BASE_SHA=$(python -c "import json; print(json.load(open('$MANIFEST'))['base']['sha'])")
           git merge-base --is-ancestor "$BASE_SHA" HEAD
           git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA"

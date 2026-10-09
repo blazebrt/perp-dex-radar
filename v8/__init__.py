@@ -1,5 +1,6 @@
 """v8 layer: contract registry, disposition ledger, data health and run provenance (Phase 1); universe identity and
-liquidity semantics (Phase 2); four identity states and the identity execution gate (Phase 3).
+liquidity semantics (Phase 2); four identity states and the identity execution gate (Phase 3); observed candidate
+identity evidence, kept apart from authoritative evidence (Phase 4).
 
 Two modules DECIDE (Phase 2): `identity` builds the coin universe the engines read (which markets are one coin,
 crypto or not) and `liquidity` is the shared execution-liquidity evaluation behind every $1M gate. Everything else
@@ -22,4 +23,4 @@ Modules
 """
 
 SCHEMA = "v8.audit/3"
-ENGINE_VERSION = "v8-phase3.0"
+ENGINE_VERSION = "v8-phase4.0"

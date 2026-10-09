@@ -332,9 +332,10 @@ Nothing runs on your computer.
 | `.github/workflows/ci.yml` | Blocking checks on every pull request and push to main: all tests, legacy parity, simulator and no-edge checks |
 | `v8/` | v8 audit (Phase 1; observes): every DEX contract, why each coin was or was not shown by each engine, data health and provenance, published as `data/v8/audit_latest.json`. Since Phase 2 also the universe identity (`v8/identity.py`: which markets are one coin, crypto or not) and the shared liquidity evaluation (`v8/liquidity.py`), which decide; since Phase 3 four identity states, and only verified crypto reaches an engine or becomes a signal (smart money reads the scanner's same-scan identity authority). See `docs/v8/` |
 | `tools/v8/legacy_parity.py` | Runs the whole pipeline offline on a fixed fake market and checks its outputs against golden digests |
-| `tools/v8/delta_parity.py` | Proves that every output difference from the phase's base commit is one of the approved deltas in `tests/fixtures/v8/phase3_expected_deltas.json` |
+| `tools/v8/delta_parity.py` | Proves that every output difference from the phase's base commit is one of the approved deltas in the phase manifest (`tests/fixtures/v8/phase4_expected_deltas.json` since Phase 4: none) |
 | `tools/v8/identity_report.py` | Identity states, the default-crypto inventory, unverified assets, venue field census, collisions and production changes of an audit snapshot (run by `research.yml`) |
 | `tools/v8/rescore_identity.py` | Re-resolves an earlier scan's market lists (from its audit snapshot) with the current identity rules |
+| `tools/v8/candidate_census.py` | Censuses candidate venue identity fields against verified identity across audit snapshots and puts every candidate rule through the Phase 4 positive-crypto qualification gate (run by `research.yml`; read-only) |
 | `tools/v8/smart_journal_evidence.py` | Reads a smart-money journal (read-only) and reports its paper trades as identity-qualified or legacy, with the live record under the Phase 3 rules |
 | `.github/workflows/data.yml` | Downloads a year of 1h and three years of 4h candles, funding, futures statistics and CoinGecko fundamentals to the `market-data` branch |
 | `tests/` | Unit tests and full runs on a fake exchange |

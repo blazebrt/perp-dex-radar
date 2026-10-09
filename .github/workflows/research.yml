@@ -78,13 +78,13 @@ jobs:
           python -c "import json; s = json.load(open('out_new/data/v8/audit_latest.json')); json.dump({'manifest': s['manifest'], 'summary': s['coverage']['summary'], 'engines': s['coverage']['engines'], 'registry_counts': s['registry']['counts'], 'data_health': {k: v for k, v in s['data_health'].items() if k != 'registry_venues'}, 'venues': s['data_health'].get('registry_venues'), 'storage': s['storage']}, open('research_v8_summary.json', 'w'), indent=1)" >> research_v8.txt 2>&1 || true
 
       - name: Phase base engines on the same live data (comparison only, nothing published)
-        # The phase base (the base commit of the expected-delta manifest: since the Phase 3 production-evidence closure,
-        # production main f8648fe) runs the scanner, the quant desk and the coin picks on live data right after this
-        # branch, so the reports can list every production output the change removes or adds. The two runs are
-        # minutes apart; the reports say which differences the change explains.
+        # The phase base (the base commit of the expected-delta manifest: since Phase 4, production main d011bcb) runs
+        # the scanner, the quant desk and the coin picks on live data right after this branch, so the reports can list
+        # every production output the change removes or adds. The two runs are minutes apart; the reports say which
+        # differences the change explains.
         continue-on-error: true
         run: |
-          BASE_SHA=$(python -c "import json; print(json.load(open('tests/fixtures/v8/phase3_closure_expected_deltas.json'))['base']['sha'])")
+          BASE_SHA=$(python -c "import json; print(json.load(open('tests/fixtures/v8/phase4_expected_deltas.json'))['base']['sha'])")
           echo "phase base $BASE_SHA" > research_base.txt
           git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA" >> research_base.txt 2>&1 || true
           cd "$RUNNER_TEMP/base"
@@ -98,6 +98,19 @@ jobs:
         run: |
           python tools/v8/identity_report.py out_new/data/v8/audit_latest.json --json research_identity.json --base-out out_base > research_identity.txt 2>&1 || true
           head -60 research_identity.txt
+
+      - name: Candidate identity evidence census and qualification gate (v8 Phase 4; read-only, nothing promoted)
+        # Every candidate venue field (Aster underlyingType / underlyingSubType, Lighter strategy_index, insurance fund,
+        # market flags, settlement assets) against verified identity, and every candidate rule through the Phase 4
+        # gate, on up to three observations: this run (the exact head on live data), the latest production scan (the
+        # published audit snapshot) and the previous Research run (kept on the research branch). Evidence only.
+        continue-on-error: true
+        run: |
+          OBS="out_new/data/v8/audit_latest.json"
+          if curl -fsS "https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/data/v8/audit_latest.json" -o production_audit_latest.json 2> research_candidate_census.txt; then OBS="$OBS production_audit_latest.json"; fi
+          if git fetch -q origin research 2>> research_candidate_census.txt && git show FETCH_HEAD:new_audit_latest.json.gz > previous_research_audit.json.gz 2>> research_candidate_census.txt; then OBS="$OBS previous_research_audit.json.gz"; fi
+          python tools/v8/candidate_census.py $OBS --json research_candidate_census.json >> research_candidate_census.txt 2>&1 || true
+          head -120 research_candidate_census.txt
 
       - name: Published smart journal under the Phase 3 evidence rules (read-only; the copy on the journal-data branch)
         continue-on-error: true
@@ -154,7 +167,7 @@ jobs:
           if [ -f research_v8_summary.json ]; then cp research_v8_summary.json R/; fi
           if [ -f research_identity.json ]; then cp research_identity.json R/; fi
           if [ -f research_smart_journal.json ]; then cp research_smart_journal.json R/; fi
-          for f in research_quant_evidence.json research_radar_evidence.json; do
+          for f in research_quant_evidence.json research_radar_evidence.json research_candidate_census.json; do
             if [ -f "$f" ]; then cp "$f" R/; fi
           done
           if [ -f out_pubq/data/quant.json ]; then cp out_pubq/data/quant.json R/pub_quant.json; fi

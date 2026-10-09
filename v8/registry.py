@@ -318,7 +318,9 @@ def build(trace, coins, dex_status, dex_ok, scan_ts):
                 # contract evidence, the parsed venue symbol and its link, and the raw venue identity fields
                 "exp_state": (info or {}).get("exp_state"), "in_record": (info or {}).get("in_record"),
                 "evidence": (info or {}).get("evidence"), "parsed": (info or {}).get("parsed"),
-                "link": (info or {}).get("link"), "vmeta": rec.get("vmeta")})
+                "link": (info or {}).get("link"), "vmeta": rec.get("vmeta"),
+                # v8 Phase 4: observed candidate evidence (never authority; see v8.identity.CANDIDATE_FIELDS)
+                "candidate": ID.candidate_evidence(dex, rec.get("vmeta")) or None})
         # adapter rows the registry could not match to any raw record
         left = sum(len(v) for v in pool.values())
         if left:
@@ -345,10 +347,12 @@ def asset_summary(contracts, coins, dex_ok, ident=None):
     by = {}
     for c in contracts:
         a = by.setdefault(c["asset"], {"contracts": [], "venues": set(), "norms": set(), "kept_crypto": False,
-                                       "kept_tradfi": False, "any_kept": False, "failed": False})
+                                       "kept_tradfi": False, "any_kept": False, "failed": False, "candidate": []})
         if c["legacy"] == "ADAPTER_FAILED":
             a["failed"] = True
         a["contracts"].append(c["id"])
+        if c.get("candidate") and c["legacy"] in ID.KEPT_STATES:
+            a["candidate"].extend([c["id"], f, v] for f, v in c["candidate"])
         a["venues"].add(c["venue"])
         a["norms"].add(c["norm"])
         if c["legacy"] in ID.KEPT_STATES:
@@ -376,7 +380,12 @@ def asset_summary(contracts, coins, dex_ok, ident=None):
         out[t] = {"contracts": a["contracts"], "venues": sorted(a["venues"]), "legacy": state,
                   "collision": bool(info and info["collision"]),
                   "aliases": sorted(a["norms"]) if len(a["norms"]) > 1 else None,
-                  "identity": (_identity_block(info, c) if info is not None else None)}
+                  "identity": (_identity_block(info, c) if info is not None else None),
+                  # v8 Phase 4: observed candidate evidence, apart from the authoritative identity evidence above
+                  "candidate_evidence": ({"observed": a["candidate"], "authority": False,
+                                          "status": ID.CANDIDATE_STATUS,
+                                          "qualified_rules": list(ID.QUALIFIED_CRYPTO_RULES)}
+                                         if a["candidate"] else None)}
     for t, c in coins.items():   # the fallback universe has coins without any contract
         if t not in out:
             out[t] = {"contracts": [], "venues": [], "legacy": "TRADFI" if c.get("tradfi") else "CRYPTO",
@@ -467,7 +476,28 @@ def identity_counts(assets, cs):
             "changed_vs_phase2": changed,
             "changed_vs_phase2_detail": {t: [idents[t].get("phase2"), idents[t].get("state")] for t in changed},
             "parsed_symbol_links": sorted(c["id"] for c in cs if c.get("link")),
-            "now_unverified": by_state[ID.UNVERIFIED]}
+            "now_unverified": by_state[ID.UNVERIFIED],
+            "candidate_evidence": candidate_counts(assets, cs)}
+
+
+def candidate_counts(assets, cs):
+    """v8 Phase 4: the candidate-evidence census of this scan: every venue.field=value observed on a kept contract, by
+    the identity state of its exposure, so each audit snapshot adds one observation of how the candidate values line
+    up with verified identity (none is authority: qualified_rules is empty)."""
+    cross = {}
+    for c in cs:
+        if c.get("legacy") not in ID.KEPT_STATES:
+            continue
+        for f, v in c.get("candidate") or []:
+            k = f"{c['venue']}.{f}={v}"
+            st = c.get("exp_state") or "NONE"
+            cross.setdefault(k, {}).setdefault(st, 0)
+            cross[k][st] += 1
+    unv = [t for t, a in assets.items() if (a.get("identity") or {}).get("state") == ID.UNVERIFIED]
+    return {"qualified_rules": list(ID.QUALIFIED_CRYPTO_RULES), "status": ID.CANDIDATE_STATUS,
+            "by_value_and_exposure_state": {k: dict(sorted(v.items())) for k, v in sorted(cross.items())},
+            "unverified_with_candidate": sorted(t for t in unv if assets[t].get("candidate_evidence")),
+            "unverified_without_candidate": sorted(t for t in unv if not assets[t].get("candidate_evidence"))}
 
 
 def _count(cs, k):

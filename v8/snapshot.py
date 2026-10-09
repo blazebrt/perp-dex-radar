@@ -42,7 +42,9 @@ CONTRACT_FIELDS = ("id", "venue", "raw", "norm", "asset", "mult", "canon", "type
                    "inherited_from", "meta",
                    # v8 Phase 3 identity (exposure state, in the coin record, evidence, parsed symbol and its link, raw
                    # venue identity fields)
-                   "exp_state", "in_record", "evidence", "parsed", "link", "vmeta")
+                   "exp_state", "in_record", "evidence", "parsed", "link", "vmeta",
+                   # v8 Phase 4: observed candidate evidence (never authority)
+                   "candidate")
 LEGACY_FILES = ("latest.json", "journal.json", "journal.csv", "quant.json", "quant_journal.json", "picks.json",
                 "picks_journal.json", "smart.json", "smart_journal.json", "dashboard.json")
 FIRST_SEEN_KEEP_S = 400 * 86400

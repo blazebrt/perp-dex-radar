@@ -40,10 +40,13 @@ import legacy_parity as LP  # noqa: E402
 from v8 import snapshot as SN  # noqa: E402
 from v8 import taxonomy as T  # noqa: E402
 
-# v8 Phase 3 production-evidence closure: this branch's golden; its base (main f8648fe = the Phase 3 golden) and the
-# closure manifest (phase3_closure_expected_deltas.json) are checked by tools/v8/delta_parity.py in CI. The Phase 3
-# manifest and its goldens are kept for the record and still checked for consistency below.
-GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_closure.json")
+# v8 Phase 4: this branch's golden (identical to the closure golden: Phase 4 changes no legacy output); its base (main
+# d011bcb = the closure golden) and the Phase 4 manifest (phase4_expected_deltas.json, no delta at all) are checked by
+# tools/v8/delta_parity.py in CI. The Phase 3 and closure manifests and their goldens are kept for the record and still
+# checked for consistency below.
+GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase4.json")
+CLOSURE_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_closure.json")
+PHASE4_MANIFEST = os.path.join(HERE, "fixtures", "v8", "phase4_expected_deltas.json")
 PHASE3_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase3.json")
 CLOSURE_MANIFEST = os.path.join(HERE, "fixtures", "v8", "phase3_closure_expected_deltas.json")
 BASE_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase3_base.json")
@@ -103,6 +106,46 @@ class PipelineAudit(unittest.TestCase):
             self.assertIn(e["rule"], man["rules"])
             # one value of one row, or (Phase 3 closure) one new top-level provenance key that did not exist before
             self.assertTrue(len(e["path"]) >= 2 or (len(e["path"]) == 1 and e["base"] == "<absent>"), e)
+
+    def test_phase4_manifest_allows_no_delta(self):
+        """Phase 4 is measured from production main d011bcb (the closure merged), whose fixture golden is the closure
+        golden. Stage A records candidate evidence in the audit trace only, so nothing may change: no universe, identity
+        state, DEX status, note, engine decision, legacy file or code delta."""
+        with open(PHASE4_MANIFEST) as fh:
+            man = json.load(fh)
+        with open(CLOSURE_GOLDEN) as fh:
+            base = json.load(fh)
+        with open(GOLDEN) as fh:
+            head = json.load(fh)
+        self.assertEqual(man["base"]["sha"], "d011bcb634f2e348b60f3d1317be2f9ec5d57767")
+        self.assertEqual(man["base"]["tree"], "c08c2a006393001e8c7a82545642b0bb6ea38bd1")
+        self.assertEqual(man["base"]["golden"], "tests/fixtures/v8/legacy_parity_golden_closure.json")
+        self.assertEqual(man["head_golden"], "tests/fixtures/v8/legacy_parity_golden_phase4.json")
+        self.assertIsNone(man["counterfactual_projection"])
+        self.assertEqual((man["universe"], man["dex_status"], man["decisions"], man["code"], man["files"], man["rules"]),
+                         ([], [], [], [], [], {}))
+        self.assertEqual(man["notes"], {"removed": [], "added": []})
+        self.assertEqual(base, head)                                          # the head golden is the base golden
+        self.assertEqual(head["combined"], self.summary["combined"])
+        self.assertEqual(man["identity_states"],
+                         {t: a["identity"]["state"] for t, a in self.snap["registry"]["assets"].items()
+                          if a["legacy"] in ("CRYPTO", "TRADFI", "AMBIGUOUS", "UNVERIFIED")})
+
+    def test_candidate_evidence_is_traced_never_authority(self):
+        """v8 Phase 4: the snapshot carries every contract's observed candidate evidence apart from its authoritative
+        evidence, and counts it; no candidate rule is qualified."""
+        self.assertEqual(self.snap["manifest"]["audit_version"], "v8-phase4.0")
+        self.assertIn("candidate", SN.CONTRACT_FIELDS)
+        cc = self.snap["registry"]["counts"]["candidate_evidence"]
+        self.assertEqual(cc["qualified_rules"], [])
+        self.assertEqual(cc["status"], "OBSERVED_NOT_AUTHORITY")
+        for c in self.contracts.values():
+            for f, v in c.get("candidate") or []:
+                for e in c.get("evidence") or []:
+                    self.assertNotIn(f"{f}:{v}", e[1])                       # a candidate never appears as authority
+        for a in self.snap["registry"]["assets"].values():
+            if a.get("candidate_evidence"):
+                self.assertIs(a["candidate_evidence"]["authority"], False)
 
     def test_closure_manifest_is_pinned_to_production_main(self):
         """The closure is measured from production main f8648fe (Phase 3 merged), whose fixture golden is the Phase 3
