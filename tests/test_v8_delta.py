@@ -388,6 +388,52 @@ class ClosureValidator(unittest.TestCase):
             closure = json.load(fh)
         self.assertEqual(man["identity_states"], closure["identity_states"])    # no identity state may move
 
+    def test_repository_phase5_manifest_is_narrow_and_pinned(self):
+        """v8 Phase 5 is measured from production main 3288b15 (Phase 4 merged). It may change exactly the economic-
+        exposure identity of six fixture coins - two lose crypto execution identity (Extended Crypto wrapper only),
+        four Lighter token-list RWA markets become tradfi - and nothing may become crypto."""
+        fx = os.path.join(ROOT, "tests", "fixtures", "v8")
+        with open(os.path.join(fx, "phase5_expected_deltas.json")) as fh:
+            man = json.load(fh)
+        with open(os.path.join(fx, "phase4_expected_deltas.json")) as fh:
+            p4 = json.load(fh)
+        self.assertEqual(man["base"]["sha"], "3288b1587563045558ea42dec70301e61dc95a9e")
+        self.assertEqual(man["base"]["tree"], "d56ef755e23827ba8e2910a6d69d4b6f61090c2f")
+        self.assertEqual(man["base"]["golden"], "tests/fixtures/v8/legacy_parity_golden_phase4.json")
+        self.assertEqual(man["head_golden"], "tests/fixtures/v8/legacy_parity_golden_phase5.json")
+        self.assertEqual((man["schema"], man["counterfactual_projection"]),
+                         ("v8.delta/2", "exclude_without_execution_identity"))
+        self.assertEqual(man["files"], [])
+        used = {e["rule"] for e in man["universe"] + man["dex_status"] + man["code"] + man["decisions"]}
+        used.add(man["notes"]["rule"])
+        self.assertEqual(set(man["rules"]), used)
+        wrap, rwa = {"EXTONLY", "PRLX"}, {"BYD", "HYUNDAIUSD", "US10Y", "XIAOMI"}
+        for e in man["universe"]:
+            if e["ticker"] in wrap:
+                self.assertEqual(e["rule"], "EXTENDED_CRYPTO_WRAPPER_ONLY")
+                self.assertIn((e["field"], e["base"], e["head"]), {("identity", "VERIFIED_CRYPTO", "UNVERIFIED"),
+                                                                   ("execution_identity", True, False)})
+            else:
+                self.assertIn(e["ticker"], rwa)
+                self.assertEqual(e["rule"], "LIGHTER_TOKENLIST_RWA_TRADFI")
+                self.assertIn((e["field"], e["head"]), {("identity", "VERIFIED_TRADFI"), ("tradfi", True)})
+            self.assertNotEqual(e["head"], "VERIFIED_CRYPTO")                  # nothing becomes crypto
+        self.assertEqual({e["ticker"] for e in man["universe"]}, wrap | rwa)
+        moved = {t for t in set(man["identity_states"]) | set(p4["identity_states"])
+                 if man["identity_states"].get(t) != p4["identity_states"].get(t)}
+        self.assertEqual(moved, wrap | rwa)                                    # every other state is the Phase 4 one
+        for e in man["code"]:
+            if e["rule"] == "IDENTITY_VERSION_BUMP":
+                self.assertEqual((e["path"][-1], e["base"], e["head"]), ("identity_version", "v8.identity/2",
+                                                                          "v8.identity/3"))
+                self.assertIn(e["path"][0], ("open", "closed"))
+            else:
+                self.assertEqual((e["rule"], e["kind"], e["path"][0]), ("UNVERIFIED_LISTED_SEPARATELY", "set",
+                                                                        "coverage"))
+        self.assertEqual({d["dex"] for d in man["dex_status"]}, {"aster", "extended"})
+        self.assertTrue(all(d["head"] < d["base"] for d in man["dex_status"]))   # crypto counts only fall
+        self.assertNotIn("*", json.dumps(man))
+
     def test_repository_closure_manifest_is_narrow_and_pinned(self):
         with open(os.path.join(ROOT, "tests", "fixtures", "v8", "phase3_closure_expected_deltas.json")) as fh:
             man = json.load(fh)
@@ -404,8 +450,9 @@ class ClosureValidator(unittest.TestCase):
             if e.get("kind") == "each":
                 f = e["fields"]
                 self.assertTrue(set(EV.TRADE_IDENTITY_FIELDS) <= set(f), e)
+                # the identity version of the closure's time (v8.identity/2; Phase 5 moved on to /3)
                 self.assertEqual((f["identity_state_at_entry"], f["identity_qualified"], f["identity_version"]),
-                                 (ID.VERIFIED_CRYPTO, True, ID.VERSION))
+                                 (ID.VERIFIED_CRYPTO, True, ID.PREVIOUS_VERSION))
                 self.assertLessEqual(set(f) - set(EV.TRADE_IDENTITY_FIELDS),
                                      {"identity", "pair", "identity_coin_state_at_entry"})
                 if "identity" in f:

@@ -41,7 +41,7 @@ Contract evidence, from the contract's own data (rule 1 of `v8/identity.py`):
 | Source field | Venue | Evidence | Authority | Why it is trusted |
 |---|---|---|---|---|
 | `category` = `RWA`, or a `_24_5` market | Extended | tradfi | `VENUE_METADATA` | the venue's own asset class; every live RWA market is a stock, FX, commodity or index |
-| `category` = `Crypto` | Extended | crypto | `VENUE_METADATA` | the venue's own asset class |
+| `category` = `Crypto` | Extended | crypto (until v8.identity/2; since Phase 5 wrapper evidence only, see [phase5-economic-exposure.md](phase5-economic-exposure.md)) | `VENUE_METADATA` | the venue's own label of the instrument (Phase 5: the wrapper, not the economic exposure) |
 | any other `category` (`L1`, `L2`, `Infra`, ...) | Extended | ambiguous | `VENUE_METADATA` | unrecognised label: not guessed |
 | `underlyingType` other than `COIN` | Aster | tradfi | `VENUE_METADATA` | the venue's own underlying type |
 | `underlyingType` = `COIN` | Aster | **none** | - | Aster sends `COIN` for the stocks it lists too (all ten Phase 1 stock collisions) |

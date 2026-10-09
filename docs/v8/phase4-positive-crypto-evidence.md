@@ -6,6 +6,12 @@ output are unchanged (the Phase 4 differential manifest allows no delta at all).
 itself: a candidate-field census with a qualification gate (`tools/v8/candidate_census.py`, run by Research on
 every push), and candidate evidence recorded in every audit snapshot, kept apart from authoritative evidence.
 
+> **Phase 5 follow-up.** Phase 4's finding - venues label the instrument wrapper, the system classifies the price
+> exposure, and even Extended's trusted `Crypto` category files tokenized gold - became Phase 5. Since
+> `v8.identity/3`, Extended `Crypto` is wrapper evidence only and Lighter's documented token-list asset type `RWA` is
+> tradfi evidence; `QUALIFIED_CRYPTO_RULES` is still empty. See [phase5-economic-exposure.md](phase5-economic-exposure.md).
+> The text below describes Phase 4 as it was merged (`v8.identity/2`).
+
 ## The question
 
 Phase 3 retired "no evidence = crypto": a contract with no positive evidence is `UNVERIFIED`, visible but never

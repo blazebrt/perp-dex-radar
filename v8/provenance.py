@@ -58,7 +58,12 @@ def identity_config():
     import scanner as sc
     ID = sc.IDENTITY
     return {"version": ID.VERSION, "tol": ID.TOL, "extended_tradfi": sorted(ID.EXTENDED_TRADFI_CATEGORIES),
-            "extended_crypto": sorted(ID.EXTENDED_CRYPTO_CATEGORIES),
+            # v8.identity/3 (Phase 5): Extended Crypto is wrapper evidence only; Lighter token-list RWA is tradfi
+            # evidence; an exposure seen only through a failed exposure check is not verified by the ticker list
+            "extended_crypto_wrapper": sorted(ID.EXTENDED_CRYPTO_CATEGORIES),
+            "lighter_tradfi_asset_types": sorted(ID.LIGHTER_TRADFI_ASSET_TYPES),
+            "lighter_asset_types": list(ID.LIGHTER_ASSET_TYPES),
+            "exposure_checks": dict(sorted(ID.EXPOSURE_CHECKS.items())), "exposure_check_ok": ID.XCHECK_OK,
             "aster_neutral": sorted(ID.ASTER_NEUTRAL_UNDERLYING), "base_only_symbol_venues": list(ID.BASE_ONLY_SYMBOL_VENUES),
             "aster_tradfi_subtypes": sorted(ID.ASTER_TRADFI_SUBTYPES),
             "variational_tradfi_name_prefix": ID.VARIATIONAL_TRADFI_NAME_PREFIX,

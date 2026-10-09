@@ -117,11 +117,22 @@ class Matrix(unittest.TestCase):
     """The Phase 3 regression matrix A-P."""
 
     def test_A_explicit_crypto_metadata(self):
+        # v8 Phase 5 (v8.identity/3): Extended category Crypto describes the instrument wrapper, not the economic
+        # exposure (Extended files tokenized gold under it). It is recorded as wrapper evidence and verifies nothing:
+        # an unlisted ticker with only that label is UNVERIFIED. v8.identity/2 verified it (kept as `previous`).
         r = resolve(ext("NOVA-USD", "NOVA", 1.0, 2e6, cat="Crypto"), hl("NOVA", 1.01, 5e6))
-        self.assertEqual(state(r, "NOVA"), ID.VERIFIED_CRYPTO)
+        self.assertEqual(state(r, "NOVA"), ID.UNVERIFIED)
         a = r.asset("NOVA")
-        self.assertEqual((a["authority"], a["reason"]), (ID.VENUE_METADATA, "CRYPTO_VENUE_METADATA"))
-        self.assertIn(["extended:NOVA-USD", "CRYPTO", "VENUE_CATEGORY:Crypto", "VENUE_METADATA"], a["evidence"])
+        self.assertEqual((a["authority"], a["reason"]), (ID.NONE, "WRAPPER_ONLY_NO_ECONOMIC_EVIDENCE"))
+        self.assertEqual(a["evidence"], [])
+        self.assertEqual(a["wrapper_evidence"],
+                         [["extended:NOVA-USD", ID.CRYPTO_WRAPPER, "VENUE_CATEGORY:Crypto", "VENUE_METADATA"]])
+        self.assertFalse(row_of(r, "hyperliquid")["admitted"])
+        self.assertEqual((a["previous"]["state"], a["previous"]["reason"]), (ID.VERIFIED_CRYPTO, "CRYPTO_VENUE_METADATA"))
+        # the same shape under a known-crypto ticker is verified by the ticker list; the wrapper is still only recorded
+        r = resolve(ext("SOL-USD", "SOL", 150.0, 2e6, cat="Crypto"), hl("SOL", 150.2, 5e6))
+        self.assertEqual(state(r, "SOL"), ID.VERIFIED_CRYPTO)
+        self.assertEqual((r.asset("SOL")["authority"], r.asset("SOL")["reason"]), (ID.TICKER_LIST, "TICKER_KNOWN_CRYPTO"))
         self.assertTrue(row_of(r, "hyperliquid")["admitted"])
 
     def test_B_known_crypto_without_metadata(self):
@@ -147,8 +158,12 @@ class Matrix(unittest.TestCase):
         self.assertEqual(row_of(r, "aster")["exp_state"], ID.VERIFIED_TRADFI)
 
     def test_E_contradictory_evidence(self):
+        # v8 Phase 5: a crypto wrapper beside equity exposure evidence is not a conflict - they answer different
+        # questions - so the exposure is tradfi (v8.identity/2 made it AMBIGUOUS). A true conflict of two economic
+        # sources is still AMBIGUOUS (tests.test_v8_phase5), and so is an unrecognized Extended category.
         r = resolve(ext("MIXD-USD", "MIXD", 3.0, 1e6, cat="Crypto"), aster("MIXDUSDT", "MIXD", 3.01, 1e5, ut="EQUITY"))
-        self.assertEqual(state(r, "MIXD"), ID.AMBIGUOUS)
+        self.assertEqual(state(r, "MIXD"), ID.VERIFIED_TRADFI)
+        self.assertEqual(r.asset("MIXD")["previous"]["state"], ID.AMBIGUOUS)
         r = resolve(ext("SECX-USD", "SECX", 2.0, 5e5, cat="L1"))
         self.assertEqual(state(r, "SECX"), ID.AMBIGUOUS)
         for t in ("MIXD", "SECX"):
@@ -172,9 +187,11 @@ class Matrix(unittest.TestCase):
         r = resolve(*rows)
         self.assertEqual(state(r, "ZQY"), ID.UNVERIFIED)        # six unlabeled venues do not prove crypto
         self.assertEqual(sorted(r.coins["ZQY"]["venues"]), sorted({x["dex"] for x in rows}))
-        # one member with positive crypto evidence verifies the coherent exposure; one with tradfi evidence makes it tradfi
+        # one member with a crypto wrapper label verifies nothing (v8 Phase 5; /2 verified the coherent exposure);
+        # one with tradfi evidence makes it tradfi
         r = resolve(*rows, ext("ZQY-USD", "ZQY", 2.0, 1e5, cat="Crypto"))
-        self.assertEqual(state(r, "ZQY"), ID.VERIFIED_CRYPTO)
+        self.assertEqual(state(r, "ZQY"), ID.UNVERIFIED)
+        self.assertEqual(r.asset("ZQY")["reason"], "WRAPPER_ONLY_NO_ECONOMIC_EVIDENCE")
         r = resolve(*rows, ext("ZQY-USD", "ZQY", 2.0, 1e5, cat="RWA"))
         self.assertEqual(state(r, "ZQY"), ID.VERIFIED_TRADFI)
 
@@ -319,15 +336,23 @@ class Matrix(unittest.TestCase):
         self.assertEqual(row_of(r, "lighter")["link"]["coherent_class"], ID.CRYPTO)
 
     def test_unverified_exposure_not_merged_into_crypto_coin(self):
+        # v8 Phase 5: PRLX (the live shape) was verified by Extended's Crypto label alone; that label is wrapper
+        # evidence since v8.identity/3, so both exposures are UNVERIFIED and recorded, nothing is admitted
         r = resolve(ext("PRLX-USD", "PRLX", 0.111, 232844.0, cat="Crypto"), aster("PRLXUSDT", "PRLX", 0.1122, 2646.9),
                     lighter("PRLX", 1.34, 196238.6))
-        self.assertEqual(state(r, "PRLX"), ID.VERIFIED_CRYPTO)
-        self.assertEqual(sorted(r.coins["PRLX"]["venues"]), ["aster", "extended"])
+        self.assertEqual(state(r, "PRLX"), ID.UNVERIFIED)
+        self.assertEqual(r.asset("PRLX")["previous"]["state"], ID.VERIFIED_CRYPTO)
+        self.assertFalse(ID.execution_identity_eligible(r.coins["PRLX"]))
+        # the rule itself, on a crypto exposure verified by the ticker list beside a price-separated exposure seen
+        # only on Lighter without its exposure check (rows built here carry none: EXPOSURE_CHECK_UNAVAILABLE)
+        r = resolve(hl("SOL", 150.0, 232844.0), aster("SOLUSDT", "SOL", 150.3, 2646.9), lighter("SOL", 1.34, 196238.6))
+        self.assertEqual(state(r, "SOL"), ID.VERIFIED_CRYPTO)
+        self.assertEqual(sorted(r.coins["SOL"]["venues"]), ["aster", "hyperliquid"])
         self.assertEqual(row_of(r, "lighter")["state"], ID.NOT_ADMITTED_UNVERIFIED)
-        self.assertEqual(r.asset("PRLX")["excluded_unverified"], ["PRLX#2"])
+        self.assertEqual(r.asset("SOL")["excluded_unverified"], ["SOL#2"])
         # if the unverified exposure trades more, the verified one is still the coin (Phase 2 anchored on volume)
-        r = resolve(ext("PRLX-USD", "PRLX", 0.111, 1e4, cat="Crypto"), lighter("PRLX", 1.34, 5e6))
-        self.assertEqual(r.coins["PRLX"]["ref_price"], 0.111)
+        r = resolve(hl("SOL", 150.0, 1e4), lighter("SOL", 1.34, 5e6))
+        self.assertEqual(r.coins["SOL"]["ref_price"], 150.0)
 
 
 class NoDefaultCrypto(unittest.TestCase):

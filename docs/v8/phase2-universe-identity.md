@@ -56,7 +56,7 @@ raw venue contract (venue:raw_symbol)
 |---|---|---|
 | Extended category `RWA` (stocks, FX, commodities, indices in the live data) | TRADFI | VENUE_METADATA |
 | Extended `_24_5` market | TRADFI | VENUE_METADATA |
-| Extended category `Crypto` | CRYPTO | VENUE_METADATA |
+| Extended category `Crypto` | CRYPTO (until v8.identity/2; since Phase 5, `v8.identity/3`, wrapper evidence only - see [phase5-economic-exposure.md](phase5-economic-exposure.md)) | VENUE_METADATA |
 | any other Extended category (`L1`, `L2`, `Infra` were seen) | AMBIGUOUS | VENUE_METADATA |
 | Aster `underlyingType` other than `COIN` | TRADFI | VENUE_METADATA |
 | Aster `underlyingType` `COIN` | no evidence: Aster sends `COIN` for the stocks it lists too | - |

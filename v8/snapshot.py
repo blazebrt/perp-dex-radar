@@ -44,7 +44,9 @@ CONTRACT_FIELDS = ("id", "venue", "raw", "norm", "asset", "mult", "canon", "type
                    # venue identity fields)
                    "exp_state", "in_record", "evidence", "parsed", "link", "vmeta",
                    # v8 Phase 4: observed candidate evidence (never authority)
-                   "candidate")
+                   "candidate",
+                   # v8 Phase 5: wrapper evidence (never decides) and the venue's economic-exposure check
+                   "wrapper", "xcheck")
 LEGACY_FILES = ("latest.json", "journal.json", "journal.csv", "quant.json", "quant_journal.json", "picks.json",
                 "picks_journal.json", "smart.json", "smart_journal.json", "dashboard.json")
 FIRST_SEEN_KEEP_S = 400 * 86400
@@ -244,7 +246,11 @@ def build(out_dir, pages_url=None, first_seen_path=None, identity_path=None):
                      "phase2_default_crypto_only": len(rc.get("phase2_default_crypto_only") or []),
                      "phase2_default_crypto_any": len(rc.get("phase2_default_crypto_any") or []),
                      "phase2_default_crypto_now": {k: len(v) for k, v in (rc.get("phase2_default_crypto_now") or {}).items()},
-                     "transitions": id_moves, "transitions_source": id_src},
+                     "transitions": id_moves, "transitions_source": id_src,
+                     # v8 Phase 5: wrapper vs economic exposure, and the before/after against the previous version
+                     "exposure_safety": {k: (v if isinstance(v, (int, str)) else (len(v) if isinstance(v, list) else v))
+                                         for k, v in (rc.get("exposure_safety") or {}).items()
+                                         if k not in ("changed_vs_previous_detail",)}},
         "engine_universe_differences": diffs,
     }
     # data health
@@ -279,6 +285,7 @@ def build(out_dir, pages_url=None, first_seen_path=None, identity_path=None):
     data_health = {"contracts_by_venue": dict(sorted(by_venue.items())), "value_basis": vals,
                    "records_by_engine": rec_health, "steps": steps, "sources": legacy_cov,
                    "registry_venues": (reg or {}).get("venues"), "first_seen_source": fs_src,
+                   "exposure_metadata": (reg or {}).get("exposure_metadata"),
                    "audit_problems": problems}
     # legacy output references (hashes of the files the engines wrote; the audit never changes them)
     refs = []
@@ -299,6 +306,8 @@ def build(out_dir, pages_url=None, first_seen_path=None, identity_path=None):
         "registry_contracts": rc.get("raw_contracts"),
         "dispositions": sum(len(v) for v in dispositions.values()),
         "data_sources": {"dex_market_lists": {k: (v or {}).get("ok") for k, v in ((reg or {}).get("venues") or {}).items()},
+                         "exposure_metadata": {k: (v or {}).get("state")
+                                               for k, v in ((reg or {}).get("exposure_metadata") or {}).items()},
                          "fallback_universe": bool(uni.get("fallback"))},
         "legacy_output_hashes": {r["path"]: r["sha256"] for r in refs},
         "strategy_authority": provenance.strategy_authority(),

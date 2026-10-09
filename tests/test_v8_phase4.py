@@ -61,21 +61,26 @@ def lit(sym, px, vol, **fields):
 class NoRuleQualified(unittest.TestCase):
     def test_outcome_pinned(self):
         self.assertEqual(ID.QUALIFIED_CRYPTO_RULES, ())
-        self.assertEqual(ID.VERSION, "v8.identity/2")            # no authoritative rule changed: no new version
+        # Phase 4 changed no authoritative rule (it stayed v8.identity/2). Phase 5 did - Extended Crypto is wrapper
+        # evidence, Lighter token-list RWA is tradfi evidence - so the version is v8.identity/3 (tests.test_v8_phase5)
+        self.assertEqual((ID.VERSION, ID.PREVIOUS_VERSION), ("v8.identity/3", "v8.identity/2"))
         cfg = provenance.identity_config()
         # candidates never enter the identity config hash (min_candidate_len is the Phase 3 parsed-symbol rule)
         self.assertFalse({"candidate_fields", "qualified_crypto_rules", "candidate_status"} & set(cfg))
         self.assertEqual(cfg["aster_tradfi_subtypes"], sorted(ID.ASTER_TRADFI_SUBTYPES))
-        self.assertEqual(cfg["extended_crypto"], ["Crypto"])
+        self.assertEqual(cfg["extended_crypto_wrapper"], ["Crypto"])
 
 
 class Matrix(unittest.TestCase):
     """Phase 4 regression matrix (section 21): nothing a candidate field says is crypto evidence."""
 
     def test_explicit_extended_crypto_still_verified(self):
+        # Phase 4 pinned Extended Crypto as verifying; Phase 5 demoted it to wrapper evidence, and a candidate tag
+        # beside it still verifies nothing: UNVERIFIED (v8.identity/2: VERIFIED_CRYPTO, CRYPTO_VENUE_METADATA)
         r = resolve(ext("ZNOV-USD", "ZNOV", 1.0, 2e6, cat="Crypto"), ast("ZNOV", ["AI"], px=1.01))
-        self.assertEqual(state(r, "ZNOV"), ID.VERIFIED_CRYPTO)
-        self.assertEqual(r.asset("ZNOV")["reason"], "CRYPTO_VENUE_METADATA")
+        self.assertEqual(state(r, "ZNOV"), ID.UNVERIFIED)
+        self.assertEqual(r.asset("ZNOV")["reason"], "WRAPPER_ONLY_NO_ECONOMIC_EVIDENCE")
+        self.assertEqual(r.asset("ZNOV")["previous"]["reason"], "CRYPTO_VENUE_METADATA")
 
     def test_known_crypto_still_verified(self):
         r = resolve(hl("SOL", 150.0, 5e6), ast("SOL", ["Meme"], px=150.1))
@@ -115,22 +120,34 @@ class Matrix(unittest.TestCase):
         self.assertEqual(state(resolve(lit("ZMIS2", 1.0, 1e5)), "ZMIS2"), ID.UNVERIFIED)
 
     def test_trusted_tradfi_plus_crypto_is_ambiguous(self):
+        # Phase 5: Extended Crypto is a wrapper label, not crypto exposure evidence, so wrapper + tradfi exposure
+        # evidence is tradfi, not ambiguous (v8.identity/2: AMBIGUOUS). Two economic sources that disagree are still
+        # AMBIGUOUS (tests.test_v8_phase5.TrueConflict)
         r = resolve(ext("ZAMB-USD", "ZAMB", 10.0, 1e6, cat="Crypto", desc="Zamb Holdings Inc"))
-        self.assertEqual(state(r, "ZAMB"), ID.AMBIGUOUS)
+        self.assertEqual(state(r, "ZAMB"), ID.VERIFIED_TRADFI)
+        self.assertEqual(r.asset("ZAMB")["previous"]["state"], ID.AMBIGUOUS)
         r = resolve(ext("ZAM2-USD", "ZAM2", 10.0, 1e6, cat="Crypto"), ast("ZAM2", ["STOCK", "AI"], px=10.05))
-        self.assertEqual(state(r, "ZAM2"), ID.AMBIGUOUS)
+        self.assertEqual(state(r, "ZAM2"), ID.VERIFIED_TRADFI)
 
     def test_price_separated_collision_keeps_both_sides(self):
-        # crypto by Extended metadata at ~1, a stock tagged STOCK (+ a theme tag) at ~240 under the same ticker
+        # a crypto token at ~1 (Extended Crypto wrapper), a stock tagged STOCK (+ a theme tag) at ~240 under the same
+        # ticker. Phase 5: the wrapper side of an unlisted ticker has no economic evidence, the stock stays tradfi
         r = resolve(ext("ZQN-USD", "ZQN", 1.0, 2e6, cat="Crypto"), ast("ZQN", ["STOCK", "AI"], px=240.0, vol=5e6),
                     lit("ZQN", 241.0, 1e6, strategy_index=2))
-        self.assertEqual(state(r, "ZQN"), ID.VERIFIED_CRYPTO)
-        a = r.asset("ZQN")
+        self.assertEqual(state(r, "ZQN"), ID.AMBIGUOUS)          # unlabeled beside tradfi: the Phase 3 collision rule
+        self.assertFalse(ID.execution_identity_eligible(r.coins["ZQN"]))
+        cls = {g["id"]: g["class"] for g in r.asset("ZQN")["exposures"]}
+        self.assertEqual(sorted(cls.values()), [ID.AMBIGUOUS, ID.TRADFI])
+        # under a known-crypto ticker both sides keep their own class: crypto by the list, the stock tradfi
+        r = resolve(ext("SOL-USD", "SOL", 1.0, 2e6, cat="Crypto"), ast("SOL", ["STOCK", "AI"], px=240.0, vol=5e6),
+                    lit("SOL", 241.0, 1e6, strategy_index=2))
+        self.assertEqual(state(r, "SOL"), ID.VERIFIED_CRYPTO)
+        a = r.asset("SOL")
         self.assertEqual(a["decision"], ID.D_SELECTED)
         cls = {g["id"]: g["class"] for g in a["exposures"]}
         self.assertIn(ID.TRADFI, cls.values())                    # the stock exposure stays tradfi
-        self.assertEqual(sorted(r.coins["ZQN"]["venues"]), ["extended"])
-        self.assertEqual(r.coins["ZQN"]["ref_price"], 1.0)
+        self.assertEqual(sorted(r.coins["SOL"]["venues"]), ["extended"])
+        self.assertEqual(r.coins["SOL"]["ref_price"], 1.0)
 
     def test_new_tiny_coin_is_unverified_and_visible(self):
         r = resolve(hl("ZTINY", 0.0004, 812.0))
@@ -143,7 +160,9 @@ class Matrix(unittest.TestCase):
         r = resolve(ext("ZUQ-USD", "ZUQ", 2.0, 1e6, cat="RWA"), ast("ZUQ", ["Meme"], px=None, vol=None))
         self.assertEqual(state(r, "ZUQ"), ID.VERIFIED_TRADFI)
         r = resolve(ext("ZUR-USD", "ZUR", 2.0, 1e6, cat="Crypto"), ast("ZUR", ["Top"], px=None, vol=None))
-        self.assertEqual(state(r, "ZUR"), ID.VERIFIED_CRYPTO)
+        self.assertEqual(state(r, "ZUR"), ID.UNVERIFIED)                 # Phase 5: a wrapper alone verifies nothing
+        r = resolve(ext("SOL-USD", "SOL", 2.0, 1e6, cat="Crypto"), ast("SOL", ["Top"], px=None, vol=None))
+        self.assertEqual(state(r, "SOL"), ID.VERIFIED_CRYPTO)
 
 
 class CandidateTrace(unittest.TestCase):
@@ -182,7 +201,8 @@ class CandidateTrace(unittest.TestCase):
         self.assertEqual(cc["by_value_and_exposure_state"]["aster.underlyingSubType=Meme"],
                          {ID.UNVERIFIED: 1, ID.VERIFIED_TRADFI: 1})
         self.assertIn("ZAI", cc["unverified_with_candidate"])
-        self.assertEqual(SN.CONTRACT_FIELDS[-1], "candidate")
+        self.assertIn("candidate", SN.CONTRACT_FIELDS)          # Phase 5 appended wrapper and xcheck after it
+        self.assertEqual(SN.CONTRACT_FIELDS[SN.CONTRACT_FIELDS.index("candidate"):], ("candidate", "wrapper", "xcheck"))
 
 
 # --------------------------------------------------------------------------- a scan built by the real adapters

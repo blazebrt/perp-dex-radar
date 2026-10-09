@@ -1,0 +1,1116 @@
+{
+ "schema": "v8.delta/2",
+ "phase": "v8 Phase 5: economic exposure safety - Extended category Crypto becomes wrapper evidence only, Lighter token-list asset_type RWA becomes tradfi evidence, an exposure seen only through a failed exposure check is not verified by the ticker list (v8.identity/3)",
+ "base": {
+  "sha": "3288b1587563045558ea42dec70301e61dc95a9e",
+  "tree": "d56ef755e23827ba8e2910a6d69d4b6f61090c2f",
+  "golden": "tests/fixtures/v8/legacy_parity_golden_phase4.json",
+  "golden_note": "main 3288b15 (Phase 4 merged, PR #15) on the fixture: the Phase 4 branch golden. The Phase 5 fixture adds only fields the base code never reads (Extended subCategory) and a URL it never requests (the Lighter token list), so the base reproduces it unchanged"
+ },
+ "head_golden": "tests/fixtures/v8/legacy_parity_golden_phase5.json",
+ "counterfactual_projection": "exclude_without_execution_identity",
+ "rules": {
+  "EXTENDED_CRYPTO_WRAPPER_ONLY": "v8.identity/3: Extended category 'Crypto' describes the instrument wrapper, not the economic exposure (Extended files tokenized gold PAXG and XAUT under it), so it is wrapper evidence only - recorded and traced, never crypto evidence. A coin whose only crypto authority was that label (no known-crypto ticker, no other evidence) is UNVERIFIED (WRAPPER_ONLY_NO_ECONOMIC_EVIDENCE): it stays in the universe (discovery) and loses crypto execution identity.",
+  "LIGHTER_TOKENLIST_RWA_TRADFI": "v8.identity/3: a Lighter market whose entry in Lighter's token list (/api/v1/tokenlist, asset_type documented as CRYPTO | RWA; Lighter's RWAs are commodities, equities and fixed income) has asset_type RWA carries tradfi evidence on its own contract (VENUE_ASSET_TYPE:RWA), within its own price-coherent exposure only. CRYPTO is no evidence.",
+  "WRAPPER_NOT_COUNTED_AS_CRYPTO": "A DEX's count of crypto markets counts only markets admitted with crypto execution identity: the markets of a coin verified by Extended's Crypto wrapper alone are no longer counted.",
+  "UNVERIFIED_PRICE_CHECK_NOTE": "A coin with no crypto exposure keeps the Phase 2 record of its UNVERIFIED exposures (v8.identity rule 5), whose legacy price check drops a venue far from the most traded market and notes it. PRLX's two exposures are both UNVERIFIED since /3, so the note Phase 3 stopped emitting (UNVERIFIED_EXPOSURE_NOT_MERGED, when PRLX was verified crypto) is emitted again; the Lighter market stays out of the record.",
+  "UNVERIFIED_LISTED_SEPARATELY": "The radar publishes identity-unverified coins in coverage.unverified, not among the non-crypto (tradfi) exclusions in coverage.tradfi: unknown is not tradfi. The counterfactual hands every coin without crypto execution identity to the base code as tradfi (its only exclusion); HEAD lists the unverified ones apart.",
+  "IDENTITY_VERSION_BUMP": "Entry-time identity provenance of a paper trade opened in this run records the identity version of the authority that allowed it: v8.identity/3. Written once; a trade opened under v8.identity/2 keeps its proof and stays qualified (no hindsight). Every other trade value is unchanged."
+ },
+ "universe": [
+  {
+   "ticker": "BYD",
+   "field": "tradfi",
+   "base": false,
+   "head": true,
+   "rule": "LIGHTER_TOKENLIST_RWA_TRADFI",
+   "why": "Lighter BYD: token-list asset_type RWA (categories NEW) -> VENUE_ASSET_TYPE:RWA. v8.identity/2: no evidence, UNVERIFIED."
+  },
+  {
+   "ticker": "BYD",
+   "field": "identity",
+   "base": "UNVERIFIED",
+   "head": "VERIFIED_TRADFI",
+   "rule": "LIGHTER_TOKENLIST_RWA_TRADFI",
+   "why": "Lighter BYD: token-list asset_type RWA (categories NEW) -> VENUE_ASSET_TYPE:RWA. v8.identity/2: no evidence, UNVERIFIED."
+  },
+  {
+   "ticker": "EXTONLY",
+   "field": "execution_identity",
+   "base": true,
+   "head": false,
+   "rule": "EXTENDED_CRYPTO_WRAPPER_ONLY",
+   "why": "Extended EXTONLY-USD: category Crypto (wrapper, subCategory Meme) is its only evidence; EXTONLY is on no list -> WRAPPER_ONLY_NO_ECONOMIC_EVIDENCE."
+  },
+  {
+   "ticker": "EXTONLY",
+   "field": "identity",
+   "base": "VERIFIED_CRYPTO",
+   "head": "UNVERIFIED",
+   "rule": "EXTENDED_CRYPTO_WRAPPER_ONLY",
+   "why": "Extended EXTONLY-USD: category Crypto (wrapper, subCategory Meme) is its only evidence; EXTONLY is on no list -> WRAPPER_ONLY_NO_ECONOMIC_EVIDENCE."
+  },
+  {
+   "ticker": "HYUNDAIUSD",
+   "field": "tradfi",
+   "base": false,
+   "head": true,
+   "rule": "LIGHTER_TOKENLIST_RWA_TRADFI",
+   "why": "Lighter HYUNDAIUSD: token-list asset_type RWA (STOCK, KRW) -> VENUE_ASSET_TYPE:RWA. v8.identity/2: UNVERIFIED (its parsed link to HYUNDAI decided nothing)."
+  },
+  {
+   "ticker": "HYUNDAIUSD",
+   "field": "identity",
+   "base": "UNVERIFIED",
+   "head": "VERIFIED_TRADFI",
+   "rule": "LIGHTER_TOKENLIST_RWA_TRADFI",
+   "why": "Lighter HYUNDAIUSD: token-list asset_type RWA (STOCK, KRW) -> VENUE_ASSET_TYPE:RWA. v8.identity/2: UNVERIFIED (its parsed link to HYUNDAI decided nothing)."
+  },
+  {
+   "ticker": "PRLX",
+   "field": "execution_identity",
+   "base": true,
+   "head": false,
+   "rule": "EXTENDED_CRYPTO_WRAPPER_ONLY",
+   "why": "Extended PRLX-USD: category Crypto (wrapper, subCategory AI) verified the Extended+Aster exposure near 0.111; no other evidence and PRLX is on no list -> WRAPPER_ONLY_NO_ECONOMIC_EVIDENCE. The Lighter PRLX exposure (1.34, token-list CRYPTO: no evidence) stays UNVERIFIED."
+  },
+  {
+   "ticker": "PRLX",
+   "field": "identity",
+   "base": "VERIFIED_CRYPTO",
+   "head": "UNVERIFIED",
+   "rule": "EXTENDED_CRYPTO_WRAPPER_ONLY",
+   "why": "Extended PRLX-USD: category Crypto (wrapper, subCategory AI) verified the Extended+Aster exposure near 0.111; no other evidence and PRLX is on no list -> WRAPPER_ONLY_NO_ECONOMIC_EVIDENCE. The Lighter PRLX exposure (1.34, token-list CRYPTO: no evidence) stays UNVERIFIED."
+  },
+  {
+   "ticker": "US10Y",
+   "field": "tradfi",
+   "base": false,
+   "head": true,
+   "rule": "LIGHTER_TOKENLIST_RWA_TRADFI",
+   "why": "Lighter US10Y: token-list asset_type RWA (BONDS) -> VENUE_ASSET_TYPE:RWA. v8.identity/2: no evidence, UNVERIFIED."
+  },
+  {
+   "ticker": "US10Y",
+   "field": "identity",
+   "base": "UNVERIFIED",
+   "head": "VERIFIED_TRADFI",
+   "rule": "LIGHTER_TOKENLIST_RWA_TRADFI",
+   "why": "Lighter US10Y: token-list asset_type RWA (BONDS) -> VENUE_ASSET_TYPE:RWA. v8.identity/2: no evidence, UNVERIFIED."
+  },
+  {
+   "ticker": "XIAOMI",
+   "field": "identity",
+   "base": "AMBIGUOUS",
+   "head": "VERIFIED_TRADFI",
+   "rule": "LIGHTER_TOKENLIST_RWA_TRADFI",
+   "why": "Lighter XIAOMI: token-list asset_type RWA (STOCK) gives the Aster+Lighter exposure near 3.1 its own tradfi evidence, so it is TRADFI instead of AMBIGUOUS (UNLABELED_UNDER_TRADFI_COLLISION beside the Extended RWA at 24.19); the coin was excluded (tradfi=true) before and after."
+  }
+ ],
+ "dex_status": [
+  {
+   "dex": "aster",
+   "field": "crypto",
+   "base": 5,
+   "head": 4,
+   "rule": "WRAPPER_NOT_COUNTED_AS_CRYPTO",
+   "contracts": [
+    "aster:PRLXUSDT"
+   ]
+  },
+  {
+   "dex": "extended",
+   "field": "crypto",
+   "base": 3,
+   "head": 1,
+   "rule": "WRAPPER_NOT_COUNTED_AS_CRYPTO",
+   "contracts": [
+    "extended:EXTONLY-USD",
+    "extended:PRLX-USD"
+   ]
+  }
+ ],
+ "notes": {
+  "removed": [],
+  "added": [
+   "PRLX: Lighter price 1.3400 differs from the main market (0.1111); left out"
+  ],
+  "rule": "UNVERIFIED_PRICE_CHECK_NOTE"
+ },
+ "code": [
+  {
+   "file": "data/journal.json",
+   "path": [
+    "closed",
+    {
+     "key": [
+      "id",
+      "FAKE19-RAND:MOM-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE00-SQZ-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE23-SQZ-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE17-SQZ-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "BTC-SMF-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE13-PB-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE07-XOVER-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE08-RAND:PB-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "QNT-RAND:SQZ-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE20-RAND:MOM-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE23-RAND:SQZ-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE19-RAND:MOM-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE24-RAND:MOM-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE11-RAND:PB-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE08-RAND:MOM-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE21-RAND:PB-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE26-RAND:PB-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE08-RAND:SMF-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "BB-RAND:PB-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-RAND:XOVER-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE25-RAND:MR-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE19-RAND:MR-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "BTC-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE13-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE17-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE19-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE22-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE25-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "BTC-XSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE08-XSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE19-XSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE27-XSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "NEW40-XSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "BTC-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE13-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE17-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE19-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE22-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE25-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "BTC-XSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE08-XSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE19-XSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE27-XSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "NEW40-XSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/2",
+   "head": "v8.identity/3",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/latest.json",
+   "path": [
+    "coverage",
+    "tradfi"
+   ],
+   "kind": "set",
+   "base": [
+    "AAPL",
+    "ACME",
+    "ADBE",
+    "ASTS",
+    "BYD",
+    "EURUSD",
+    "EXTONLY",
+    "HYUNDAI",
+    "HYUNDAIUSD",
+    "KIOXIA",
+    "KORU",
+    "MOONX",
+    "NEWCOIN",
+    "ONDS",
+    "PRLX",
+    "SAMSUNGUSD",
+    "SECT",
+    "SKHYNIX",
+    "SKHYNIXUSD",
+    "US100S",
+    "US10Y",
+    "XIAOMI"
+   ],
+   "head": [
+    "AAPL",
+    "ACME",
+    "ADBE",
+    "ASTS",
+    "BYD",
+    "EURUSD",
+    "HYUNDAIUSD",
+    "KIOXIA",
+    "KORU",
+    "ONDS",
+    "SAMSUNGUSD",
+    "SECT",
+    "SKHYNIX",
+    "SKHYNIXUSD",
+    "US100S",
+    "US10Y",
+    "XIAOMI"
+   ],
+   "rule": "UNVERIFIED_LISTED_SEPARATELY"
+  },
+  {
+   "file": "data/latest.json",
+   "path": [
+    "coverage",
+    "unverified"
+   ],
+   "kind": "set",
+   "base": [],
+   "head": [
+    "EXTONLY",
+    "HYUNDAI",
+    "MOONX",
+    "NEWCOIN",
+    "PRLX"
+   ],
+   "rule": "UNVERIFIED_LISTED_SEPARATELY"
+  }
+ ],
+ "decisions": [
+  {
+   "path": [
+    "radar",
+    "tradfi"
+   ],
+   "kind": "set",
+   "base": [
+    "AAPL",
+    "ACME",
+    "ADBE",
+    "ASTS",
+    "BYD",
+    "EURUSD",
+    "EXTONLY",
+    "HYUNDAI",
+    "HYUNDAIUSD",
+    "KIOXIA",
+    "KORU",
+    "MOONX",
+    "NEWCOIN",
+    "ONDS",
+    "PRLX",
+    "SAMSUNGUSD",
+    "SECT",
+    "SKHYNIX",
+    "SKHYNIXUSD",
+    "US100S",
+    "US10Y",
+    "XIAOMI"
+   ],
+   "head": [
+    "AAPL",
+    "ACME",
+    "ADBE",
+    "ASTS",
+    "BYD",
+    "EURUSD",
+    "HYUNDAIUSD",
+    "KIOXIA",
+    "KORU",
+    "ONDS",
+    "SAMSUNGUSD",
+    "SECT",
+    "SKHYNIX",
+    "SKHYNIXUSD",
+    "US100S",
+    "US10Y",
+    "XIAOMI"
+   ],
+   "rule": "UNVERIFIED_LISTED_SEPARATELY"
+  },
+  {
+   "path": [
+    "radar",
+    "unverified"
+   ],
+   "kind": "set",
+   "base": [],
+   "head": [
+    "EXTONLY",
+    "HYUNDAI",
+    "MOONX",
+    "NEWCOIN",
+    "PRLX"
+   ],
+   "rule": "UNVERIFIED_LISTED_SEPARATELY"
+  }
+ ],
+ "files": [],
+ "identity_states": {
+  "BTC": "VERIFIED_CRYPTO",
+  "ETH": "VERIFIED_CRYPTO",
+  "FAKE00": "VERIFIED_CRYPTO",
+  "FAKE01": "VERIFIED_CRYPTO",
+  "FAKE02": "VERIFIED_CRYPTO",
+  "FAKE03": "VERIFIED_CRYPTO",
+  "FAKE04": "VERIFIED_CRYPTO",
+  "FAKE05": "VERIFIED_CRYPTO",
+  "FAKE06": "VERIFIED_CRYPTO",
+  "FAKE07": "VERIFIED_CRYPTO",
+  "FAKE08": "VERIFIED_CRYPTO",
+  "FAKE09": "VERIFIED_CRYPTO",
+  "FAKE10": "VERIFIED_CRYPTO",
+  "FAKE11": "VERIFIED_CRYPTO",
+  "FAKE12": "VERIFIED_CRYPTO",
+  "FAKE13": "VERIFIED_CRYPTO",
+  "FAKE14": "VERIFIED_CRYPTO",
+  "FAKE15": "VERIFIED_CRYPTO",
+  "FAKE16": "VERIFIED_CRYPTO",
+  "FAKE17": "VERIFIED_CRYPTO",
+  "FAKE18": "VERIFIED_CRYPTO",
+  "FAKE19": "VERIFIED_CRYPTO",
+  "FAKE20": "VERIFIED_CRYPTO",
+  "FAKE21": "VERIFIED_CRYPTO",
+  "FAKE22": "VERIFIED_CRYPTO",
+  "FAKE23": "VERIFIED_CRYPTO",
+  "FAKE24": "VERIFIED_CRYPTO",
+  "FAKE25": "VERIFIED_CRYPTO",
+  "FAKE26": "VERIFIED_CRYPTO",
+  "FAKE27": "VERIFIED_CRYPTO",
+  "TINY": "VERIFIED_CRYPTO",
+  "NEW40": "VERIFIED_CRYPTO",
+  "NEW10": "VERIFIED_CRYPTO",
+  "THINREF": "VERIFIED_CRYPTO",
+  "ZEROV": "VERIFIED_CRYPTO",
+  "SCALEX": "VERIFIED_CRYPTO",
+  "BB": "VERIFIED_CRYPTO",
+  "PURR": "VERIFIED_CRYPTO",
+  "NOCAND": "VERIFIED_CRYPTO",
+  "MOONX": "UNVERIFIED",
+  "QNT": "VERIFIED_CRYPTO",
+  "VANA": "VERIFIED_CRYPTO",
+  "AAPL": "VERIFIED_TRADFI",
+  "ACME": "VERIFIED_TRADFI",
+  "ONDS": "VERIFIED_TRADFI",
+  "US100S": "VERIFIED_TRADFI",
+  "ASTS": "VERIFIED_TRADFI",
+  "KORU": "VERIFIED_TRADFI",
+  "XIAOMI": "VERIFIED_TRADFI",
+  "NEWCOIN": "UNVERIFIED",
+  "HYUNDAI": "UNVERIFIED",
+  "PRLX": "UNVERIFIED",
+  "ADBE": "VERIFIED_TRADFI",
+  "LONLY": "VERIFIED_CRYPTO",
+  "KIOXIA": "VERIFIED_TRADFI",
+  "SAMSUNGUSD": "VERIFIED_TRADFI",
+  "SKHYNIXUSD": "VERIFIED_TRADFI",
+  "HYUNDAIUSD": "VERIFIED_TRADFI",
+  "US10Y": "VERIFIED_TRADFI",
+  "BYD": "VERIFIED_TRADFI",
+  "EXTONLY": "UNVERIFIED",
+  "SECT": "AMBIGUOUS",
+  "SKHYNIX": "VERIFIED_TRADFI",
+  "EURUSD": "VERIFIED_TRADFI"
+ },
+ "not_allowed": "any other BASE -> HEAD difference: Phase 5 changes only the economic-exposure identity of the coins listed in 'universe' (two Extended-Crypto-only coins lose crypto execution identity, four Lighter token-list RWA markets become tradfi), the DEX crypto counts and the one price-check note that follow from them, the published unverified/tradfi lists, and the identity version on the entry-time proof of trades opened in this run. Strategies, scores, thresholds, gates, stops, sizing, FINAL/ORDER and every other output are unchanged."
+}

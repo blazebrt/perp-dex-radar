@@ -22,6 +22,13 @@ Phase 3 part:
   (radar pick or watch, quant signal or position, swing or day listing) the base published that this run did not,
   and the other way round, each with the asset's identity state now - the identity gate's effect on production.
 
+Phase 5 part (economic exposure):
+* wrapper vs economic evidence counts (wrapper_crypto_assets, economic_crypto_verified, economic_tradfi_verified,
+  wrapper_only_unverified, economic_conflicts), the exposure-check health and coverage (the Lighter token list);
+* every asset whose state differs from the previous identity version on the same contracts: contracts, exposures,
+  old state / reason / authority, new economic and wrapper evidence, new state, liquidity, and its outputs;
+* the tokenized-RWA and collision controls with their wrapper and economic evidence.
+
 Reads files only; changes nothing."""
 from __future__ import annotations
 
@@ -99,6 +106,7 @@ def report(snap, base_out=None, head_out=None):
     out["observed_zero_volume"] = zero
     out["missing_volume_quant"] = sorted(t for t, r in recs["quant"].items() if r["c"] == "DEX_VOLUME_MISSING")
     out.update(phase3(snap, assets, by_id, counts))
+    out["phase5"] = phase5(snap, assets, by_id, counts)
     out["smart"] = smart_identity(snap, head_out)
     if base_out and head_out:
         out["production"] = production_diff(base_out, head_out, assets)
@@ -224,6 +232,47 @@ def _published(out_dir):
     return got, {"radar_ok": bool(L), "quant_ok": bool(Q), "picks_ok": bool(P)}
 
 
+# --------------------------------------------------------------------------- Phase 5
+P5_CONTROLS = ("PAXG", "XAUT", "SPY", "NVDA", "TSLA", "XAU", "US500", "US10Y", "BYD", "SAMSUNGUSD", "HYUNDAIUSD",
+               "XIAOMI", "BTC", "ETH", "SOL", "QNT", "PURR", "BB")
+
+
+def phase5(snap, assets, by_id, counts):
+    es = dict(counts.get("exposure_safety") or {})
+    detail = es.pop("changed_vs_previous_detail", None) or {}
+    moves = []
+    for t, d in sorted(detail.items()):
+        vols = [by_id[c].get("vol") for c in d.get("contracts") or [] if c in by_id and by_id[c].get("vol") is not None]
+        moves.append(dict(d, asset=t, best_vol=max(vols) if vols else None,
+                          liquid_1m=bool(vols) and max(vols) >= MIN_DEX_VOL))
+    ctl = {}
+    for t in P5_CONTROLS:
+        i = (assets.get(t) or {}).get("identity")
+        ctl[t] = None if not i else {"state": i.get("state"), "decision": i.get("decision"), "reason": i.get("reason"),
+                                     "previous": (i.get("previous") or {}).get("state"),
+                                     "wrapper": [w[2] for w in i.get("wrapper_evidence") or []],
+                                     "economic": sorted({e[2] for e in i.get("evidence") or []}),
+                                     "exposures": [[x["id"], x["class"], x["anchor_price"], x["members"]]
+                                                   for x in i.get("exposures") or []]}
+    # the Stage A inventory of crypto authority under the previous version, from this snapshot alone
+    inv = {"known_only": [], "extended_only": [], "known_and_extended": [], "other": []}
+    for t, a in sorted(assets.items()):
+        i = a.get("identity") or {}
+        prv = i.get("previous") or {}
+        if prv.get("state") != "VERIFIED_CRYPTO":
+            continue
+        known = i.get("ticker_list") == "TICKER_KNOWN_CRYPTO"
+        ext = prv.get("reason") == "CRYPTO_VENUE_METADATA"
+        inv["known_and_extended" if known and ext else "known_only" if known else "extended_only" if ext
+            else "other"].append(t)
+    return {"exposure_safety": es, "transitions": moves, "controls": ctl,
+            "exposure_metadata": (snap.get("data_health") or {}).get("exposure_metadata"),
+            "previous_crypto_authority": {k: len(v) for k, v in inv.items()},
+            "previous_extended_crypto_only": inv["extended_only"],
+            "previous_extended_crypto_only_now": {t: (assets[t].get("identity") or {}).get("state")
+                                                  for t in inv["extended_only"]}}
+
+
 def production_diff(base_out, head_out, assets):
     b, bok = _published(base_out)
     h, hok = _published(head_out)
@@ -276,6 +325,35 @@ def text(rep):
     L.append(f"   journal evidence: {smr.get('journal_evidence')}")
     L.append(f"   live record (qualified only): {smr.get('live')}; info {smr.get('live_info')}; verdict {smr.get('verdict')}")
     L.append(f"   legacy without entry-time identity proof (kept, never counted): {smr.get('legacy_unqualified')}")
+    p5 = rep.get("phase5") or {}
+    es = p5.get("exposure_safety") or {}
+    L.append("")
+    L.append(f"== economic exposure (Phase 5): {es.get('identity_version')} vs {es.get('previous_version')} on the "
+             f"same contracts")
+    for k in ("wrapper_crypto_assets", "wrapper_crypto_by_state", "economic_crypto_verified", "economic_tradfi_verified",
+              "wrapper_only_unverified", "wrapper_with_economic_tradfi", "wrapper_with_ticker_list_crypto",
+              "wrapper_ambiguous", "economic_conflicts", "exposure_check_unavailable_assets", "exposure_check_blocked",
+              "wrapper_unaccounted", "previous_states", "transitions_vs_previous"):
+        L.append(f"   {k}: {es.get(k)}")
+    for name, xm in sorted((p5.get("exposure_metadata") or {}).items()):
+        L.append(f"   {name}: state {xm.get('state')}, {xm.get('markets')} markets, by check {xm.get('markets_by_check')}, "
+                 f"by asset type {xm.get('markets_by_asset_type')}, without check {xm.get('markets_without_check')}, "
+                 f"detail {xm.get('detail')}")
+        L.append(f"      tradfi evidence markets ({len(xm.get('tradfi_evidence_markets') or [])}): "
+                 f"{', '.join(xm.get('tradfi_evidence_markets') or [])}")
+    L.append(f"   crypto authority under the previous version: {p5.get('previous_crypto_authority')}")
+    L.append(f"   verified crypto by Extended Crypto alone under the previous version "
+             f"({len(p5.get('previous_extended_crypto_only') or [])}), state now: "
+             f"{p5.get('previous_extended_crypto_only_now')}")
+    for m in p5.get("transitions") or []:
+        prv = m.get("previous") or {}
+        L.append(f"   {m['asset']:<12} {prv.get('state')} ({prv.get('reason')}, {prv.get('authority')}) -> {m['state']} "
+                 f"({m.get('reason')}, {m.get('authority')})  vol {m.get('best_vol')}  >=$1M {m.get('liquid_1m')}")
+        L.append(f"      contracts {m.get('contracts')}")
+        L.append(f"      exposures {m.get('exposures')}")
+        L.append(f"      economic {m.get('economic')}  wrapper {m.get('wrapper')}")
+    for t, c in (p5.get("controls") or {}).items():
+        L.append(f"   control {t:<11} {c}")
     if rep.get("production"):
         p = rep["production"]
         L.append("")

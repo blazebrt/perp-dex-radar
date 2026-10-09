@@ -23,10 +23,24 @@ def exposure_summary(info):
     out = []
     crypto = (info or {}).get("state", ID.VERIFIED_CRYPTO) == ID.VERIFIED_CRYPTO
     for x in (info or {}).get("exposures") or []:
-        out.append({"id": x["id"], "class": x["class"], "reason": x["reason"], "price": x["anchor_price"] or
-                    (x["price_range"] or [None])[0], "contracts": x["members"],
-                    "admitted": bool(x["admitted"] or (x["attached"] and crypto))})
+        y = {"id": x["id"], "class": x["class"], "reason": x["reason"], "price": x["anchor_price"] or
+             (x["price_range"] or [None])[0], "contracts": x["members"],
+             "admitted": bool(x["admitted"] or (x["attached"] and crypto))}
+        if x.get("wrapper"):          # v8 Phase 5: the exposure's wrapper labels, never its class
+            y["wrapper"] = x["wrapper"]
+        out.append(y)
     return out
+
+
+def wrapper_trace(info, o):
+    """v8 Phase 5: adds the wrapper path (and its effect: none) and any exposure check that did not run to a ledger
+    record, so the Decision Trace shows the wrapper and the economic evidence apart."""
+    if (info or {}).get("wrapper_evidence"):
+        o["wrapper"] = [[s, w, ID.WRAPPER_ONLY] for s, _, w, _ in info["wrapper_evidence"]]
+    bad = [c for c in (info or {}).get("exposure_checks") or [] if c[2] != ID.XCHECK_OK]
+    if bad:
+        o["exposure_checks"] = bad
+    return o
 
 
 def excluded_code(coin, trace=TRACE):
@@ -47,7 +61,7 @@ def excluded_code(coin, trace=TRACE):
             o["ticker_list"] = info["ticker_list"]
         if info.get("state"):
             o["state"] = info["state"]
-        return code, o
+        return code, wrapper_trace(info, o)
     state = (coin or {}).get("identity")
     o = {"state": state, "discovery": True, "execution_identity": False}
     if state is None:
@@ -57,6 +71,7 @@ def excluded_code(coin, trace=TRACE):
     elif info is not None and info.get("state") == ID.UNVERIFIED:
         o.update(name=(coin or {}).get("name"), exposures=exposure_summary(info), evidence=info.get("evidence") or None,
                  links=info.get("links"), promotion=info.get("promotion"))
+        wrapper_trace(info, o)
     return "IDENTITY_UNVERIFIED", o
 
 

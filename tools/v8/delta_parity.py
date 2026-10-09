@@ -138,7 +138,9 @@ def universe_delta(ub, uh):
         else:
             for d in va:   # the same markets must carry the same values (the adapters did not change)
                 ra, rb = dict(a["venues"][d]), dict(b["venues"][d])
-                for k in ("underlying", "category", "subtypes"):   # raw metadata HEAD's adapters now pass on
+                # raw metadata HEAD's adapters now pass on (Phase 2/3: Aster underlying and subtypes, Extended
+                # category; Phase 5: the Lighter token-list exposure check and asset type)
+                for k in ("underlying", "category", "subtypes", "xcheck", "asset_type", "asset_categories"):
                     if k not in ra:
                         rb.pop(k, None)
                 if ra != rb:

@@ -185,6 +185,9 @@ ASTER_PREMIUM = "https://fapi.asterdex.com/fapi/v1/premiumIndex"
 ASTER_KLINE = "https://fapi.asterdex.com/fapi/v1/klines?symbol={sym}&interval={iv}&limit={limit}"
 EDGEX_META = "https://pro.edgex.exchange/api/v1/public/meta/getMetaData"
 LIGHTER_BOOKS = "https://mainnet.zklighter.elliot.ai/api/v1/orderBookDetails"
+# v8 Phase 5: Lighter's token list, one bulk request per universe build; its documented asset_type (CRYPTO | RWA) is
+# economic-exposure evidence for Lighter markets (v8.identity: RWA is tradfi evidence, CRYPTO is none)
+LIGHTER_TOKENLIST = "https://mainnet.zklighter.elliot.ai/api/v1/tokenlist"
 DYDX_MARKETS = "https://indexer.dydx.trade/v4/perpetualMarkets"
 PARADEX_SUMMARY = "https://api.prod.paradex.trade/v1/markets/summary?market=ALL"
 EXTENDED_MARKETS = "https://api.starknet.extended.exchange/api/v1/info/markets"
@@ -609,10 +612,34 @@ def dex_edgex():
     return out
 
 
+def lighter_tokenlist():
+    """(state, index) of Lighter's token list this scan (v8 Phase 5): one request, retried on 429/5xx by the fetcher.
+    state OK, FAILED (network, timeout, 429/5xx after retries), UNAVAILABLE (another HTTP error) or MALFORMED (not the
+    documented TokenList). Never raises: a failed token list leaves the Lighter markets without their exposure check
+    (v8.identity fails closed), it never fails the market list."""
+    try:
+        d = FETCH(LIGHTER_TOKENLIST)
+    except HttpError as e:
+        st = IDENTITY.XCHECK_FAILED if e.code in (429, 500, 502, 503, 504) else IDENTITY.XCHECK_UNAVAILABLE
+        V8.exposure_meta(IDENTITY.LIGHTER_TOKENLIST, st, {"error": str(e)[:160]})
+        return st, {}
+    except ValueError as e:
+        V8.exposure_meta(IDENTITY.LIGHTER_TOKENLIST, IDENTITY.XCHECK_MALFORMED, {"error": f"{type(e).__name__}"})
+        return IDENTITY.XCHECK_MALFORMED, {}
+    except Exception as e:  # noqa: BLE001 - network errors after the fetcher's retries
+        V8.exposure_meta(IDENTITY.LIGHTER_TOKENLIST, IDENTITY.XCHECK_FAILED, {"error": f"{type(e).__name__}: {e}"[:160]})
+        return IDENTITY.XCHECK_FAILED, {}
+    V8.payload("lighter", "tokenlist", d)
+    st, index, detail = IDENTITY.lighter_tokenlist_index(d)
+    V8.exposure_meta(IDENTITY.LIGHTER_TOKENLIST, st, detail)
+    return st, index
+
+
 def dex_lighter():
     d = FETCH(LIGHTER_BOOKS)
     V8.payload("lighter", "books", d)
     lst = d.get("order_book_details") or d.get("order_books") or []
+    xst, xidx = lighter_tokenlist()
     out = []
     for b in lst:
         if b.get("market_type", "perp") != "perp" or b.get("status", "active") != "active":
@@ -622,7 +649,8 @@ def dex_lighter():
             continue
         t, mult = canon(sym)
         out.append(_venue(t, "lighter", sym, mult, price=fnum(b.get("mark_price")) or fnum(b.get("last_trade_price")),
-                          vol=fnum(b.get("daily_quote_token_volume"))))
+                          vol=fnum(b.get("daily_quote_token_volume")),
+                          **IDENTITY.lighter_exposure_fields(sym, xst, xidx)))
     return out
 
 
