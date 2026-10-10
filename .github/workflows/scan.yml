@@ -49,13 +49,17 @@ jobs:
         # Phase 4 outcome (no candidate venue field is crypto evidence; candidates are traced, never authority) and the
         # Phase 5 invariants (a crypto wrapper beside tradfi exposure is never crypto-authorized, a wrapper-only unknown
         # and a failed exposure check fail closed, the current gates react to an identity downgrade, entry-time proof
-        # stays historical). The full suite, the end-to-end legacy parity check and the research checks run in the CI
-        # workflow.
+        # stays historical) and the Phase 6 invariants (tests.test_v8_phase6.ScanGateInvariants: one known-crypto
+        # exposure binds, two unresolved price exposures of one ticker never both receive crypto, a tradfi collision
+        # leaves one bindable exposure, a failed exposure check cannot acquire crypto, a current downgrade blocks
+        # actionability, a prior entry proof stays historical). The full suite, the end-to-end legacy parity check and
+        # the research checks run in the CI workflow.
         run: >-
           python -m unittest tests.test_v5 tests.test_quant tests.test_picks tests.test_smart
           tests.test_smart_backtest tests.test_dashboard tests.test_analyze tests.test_analyzer_call
           tests.test_v8_units tests.test_v8_identity tests.test_v8_phase3 tests.test_v8_phase3_smart
           tests.test_v8_phase3_journal tests.test_v8_phase3_closure tests.test_v8_phase4 tests.test_v8_phase5
+          tests.test_v8_phase6.ScanGateInvariants
 
       - id: pages
         uses: actions/configure-pages@v5

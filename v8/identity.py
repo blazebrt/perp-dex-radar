@@ -1,5 +1,5 @@
-"""Universe identity (v8 Phase 2, hardened in Phase 3, economic exposure in Phase 5): contract-first classification,
-price-coherent exposures and four explicit identity states.
+"""Universe identity (v8 Phase 2, hardened in Phase 3, economic exposure in Phase 5, exposure-local ticker authority in
+Phase 6): contract-first classification, price-coherent exposures and four explicit identity states.
 
 The single authority that turns the eight DEX market lists into the coin universe every engine reads
 (scanner.build_universe() calls resolve(); quant and picks call build_universe()), and the single place that says
@@ -61,13 +61,31 @@ Rules (deterministic; no statistics, no per-ticker exceptions, no network):
    contracts inside the exposure only: tradfi and crypto economic evidence together: AMBIGUOUS (a true conflict of
    two economic sources); tradfi evidence: TRADFI, and its unlabeled contracts inherit it; ambiguous evidence:
    AMBIGUOUS; crypto economic evidence: CRYPTO (no source produces it since /3; QUALIFIED_CRYPTO_RULES is empty).
-   Wrapper evidence is not consulted. Without contract evidence: CRYPTO when the ticker is on the repository's
-   known-crypto list - except (Phase 5, fail closed) when every contract of the exposure is on a venue whose exposure
-   check did not run this scan (EXPOSURE_CHECK_UNAVAILABLE: the Lighter token list failed, was malformed or has no
-   entry for the market), which stays UNVERIFIED; AMBIGUOUS when another priced exposure of the ticker is tradfi or
-   ambiguous; else UNVERIFIED (Phase 2: CRYPTO by default), reason WRAPPER_ONLY_NO_ECONOMIC_EVIDENCE when a contract
-   carries a crypto wrapper and NO_POSITIVE_IDENTITY_EVIDENCE otherwise. An unpriced contract alone with no
-   evidence: UNVERIFIED.
+   Wrapper evidence is not consulted. Without contract evidence, on a ticker of the repository's known-crypto list:
+   the exposure-local ticker binding of rule 4a; on any other ticker: AMBIGUOUS when another priced exposure of the
+   ticker is tradfi or ambiguous; else UNVERIFIED (Phase 2: CRYPTO by default), reason
+   WRAPPER_ONLY_NO_ECONOMIC_EVIDENCE when a contract carries a crypto wrapper and NO_POSITIVE_IDENTITY_EVIDENCE
+   otherwise. An unpriced contract alone with no evidence: UNVERIFIED.
+4a. Ticker binding (v8 Phase 6, v8.identity/4). The known-crypto list is ticker-level knowledge: one crypto asset
+   exists under the ticker. It does not say which price-coherent exposure of the ticker that asset is, so it is bound
+   to at most one exposure. After every piece of contract evidence above has classified what it can, the exposures of
+   a known-crypto ticker left without contract evidence are sorted out:
+     blocked     a priced exposure all of whose contracts are on a venue whose exposure check did not run this scan
+                 (Phase 5, fail closed: the Lighter token list failed, was malformed or has no entry for the market):
+                 UNVERIFIED, EXPOSURE_CHECK_UNAVAILABLE. Never a candidate: a missing check is not evidence, and the
+                 blocked exposure does not compete for the binding.
+     unpriced    an exposure without a price (a ticker with no priced contract): UNVERIFIED,
+                 UNPRICED_NO_CONTRACT_EVIDENCE. A contract without a price cannot be bound.
+     candidates  every other priced exposure (one exposure is one candidate, however many venues it spans).
+   Exactly one candidate and no exposure of the ticker with direct crypto evidence: CRYPTO, TICKER_KNOWN_CRYPTO_BOUND,
+   authority TICKER_LIST. More than one candidate: the list cannot tell which price exposure is its asset, nothing
+   chooses (no volume, venue count, open interest, age or majority vote: liquidity and popularity are not identity),
+   and every candidate is UNVERIFIED, TICKER_CRYPTO_EXPOSURE_UNBOUND - not AMBIGUOUS, which means conflicting
+   economic evidence. A candidate beside an exposure with direct crypto evidence: UNVERIFIED, the same reason (the
+   ticker's crypto asset is the directly evidenced exposure). No candidate: nothing is bound. Tradfi and ambiguous
+   exposures are never candidates: deterministic negative evidence removes them first (QNT, PURR, BB keep one
+   candidate). The binding is recorded per asset (`ticker_authority`).
+   v8.identity/3 verified every candidate (and an unpriced-only ticker) from the list alone.
 5. Asset state and the coin record. Any CRYPTO exposure: VERIFIED_CRYPTO; the CRYPTO exposures are admitted and the
    coin record is built from them (plus unpriced contracts without tradfi or ambiguous evidence, as before);
    price-separated UNVERIFIED exposures of the ticker stay out. Else any UNVERIFIED exposure: UNVERIFIED; the coin
@@ -87,9 +105,11 @@ Extended subCategory (undocumented in Extended's market schema) and the Lighter 
 evidence (asset_type CRYPTO, categories) to the candidates.
 
 Versions. v8.identity/3 (Phase 5) differs from /2 only in Extended category "Crypto" (wrapper, no longer crypto
-evidence), the Lighter token-list RWA evidence and its fail-closed rule. resolve() also resolves the same contracts
-under the /2 rules and records the result per asset (`previous`), so every audit shows exactly which assets the
-version change moved and why.
+evidence), the Lighter token-list RWA evidence and its fail-closed rule. v8.identity/4 (Phase 6) differs from /3
+only in rule 4a (the known-crypto list is bound to at most one exposure). resolve() also resolves the same contracts
+under the previous rules (PREVIOUS_VERSION) and records the result per asset (`previous`), so every audit shows
+exactly which assets the version change moved and why. Every version stays reproducible: rules=2, 3 and 4
+(VERSION_RULES) resolve as v8.identity/2, /3 and /4 decided.
 
 Volumes: an observed 0 counts (best_vol, tot_vol, trade_vol are 0.0, not None); None means no venue reported one."""
 from __future__ import annotations
@@ -98,8 +118,11 @@ import json
 import os
 import statistics
 
-VERSION = "v8.identity/3"
-PREVIOUS_VERSION = "v8.identity/2"      # resolved beside it on the same contracts, for the audit's before/after
+VERSION = "v8.identity/4"
+PREVIOUS_VERSION = "v8.identity/3"      # resolved beside it on the same contracts, for the audit's before/after
+# the rules each identity version decided by (resolve(rules=...)); older snapshots are reproduced by their own rules
+VERSION_RULES = {"v8.identity/2": 2, "v8.identity/3": 3, "v8.identity/4": 4}
+RULES, PREVIOUS_RULES = VERSION_RULES[VERSION], VERSION_RULES[PREVIOUS_VERSION]
 TOL = 0.2          # price tolerance of one exposure (the legacy price-conflict tolerance)
 
 # contract classes (a contract's own evidence) and exposure classes
@@ -145,6 +168,9 @@ NAMED_VENUES = ("variational", "extended")     # the venues whose market name th
 BASE_ONLY_SYMBOL_VENUES = ("hyperliquid", "lighter", "variational")
 QUOTE_SUFFIXES = ("USD",)
 MIN_CANDIDATE_LEN = 2
+PROMOTION_UNBOUND = ("a unique binding (v8 Phase 6): deterministic negative evidence on all but one of the ticker's "
+                     "price exposures, or positive economic evidence on one of them; the known-crypto list alone "
+                     "cannot choose among price-separated exposures")
 PROMOTION = ("positive identity evidence on a price-coherent contract: the repository's known-crypto or tradfi list, "
              "a venue tradfi label (Extended category RWA, Aster underlyingType or tradfi subtype, Lighter token-list "
              "asset type RWA), a tradfi contract name, or a verified tradfi exposure linked by the venue symbol; a "
@@ -189,6 +215,21 @@ EXPOSURE_CHECKS = {"lighter": LIGHTER_TOKENLIST}      # venue -> its economic-ex
 R_CHECK_UNAVAILABLE = "EXPOSURE_CHECK_UNAVAILABLE"
 R_WRAPPER_ONLY = "WRAPPER_ONLY_NO_ECONOMIC_EVIDENCE"
 R_NO_EVIDENCE = "NO_POSITIVE_IDENTITY_EVIDENCE"
+
+# --------------------------------------------------------------------------- v8 Phase 6: exposure-local ticker binding
+R_TICKER = "TICKER_KNOWN_CRYPTO"                  # the ticker is on the known-crypto list (ticker-level knowledge)
+R_BOUND = "TICKER_KNOWN_CRYPTO_BOUND"             # the list was bound to this one exposure (v8.identity/4)
+R_UNBOUND = "TICKER_CRYPTO_EXPOSURE_UNBOUND"      # the list could not be bound to this exposure (v8.identity/4)
+R_UNPRICED = "UNPRICED_NO_CONTRACT_EVIDENCE"
+# an exposure's role in its ticker's binding (Exposure.bind); None: not a known-crypto exposure without evidence
+B_SELECTED, B_UNBOUND, B_BLOCKED, B_UNPRICED = "SELECTED", "UNBOUND", "CHECK_BLOCKED", "UNPRICED"
+# the ticker's binding result (ticker_authority.result)
+T_BOUND, T_UNBOUND_MULTI, T_UNBOUND_DIRECT, T_NO_CANDIDATE = (
+    "BOUND", "UNBOUND_MULTIPLE_CANDIDATES", "UNBOUND_DIRECT_CRYPTO_EVIDENCE", "NO_BINDABLE_EXPOSURE")
+TICKER_RESULTS = (T_BOUND, T_UNBOUND_MULTI, T_UNBOUND_DIRECT, T_NO_CANDIDATE)
+TRACE_STATEMENT = {T_BOUND: "UNIQUE EXPOSURE BINDING", T_UNBOUND_MULTI: "NO UNIQUE EXPOSURE BINDING",
+                   T_UNBOUND_DIRECT: "NO TICKER BINDING: DIRECT CRYPTO EVIDENCE DECIDES",
+                   T_NO_CANDIDATE: "NO BINDABLE EXPOSURE"}
 
 
 def candidate_evidence(venue, vmeta):
@@ -417,7 +458,7 @@ def ticker_class(t, lists):
     if lists.is_fx(t):
         return TRADFI, "TICKER_FX_PAIR"
     if t in lists.known_crypto:
-        return CRYPTO, "TICKER_KNOWN_CRYPTO"
+        return CRYPTO, R_TICKER
     return None, None
 
 
@@ -426,7 +467,8 @@ class Member:
     __slots__ = ("dex", "i", "row", "ev2", "ev", "cls", "why", "auth", "cls2", "npx", "vol", "cand", "cand_rule",
                  "link", "wrap", "xcheck", "xmissing")
 
-    def __init__(self, dex, i, row, lists, rules=3):
+    def __init__(self, dex, i, row, lists, rules=None):
+        rules = RULES if rules is None else rules
         self.dex, self.i, self.row = dex, i, row
         self.ev2 = base_evidence(row, lists, 2)                  # what Phase 2 knew
         self.ev = contract_evidence(row, lists, dex, rules)      # economic evidence (Phase 3; Phase 5 since /3)
@@ -453,12 +495,13 @@ class Member:
 
 class Exposure:
     __slots__ = ("id", "members", "anchor", "priced", "single", "cls", "why", "auth", "admitted", "attached",
-                 "recorded")
+                 "recorded", "bind")
 
     def __init__(self, xid, members, anchor, priced, single=False):
         self.id, self.members, self.anchor, self.priced, self.single = xid, members, anchor, priced, single
         self.cls = self.why = self.auth = None
         self.admitted = self.attached = self.recorded = False
+        self.bind = None             # v8 Phase 6: the exposure's role in its ticker's binding (B_*), else None
 
     def evidence(self, phase2=False):
         return {(m.cls2 if phase2 else m.cls) for m in self.members}
@@ -484,10 +527,12 @@ def group(t, members):
     return out
 
 
-def classify_exposures(t, exps, lists, phase2=False):
-    """Sets cls/why/auth of every exposure of ticker t (rule 4 of the module docstring). phase2=True classifies as
-    Phase 2 did (no parsed-symbol evidence; no evidence = CRYPTO by default), for the before/after only. The rules
-    version is the members' own (Member(rules=...)): wrapper evidence and exposure checks exist only under /3."""
+def classify_exposures(t, exps, lists, phase2=False, rules=None):
+    """Sets cls/why/auth of every exposure of ticker t (rules 4 and 4a of the module docstring). phase2=True classifies
+    as Phase 2 did (no parsed-symbol evidence; no evidence = CRYPTO by default), for the before/after only. rules: the
+    identity rules version (default RULES); the members carry their own (Member(rules=...)): wrapper evidence and
+    exposure checks exist since /3. Since /4 a known-crypto ticker is bound to at most one exposure (bind_ticker)."""
+    rules = RULES if rules is None else rules
     tcls, twhy = ticker_class(t, lists)
     pending = []
     for g in exps:
@@ -508,6 +553,9 @@ def classify_exposures(t, exps, lists, phase2=False):
             pending.append(g)
     # unpriced single contracts never count: a contract without a price cannot redefine another exposure
     collision = any(g.cls in (TRADFI, AMBIGUOUS) for g in exps if not g.single)
+    if tcls == CRYPTO and not phase2 and rules >= 4:
+        bind_ticker(exps, pending)
+        return exps
     for g in pending:
         if tcls == CRYPTO:
             if not phase2 and g.members and all(m.xmissing for m in g.members):
@@ -524,6 +572,31 @@ def classify_exposures(t, exps, lists, phase2=False):
             wrapped = any(m.wrap for m in g.members)
             g.cls, g.why, g.auth = UNVERIFIED, (R_WRAPPER_ONLY if wrapped else R_NO_EVIDENCE), NONE
     return exps
+
+
+def bind_ticker(exps, pending):
+    """Rule 4a (v8.identity/4): bind a known-crypto ticker's list authority to at most one of its exposures without
+    contract evidence (`pending`). Sets cls/why/auth and the binding role (Exposure.bind) of each pending exposure.
+    Nothing here reads a volume, a venue count, an open interest, an age or the order of the exposures: the outcome
+    depends only on how many candidates are left, so it chooses nothing."""
+    direct = [g for g in exps if not g.single and g.cls == CRYPTO]     # direct crypto evidence (none since /3)
+    cands = []
+    for g in pending:
+        if not g.priced:
+            g.cls, g.why, g.auth, g.bind = UNVERIFIED, R_UNPRICED, NONE, B_UNPRICED
+        elif g.members and all(m.xmissing for m in g.members):
+            # Phase 5, fail closed: every contract of this exposure is on a venue whose exposure check did not run
+            # this scan; the ticker list alone does not verify what the missing check might have shown, and the
+            # blocked exposure is not a candidate (it neither takes the binding nor competes for it)
+            g.cls, g.why, g.auth, g.bind = UNVERIFIED, R_CHECK_UNAVAILABLE, NONE, B_BLOCKED
+        else:
+            cands.append(g)
+    if len(cands) == 1 and not direct:
+        g = cands[0]
+        g.cls, g.why, g.auth, g.bind = CRYPTO, R_BOUND, TICKER_LIST, B_SELECTED
+        return
+    for g in cands:
+        g.cls, g.why, g.auth, g.bind = UNVERIFIED, R_UNBOUND, NONE, B_UNBOUND
 
 
 def _auth(g, cls):
@@ -584,6 +657,8 @@ class Resolution:
         self.rows = {}           # (dex, row index) -> per-contract identity (see _row_info)
         self.assets = {}         # ticker -> decision, state, evidence and exposures
         self.crypto_rows = {}    # dex -> adapter rows whose exposure was admitted to the crypto universe
+        self.rules = RULES       # the identity rules version this resolution decided by
+        self.known_crypto = []   # the known-crypto list it read (v8 Phase 6: the list audit)
 
     def asset(self, t):
         return self.assets.get(t)
@@ -617,9 +692,10 @@ def resolve(results, dexes, lists, in_my_dexes, on_conflict=None):
     dict in the legacy order (first appearance of each ticker in market-list order), each with `identity`.
 
     Since Phase 5 every asset also carries `previous`: the state, decision, reason and authority the previous identity
-    version (PREVIOUS_VERSION) gives the same contracts - the audit's before/after. Only VERSION decides."""
-    res = _resolve(results, dexes, lists, in_my_dexes, on_conflict, rules=3)
-    prev = _resolve(results, dexes, lists, in_my_dexes, None, rules=2, before_after=False)
+    version (PREVIOUS_VERSION, its rules PREVIOUS_RULES) gives the same contracts - the audit's before/after. Only
+    VERSION decides."""
+    res = _resolve(results, dexes, lists, in_my_dexes, on_conflict, rules=RULES)
+    prev = _resolve(results, dexes, lists, in_my_dexes, None, rules=PREVIOUS_RULES, before_after=False)
     for t, info in res.assets.items():
         p = prev.assets.get(t)
         info["previous"] = ({"version": PREVIOUS_VERSION, "state": p["state"], "decision": p["decision"],
@@ -627,8 +703,18 @@ def resolve(results, dexes, lists, in_my_dexes, on_conflict=None):
     return res
 
 
-def _resolve(results, dexes, lists, in_my_dexes, on_conflict=None, rules=3, before_after=True):
+def resolve_version(version, results, dexes, lists, in_my_dexes):
+    """The resolution a named identity version gives the same contracts (VERSION_RULES: v8.identity/2, /3 or /4), for
+    reproducing older snapshots and the before/after; no `previous`, no Phase 1/2 before/after. Never decides."""
+    return _resolve(results, dexes, lists, in_my_dexes, None, rules=VERSION_RULES[version], before_after=False)
+
+
+def _resolve(results, dexes, lists, in_my_dexes, on_conflict=None, rules=None, before_after=True):
+    """The resolution under one rules version (VERSION_RULES; default RULES). resolve() is the production entry."""
+    rules = RULES if rules is None else rules
     res = Resolution()
+    res.rules = rules
+    res.known_crypto = sorted(lists.known_crypto)
     by_t = {}
     for dex in dexes:
         rows = results.get(dex)
@@ -637,9 +723,9 @@ def _resolve(results, dexes, lists, in_my_dexes, on_conflict=None, rules=3, befo
         res.crypto_rows[dex] = 0
         for i, r in enumerate(rows):
             by_t.setdefault(r["t"], []).append(Member(dex, i, r, lists, rules))
-    exps_of = {t: classify_exposures(t, group(t, ms), lists) for t, ms in by_t.items()}
+    exps_of = {t: classify_exposures(t, group(t, ms), lists, rules=rules) for t, ms in by_t.items()}
     for t in link_symbols(by_t, exps_of, lists):
-        exps_of[t] = classify_exposures(t, group(t, by_t[t]), lists)
+        exps_of[t] = classify_exposures(t, group(t, by_t[t]), lists, rules=rules)
     for t, members in by_t.items():
         exps = exps_of[t]
         lead = [g for g in exps if not g.single]
@@ -669,7 +755,7 @@ def _resolve(results, dexes, lists, in_my_dexes, on_conflict=None, rules=3, befo
             use = members
             coin, picked, popped = merge(t, use, in_my_dexes, on_conflict)
             coin["tradfi"] = True
-        info = _asset_info(t, members, exps, state, lists)
+        info = _asset_info(t, members, exps, state, lists, rules)
         coin["identity"] = info["state"]
         in_merge = {id(m) for m in use}
         if coin["venues"]:
@@ -746,7 +832,8 @@ def _meta(row):
     return out or None
 
 
-def _asset_info(t, members, exps, state, lists):
+def _asset_info(t, members, exps, state, lists, rules=None):
+    rules = RULES if rules is None else rules
     lead = [g for g in exps if not g.single]
     tcls, twhy = ticker_class(t, lists)
     excluded = [g for g in exps if not (g.admitted or g.recorded or g.attached)]
@@ -773,6 +860,8 @@ def _asset_info(t, members, exps, state, lists):
              "price_range": [_r(min(px)), _r(max(px))] if px else None,
              "members": [f"{m.dex}:{m.row.get('sym')}" for m in g.members],
              "admitted": bool(g.admitted), "attached": bool(g.attached), "recorded": bool(g.recorded)}
+        if g.bind is not None:       # v8 Phase 6: the exposure's role in its ticker's binding
+            x["binding"] = g.bind
         wr = sorted({w for m in g.members for _, w, _ in m.wrap})
         if wr:                       # v8 Phase 5: the exposure's wrapper labels, beside (not part of) its class
             x["wrapper"] = wr
@@ -788,30 +877,98 @@ def _asset_info(t, members, exps, state, lists):
     checks = [[m.cid, EXPOSURE_CHECKS[m.dex], m.xcheck] for m in members if m.xcheck is not None]
     first = deciding[0] if deciding else None
     wrapper_only = state == UNVERIFIED and any(g.why == R_WRAPPER_ONLY for g in deciding)
+    tauth = ticker_authority(t, exps, state) if tcls == CRYPTO and rules >= 4 else None
+    unbound = tauth is not None and tauth["result"] in (T_UNBOUND_MULTI, T_UNBOUND_DIRECT)
     return {"decision": decision, "state": state, "admitted": state == VERIFIED_CRYPTO,
             "authority": first.auth if first is not None else NONE,
             "reason": first.why if first is not None else None,
             "evidence": evidence, "exposures": out, "collision": collision, "ticker_list": twhy,
             "discovery_eligible": True, "execution_identity_eligible": state == VERIFIED_CRYPTO,
-            "promotion": PROMOTION if state == UNVERIFIED else None,
+            "promotion": (PROMOTION_UNBOUND if unbound else PROMOTION) if state == UNVERIFIED else None,
+            # v8 Phase 6: how the known-crypto list was bound to this ticker's exposures (None: not on the list)
+            "ticker_authority": tauth,
             "excluded_unverified": [g.id for g in excluded if g.cls == UNVERIFIED and not g.single] or None,
             "links": [dict(m.link, contract=m.cid) for m in members if m.link] or None,
             # v8 Phase 5: the two evidence paths, kept apart (Decision Trace)
             "wrapper_evidence": wrapper, "exposure_checks": checks, "wrapper_only": wrapper_only,
             "exposure_trace": exposure_trace(wrapper, evidence, checks, state, decision,
-                                             first.why if first is not None else None)}
+                                             first.why if first is not None else None, tauth)}
 
 
-def exposure_trace(wrapper, evidence, checks, state, decision, reason):
+def ticker_authority(t, exps, state):
+    """The exposure-local binding of a known-crypto ticker (rule 4a), as the audit records it: the ticker-level input,
+    every exposure that was a binding candidate, the one selected (or none), the result, and why each other exposure
+    was not a candidate."""
+    lead = [g for g in exps if not g.single]
+    cands = [g for g in exps if g.bind in (B_SELECTED, B_UNBOUND)]
+    sel = next((g for g in exps if g.bind == B_SELECTED), None)
+    direct = [g for g in lead if g.cls == CRYPTO and g.bind is None]
+    if sel is not None:
+        result = T_BOUND
+    elif cands and direct:
+        result = T_UNBOUND_DIRECT
+    elif len(cands) > 1:
+        result = T_UNBOUND_MULTI
+    else:
+        result = T_NO_CANDIDATE
+    excluded = []
+    for g in exps:
+        if g.bind in (B_SELECTED, B_UNBOUND):
+            continue
+        if g.bind == B_BLOCKED:
+            why = R_CHECK_UNAVAILABLE
+        elif g.bind == B_UNPRICED or g.single:
+            why = "UNPRICED"
+        elif g.cls == CRYPTO:
+            why = "DIRECT_CRYPTO_EVIDENCE"
+        else:
+            why = f"{g.cls}_EVIDENCE"          # TRADFI_EVIDENCE / AMBIGUOUS_EVIDENCE: deterministic contract evidence
+        excluded.append([g.id, why])
+    return {"ticker": t, "known_crypto": True, "rules_version": VERSION,
+            "bindable_exposures": [g.id for g in cands],
+            "candidate_prices": {g.id: _r(g.anchor.npx) for g in cands if g.anchor is not None},
+            "selected_exposure": sel.id if sel is not None else None, "result": result,
+            "excluded": excluded,
+            "direct_crypto_exposures": [g.id for g in direct],
+            "check_blocked_exposures": [g.id for g in exps if g.bind == B_BLOCKED],
+            "tradfi_exposures": [g.id for g in lead if g.cls == TRADFI],
+            "ambiguous_exposures": [g.id for g in lead if g.cls == AMBIGUOUS],
+            "unpriced_exposures": [g.id for g in exps if g.bind == B_UNPRICED or g.single],
+            "statement": TRACE_STATEMENT[result], "effect": state}
+
+
+def exposure_trace(wrapper, evidence, checks, state, decision, reason, tauth=None):
     """The Decision Trace of one asset's identity (v8 Phase 5): the wrapper path and its effect (none), the economic
-    path and its result, the exposure checks, the final state and whether crypto execution is allowed."""
+    path and its result, the exposure checks, the final state and whether crypto execution is allowed. Since v8 Phase 6
+    also the ticker binding (binding_trace): which exposures the known-crypto list could be bound to and the result."""
     econ_classes = sorted({c for _, c, _, _ in evidence})
-    return {"wrapper": [{"source": s, "evidence": w, "effect": WRAPPER_ONLY} for s, _, w, _ in wrapper],
+    return {"binding": binding_trace(tauth),
+            "wrapper": [{"source": s, "evidence": w, "effect": WRAPPER_ONLY} for s, _, w, _ in wrapper],
             "economic": [{"source": s, "class": c, "evidence": w, "authority": a} for s, c, w, a in evidence],
             "economic_classes": econ_classes,
             "checks": [{"source": s, "check": k, "state": v} for s, k, v in checks],
             "final": state, "decision": decision, "reason": reason,
             "crypto_execution": "ALLOWED" if state == VERIFIED_CRYPTO else "BLOCKED"}
+
+
+def binding_trace(tauth):
+    """Input -> candidates -> rules -> result -> effect of one ticker binding, in words (None: not a known-crypto
+    ticker, or rules before /4). No silent rejection: every exposure is either a candidate or excluded with a why."""
+    if tauth is None:
+        return None
+    cands, result = tauth["bindable_exposures"], tauth["result"]
+    rules = [f"{x}: excluded ({why})" for x, why in tauth["excluded"]]
+    rules += [f"{x}: no economic evidence either way (candidate)" for x in cands]
+    if result == T_UNBOUND_MULTI:
+        rules.append(f"{len(cands)} candidates are price-separated; ticker-level identity cannot distinguish them")
+    elif result == T_UNBOUND_DIRECT:
+        rules.append("the ticker's crypto asset is the directly evidenced exposure; the list cannot verify another")
+    elif result == T_BOUND:
+        rules.append("one candidate left: the ticker list is bound to it")
+    else:
+        rules.append("no candidate left: nothing to bind")
+    return {"input": "KNOWN_CRYPTO ticker = true", "candidates": cands, "rules": rules,
+            "result": tauth["statement"], "selected": tauth["selected_exposure"], "effect": tauth["effect"]}
 
 
 def _r(x, nd=8):

@@ -1,4 +1,4 @@
-# v8: observable decisions (Phase 1), universe identity (Phase 2), identity coverage (Phase 3), candidate identity evidence (Phase 4), economic exposure (Phase 5)
+# v8: observable decisions (Phase 1), universe identity (Phase 2), identity coverage (Phase 3), candidate identity evidence (Phase 4), economic exposure (Phase 5), exposure-local ticker authority (Phase 6)
 
 Phase 1 made the existing engines **observable** without changing what they decide. Phase 2 corrects, in a narrow
 and approved scope, **which markets form the coin universe** and **what a missing 24h volume means** - see
@@ -25,6 +25,7 @@ What is new:
 | Production-evidence closure (Phase 3) | A quant position on a coin without crypto identity now is never actionable (published apart as blocked); quant and live radar trades count as forward evidence only with entry-time identity proof; legacy trades are kept and reported apart | [phase3-production-evidence-closure.md](phase3-production-evidence-closure.md) |
 | Candidate identity evidence (Phase 4) | Which venue fields could be positive crypto evidence: a census and qualification gate over the retained and live scans (none qualified; no identity change), and observed candidate evidence recorded in every audit apart from authoritative evidence | [phase4-positive-crypto-evidence.md](phase4-positive-crypto-evidence.md) |
 | Economic exposure (Phase 5) | The identity follows the economic exposure, not the instrument wrapper (`v8.identity/3`): Extended's "Crypto" category is wrapper evidence only, Lighter's documented token-list asset type RWA is tradfi evidence, a failed exposure check never makes a market crypto, and the audit keeps wrapper and economic evidence apart with a before/after against the previous version | [phase5-economic-exposure.md](phase5-economic-exposure.md) |
+| Exposure-local ticker authority (Phase 6) | The known-crypto list is ticker-level knowledge, bound to at most one price-coherent exposure of its ticker (`v8.identity/4`): one candidate left after deterministic evidence binds (`TICKER_KNOWN_CRYPTO_BOUND`), several stay `UNVERIFIED` (`TICKER_CRYPTO_EXPOSURE_UNBOUND`), nothing is chosen by volume or venue count; every binding is in the audit (`ticker_authority`, Decision Trace, counts with unaccounted 0) | [phase6-exposure-local-crypto-authority.md](phase6-exposure-local-crypto-authority.md) |
 
 ## How it runs
 
@@ -60,11 +61,12 @@ or refused, so two runs of the same code produce identical files.
   runner, checks it reproduces its golden file, then compares the base's and this branch's universes (coin fields,
   the derived `execution_identity`, every identity state) and, with a counterfactual run (the base's code fed this
   branch's universe, coins without execution identity excluded the base code's own way), the engines' outputs.
-  Every difference must be listed in the phase's manifest, and every listed difference must occur. Since Phase 5 the
-  manifest is `tests/fixtures/v8/phase5_expected_deltas.json` (base: production main 3288b15, Phase 4 merged; head
-  golden `legacy_parity_golden_phase5.json`), which lists the economic-exposure identity changes of six fixture coins
-  and what follows from them; the earlier manifests (`phase3_expected_deltas.json`,
-  `phase3_closure_expected_deltas.json`, `phase4_expected_deltas.json`) are kept for the record.
+  Every difference must be listed in the phase's manifest, and every listed difference must occur. Since Phase 6 the
+  manifest is `tests/fixtures/v8/phase6_expected_deltas.json` (base: production main f7aa7f6, Phase 5 merged; head
+  golden `legacy_parity_golden_phase6.json`), which lists the one fixture coin whose known-crypto authority can no
+  longer be bound to a single exposure (FAKE07) and what follows from it; the earlier manifests
+  (`phase3_expected_deltas.json`, `phase3_closure_expected_deltas.json`, `phase4_expected_deltas.json`,
+  `phase5_expected_deltas.json`) are kept for the record.
 * Only files under `data/v8/` are excluded; wall-clock durations (`duration_s`) are dropped and error notes are
   sorted before hashing (they are collected by parallel threads, in no fixed order).
 
@@ -72,12 +74,13 @@ or refused, so two runs of the same code produce identical files.
 
 ```
 python -m unittest discover -s tests                     # everything, about 40 seconds
-python tools/v8/legacy_parity.py --out /tmp/parity --check tests/fixtures/v8/legacy_parity_golden_phase5.json
-git worktree add --detach /tmp/base 3288b1587563045558ea42dec70301e61dc95a9e
-python tools/v8/delta_parity.py --base-root /tmp/base --manifest tests/fixtures/v8/phase5_expected_deltas.json --work /tmp/delta
+python tools/v8/legacy_parity.py --out /tmp/parity --check tests/fixtures/v8/legacy_parity_golden_phase6.json
+git worktree add --detach /tmp/base f7aa7f6d318f4dfcd84c74df27d38314e4349208
+python tools/v8/delta_parity.py --base-root /tmp/base --manifest tests/fixtures/v8/phase6_expected_deltas.json --work /tmp/delta
 python -m v8.snapshot --out /tmp/parity --keep-parts     # assemble a snapshot from the parity run
 python tools/v8/identity_report.py /tmp/parity/data/v8/audit_latest.json   # identity states, inventory, collisions
 python tools/v8/rescore_identity.py research_snapshot.json.gz   # re-resolve an earlier scan's market lists
 python tools/v8/candidate_census.py a.json b.json.gz --json census.json   # candidate fields and the Phase 4 gate
 python tools/v8/exposure_safety.py a.json b.json.gz --outputs site/data --json es.json   # Phase 5 authority inventory and models
+python tools/v8/ticker_binding.py a.json b.json.gz --outputs journal_data --json tb.json   # Phase 6 known-crypto census and binding models
 ```

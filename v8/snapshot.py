@@ -250,7 +250,10 @@ def build(out_dir, pages_url=None, first_seen_path=None, identity_path=None):
                      # v8 Phase 5: wrapper vs economic exposure, and the before/after against the previous version
                      "exposure_safety": {k: (v if isinstance(v, (int, str)) else (len(v) if isinstance(v, list) else v))
                                          for k, v in (rc.get("exposure_safety") or {}).items()
-                                         if k not in ("changed_vs_previous_detail",)}},
+                                         if k not in ("changed_vs_previous_detail",)},
+                     # v8 Phase 6: the known-crypto list bound to at most one exposure per ticker (unaccounted 0)
+                     "ticker_authority": {k: v for k, v in (rc.get("ticker_authority") or {}).items()
+                                          if k not in ("multi_exposure",)}},
         "engine_universe_differences": diffs,
     }
     # data health

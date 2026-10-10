@@ -62,8 +62,11 @@ class NoRuleQualified(unittest.TestCase):
     def test_outcome_pinned(self):
         self.assertEqual(ID.QUALIFIED_CRYPTO_RULES, ())
         # Phase 4 changed no authoritative rule (it stayed v8.identity/2). Phase 5 did - Extended Crypto is wrapper
-        # evidence, Lighter token-list RWA is tradfi evidence - so the version is v8.identity/3 (tests.test_v8_phase5)
-        self.assertEqual((ID.VERSION, ID.PREVIOUS_VERSION), ("v8.identity/3", "v8.identity/2"))
+        # evidence, Lighter token-list RWA is tradfi evidence - so the version became v8.identity/3
+        # (tests.test_v8_phase5), and Phase 6 bound the known-crypto list to one exposure: v8.identity/4
+        # (tests.test_v8_phase6). Every version stays reproducible by its own rules.
+        self.assertEqual((ID.VERSION, ID.PREVIOUS_VERSION), ("v8.identity/4", "v8.identity/3"))
+        self.assertEqual(ID.VERSION_RULES, {"v8.identity/2": 2, "v8.identity/3": 3, "v8.identity/4": 4})
         cfg = provenance.identity_config()
         # candidates never enter the identity config hash (min_candidate_len is the Phase 3 parsed-symbol rule)
         self.assertFalse({"candidate_fields", "qualified_crypto_rules", "candidate_status"} & set(cfg))
@@ -80,7 +83,9 @@ class Matrix(unittest.TestCase):
         r = resolve(ext("ZNOV-USD", "ZNOV", 1.0, 2e6, cat="Crypto"), ast("ZNOV", ["AI"], px=1.01))
         self.assertEqual(state(r, "ZNOV"), ID.UNVERIFIED)
         self.assertEqual(r.asset("ZNOV")["reason"], "WRAPPER_ONLY_NO_ECONOMIC_EVIDENCE")
-        self.assertEqual(r.asset("ZNOV")["previous"]["reason"], "CRYPTO_VENUE_METADATA")
+        v2 = resolve(ext("ZNOV-USD", "ZNOV", 1.0, 2e6, cat="Crypto"), ast("ZNOV", ["AI"], px=1.01),
+                     version="v8.identity/2")
+        self.assertEqual(v2.asset("ZNOV")["reason"], "CRYPTO_VENUE_METADATA")
 
     def test_known_crypto_still_verified(self):
         r = resolve(hl("SOL", 150.0, 5e6), ast("SOL", ["Meme"], px=150.1))
@@ -125,7 +130,8 @@ class Matrix(unittest.TestCase):
         # AMBIGUOUS (tests.test_v8_phase5.TrueConflict)
         r = resolve(ext("ZAMB-USD", "ZAMB", 10.0, 1e6, cat="Crypto", desc="Zamb Holdings Inc"))
         self.assertEqual(state(r, "ZAMB"), ID.VERIFIED_TRADFI)
-        self.assertEqual(r.asset("ZAMB")["previous"]["state"], ID.AMBIGUOUS)
+        v2 = resolve(ext("ZAMB-USD", "ZAMB", 10.0, 1e6, cat="Crypto", desc="Zamb Holdings Inc"), version="v8.identity/2")
+        self.assertEqual(v2.asset("ZAMB")["state"], ID.AMBIGUOUS)
         r = resolve(ext("ZAM2-USD", "ZAM2", 10.0, 1e6, cat="Crypto"), ast("ZAM2", ["STOCK", "AI"], px=10.05))
         self.assertEqual(state(r, "ZAM2"), ID.VERIFIED_TRADFI)
 

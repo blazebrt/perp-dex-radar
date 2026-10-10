@@ -1,0 +1,1052 @@
+{
+ "schema": "v8.delta/2",
+ "phase": "v8 Phase 6: exposure-local positive crypto authority - the known-crypto list is ticker-level knowledge and is bound to at most one price-coherent exposure of its ticker; several candidates stay UNVERIFIED (TICKER_CRYPTO_EXPOSURE_UNBOUND), never AMBIGUOUS; tradfi, ambiguous, check-blocked and unpriced exposures are never candidates (v8.identity/4)",
+ "base": {
+  "sha": "f7aa7f6d318f4dfcd84c74df27d38314e4349208",
+  "tree": "aff2774ce726c10711ec3276c59e6dec81b453e8",
+  "golden": "tests/fixtures/v8/legacy_parity_golden_phase5.json",
+  "note": "production main after the Phase 5 merge (PR #16); its fixture golden is the Phase 5 branch golden"
+ },
+ "head_golden": "tests/fixtures/v8/legacy_parity_golden_phase6.json",
+ "counterfactual_projection": "exclude_without_execution_identity",
+ "rules": {
+  "TICKER_CRYPTO_EXPOSURE_UNBOUND": "v8.identity/4: the known-crypto list says one crypto asset exists under a ticker, not which of its price-separated exposures that asset is. After every piece of contract evidence classified what it can (tradfi, ambiguous, direct crypto), and exposures blocked by a failed exposure check and unpriced exposures are set aside, the list is bound to the one candidate left; with more than one candidate nothing chooses (no volume, venue count, open interest, age or majority vote) and every candidate is UNVERIFIED (not AMBIGUOUS: no economic evidence conflicts). The coin stays in the universe (discovery) and loses crypto execution identity.",
+  "UNBOUND_NOT_COUNTED_AS_CRYPTO": "A DEX's count of crypto markets counts only markets admitted with crypto execution identity: the markets of a known-crypto coin whose list authority could not be bound to one exposure are no longer counted.",
+  "UNVERIFIED_LISTED_SEPARATELY": "The radar publishes identity-unverified coins in coverage.unverified, not among the non-crypto (tradfi) exclusions in coverage.tradfi: unknown is not tradfi. The counterfactual hands every coin without crypto execution identity to the base code as tradfi (its only exclusion); HEAD lists the unverified ones apart (FAKE07 joins them).",
+  "IDENTITY_VERSION_BUMP": "Entry-time identity provenance of a paper trade opened in this run records the identity version of the authority that allowed it: v8.identity/4. Written once; a trade opened under v8.identity/2 or /3 keeps its proof and stays qualified (no hindsight). Every other trade value is unchanged."
+ },
+ "universe": [
+  {
+   "ticker": "FAKE07",
+   "field": "execution_identity",
+   "base": true,
+   "head": false,
+   "rule": "TICKER_CRYPTO_EXPOSURE_UNBOUND",
+   "why": "FAKE07 is on the fixture world's known-crypto list. Its priced contracts form two price-coherent exposures: FAKE07#1 (Hyperliquid FAKE07, Variational FAKE07) and FAKE07#2 (dYdX FAKE07-USD, 30% away). Neither carries economic evidence and neither is blocked by an exposure check, so both are binding candidates: the ticker list names one crypto asset and cannot tell which exposure it is (nothing chooses by volume or venue count). v8.identity/3 verified both from the list; v8.identity/4: both UNVERIFIED, TICKER_CRYPTO_EXPOSURE_UNBOUND, ticker_authority.result UNBOUND_MULTIPLE_CANDIDATES. The coin record is unchanged (rule 5: the record of its UNVERIFIED exposures; the legacy price check drops the dYdX market as before)."
+  },
+  {
+   "ticker": "FAKE07",
+   "field": "identity",
+   "base": "VERIFIED_CRYPTO",
+   "head": "UNVERIFIED",
+   "rule": "TICKER_CRYPTO_EXPOSURE_UNBOUND",
+   "why": "FAKE07 is on the fixture world's known-crypto list. Its priced contracts form two price-coherent exposures: FAKE07#1 (Hyperliquid FAKE07, Variational FAKE07) and FAKE07#2 (dYdX FAKE07-USD, 30% away). Neither carries economic evidence and neither is blocked by an exposure check, so both are binding candidates: the ticker list names one crypto asset and cannot tell which exposure it is (nothing chooses by volume or venue count). v8.identity/3 verified both from the list; v8.identity/4: both UNVERIFIED, TICKER_CRYPTO_EXPOSURE_UNBOUND, ticker_authority.result UNBOUND_MULTIPLE_CANDIDATES. The coin record is unchanged (rule 5: the record of its UNVERIFIED exposures; the legacy price check drops the dYdX market as before)."
+  }
+ ],
+ "dex_status": [
+  {
+   "dex": "dydx",
+   "field": "crypto",
+   "base": 2,
+   "head": 1,
+   "rule": "UNBOUND_NOT_COUNTED_AS_CRYPTO",
+   "contracts": [
+    "dydx:FAKE07-USD"
+   ]
+  },
+  {
+   "dex": "hyperliquid",
+   "field": "crypto",
+   "base": 40,
+   "head": 39,
+   "rule": "UNBOUND_NOT_COUNTED_AS_CRYPTO",
+   "contracts": [
+    "hyperliquid:FAKE07"
+   ]
+  },
+  {
+   "dex": "variational",
+   "field": "crypto",
+   "base": 34,
+   "head": 33,
+   "rule": "UNBOUND_NOT_COUNTED_AS_CRYPTO",
+   "contracts": [
+    "variational:FAKE07"
+   ]
+  }
+ ],
+ "notes": {
+  "removed": [],
+  "added": []
+ },
+ "code": [
+  {
+   "file": "data/journal.json",
+   "path": [
+    "closed",
+    {
+     "key": [
+      "id",
+      "FAKE20-RAND:MOM-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE00-SQZ-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE23-SQZ-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE17-SQZ-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "BTC-SMF-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE13-PB-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE09-RAND:PB-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "THINREF-RAND:SQZ-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE21-RAND:MOM-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE24-RAND:SQZ-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE26-RAND:PB-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE20-RAND:MOM-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE25-RAND:MOM-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE12-RAND:PB-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE15-RAND:SQZ-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE13-RAND:PB-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE22-RAND:PB-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE27-RAND:PB-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE09-RAND:SMF-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "BB-RAND:PB-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE26-RAND:MR-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE20-RAND:MR-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "BTC-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE13-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE17-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE19-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE22-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE25-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "BTC-XSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE08-XSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE19-XSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE27-XSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "NEW40-XSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "BTC-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE13-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE17-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE19-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE22-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE25-TSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "BTC-XSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE08-XSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE19-XSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE27-XSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "NEW40-XSMOM-1790985600"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE02-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    {
+     "key": [
+      "id",
+      "FAKE03-1791014833"
+     ]
+    },
+    "identity_version"
+   ],
+   "base": "v8.identity/3",
+   "head": "v8.identity/4",
+   "rule": "IDENTITY_VERSION_BUMP"
+  },
+  {
+   "file": "data/latest.json",
+   "path": [
+    "coverage",
+    "tradfi"
+   ],
+   "kind": "set",
+   "base": [
+    "AAPL",
+    "ACME",
+    "ADBE",
+    "ASTS",
+    "BYD",
+    "EURUSD",
+    "EXTONLY",
+    "FAKE07",
+    "HYUNDAI",
+    "HYUNDAIUSD",
+    "KIOXIA",
+    "KORU",
+    "MOONX",
+    "NEWCOIN",
+    "ONDS",
+    "PRLX",
+    "SAMSUNGUSD",
+    "SECT",
+    "SKHYNIX",
+    "SKHYNIXUSD",
+    "US100S",
+    "US10Y",
+    "XIAOMI"
+   ],
+   "head": [
+    "AAPL",
+    "ACME",
+    "ADBE",
+    "ASTS",
+    "BYD",
+    "EURUSD",
+    "HYUNDAIUSD",
+    "KIOXIA",
+    "KORU",
+    "ONDS",
+    "SAMSUNGUSD",
+    "SECT",
+    "SKHYNIX",
+    "SKHYNIXUSD",
+    "US100S",
+    "US10Y",
+    "XIAOMI"
+   ],
+   "rule": "UNVERIFIED_LISTED_SEPARATELY"
+  },
+  {
+   "file": "data/latest.json",
+   "path": [
+    "coverage",
+    "unverified"
+   ],
+   "kind": "set",
+   "base": [],
+   "head": [
+    "EXTONLY",
+    "FAKE07",
+    "HYUNDAI",
+    "MOONX",
+    "NEWCOIN",
+    "PRLX"
+   ],
+   "rule": "UNVERIFIED_LISTED_SEPARATELY"
+  }
+ ],
+ "decisions": [
+  {
+   "path": [
+    "radar",
+    "tradfi"
+   ],
+   "kind": "set",
+   "base": [
+    "AAPL",
+    "ACME",
+    "ADBE",
+    "ASTS",
+    "BYD",
+    "EURUSD",
+    "EXTONLY",
+    "FAKE07",
+    "HYUNDAI",
+    "HYUNDAIUSD",
+    "KIOXIA",
+    "KORU",
+    "MOONX",
+    "NEWCOIN",
+    "ONDS",
+    "PRLX",
+    "SAMSUNGUSD",
+    "SECT",
+    "SKHYNIX",
+    "SKHYNIXUSD",
+    "US100S",
+    "US10Y",
+    "XIAOMI"
+   ],
+   "head": [
+    "AAPL",
+    "ACME",
+    "ADBE",
+    "ASTS",
+    "BYD",
+    "EURUSD",
+    "HYUNDAIUSD",
+    "KIOXIA",
+    "KORU",
+    "ONDS",
+    "SAMSUNGUSD",
+    "SECT",
+    "SKHYNIX",
+    "SKHYNIXUSD",
+    "US100S",
+    "US10Y",
+    "XIAOMI"
+   ],
+   "rule": "UNVERIFIED_LISTED_SEPARATELY"
+  },
+  {
+   "path": [
+    "radar",
+    "unverified"
+   ],
+   "kind": "set",
+   "base": [],
+   "head": [
+    "EXTONLY",
+    "FAKE07",
+    "HYUNDAI",
+    "MOONX",
+    "NEWCOIN",
+    "PRLX"
+   ],
+   "rule": "UNVERIFIED_LISTED_SEPARATELY"
+  }
+ ],
+ "files": [],
+ "identity_states": {
+  "AAPL": "VERIFIED_TRADFI",
+  "ACME": "VERIFIED_TRADFI",
+  "ADBE": "VERIFIED_TRADFI",
+  "ASTS": "VERIFIED_TRADFI",
+  "BB": "VERIFIED_CRYPTO",
+  "BTC": "VERIFIED_CRYPTO",
+  "BYD": "VERIFIED_TRADFI",
+  "ETH": "VERIFIED_CRYPTO",
+  "EURUSD": "VERIFIED_TRADFI",
+  "EXTONLY": "UNVERIFIED",
+  "FAKE00": "VERIFIED_CRYPTO",
+  "FAKE01": "VERIFIED_CRYPTO",
+  "FAKE02": "VERIFIED_CRYPTO",
+  "FAKE03": "VERIFIED_CRYPTO",
+  "FAKE04": "VERIFIED_CRYPTO",
+  "FAKE05": "VERIFIED_CRYPTO",
+  "FAKE06": "VERIFIED_CRYPTO",
+  "FAKE07": "UNVERIFIED",
+  "FAKE08": "VERIFIED_CRYPTO",
+  "FAKE09": "VERIFIED_CRYPTO",
+  "FAKE10": "VERIFIED_CRYPTO",
+  "FAKE11": "VERIFIED_CRYPTO",
+  "FAKE12": "VERIFIED_CRYPTO",
+  "FAKE13": "VERIFIED_CRYPTO",
+  "FAKE14": "VERIFIED_CRYPTO",
+  "FAKE15": "VERIFIED_CRYPTO",
+  "FAKE16": "VERIFIED_CRYPTO",
+  "FAKE17": "VERIFIED_CRYPTO",
+  "FAKE18": "VERIFIED_CRYPTO",
+  "FAKE19": "VERIFIED_CRYPTO",
+  "FAKE20": "VERIFIED_CRYPTO",
+  "FAKE21": "VERIFIED_CRYPTO",
+  "FAKE22": "VERIFIED_CRYPTO",
+  "FAKE23": "VERIFIED_CRYPTO",
+  "FAKE24": "VERIFIED_CRYPTO",
+  "FAKE25": "VERIFIED_CRYPTO",
+  "FAKE26": "VERIFIED_CRYPTO",
+  "FAKE27": "VERIFIED_CRYPTO",
+  "HYUNDAI": "UNVERIFIED",
+  "HYUNDAIUSD": "VERIFIED_TRADFI",
+  "KIOXIA": "VERIFIED_TRADFI",
+  "KORU": "VERIFIED_TRADFI",
+  "LONLY": "VERIFIED_CRYPTO",
+  "MOONX": "UNVERIFIED",
+  "NEW10": "VERIFIED_CRYPTO",
+  "NEW40": "VERIFIED_CRYPTO",
+  "NEWCOIN": "UNVERIFIED",
+  "NOCAND": "VERIFIED_CRYPTO",
+  "ONDS": "VERIFIED_TRADFI",
+  "PRLX": "UNVERIFIED",
+  "PURR": "VERIFIED_CRYPTO",
+  "QNT": "VERIFIED_CRYPTO",
+  "SAMSUNGUSD": "VERIFIED_TRADFI",
+  "SCALEX": "VERIFIED_CRYPTO",
+  "SECT": "AMBIGUOUS",
+  "SKHYNIX": "VERIFIED_TRADFI",
+  "SKHYNIXUSD": "VERIFIED_TRADFI",
+  "THINREF": "VERIFIED_CRYPTO",
+  "TINY": "VERIFIED_CRYPTO",
+  "US100S": "VERIFIED_TRADFI",
+  "US10Y": "VERIFIED_TRADFI",
+  "VANA": "VERIFIED_CRYPTO",
+  "XIAOMI": "VERIFIED_TRADFI",
+  "ZEROV": "VERIFIED_CRYPTO"
+ },
+ "not_allowed": "any other BASE -> HEAD difference: Phase 6 changes only the ticker-list authority of the coins listed in 'universe' (one fixture known-crypto coin with two price-separated candidate exposures loses crypto execution identity), the DEX crypto counts that follow from it, the published unverified/tradfi lists, and the identity version on the entry-time proof of trades opened in this run. Every other identity state (QNT, BB, PURR keep their one bound crypto exposure), strategies, scores, thresholds, gates, stops, sizing, FINAL/ORDER, discovery gates and every other output are unchanged."
+}

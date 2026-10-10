@@ -69,10 +69,14 @@ def ex(name, asset, price, vol, cat="Crypto", sub=None, desc=None):
     return r
 
 
-def res(*rows, lists=LISTS):
+def res(*rows, lists=LISTS, version=None):
+    """This checkout's identity; version="v8.identity/2" reproduces Phase 5's previous version (v8 Phase 6 moved
+    `previous` on to v8.identity/3)."""
     out = {d: [] for d in sc.DEXES}
     for r in rows:
         out[r["dex"]].append(r)
+    if version is not None:
+        return ID.resolve_version(version, out, sc.DEXES, lists, sc.in_my_dexes)
     return ID.resolve(out, sc.DEXES, lists, sc.in_my_dexes)
 
 
@@ -88,7 +92,10 @@ def no_ticker_lists(*drop):
 # --------------------------------------------------------------------------- the model
 class WrapperVsEconomicExposure(unittest.TestCase):
     def test_version_and_rules(self):
-        self.assertEqual((ID.VERSION, ID.PREVIOUS_VERSION), ("v8.identity/3", "v8.identity/2"))
+        # Phase 5 made v8.identity/3 (previous /2); Phase 6 moved on to /4 (previous /3). /2 and /3 stay
+        # reproducible by their own rules (VERSION_RULES), which these Phase 5 tests use for the before/after
+        self.assertEqual((ID.VERSION, ID.PREVIOUS_VERSION), ("v8.identity/4", "v8.identity/3"))
+        self.assertEqual((ID.VERSION_RULES["v8.identity/3"], ID.VERSION_RULES["v8.identity/2"]), (3, 2))
         self.assertEqual(ID.QUALIFIED_CRYPTO_RULES, ())                       # Phase 5 adds no positive rule
         self.assertEqual(ID.wrapper_evidence(ex("N-USD", "N", 1.0, 1e5)),
                          [(ID.CRYPTO_WRAPPER, "VENUE_CATEGORY:Crypto", ID.VENUE_METADATA)])
@@ -116,7 +123,8 @@ class WrapperVsEconomicExposure(unittest.TestCase):
                                           "effect": "WRAPPER_ONLY"}])
         self.assertEqual((tr["economic"], tr["final"], tr["crypto_execution"]), ([], ID.UNVERIFIED, "BLOCKED"))
         # v8.identity/2 would have made it VERIFIED_CRYPTO from the wrapper label alone: the latent path is closed
-        self.assertEqual((a["previous"]["state"], a["previous"]["reason"]), (ID.VERIFIED_CRYPTO, "CRYPTO_VENUE_METADATA"))
+        v2 = res(ex("NEWTOKEN-USD", "NEWTOKEN", 0.42, 2.5e6, sub="AI"), version="v8.identity/2").asset("NEWTOKEN")
+        self.assertEqual((v2["state"], v2["reason"]), (ID.VERIFIED_CRYPTO, "CRYPTO_VENUE_METADATA"))
         # a crypto-looking sector subCategory changes nothing (undocumented: candidate evidence, never authority)
         for sub in ("L1", "L2", "DeFi", "Meme", "Infra", None):
             self.assertEqual(st(res(ex("NEWTOKEN-USD", "NEWTOKEN", 0.42, 2.5e6, sub=sub)), "NEWTOKEN"), ID.UNVERIFIED)
@@ -138,7 +146,9 @@ class WrapperVsEconomicExposure(unittest.TestCase):
         self.assertEqual(a["exposure_trace"]["economic_classes"], [ID.TRADFI])
         self.assertEqual(a["exposure_trace"]["crypto_execution"], "BLOCKED")
         # v8.identity/2 (no token list; Extended Crypto as crypto evidence) would have called it crypto
-        self.assertEqual(a["previous"]["state"], ID.VERIFIED_CRYPTO)
+        v2 = res(ex("NEWGOLD-USD", "NEWGOLD", 4190.0, 3e6, sub="Commodity", desc="Newgold"),
+                 lt("NEWGOLD", 4185.5, 1.2e6, "RWA", ["COMMODITIES"]), version="v8.identity/2")
+        self.assertEqual(v2.asset("NEWGOLD")["state"], ID.VERIFIED_CRYPTO)
 
     def test_newstock_crypto_wrapper_plus_equity_exposure_is_tradfi(self):
         """Section 19, with each documented equity source: Lighter token-list RWA, an Aster STOCK subtype, an Aster
@@ -156,7 +166,8 @@ class WrapperVsEconomicExposure(unittest.TestCase):
         self.assertEqual(st(r, "NEWIDX"), ID.VERIFIED_TRADFI)
         r = res(lt("NEWRATE", 95.1, 7000.0, "RWA", ["BONDS"]))               # a rate: the token list alone
         self.assertEqual(st(r, "NEWRATE"), ID.VERIFIED_TRADFI)
-        self.assertEqual(r.asset("NEWRATE")["previous"]["state"], ID.UNVERIFIED)
+        self.assertEqual(res(lt("NEWRATE", 95.1, 7000.0, "RWA", ["BONDS"]), version="v8.identity/2")
+                         .asset("NEWRATE")["state"], ID.UNVERIFIED)
         r = res(ex("NEWRATE-USD", "NEWRATE", 95.0, 1e5, desc="Newrate"), lt("NEWRATE", 95.1, 7000.0, "RWA", ["BONDS"]))
         self.assertEqual(st(r, "NEWRATE"), ID.VERIFIED_TRADFI)                 # a wrapper beside it changes nothing
 
@@ -436,14 +447,18 @@ class TokenList(unittest.TestCase):
                                                               [["lighter:US10Y", "LIGHTER_TOKENLIST", "OK"]]))
         counts = R.counts(reg)["exposure_safety"]
         self.assertEqual(counts["exposure_check_unavailable_assets"], ["NEWMKT"])
-        self.assertEqual(counts["transitions_vs_previous"], {"UNVERIFIED->VERIFIED_TRADFI": ["US10Y"]})
+        # the previous version beside v8.identity/4 is /3, which already read the token list: no transition. Against
+        # v8.identity/2 (no token list) US10Y moved UNVERIFIED -> VERIFIED_TRADFI
+        self.assertEqual(counts["transitions_vs_previous"], {})
+        v2 = ID.resolve_version("v8.identity/2", {"lighter": rows}, sc.DEXES, LISTS, sc.in_my_dexes)
+        self.assertEqual(v2.asset("US10Y")["state"], ID.UNVERIFIED)
 
 
 # --------------------------------------------------------------------------- version, authority, provenance
 class VersionAndProvenance(unittest.TestCase):
     def test_config_hash_changed_with_the_rules(self):
         cfg = provenance.identity_config()
-        self.assertEqual(cfg["version"], "v8.identity/3")
+        self.assertEqual(cfg["version"], ID.VERSION)              # v8.identity/3 in Phase 5, /4 since Phase 6
         self.assertEqual(cfg["extended_crypto_wrapper"], ["Crypto"])
         self.assertEqual(cfg["lighter_tradfi_asset_types"], ["RWA"])
         self.assertEqual(cfg["exposure_checks"], {"lighter": "LIGHTER_TOKENLIST"})
@@ -467,8 +482,11 @@ class VersionAndProvenance(unittest.TestCase):
             shutil.rmtree(tmp, ignore_errors=True)
 
     def test_new_proof_records_v3(self):
+        """A new proof records the current identity version (v8.identity/3 in Phase 5; /4 since Phase 6); a proof
+        recorded under /3 stays qualified (no hindsight; tests.test_v8_phase6)."""
         tr = EV.stamp({"id": "X"}, "BTC", ID.Authority.from_states({"BTC": ID.VERIFIED_CRYPTO}, scan_id="gh-9-1"))
-        self.assertEqual((tr["identity_version"], EV.qualified(tr)), ("v8.identity/3", True))
+        self.assertEqual((tr["identity_version"], EV.qualified(tr)), (ID.VERSION, True))
+        self.assertTrue(EV.qualified(dict(tr, identity_version="v8.identity/3")))
 
     def test_v2_entry_proof_stays_qualified(self):
         """Section 24: no hindsight. A trade entered while VERIFIED_CRYPTO under v8.identity/2 stays historically
@@ -495,8 +513,8 @@ class DowngradeGates(unittest.TestCase):
         cls.auth = EV.universe_authority(cls.r.coins, 1000, "gh-11-1", cls.r.assets)
 
     def test_downgrade(self):
-        self.assertEqual((st(self.r, "GRAMX"), self.r.asset("GRAMX")["previous"]["state"]),
-                         (ID.UNVERIFIED, ID.VERIFIED_CRYPTO))
+        v2 = res(*GRAM_LIKE, hl("BTC", 121000.0, 2e9), version="v8.identity/2")
+        self.assertEqual((st(self.r, "GRAMX"), v2.asset("GRAMX")["state"]), (ID.UNVERIFIED, ID.VERIFIED_CRYPTO))
         self.assertEqual(st(self.r, "BTC"), ID.VERIFIED_CRYPTO)
 
     def test_quant_and_dashboard(self):
