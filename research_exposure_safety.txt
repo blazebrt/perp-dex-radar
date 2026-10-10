@@ -1,0 +1,360 @@
+{
+ "known_crypto_audit": {
+  "also_on_tradfi_list": [],
+  "rwa_like_names": [],
+  "size": 436
+ },
+ "observations": [
+  {
+   "inventory": {
+    "counts": {
+     "extended_only": 33,
+     "known_and_extended": 160,
+     "known_only": 273,
+     "other": 0
+    },
+    "extended_only_assets": [
+     "AGT",
+     "AIA",
+     "AIGENSYN",
+     "B",
+     "BAS",
+     "BILL",
+     "BTW",
+     "CFG",
+     "COLLECT",
+     "DATA",
+     "DOGS",
+     "EVAA",
+     "FHE",
+     "GRAM",
+     "GTC",
+     "HIVE",
+     "INX",
+     "JELLYJELLY",
+     "KAT",
+     "LUNC",
+     "LYN",
+     "MARS",
+     "OPEN",
+     "PLAY",
+     "PRL",
+     "PROM",
+     "RE",
+     "SWARMS",
+     "TRIA",
+     "TRUTH",
+     "TST",
+     "TURBO",
+     "XEC"
+    ],
+    "extended_only_with_inheritance": [
+     "AGT",
+     "AIA",
+     "AIGENSYN",
+     "B",
+     "BAS",
+     "BILL",
+     "BTW",
+     "CFG",
+     "COLLECT",
+     "DATA",
+     "DOGS",
+     "EVAA",
+     "FHE",
+     "GRAM",
+     "GTC",
+     "INX",
+     "JELLYJELLY",
+     "KAT",
+     "LUNC",
+     "LYN",
+     "OPEN",
+     "PLAY",
+     "PRL",
+     "PROM",
+     "RE",
+     "SWARMS",
+     "TRIA",
+     "TRUTH",
+     "TST",
+     "TURBO",
+     "XEC"
+    ],
+    "other_assets": [],
+    "total": 466
+   },
+   "observation": {
+    "git_sha": "356ccb57e9df2e7f9ea01ebbdeb041e505d837d8",
+    "identity_version": "v8.identity/4",
+    "kept_contracts": 2017,
+    "raw_contracts": 12292,
+    "scan_id": "gh-38066839845-1",
+    "ts": 1791648904
+   },
+   "projection": {
+    "model2": {
+     "states": {
+      "UNVERIFIED": 153,
+      "VERIFIED_CRYPTO": 433,
+      "VERIFIED_TRADFI": 267
+     },
+     "touching_outputs": [],
+     "transitions": {
+      "UNVERIFIED->VERIFIED_TRADFI": 4,
+      "VERIFIED_CRYPTO->UNVERIFIED": 33
+     }
+    },
+    "model3": {
+     "states": {
+      "UNVERIFIED": 153,
+      "VERIFIED_CRYPTO": 433,
+      "VERIFIED_TRADFI": 267
+     },
+     "touching_outputs": [],
+     "transitions": {
+      "UNVERIFIED->VERIFIED_TRADFI": 4,
+      "VERIFIED_CRYPTO->UNVERIFIED": 33
+     }
+    }
+   },
+   "recorded_identity_version": "v8.identity/4",
+   "reproduction_differences": 0,
+   "token_list_recorded": true
+  },
+  {
+   "inventory": {
+    "counts": {
+     "extended_only": 33,
+     "known_and_extended": 160,
+     "known_only": 273,
+     "other": 0
+    },
+    "extended_only_assets": [
+     "AGT",
+     "AIA",
+     "AIGENSYN",
+     "B",
+     "BAS",
+     "BILL",
+     "BTW",
+     "CFG",
+     "COLLECT",
+     "DATA",
+     "DOGS",
+     "EVAA",
+     "FHE",
+     "GRAM",
+     "GTC",
+     "HIVE",
+     "INX",
+     "JELLYJELLY",
+     "KAT",
+     "LUNC",
+     "LYN",
+     "MARS",
+     "OPEN",
+     "PLAY",
+     "PRL",
+     "PROM",
+     "RE",
+     "SWARMS",
+     "TRIA",
+     "TRUTH",
+     "TST",
+     "TURBO",
+     "XEC"
+    ],
+    "extended_only_with_inheritance": [
+     "AGT",
+     "AIA",
+     "AIGENSYN",
+     "B",
+     "BAS",
+     "BILL",
+     "BTW",
+     "CFG",
+     "COLLECT",
+     "DATA",
+     "DOGS",
+     "EVAA",
+     "FHE",
+     "GRAM",
+     "GTC",
+     "INX",
+     "JELLYJELLY",
+     "KAT",
+     "LUNC",
+     "LYN",
+     "OPEN",
+     "PLAY",
+     "PRL",
+     "PROM",
+     "RE",
+     "SWARMS",
+     "TRIA",
+     "TRUTH",
+     "TST",
+     "TURBO",
+     "XEC"
+    ],
+    "other_assets": [],
+    "total": 466
+   },
+   "observation": {
+    "git_sha": "f7aa7f6d318f4dfcd84c74df27d38314e4349208",
+    "identity_version": "v8.identity/3",
+    "kept_contracts": 2017,
+    "raw_contracts": 12284,
+    "scan_id": "gh-38064191210-1",
+    "ts": 1791646523
+   },
+   "projection": {
+    "model2": {
+     "states": {
+      "UNVERIFIED": 153,
+      "VERIFIED_CRYPTO": 433,
+      "VERIFIED_TRADFI": 267
+     },
+     "touching_outputs": [],
+     "transitions": {
+      "UNVERIFIED->VERIFIED_TRADFI": 4,
+      "VERIFIED_CRYPTO->UNVERIFIED": 33
+     }
+    },
+    "model3": {
+     "states": {
+      "UNVERIFIED": 153,
+      "VERIFIED_CRYPTO": 433,
+      "VERIFIED_TRADFI": 267
+     },
+     "touching_outputs": [],
+     "transitions": {
+      "UNVERIFIED->VERIFIED_TRADFI": 4,
+      "VERIFIED_CRYPTO->UNVERIFIED": 33
+     }
+    }
+   },
+   "recorded_identity_version": "v8.identity/3",
+   "reproduction_differences": 0,
+   "token_list_recorded": true
+  },
+  {
+   "inventory": {
+    "counts": {
+     "extended_only": 33,
+     "known_and_extended": 160,
+     "known_only": 274,
+     "other": 0
+    },
+    "extended_only_assets": [
+     "AGT",
+     "AIA",
+     "AIGENSYN",
+     "B",
+     "BAS",
+     "BILL",
+     "BTW",
+     "CFG",
+     "COLLECT",
+     "DATA",
+     "DOGS",
+     "EVAA",
+     "FHE",
+     "GRAM",
+     "GTC",
+     "HIVE",
+     "INX",
+     "JELLYJELLY",
+     "KAT",
+     "LUNC",
+     "LYN",
+     "MARS",
+     "OPEN",
+     "PLAY",
+     "PRL",
+     "PROM",
+     "RE",
+     "SWARMS",
+     "TRIA",
+     "TRUTH",
+     "TST",
+     "TURBO",
+     "XEC"
+    ],
+    "extended_only_with_inheritance": [
+     "AGT",
+     "AIA",
+     "AIGENSYN",
+     "B",
+     "BAS",
+     "BILL",
+     "BTW",
+     "CFG",
+     "COLLECT",
+     "DATA",
+     "DOGS",
+     "EVAA",
+     "FHE",
+     "GRAM",
+     "GTC",
+     "INX",
+     "JELLYJELLY",
+     "KAT",
+     "LUNC",
+     "LYN",
+     "OPEN",
+     "PLAY",
+     "PRL",
+     "PROM",
+     "RE",
+     "SWARMS",
+     "TRIA",
+     "TRUTH",
+     "TST",
+     "TURBO",
+     "XEC"
+    ],
+    "other_assets": [],
+    "total": 467
+   },
+   "observation": {
+    "git_sha": "bf88b17dadffac0bf6acd6c5dad88d0a78878867",
+    "identity_version": "v8.identity/3",
+    "kept_contracts": 2018,
+    "raw_contracts": 12763,
+    "scan_id": "gh-37984238598-1",
+    "ts": 1791576165
+   },
+   "projection": {
+    "model2": {
+     "states": {
+      "UNVERIFIED": 153,
+      "VERIFIED_CRYPTO": 434,
+      "VERIFIED_TRADFI": 267
+     },
+     "touching_outputs": [],
+     "transitions": {
+      "UNVERIFIED->VERIFIED_TRADFI": 4,
+      "VERIFIED_CRYPTO->UNVERIFIED": 33
+     }
+    },
+    "model3": {
+     "states": {
+      "UNVERIFIED": 153,
+      "VERIFIED_CRYPTO": 434,
+      "VERIFIED_TRADFI": 267
+     },
+     "touching_outputs": [],
+     "transitions": {
+      "UNVERIFIED->VERIFIED_TRADFI": 4,
+      "VERIFIED_CRYPTO->UNVERIFIED": 33
+     }
+    }
+   },
+   "recorded_identity_version": "v8.identity/3",
+   "reproduction_differences": 0,
+   "token_list_recorded": true
+  }
+ ]
+}

@@ -1,0 +1,533 @@
+scan gh-38066839845-1  commit 356ccb57e9df  v8.identity/4  config 96a10dc22e22
+
+raw_contracts: 12292
+active_perps: 2017
+canonical_assets: 1040
+assets_by_legacy: {'CRYPTO': 433, 'NO_ACTIVE_PERP_CONTRACT': 187, 'TRADFI': 267, 'UNVERIFIED': 153}
+assets_by_identity: {'CRYPTO': 430, 'CRYPTO_EXPOSURE_SELECTED': 3, 'IDENTITY_UNVERIFIED': 153, 'TRADFI_CLASSIFIED': 267}
+phase1_crypto: 612
+phase1_excluded: 241
+now_crypto: 433
+now_excluded: 267
+now_unverified: 153
+changed_vs_phase1: ['4STOCK', 'ACN', 'ACU', 'ADBE', 'AEON', 'AGPU', 'AGT', 'AI', 'AIA', 'AIGENSYN', 'AIN', 'AIO', 'AIW3', 'ANSEM', 'APM', 'APR', 'APRO', 'ARGUS', 'ARX', 'ASTEROID', 'AT', 'AVAAI', 'AVL', 'AWE', 'B', 'B-MONEY', 'BANANA', 'BANK', 'BAS', 'BASECAT', 'BAY', 'BB', 'BCHSV', 'BILL', 'BIRB', 'BLEND', 'BLUAI', 'BONER', 'BREW', 'BSV', 'BTCDOM', 'BTW', 'BULLA', 'BYD', 'CARDS', 'CATE', 'CFG', 'CHEEMS', 'CLO', 'COAI', 'COCOAP', 'COLLECT', 'CT', 'CTR', 'CXMT', 'DATA', 'DELTA', 'DOGS', 'DOS', 'DRV', 'EDEN', 'EVAA', 'FHE', 'FIGHT', 'FLORK', 'FONE', 'FORM', 'FRAX', 'FUN', 'FUTU', 'G', 'GASOLP', 'GRAM', 'GRIFFAIN', 'GSTOCK', 'GTC', 'GUN', 'H100', 'HANA', 'HIVE', 'HYUNDAI', 'HYUNDAIUSD', 'INX', 'JCT', 'JELLYJELLY', 'KAT', 'KO', 'KUAISHOU', 'LAPTOP', 'LIGHT', 'LISTA', 'LUNC', 'LYN', 'LYTE', 'MANTRA', 'MARS', 'MARSCOIN', 'MAX', 'MEITUAN', 'MEME', 'MOONSHOT', 'MUU', 'NES', 'NEX', 'NIGHT', 'NOM', 'NOW', 'NULLMASK', 'OPEN', 'OPN', 'OPN_OPINION', 'PAID', 'PAIR', 'PEARL', 'PIPPIN', 'PLAY', 'POD', 'POPMART', 'PRL', 'PROM', 'PROS', 'PUNDIAI', 'PURR', 'QNT', 'RAIL', 'RATS', 'RE', 'RESOLV', 'RE_ETH', 'RIF', 'ROBO', 'RONIN', 'RTX', 'SAMSUNGUSD', 'SCR', 'SDEV', 'SENT', 'SHROOM', 'SI', 'SIREN', 'SKHYNIXUSD', 'SKR', 'SKYAI', 'SLX', 'SNXX', 'SOLV', 'SPACE', 'STABLECOINX', 'STAR', 'STONK', 'STONKBROKER', 'STONKS', 'SWARMS', 'SYN', 'TAKE', 'TENCENT', 'THE', 'TMX', 'TOSHI', 'TQQQ', 'TRIA', 'TROLL', 'TRUTH', 'TST', 'TURBO', 'UP', 'US100S', 'US10Y', 'US500S', 'USD1', 'V', 'VARIATIONAL', 'VERONA', 'XAI', 'XDP', 'XEC', 'ZCAT', 'ZEST', 'ZKP', 'ZZZ', '哈基米', '币安人生', '我踏马来了', '牛来', '龙虾']
+tradfi_collisions: ['BB', 'PURR', 'QNT']
+crypto_exposure_selected: ['BB', 'PURR', 'QNT']
+ambiguous: []
+by_contract_class: {'TRADFI': 484, 'UNLABELED': 1533}
+by_exposure_class: {'CRYPTO': 1286, 'TRADFI': 528, 'UNVERIFIED': 203}
+adapter_mismatches: 0
+identity_states: {'AMBIGUOUS': 0, 'UNVERIFIED': 153, 'VERIFIED_CRYPTO': 433, 'VERIFIED_TRADFI': 267}
+discovery_visible_assets: 853
+discovery_visible_contracts: 2017
+execution_identity_eligible: 433
+phase2_states: {'AMBIGUOUS': 1, 'CRYPTO': 615, 'TRADFI': 237}
+parsed_symbol_links: ['lighter:EURUSD', 'lighter:HYUNDAIUSD', 'lighter:SAMSUNGUSD', 'lighter:SKHYNIXUSD']
+unaccounted: {'day': 0, 'quant': 0, 'radar': 0, 'registry_assets': 0, 'smart': 0, 'swing': 0, 'universe': 0}
+
+== default-crypto inventory (Phase 2 admitted with DEFAULT_CRYPTO): 150 assets (149 only by default); now {'UNVERIFIED': 121, 'VERIFIED_TRADFI': 29}
+   UNVERIFIED: 4STOCK, ACU, AEON, AI, AIN, AIO, AIW3, ANSEM, APM, APR, APRO, ARGUS, ARX, ASTEROID, AT, AVAAI, AVL, AWE, B-MONEY, BANANA, BANK, BASECAT, BAY, BCHSV, BIRB, BLEND, BLUAI, BONER, BREW, BSV, BTCDOM, BULLA, CARDS, CATE, CHEEMS, CLO, COAI, CT, CTR, DELTA, DOS, DRV, EDEN, FIGHT, FLORK, FONE, FORM, FRAX, FUN, G, GRIFFAIN, GSTOCK, GUN, HANA, JCT, KO, LAPTOP, LIGHT, LISTA, MANTRA, MARSCOIN, MAX, MEME, NES, NEX, NIGHT, NOM, NULLMASK, OPN, OPN_OPINION, PAID, PAIR, PEARL, PIPPIN, POD, PRL, PROS, PUNDIAI, RAIL, RATS, RESOLV, RE_ETH, RIF, ROBO, RONIN, RTX, SCR, SENT, SHROOM, SI, SIREN, SKR, SKYAI, SLX, SOLV, SPACE, STAR, STONK, STONKBROKER, STONKS, SYN, TAKE, THE, TMX, TOSHI, TROLL, UP, USD1, VARIATIONAL, VERONA, XAI, XDP, ZCAT, ZEST, ZKP, ZZZ, 哈基米, 币安人生, 我踏马来了, 牛来, 龙虾
+   VERIFIED_TRADFI: ACN, ADBE, AGPU, BYD, COCOAP, CXMT, FUTU, GASOLP, H100, HYUNDAI, HYUNDAIUSD, KUAISHOU, LYTE, MEITUAN, MOONSHOT, MUU, NOW, POPMART, SAMSUNGUSD, SDEV, SKHYNIXUSD, SNXX, STABLECOINX, TENCENT, TQQQ, US100S, US10Y, US500S, V
+
+== UNVERIFIED assets (153); liquid enough for the $1M gate: ['APR', 'BSV', 'BULLA', 'GRAM', 'GRIFFAIN', '币安人生', '龙虾']
+   GRAM           vol      6,438,080  hyperliquid:GRAM, aster:GRAMUSDT, lighter:GRAM, paradex:GRAM-USD-PERP, extended:GRAM-USD
+      hyperliquid:GRAM               px 1.4673         vol 6438080.5      UNVERIFIED       fields None parsed None link None
+      aster:GRAMUSDT                 px 1.468          vol 206085.47      UNVERIFIED       fields {'baseAsset': 'GRAM', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      lighter:GRAM                   px 1.46775        vol 4916896.2      UNVERIFIED       fields {'asset_categories': ['LAYER_1'], 'asset_type': 'CRYPTO', 'insurance_fund_account_index': 281474976710655, 'market_flags': 0, 'strategy_index': 2} parsed None link None
+      paradex:GRAM-USD-PERP          px 1.4639676      vol 0.0            UNVERIFIED       fields None parsed None link None
+      extended:GRAM-USD              px 1.4645267      vol 114251.63      UNVERIFIED       fields {'assetName': 'GRAM', 'category': 'Crypto', 'description': 'Gram', 'subCategory': 'L1'} parsed None link None
+   GRIFFAIN       vol      2,805,717  hyperliquid:GRIFFAIN, aster:GRIFFAINUSDT
+      hyperliquid:GRIFFAIN           px 0.017619       vol 2805717.0      UNVERIFIED       fields None parsed None link None
+      aster:GRIFFAINUSDT             px 0.017678       vol 140162.09      UNVERIFIED       fields {'baseAsset': 'GRIFFAIN', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['AI'], 'underlyingType': 'COIN'} parsed None link None
+   APR            vol      2,078,595  aster:APRUSDT
+      aster:APRUSDT                  px 0.0755         vol 2078594.8      UNVERIFIED       fields {'baseAsset': 'APR', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   BSV            vol      1,978,714  hyperliquid:BSV
+      hyperliquid:BSV                px 19.521         vol 1978713.8      UNVERIFIED       fields None parsed None link None
+   币安人生           vol      1,428,226  aster:币安人生USDT
+      aster:币安人生USDT                 px 0.5634         vol 1428226.2      UNVERIFIED       fields {'baseAsset': '币安人生', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   BULLA          vol      1,145,414  aster:BULLAUSDT
+      aster:BULLAUSDT                px 0.082392       vol 1145414.2      UNVERIFIED       fields {'baseAsset': 'BULLA', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   龙虾             vol      1,039,427  aster:龙虾USDT
+      aster:龙虾USDT                   px 0.0447         vol 1039426.9      UNVERIFIED       fields {'baseAsset': '龙虾', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   JCT            vol        773,107  aster:JCTUSDT
+      aster:JCTUSDT                  px 0.003005       vol 773107.35      UNVERIFIED       fields {'baseAsset': 'JCT', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   PLAY           vol        654,262  aster:PLAYUSDT, extended:PLAY-USD
+      aster:PLAYUSDT                 px 0.02339        vol 654261.95      UNVERIFIED       fields {'baseAsset': 'PLAY', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      extended:PLAY-USD              px 0.02336208     vol 32262.28       UNVERIFIED       fields {'assetName': 'PLAY', 'category': 'Crypto', 'description': 'PlaysOut', 'subCategory': 'Infra'} parsed None link None
+   XAI            vol        569,668  hyperliquid:XAI, aster:XAIUSDT
+      hyperliquid:XAI                px 0.00938        vol 569668.41      UNVERIFIED       fields None parsed None link None
+      aster:XAIUSDT                  px 0.009392       vol 140252.48      UNVERIFIED       fields {'baseAsset': 'XAI', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   DRV            vol        496,674  aster:DRVUSDT, lighter:DRV
+      aster:DRVUSDT                  px 0.5455         vol 118469.98      UNVERIFIED       fields {'baseAsset': 'DRV', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      lighter:DRV                    px 0.54844        vol 496673.89      UNVERIFIED       fields {'asset_categories': ['NEW', 'DEFI'], 'asset_type': 'CRYPTO', 'insurance_fund_account_index': 281474976710654, 'market_flags': 0, 'strategy_index': 7} parsed None link None
+   APM            vol        346,248  aster:APMUSDT
+      aster:APMUSDT                  px 0.0049763      vol 346247.51      UNVERIFIED       fields {'baseAsset': 'APM', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   AIW3           vol        342,101  aster:AIW3USDT
+      aster:AIW3USDT                 px 0.03687        vol 342101.31      UNVERIFIED       fields {'baseAsset': 'AIW3', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['AI'], 'underlyingType': 'COIN'} parsed None link None
+   LYN            vol        255,799  aster:LYNUSDT, extended:LYN-USD
+      aster:LYNUSDT                  px 0.01656        vol 255798.65      UNVERIFIED       fields {'baseAsset': 'LYN', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      extended:LYN-USD               px 0.01654822     vol 40973.934      UNVERIFIED       fields {'assetName': 'LYN', 'category': 'Crypto', 'description': 'Everlyn AI', 'subCategory': 'DeFi'} parsed None link None
+   AIN            vol        238,446  aster:AINUSDT
+      aster:AINUSDT                  px 0.03888        vol 238446.31      UNVERIFIED       fields {'baseAsset': 'AIN', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   NIGHT          vol        225,167  aster:NIGHTUSDT
+      aster:NIGHTUSDT                px 0.04873        vol 225166.91      UNVERIFIED       fields {'baseAsset': 'NIGHT', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   SKR            vol        186,016  hyperliquid:SKR, aster:SKRUSDT, lighter:SKR
+      hyperliquid:SKR                px 0.016596       vol 186016.14      UNVERIFIED       fields None parsed None link None
+      aster:SKRUSDT                  px 0.016675       vol 3631.41        UNVERIFIED       fields {'baseAsset': 'SKR', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      lighter:SKR                    px 0.016585       vol 63861.653      UNVERIFIED       fields {'asset_type': 'CRYPTO', 'insurance_fund_account_index': 281474976710655, 'market_flags': 0, 'strategy_index': 2} parsed None link None
+   PROM           vol        181,357  aster:PROMUSDT, extended:PROM-USD
+      aster:PROMUSDT                 px 5.203          vol 181356.54      UNVERIFIED       fields {'baseAsset': 'PROM', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      extended:PROM-USD              px 5.2020043      vol 0.0            UNVERIFIED       fields {'assetName': 'PROM', 'category': 'Crypto', 'description': 'Prometeus', 'subCategory': 'L2'} parsed None link None
+   UP             vol        174,093  aster:UPUSDT
+      aster:UPUSDT                   px 0.1751         vol 174093.27      UNVERIFIED       fields {'baseAsset': 'UP', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   CT             vol        166,972  aster:CTUSDT
+      aster:CTUSDT                   px 0.30163        vol 166972.06      UNVERIFIED       fields {'baseAsset': 'CT', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   BTW            vol        164,006  aster:BTWUSDT, extended:BTW-USD
+      aster:BTWUSDT                  px 1.62564        vol 164005.89      UNVERIFIED       fields {'baseAsset': 'BTW', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      extended:BTW-USD               px 1.6244658      vol 6045.2728      UNVERIFIED       fields {'assetName': 'BTW', 'category': 'Crypto', 'description': 'Bitway', 'subCategory': 'DeFi'} parsed None link None
+   GTC            vol        163,911  aster:GTCUSDT, extended:GTC-USD
+      aster:GTCUSDT                  px 0.18445        vol 163911.08      UNVERIFIED       fields {'baseAsset': 'GTC', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      extended:GTC-USD               px 0.18463795     vol 103319.9       UNVERIFIED       fields {'assetName': 'GTC', 'category': 'Crypto', 'description': 'Gitcoin', 'subCategory': 'Infra'} parsed None link None
+   SENT           vol        158,215  aster:SENTUSDT
+      aster:SENTUSDT                 px 0.02072        vol 158215.05      UNVERIFIED       fields {'baseAsset': 'SENT', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['AI'], 'underlyingType': 'COIN'} parsed None link None
+   DOS            vol        147,899  aster:DOSUSDT
+      aster:DOSUSDT                  px 0.2441         vol 147898.54      UNVERIFIED       fields {'baseAsset': 'DOS', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   STONK          vol        137,377  aster:STONKUSDT, lighter:STONK
+      aster:STONKUSDT                px 0.142          vol 104562.13      UNVERIFIED       fields {'baseAsset': 'STONK', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+      lighter:STONK                  px 0.14209        vol 137377.16      UNVERIFIED       fields {'asset_categories': ['NEW'], 'asset_type': 'CRYPTO', 'insurance_fund_account_index': 281474976710655, 'market_flags': 0, 'strategy_index': 2} parsed None link None
+   AGT            vol        132,819  aster:AGTUSDT, extended:AGT-USD
+      aster:AGTUSDT                  px 0.017776       vol 132819.36      UNVERIFIED       fields {'baseAsset': 'AGT', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['AI'], 'underlyingType': 'COIN'} parsed None link None
+      extended:AGT-USD               px 0.01769256     vol 21253.478      UNVERIFIED       fields {'assetName': 'AGT', 'category': 'Crypto', 'description': 'Alaya Governance Token', 'subCategory': 'AI'} parsed None link None
+   XDP            vol        120,222  aster:XDPUSDT
+      aster:XDPUSDT                  px 0.02275        vol 120221.55      UNVERIFIED       fields {'baseAsset': 'XDP', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   RESOLV         vol        113,258  hyperliquid:RESOLV, aster:RESOLVUSDT
+      hyperliquid:RESOLV             px 0.018774       vol 113257.69      UNVERIFIED       fields None parsed None link None
+      aster:RESOLVUSDT               px 0.01881        vol 3087.67        UNVERIFIED       fields {'baseAsset': 'RESOLV', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   B              vol        106,047  aster:BUSDT, extended:B-USD
+      aster:BUSDT                    px 0.1507         vol 106047.44      UNVERIFIED       fields {'baseAsset': 'B', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      extended:B-USD                 px 0.15031311     vol 38767.633      UNVERIFIED       fields {'assetName': 'B', 'category': 'Crypto', 'description': 'BUILDon', 'subCategory': 'Meme'} parsed None link None
+   AIA            vol         94,455  aster:AIAUSDT, extended:AIA-USD
+      aster:AIAUSDT                  px 0.08644        vol 4961.2         UNVERIFIED       fields {'baseAsset': 'AIA', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      extended:AIA-USD               px 0.08627579     vol 94454.821      UNVERIFIED       fields {'assetName': 'AIA', 'category': 'Crypto', 'description': 'DeAgentAI', 'subCategory': 'AI'} parsed None link None
+   SWARMS         vol         89,212  aster:SWARMSUSDT, extended:SWARMS-USD
+      aster:SWARMSUSDT               px 0.00842        vol 13653.45       UNVERIFIED       fields {'baseAsset': 'SWARMS', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['AI'], 'underlyingType': 'COIN'} parsed None link None
+      extended:SWARMS-USD            px 0.00834152     vol 89211.786      UNVERIFIED       fields {'assetName': 'SWARMS', 'category': 'Crypto', 'description': 'Swarms', 'subCategory': 'AI'} parsed None link None
+   TRUTH          vol         89,052  aster:TRUTHUSDT, extended:TRUTH-USD
+      aster:TRUTHUSDT                px 0.013199       vol 32461.85       UNVERIFIED       fields {'baseAsset': 'TRUTH', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      extended:TRUTH-USD             px 0.01326592     vol 89052.113      UNVERIFIED       fields {'assetName': 'TRUTH', 'category': 'Crypto', 'description': 'Swarm Network', 'subCategory': 'Meme'} parsed None link None
+   FHE            vol         84,987  aster:FHEUSDT, extended:FHE-USD
+      aster:FHEUSDT                  px 0.01976        vol 5232.48        UNVERIFIED       fields {'baseAsset': 'FHE', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['AI'], 'underlyingType': 'COIN'} parsed None link None
+      extended:FHE-USD               px 0.02005023     vol 84987.191      UNVERIFIED       fields {'assetName': 'FHE', 'category': 'Crypto', 'description': 'Mind Network', 'subCategory': 'Infra'} parsed None link None
+   牛来             vol         83,880  aster:牛来USDT
+      aster:牛来USDT                   px 0.08036        vol 83880.13       UNVERIFIED       fields {'baseAsset': '牛来', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   SYN            vol         83,624  aster:SYNUSDT
+      aster:SYNUSDT                  px 0.1934         vol 83624.48       UNVERIFIED       fields {'baseAsset': 'SYN', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   BONER          vol         82,208  aster:BONERUSDT
+      aster:BONERUSDT                px 0.03952        vol 82208.44       UNVERIFIED       fields {'baseAsset': 'BONER', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   JELLYJELLY     vol         78,994  aster:JELLYJELLYUSDT, extended:JELLYJELLY-USD
+      aster:JELLYJELLYUSDT           px 0.05243        vol 1873.87        UNVERIFIED       fields {'baseAsset': 'JELLYJELLY', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+      extended:JELLYJELLY-USD        px 0.05237836     vol 78994.465      UNVERIFIED       fields {'assetName': 'JELLYJELLY', 'category': 'Crypto', 'description': 'Jelly-My-Jelly', 'subCategory': 'Meme'} parsed None link None
+   BANANA         vol         75,857  hyperliquid:BANANA
+      hyperliquid:BANANA             px 3.83649        vol 75857.113      UNVERIFIED       fields None parsed None link None
+   TURBO          vol         74,468  hyperliquid:TURBO, aster:TURBOUSDT, extended:TURBO-USD
+      hyperliquid:TURBO              px 0.000998       vol 74468.1        UNVERIFIED       fields None parsed None link None
+      aster:TURBOUSDT                px 0.0010027      vol 2434.33        UNVERIFIED       fields {'baseAsset': 'TURBO', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['AI'], 'underlyingType': 'COIN'} parsed None link None
+      extended:TURBO-USD             px 0.00099785     vol 32017.08       UNVERIFIED       fields {'assetName': 'TURBO', 'category': 'Crypto', 'description': 'Turbo', 'subCategory': 'Meme'} parsed None link None
+   OPEN           vol         72,742  aster:OPENUSDT, extended:OPEN-USD
+      aster:OPENUSDT                 px 0.1112         vol 3368.69        UNVERIFIED       fields {'baseAsset': 'OPEN', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['AI'], 'underlyingType': 'COIN'} parsed None link None
+      extended:OPEN-USD              px 0.1110658      vol 72742.242      UNVERIFIED       fields {'assetName': 'OPEN', 'category': 'Crypto', 'description': 'OpenLedger', 'subCategory': 'L1'} parsed None link None
+   GUN            vol         72,004  aster:GUNUSDT
+      aster:GUNUSDT                  px 0.002963       vol 72004.0        UNVERIFIED       fields {'baseAsset': 'GUN', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   RTX            vol         68,614  aster:RTXUSDT
+      aster:RTXUSDT                  px 0.6854         vol 68614.46       UNVERIFIED       fields {'baseAsset': 'RTX', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   AI             vol         65,679  aster:AIUSDT, lighter:AI
+      aster:AIUSDT                   px 0.09402        vol 47464.01       UNVERIFIED       fields {'baseAsset': 'AI', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      lighter:AI                     px 0.09352        vol 65678.821      UNVERIFIED       fields {'asset_categories': ['MEMES'], 'asset_type': 'CRYPTO', 'insurance_fund_account_index': 281474976710655, 'market_flags': 0, 'strategy_index': 7} parsed None link None
+   KO             vol         61,195  variational:KO
+      variational:KO                 px 87.869871      vol 61195.114      UNVERIFIED       fields {'name': 'The Coca-Cola Company'} parsed None link None
+   ANSEM          vol         60,068  aster:ANSEMUSDT, lighter:ANSEM
+      aster:ANSEMUSDT                px 0.13554        vol 60067.78       UNVERIFIED       fields {'baseAsset': 'ANSEM', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      lighter:ANSEM                  px 0.13562        vol 32637.669      UNVERIFIED       fields {'asset_categories': ['MEMES'], 'asset_type': 'CRYPTO', 'insurance_fund_account_index': 281474976710654, 'market_flags': 0, 'strategy_index': 7} parsed None link None
+   LUNC           vol         59,793  hyperliquid:kLUNC, aster:1000LUNCUSDT, extended:kLUNC-USD
+      hyperliquid:kLUNC              px 0.051377       vol 59792.707      UNVERIFIED       fields None parsed None link None
+      aster:1000LUNCUSDT             px 0.05138        vol 2714.99        UNVERIFIED       fields {'baseAsset': '1000LUNC', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      extended:kLUNC-USD             px 0.05126945     vol 1156.4988      UNVERIFIED       fields {'assetName': 'kLUNC', 'category': 'Crypto', 'description': 'Terra Luna Classic', 'subCategory': 'L1'} parsed None link None
+   MEME           vol         56,061  hyperliquid:MEME, aster:MEMEUSDT
+      hyperliquid:MEME               px 0.000572       vol 56060.941      UNVERIFIED       fields None parsed None link None
+      aster:MEMEUSDT                 px 0.01308        vol 4501.51        UNVERIFIED       fields {'baseAsset': 'MEME', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   PRL            vol         55,013  aster:PRLUSDT, lighter:PRL, extended:PRL-USD
+      aster:PRLUSDT                  px 0.1127         vol 2408.4         UNVERIFIED       fields {'baseAsset': 'PRL', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['AI'], 'underlyingType': 'COIN'} parsed None link None
+      lighter:PRL                    px 1.3876         vol 55012.974      UNVERIFIED       fields {'asset_categories': ['NEW', 'AI'], 'asset_type': 'CRYPTO', 'insurance_fund_account_index': 281474976710654, 'market_flags': 0, 'strategy_index': 7} parsed None link None
+      extended:PRL-USD               px 0.11243581     vol 42564.877      UNVERIFIED       fields {'assetName': 'PRL', 'category': 'Crypto', 'description': 'Perle', 'subCategory': 'Meme'} parsed None link None
+   INX            vol         51,560  aster:INXUSDT, extended:INX-USD
+      aster:INXUSDT                  px 0.004922       vol 9085.21        UNVERIFIED       fields {'baseAsset': 'INX', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      extended:INX-USD               px 0.00493061     vol 51559.556      UNVERIFIED       fields {'assetName': 'INX', 'category': 'Crypto', 'description': 'Infinex', 'subCategory': 'Infra'} parsed None link None
+   EVAA           vol         46,130  aster:EVAAUSDT, extended:EVAA-USD
+      aster:EVAAUSDT                 px 0.6615         vol 36933.99       UNVERIFIED       fields {'baseAsset': 'EVAA', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      extended:EVAA-USD              px 0.66704232     vol 46130.407      UNVERIFIED       fields {'assetName': 'EVAA', 'category': 'Crypto', 'description': 'EVAA Protocol', 'subCategory': 'DeFi'} parsed None link None
+   BAS            vol         43,151  aster:BASUSDT, extended:BAS-USD
+      aster:BASUSDT                  px 0.022165       vol 1122.62        UNVERIFIED       fields {'baseAsset': 'BAS', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      extended:BAS-USD               px 0.02213018     vol 43151.004      UNVERIFIED       fields {'assetName': 'BAS', 'category': 'Crypto', 'description': 'BNB Attestation Service', 'subCategory': 'DeFi'} parsed None link None
+   TST            vol         40,509  aster:TSTUSDT, extended:TST-USD
+      aster:TSTUSDT                  px 0.01784        vol 9400.96        UNVERIFIED       fields {'baseAsset': 'TST', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+      extended:TST-USD               px 0.01785197     vol 40509.49       UNVERIFIED       fields {'assetName': 'TST', 'category': 'Crypto', 'description': 'Test', 'subCategory': 'Meme'} parsed None link None
+   LIGHT          vol         39,468  aster:LIGHTUSDT
+      aster:LIGHTUSDT                px 0.2093         vol 39468.21       UNVERIFIED       fields {'baseAsset': 'LIGHT', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   ARX            vol         39,320  aster:ARXUSDT
+      aster:ARXUSDT                  px 0.2701         vol 39319.94       UNVERIFIED       fields {'baseAsset': 'ARX', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   HIVE           vol         39,305  extended:HIVE-USD
+      extended:HIVE-USD              px 0.05516584     vol 39305.367      UNVERIFIED       fields {'assetName': 'HIVE', 'category': 'Crypto', 'description': 'Hive', 'subCategory': 'L1'} parsed None link None
+   RONIN          vol         38,576  aster:RONINUSDT
+      aster:RONINUSDT                px 0.0671         vol 38575.9        UNVERIFIED       fields {'baseAsset': 'RONIN', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   SI             vol         38,340  aster:SIUSDT
+      aster:SIUSDT                   px 0.0284         vol 38339.98       UNVERIFIED       fields {'baseAsset': 'SI', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   MARSCOIN       vol         38,195  variational:MARSCOIN, aster:MARSCOINUSDT
+      variational:MARSCOIN           px 0.095253558    vol 28497.022      UNVERIFIED       fields {'name': 'MarsCoin'} parsed None link None
+      aster:MARSCOINUSDT             px 0.0954         vol 38195.44       UNVERIFIED       fields {'baseAsset': 'MARSCOIN', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   COLLECT        vol         36,931  aster:COLLECTUSDT, extended:COLLECT-USD
+      aster:COLLECTUSDT              px 0.02158        vol 36930.52       UNVERIFIED       fields {'baseAsset': 'COLLECT', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      extended:COLLECT-USD           px 0.02155575     vol 31271.145      UNVERIFIED       fields {'assetName': 'COLLECT', 'category': 'Crypto', 'description': 'Collect', 'subCategory': 'Meme'} parsed None link None
+   KAT            vol         36,424  aster:KATUSDT, extended:KAT-USD
+      aster:KATUSDT                  px 0.004598       vol 3300.16        UNVERIFIED       fields {'baseAsset': 'KAT', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      extended:KAT-USD               px 0.00460166     vol 36424.308      UNVERIFIED       fields {'assetName': 'KAT', 'category': 'Crypto', 'description': 'Katana', 'subCategory': 'L1'} parsed None link None
+   PAIR           vol         36,319  aster:PAIRUSDT
+      aster:PAIRUSDT                 px 0.00161        vol 36319.43       UNVERIFIED       fields {'baseAsset': 'PAIR', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   AEON           vol         35,980  aster:AEONUSDT
+      aster:AEONUSDT                 px 0.06016        vol 35980.15       UNVERIFIED       fields {'baseAsset': 'AEON', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   BILL           vol         35,513  aster:BILLUSDT, extended:BILL-USD
+      aster:BILLUSDT                 px 0.00986        vol 23735.7        UNVERIFIED       fields {'baseAsset': 'BILL', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      extended:BILL-USD              px 0.00985029     vol 35512.708      UNVERIFIED       fields {'assetName': 'BILL', 'category': 'Crypto', 'description': 'Billions Network', 'subCategory': 'Meme'} parsed None link None
+   AIGENSYN       vol         35,486  aster:AIGENSYNUSDT, extended:AIGENSYN-USD
+      aster:AIGENSYNUSDT             px 0.02084        vol 5747.24        UNVERIFIED       fields {'baseAsset': 'AIGENSYN', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      extended:AIGENSYN-USD          px 0.02087792     vol 35486.411      UNVERIFIED       fields {'assetName': 'AIGENSYN', 'category': 'Crypto', 'description': 'Gensyn', 'subCategory': 'AI'} parsed None link None
+   CFG            vol         33,216  aster:CFGUSDT, extended:CFG-USD
+      aster:CFGUSDT                  px 0.1436         vol 2614.99        UNVERIFIED       fields {'baseAsset': 'CFG', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      extended:CFG-USD               px 0.14375826     vol 33216.271      UNVERIFIED       fields {'assetName': 'CFG', 'category': 'Crypto', 'description': 'Centrifuge', 'subCategory': 'DeFi'} parsed None link None
+   TRIA           vol         31,881  aster:TRIAUSDT, extended:TRIA-USD
+      aster:TRIAUSDT                 px 0.003326       vol 19454.22       UNVERIFIED       fields {'baseAsset': 'TRIA', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      extended:TRIA-USD              px 0.00331636     vol 31880.689      UNVERIFIED       fields {'assetName': 'TRIA', 'category': 'Crypto', 'description': 'Tria', 'subCategory': 'Infra'} parsed None link None
+   OPN            vol         31,193  aster:OPNUSDT
+      aster:OPNUSDT                  px 0.06376        vol 31192.82       UNVERIFIED       fields {'baseAsset': 'OPN', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   G              vol         29,062  aster:GUSDT
+      aster:GUSDT                    px 0.004377       vol 29062.23       UNVERIFIED       fields {'baseAsset': 'G', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   SKYAI          vol         28,547  aster:SKYAIUSDT
+      aster:SKYAIUSDT                px 0.0357         vol 28546.95       UNVERIFIED       fields {'baseAsset': 'SKYAI', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['AI'], 'underlyingType': 'COIN'} parsed None link None
+   CLO            vol         26,455  aster:CLOUSDT
+      aster:CLOUSDT                  px 0.06101        vol 26455.17       UNVERIFIED       fields {'baseAsset': 'CLO', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   CATE           vol         24,745  aster:CATEUSDT
+      aster:CATEUSDT                 px 0.057045       vol 24745.25       UNVERIFIED       fields {'baseAsset': 'CATE', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   PAID           vol         23,824  aster:PAIDUSDT
+      aster:PAIDUSDT                 px 0.00383        vol 23823.81       UNVERIFIED       fields {'baseAsset': 'PAID', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   PROS           vol         21,511  aster:PROSUSDT
+      aster:PROSUSDT                 px 0.672          vol 21510.91       UNVERIFIED       fields {'baseAsset': 'PROS', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   FRAX           vol         19,934  aster:FRAXUSDT
+      aster:FRAXUSDT                 px 0.3142         vol 19934.37       UNVERIFIED       fields {'baseAsset': 'FRAX', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   PEARL          vol         19,073  aster:PEARLUSDT
+      aster:PEARLUSDT                px 1.4438         vol 19072.85       UNVERIFIED       fields {'baseAsset': 'PEARL', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   BREW           vol         17,792  aster:BREWUSDT
+      aster:BREWUSDT                 px 0.00883        vol 17791.62       UNVERIFIED       fields {'baseAsset': 'BREW', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   EDEN           vol         17,206  aster:EDENUSDT
+      aster:EDENUSDT                 px 0.06216        vol 17205.91       UNVERIFIED       fields {'baseAsset': 'EDEN', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   PIPPIN         vol         16,935  aster:PIPPINUSDT
+      aster:PIPPINUSDT               px 0.01746        vol 16935.16       UNVERIFIED       fields {'baseAsset': 'PIPPIN', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   AVAAI          vol         15,586  aster:AVAAIUSDT
+      aster:AVAAIUSDT                px 0.008789       vol 15585.66       UNVERIFIED       fields {'baseAsset': 'AVAAI', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['AI'], 'underlyingType': 'COIN'} parsed None link None
+   ZEST           vol         14,744  aster:ZESTUSDT
+      aster:ZESTUSDT                 px 0.18291        vol 14744.18       UNVERIFIED       fields {'baseAsset': 'ZEST', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   BANK           vol         14,317  aster:BANKUSDT
+      aster:BANKUSDT                 px 0.02841        vol 14317.43       UNVERIFIED       fields {'baseAsset': 'BANK', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   FORM           vol         13,925  aster:FORMUSDT
+      aster:FORMUSDT                 px 0.2774         vol 13925.0        UNVERIFIED       fields {'baseAsset': 'FORM', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   NOM            vol         11,728  aster:NOMUSDT
+      aster:NOMUSDT                  px 0.002264       vol 11727.6        UNVERIFIED       fields {'baseAsset': 'NOM', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   RATS           vol         11,496  aster:1000RATSUSDT
+      aster:1000RATSUSDT             px 0.03667        vol 11496.45       UNVERIFIED       fields {'baseAsset': '1000RATS', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   BASECAT        vol         11,197  aster:BASECATUSDT
+      aster:BASECATUSDT              px 0.0115         vol 11197.16       UNVERIFIED       fields {'baseAsset': 'BASECAT', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   ZCAT           vol         10,453  aster:ZCATUSDT
+      aster:ZCATUSDT                 px 0.04551        vol 10452.9        UNVERIFIED       fields {'baseAsset': 'ZCAT', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   GSTOCK         vol         10,187  aster:GSTOCKUSDT
+      aster:GSTOCKUSDT               px 0.007915       vol 10187.09       UNVERIFIED       fields {'baseAsset': 'GSTOCK', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   DOGS           vol          9,442  aster:DOGSUSDT, extended:kDOGS-USD
+      aster:DOGSUSDT                 px 4.426e-05      vol 9441.6         UNVERIFIED       fields {'baseAsset': 'DOGS', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+      extended:kDOGS-USD             px 0.04435627     vol 0.0            UNVERIFIED       fields {'assetName': 'kDOGS', 'category': 'Crypto', 'description': 'Dogs', 'subCategory': 'Meme'} parsed None link None
+   STAR           vol          9,191  aster:STARUSDT
+      aster:STARUSDT                 px 0.03607        vol 9190.76        UNVERIFIED       fields {'baseAsset': 'STAR', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   SIREN          vol          7,872  aster:SIRENUSDT
+      aster:SIRENUSDT                px 0.02268        vol 7872.28        UNVERIFIED       fields {'baseAsset': 'SIREN', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   FONE           vol          7,650  aster:FONEUSDT
+      aster:FONEUSDT                 px 0.004675       vol 7649.58        UNVERIFIED       fields {'baseAsset': 'FONE', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   FLORK          vol          7,312  aster:FLORKUSDT
+      aster:FLORKUSDT                px 0.004999       vol 7311.91        UNVERIFIED       fields {'baseAsset': 'FLORK', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   RE             vol          7,178  aster:REUSDT, extended:RE-USD
+      aster:REUSDT                   px 0.4441         vol 7177.83        UNVERIFIED       fields {'baseAsset': 'RE', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      extended:RE-USD                px 0.44351105     vol 0.0            UNVERIFIED       fields {'assetName': 'RE', 'category': 'Crypto', 'description': 'Re', 'subCategory': 'DeFi'} parsed None link None
+   PUNDIAI        vol          7,048  aster:PUNDIAIUSDT
+      aster:PUNDIAIUSDT              px 0.4231         vol 7048.2         UNVERIFIED       fields {'baseAsset': 'PUNDIAI', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['AI'], 'underlyingType': 'COIN'} parsed None link None
+   NULLMASK       vol          7,023  aster:NULLMASKUSDT
+      aster:NULLMASKUSDT             px 0.02183        vol 7022.81        UNVERIFIED       fields {'baseAsset': 'NULLMASK', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   SLX            vol          6,955  aster:SLXUSDT
+      aster:SLXUSDT                  px 0.05981        vol 6955.14        UNVERIFIED       fields {'baseAsset': 'SLX', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   DELTA          vol          6,650  aster:DELTAUSDT
+      aster:DELTAUSDT                px 0.010439       vol 6649.73        UNVERIFIED       fields {'baseAsset': 'DELTA', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   XEC            vol          6,552  aster:1000XECUSDT, extended:kXEC-USD
+      aster:1000XECUSDT              px 0.007343       vol 6551.77        UNVERIFIED       fields {'baseAsset': '1000XEC', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      extended:kXEC-USD              px 0.00733197     vol 0.0            UNVERIFIED       fields {'assetName': 'kXEC', 'category': 'Crypto', 'description': 'eCash', 'subCategory': 'L1'} parsed None link None
+   TOSHI          vol          6,513  aster:TOSHIUSDT
+      aster:TOSHIUSDT                px 0.0001137      vol 6513.49        UNVERIFIED       fields {'baseAsset': 'TOSHI', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   ACU            vol          5,870  aster:ACUUSDT
+      aster:ACUUSDT                  px 0.10134        vol 5870.48        UNVERIFIED       fields {'baseAsset': 'ACU', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   ARGUS          vol          5,703  aster:ARGUSUSDT
+      aster:ARGUSUSDT                px 0.01137        vol 5702.66        UNVERIFIED       fields {'baseAsset': 'ARGUS', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   CARDS          vol          5,658  aster:CARDSUSDT
+      aster:CARDSUSDT                px 0.275          vol 5658.0         UNVERIFIED       fields {'baseAsset': 'CARDS', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   AIO            vol          5,317  aster:AIOUSDT
+      aster:AIOUSDT                  px 0.04355        vol 5317.08        UNVERIFIED       fields {'baseAsset': 'AIO', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   BLUAI          vol          5,238  aster:BLUAIUSDT
+      aster:BLUAIUSDT                px 0.008185       vol 5237.56        UNVERIFIED       fields {'baseAsset': 'BLUAI', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   SCR            vol          4,514  aster:SCRUSDT
+      aster:SCRUSDT                  px 0.02544        vol 4513.96        UNVERIFIED       fields {'baseAsset': 'SCR', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   RAIL           vol          4,456  lighter:RAIL
+      lighter:RAIL                   px 2.7145         vol 4456.0569      UNVERIFIED       fields {'asset_type': 'CRYPTO', 'insurance_fund_account_index': 281474976710654, 'market_flags': 0, 'strategy_index': 2} parsed None link None
+   TAKE           vol          4,299  aster:TAKEUSDT
+      aster:TAKEUSDT                 px 0.06338        vol 4298.7         UNVERIFIED       fields {'baseAsset': 'TAKE', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   AT             vol          3,933  aster:ATUSDT
+      aster:ATUSDT                   px 0.1386         vol 3932.7         UNVERIFIED       fields {'baseAsset': 'AT', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   ZKP            vol          3,806  aster:ZKPUSDT
+      aster:ZKPUSDT                  px 0.04834        vol 3805.51        UNVERIFIED       fields {'baseAsset': 'ZKP', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   LAPTOP         vol          3,778  aster:LAPTOPUSDT
+      aster:LAPTOPUSDT               px 0.0776         vol 3777.88        UNVERIFIED       fields {'baseAsset': 'LAPTOP', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   OPN_OPINION    vol          3,522  variational:OPN_OPINION
+      variational:OPN_OPINION        px 0.063635592    vol 3522.1393      UNVERIFIED       fields {'name': 'Opinion'} parsed None link None
+   SPACE          vol          3,511  aster:SPACEUSDT
+      aster:SPACEUSDT                px 0.00445        vol 3511.17        UNVERIFIED       fields {'baseAsset': 'SPACE', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   TMX            vol          3,274  aster:TMXUSDT
+      aster:TMXUSDT                  px 0.01178        vol 3274.06        UNVERIFIED       fields {'baseAsset': 'TMX', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   MAX            vol          3,115  aster:MAXUSDT
+      aster:MAXUSDT                  px 0.004513       vol 3114.91        UNVERIFIED       fields {'baseAsset': 'MAX', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   POD            vol          3,114  aster:PODUSDT
+      aster:PODUSDT                  px 0.6052         vol 3113.58        UNVERIFIED       fields {'baseAsset': 'POD', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   RIF            vol          3,081  aster:RIFUSDT
+      aster:RIFUSDT                  px 0.08634        vol 3081.33        UNVERIFIED       fields {'baseAsset': 'RIF', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   FIGHT          vol          3,041  aster:FIGHTUSDT
+      aster:FIGHTUSDT                px 0.003769       vol 3041.06        UNVERIFIED       fields {'baseAsset': 'FIGHT', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   LISTA          vol          3,022  aster:LISTAUSDT
+      aster:LISTAUSDT                px 0.08107        vol 3022.04        UNVERIFIED       fields {'baseAsset': 'LISTA', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   我踏马来了          vol          2,625  aster:我踏马来了USDT
+      aster:我踏马来了USDT                px 0.011466       vol 2624.85        UNVERIFIED       fields {'baseAsset': '我踏马来了', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   SOLV           vol          2,602  aster:SOLVUSDT
+      aster:SOLVUSDT                 px 0.003984       vol 2602.03        UNVERIFIED       fields {'baseAsset': 'SOLV', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   ROBO           vol          2,556  aster:ROBOUSDT, lighter:ROBO
+      aster:ROBOUSDT                 px 0.00796        vol 2555.68        UNVERIFIED       fields {'baseAsset': 'ROBO', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      lighter:ROBO                   px 0.007979       vol 2534.7955      UNVERIFIED       fields {'asset_categories': ['AI'], 'asset_type': 'CRYPTO', 'insurance_fund_account_index': 281474976710655, 'market_flags': 0, 'strategy_index': 2} parsed None link None
+   4STOCK         vol          2,518  aster:4STOCKUSDT
+      aster:4STOCKUSDT               px 0.005325       vol 2518.22        UNVERIFIED       fields {'baseAsset': '4STOCK', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   CTR            vol          2,285  aster:CTRUSDT, lighter:CTR
+      aster:CTRUSDT                  px 0.012546       vol 2284.8         UNVERIFIED       fields {'baseAsset': 'CTR', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+      lighter:CTR                    px 0.01257        vol 1516.2232      UNVERIFIED       fields {'asset_categories': ['LAYER_2'], 'asset_type': 'CRYPTO', 'insurance_fund_account_index': 281474976710654, 'market_flags': 0, 'strategy_index': 2} parsed None link None
+   HANA           vol          2,220  aster:HANAUSDT
+      aster:HANAUSDT                 px 0.01309        vol 2219.57        UNVERIFIED       fields {'baseAsset': 'HANA', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   MANTRA         vol          2,099  aster:MANTRAUSDT
+      aster:MANTRAUSDT               px 0.0045         vol 2098.73        UNVERIFIED       fields {'baseAsset': 'MANTRA', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   AWE            vol          2,053  aster:AWEUSDT
+      aster:AWEUSDT                  px 0.06596        vol 2053.15        UNVERIFIED       fields {'baseAsset': 'AWE', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   ZZZ            vol          1,843  aster:ZZZUSDT
+      aster:ZZZUSDT                  px 0.00976        vol 1843.04        UNVERIFIED       fields {'baseAsset': 'ZZZ', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   SHROOM         vol          1,519  aster:SHROOMUSDT
+      aster:SHROOMUSDT               px 0.00528        vol 1519.06        UNVERIFIED       fields {'baseAsset': 'SHROOM', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   CHEEMS         vol          1,466  aster:1000CHEEMSUSDT
+      aster:1000CHEEMSUSDT           px 0.0005227      vol 1466.04        UNVERIFIED       fields {'baseAsset': '1000CHEEMS', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   TROLL          vol          1,223  aster:TROLLUSDT
+      aster:TROLLUSDT                px 0.03732        vol 1223.25        UNVERIFIED       fields {'baseAsset': 'TROLL', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   ASTEROID       vol          1,220  aster:ASTEROIDUSDT
+      aster:ASTEROIDUSDT             px 1.186e-05      vol 1219.63        UNVERIFIED       fields {'baseAsset': 'ASTEROID', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   STONKS         vol          1,199  aster:STONKSUSDT
+      aster:STONKSUSDT               px 0.000677       vol 1199.07        UNVERIFIED       fields {'baseAsset': 'STONKS', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   DATA           vol          1,184  lighter:DATA, extended:DATA-USD
+      lighter:DATA                   px 0.1995         vol 1183.5784      UNVERIFIED       fields {'asset_categories': ['LAYER_1'], 'asset_type': 'CRYPTO', 'insurance_fund_account_index': 281474976710655, 'market_flags': 0, 'strategy_index': 2} parsed None link None
+      extended:DATA-USD              px 0.1992995      vol 0.0            UNVERIFIED       fields {'assetName': 'DATA', 'category': 'Crypto', 'description': 'Data Network', 'subCategory': 'Infra'} parsed None link None
+   AVL            vol          1,109  aster:AVLUSDT
+      aster:AVLUSDT                  px 0.01984        vol 1109.41        UNVERIFIED       fields {'baseAsset': 'AVL', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   THE            vol          1,011  aster:THEUSDT
+      aster:THEUSDT                  px 0.06917        vol 1011.44        UNVERIFIED       fields {'baseAsset': 'THE', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   APRO           vol            969  variational:APRO
+      variational:APRO               px 0.13897618     vol 969.31706      UNVERIFIED       fields {'name': 'Apro'} parsed None link None
+   B-MONEY        vol            945  aster:B-MONEYUSDT
+      aster:B-MONEYUSDT              px 0.00157        vol 944.74         UNVERIFIED       fields {'baseAsset': 'B-MONEY', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   VERONA         vol            670  aster:VERONAUSDT
+      aster:VERONAUSDT               px 0.1099         vol 669.66         UNVERIFIED       fields {'baseAsset': 'VERONA', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   COAI           vol            656  aster:COAIUSDT
+      aster:COAIUSDT                 px 0.3053         vol 656.25         UNVERIFIED       fields {'baseAsset': 'COAI', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   哈基米            vol            641  aster:哈基米USDT
+      aster:哈基米USDT                  px 0.02823        vol 641.37         UNVERIFIED       fields {'baseAsset': '哈基米', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingSubType': ['Meme'], 'underlyingType': 'COIN'} parsed None link None
+   RE_ETH         vol            595  variational:RE_ETH
+      variational:RE_ETH             px 0.44337092     vol 594.88755      UNVERIFIED       fields {'name': 'RE'} parsed None link None
+   BIRB           vol            588  aster:BIRBUSDT
+      aster:BIRBUSDT                 px 0.06022        vol 588.03         UNVERIFIED       fields {'baseAsset': 'BIRB', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   BLEND          vol            569  aster:BLENDUSDT
+      aster:BLENDUSDT                px 0.0644         vol 569.0          UNVERIFIED       fields {'baseAsset': 'BLEND', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   NES            vol            496  aster:NESUSDT
+      aster:NESUSDT                  px 0.13501        vol 496.25         UNVERIFIED       fields {'baseAsset': 'NES', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   STONKBROKER    vol            342  aster:STONKBROKERUSDT
+      aster:STONKBROKERUSDT          px 0.004924       vol 341.88         UNVERIFIED       fields {'baseAsset': 'STONKBROKER', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   USD1           vol            292  aster:USD1USDT
+      aster:USD1USDT                 px 0.9989         vol 291.74         UNVERIFIED       fields {'baseAsset': 'USD1', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   NEX            vol             64  aster:1000NEXUSDT
+      aster:1000NEXUSDT              px 0.000785       vol 64.24          UNVERIFIED       fields {'baseAsset': '1000NEX', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   BTCDOM         vol             44  aster:BTCDOMUSDT
+      aster:BTCDOMUSDT               px 5454.9         vol 43.5           UNVERIFIED       fields {'baseAsset': 'BTCDOM', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   BAY            vol             41  aster:BAYUSDT
+      aster:BAYUSDT                  px 0.036754       vol 41.49          UNVERIFIED       fields {'baseAsset': 'BAY', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   FUN            vol             28  aster:FUNUSDT
+      aster:FUNUSDT                  px 0.02132        vol 27.55          UNVERIFIED       fields {'baseAsset': 'FUN', 'marginAsset': 'USDT', 'quoteAsset': 'USDT', 'underlyingType': 'COIN'} parsed None link None
+   BCHSV          vol              0  variational:BCHSV
+      variational:BCHSV              px 19.478346      vol 0.0            UNVERIFIED       fields {'name': 'Bitcoin SV'} parsed None link None
+   MARS           vol              0  extended:MARS-USD
+      extended:MARS-USD              px 0.095024404    vol 0.0            UNVERIFIED       fields {'assetName': 'MARS', 'category': 'Crypto', 'description': 'Marscoin', 'subCategory': 'Meme'} parsed None link None
+   VARIATIONAL    vol              0  lighter:VARIATIONAL
+      lighter:VARIATIONAL            px 1.6701         vol 0.0            UNVERIFIED       fields {'asset_categories': ['NEW', 'PRE_LAUNCH'], 'asset_type': 'CRYPTO', 'insurance_fund_account_index': 281474976710654, 'market_flags': 0, 'strategy_index': 7} parsed None link None
+
+== venue field census (raw identity fields x identity state)
+   aster.baseAsset: <text> {'VERIFIED_CRYPTO': 316, 'UNVERIFIED': 141, 'VERIFIED_TRADFI': 136}
+   aster.marginAsset: U {'VERIFIED_CRYPTO': 2}; USD1 {'VERIFIED_CRYPTO': 3, 'VERIFIED_TRADFI': 14}; USDT {'VERIFIED_CRYPTO': 311, 'UNVERIFIED': 141, 'VERIFIED_TRADFI': 122}
+   aster.quoteAsset: U {'VERIFIED_CRYPTO': 2}; USD1 {'VERIFIED_CRYPTO': 3, 'VERIFIED_TRADFI': 14}; USDT {'VERIFIED_CRYPTO': 311, 'UNVERIFIED': 141, 'VERIFIED_TRADFI': 122}
+   aster.underlyingSubType: ["AI"] {'VERIFIED_CRYPTO': 28, 'UNVERIFIED': 12}; ["AOS2"] {'VERIFIED_CRYPTO': 2}; ["Commodities", "AOS2", "USD1-RWA"] {'VERIFIED_TRADFI': 2}; ["Commodities"] {'VERIFIED_TRADFI': 9}; ["ETF", "Semiconductor"] {'VERIFIED_TRADFI': 1}; ["ETF"] {'VERIFIED_TRADFI': 6}; ["Meme"] {'VERIFIED_CRYPTO': 28, 'UNVERIFIED': 28, 'VERIFIED_TRADFI': 1}; ["STOCK", "AOS2", "USD1-RWA"] {'VERIFIED_TRADFI': 9}; ["STOCK", "ETF", "Semiconductor"] {'VERIFIED_TRADFI': 1}; ["STOCK", "ETF"] {'VERIFIED_TRADFI': 6}; ["STOCK", "Semiconductor"] {'VERIFIED_TRADFI': 21}; ["STOCK"] {'VERIFIED_TRADFI': 75}; ["Top"] {'VERIFIED_CRYPTO': 16}; ["pre-launch", "STOCK", "AOS2", "USD1-RWA"] {'VERIFIED_TRADFI': 3}; ["pre-launch", "STOCK"] {'VERIFIED_TRADFI': 2}
+   aster.underlyingType: COIN {'VERIFIED_CRYPTO': 316, 'UNVERIFIED': 141, 'VERIFIED_TRADFI': 136}
+   extended.assetName: <text> {'VERIFIED_CRYPTO': 160, 'VERIFIED_TRADFI': 133, 'UNVERIFIED': 33}
+   extended.category: Crypto {'VERIFIED_CRYPTO': 160, 'UNVERIFIED': 33, 'VERIFIED_TRADFI': 2}; RWA {'VERIFIED_TRADFI': 131}
+   extended.description: <text> {'VERIFIED_CRYPTO': 160, 'VERIFIED_TRADFI': 133, 'UNVERIFIED': 33}
+   extended.subCategory: AI {'UNVERIFIED': 4, 'VERIFIED_CRYPTO': 21}; Commodity {'VERIFIED_TRADFI': 9}; DeFi {'VERIFIED_CRYPTO': 32, 'UNVERIFIED': 6}; ETF/Index {'VERIFIED_TRADFI': 8}; Equity {'VERIFIED_TRADFI': 112}; FX {'VERIFIED_TRADFI': 2}; Infra {'VERIFIED_CRYPTO': 29, 'UNVERIFIED': 6}; L1 {'VERIFIED_CRYPTO': 40, 'UNVERIFIED': 6}; L2 {'VERIFIED_CRYPTO': 11, 'UNVERIFIED': 1}; Meme {'VERIFIED_CRYPTO': 27, 'UNVERIFIED': 10}; Pre-market {'VERIFIED_TRADFI': 2}
+   lighter.asset_categories: ["AI", "DEFI"] {'VERIFIED_CRYPTO': 1}; ["AI"] {'VERIFIED_CRYPTO': 4, 'UNVERIFIED': 1}; ["BONDS"] {'VERIFIED_TRADFI': 1}; ["COMMODITIES", "MAJOR"] {'VERIFIED_TRADFI': 4}; ["COMMODITIES"] {'VERIFIED_TRADFI': 5}; ["COMPUTE"] {'VERIFIED_TRADFI': 1}; ["DEFI", "AI"] {'VERIFIED_CRYPTO': 4}; ["DEFI", "LAYER_1"] {'VERIFIED_CRYPTO': 1}; ["DEFI", "LAYER_2"] {'VERIFIED_CRYPTO': 1}; ["DEFI"] {'VERIFIED_CRYPTO': 29}; ["ETF", "MAJOR"] {'VERIFIED_TRADFI': 3}; ["ETF"] {'VERIFIED_TRADFI': 5}; ["FX", "KRW"] {'VERIFIED_TRADFI': 1}; ["FX"] {'VERIFIED_TRADFI': 7}; ["LAYER_1", "AI"] {'VERIFIED_CRYPTO': 3}; ["LAYER_1"] {'VERIFIED_CRYPTO': 21, 'UNVERIFIED': 2}; ["LAYER_2"] {'VERIFIED_CRYPTO': 9, 'UNVERIFIED': 1}; ["MAJOR", "LAYER_1"] {'VERIFIED_CRYPTO': 3}; ["MEMES"] {'VERIFIED_CRYPTO': 15, 'UNVERIFIED': 2}; ["NEW", "AI"] {'UNVERIFIED': 1}; ["NEW", "COMPUTE", "STOCK"] {'VERIFIED_TRADFI': 1}; ["NEW", "DEFI"] {'UNVERIFIED': 1}; ["NEW", "ETF"] {'VERIFIED_TRADFI': 2}; ["NEW", "PRE_IPO"] {'VERIFIED_TRADFI': 1}; ["NEW", "PRE_LAUNCH"] {'UNVERIFIED': 1}; ["NEW", "STOCK"] {'VERIFIED_TRADFI': 3}; ["NEW"] {'VERIFIED_TRADFI': 8, 'UNVERIFIED': 1, 'VERIFIED_CRYPTO': 1}; ["PRE_IPO", "STOCK"] {'VERIFIED_TRADFI': 1}; ["STOCK", "KRW"] {'VERIFIED_TRADFI': 3}; ["STOCK", "NEW"] {'VERIFIED_TRADFI': 1}; ["STOCK", "PRE_IPO"] {'VERIFIED_TRADFI': 1}; ["STOCK"] {'VERIFIED_TRADFI': 48}
+   lighter.asset_type: CRYPTO {'VERIFIED_CRYPTO': 105, 'UNVERIFIED': 12, 'VERIFIED_TRADFI': 1}; RWA {'VERIFIED_TRADFI': 95}
+   lighter.insurance_fund_account_index: 281474976710654 {'VERIFIED_TRADFI': 90, 'VERIFIED_CRYPTO': 9, 'UNVERIFIED': 6}; 281474976710655 {'VERIFIED_CRYPTO': 96, 'UNVERIFIED': 6, 'VERIFIED_TRADFI': 6}
+   lighter.market_flags: 0 {'VERIFIED_TRADFI': 96, 'VERIFIED_CRYPTO': 105, 'UNVERIFIED': 12}
+   lighter.strategy_index: 2 {'VERIFIED_CRYPTO': 105, 'UNVERIFIED': 7, 'VERIFIED_TRADFI': 1}; 3 {'VERIFIED_TRADFI': 9}; 4 {'VERIFIED_TRADFI': 9}; 5 {'VERIFIED_TRADFI': 55}; 6 {'VERIFIED_TRADFI': 17}; 7 {'UNVERIFIED': 5, 'VERIFIED_TRADFI': 5}
+   variational.name: <text> {'VERIFIED_TRADFI': 135, 'VERIFIED_CRYPTO': 427, 'UNVERIFIED': 6}
+
+== smart money identity: authority SAME_SCAN (853 coins); rows by identity {'UNVERIFIED': 5, 'VERIFIED_CRYPTO': 98, 'VERIFIED_TRADFI': 1} of 104; published {'UNVERIFIED': 1, 'VERIFIED_CRYPTO': 58, 'VERIFIED_TRADFI': 1}
+   crowds blocked by identity: [] (would-be signals 0, information crowds 0)
+   actionable smart signals: []; information crowds: []
+   journal evidence: {'qualified': {'closed_info': 0, 'closed_signal': 0, 'open_info': 0, 'open_signal': 0}, 'unqualified': {'closed_info': 0, 'closed_signal': 0, 'open_info': 0, 'open_signal': 0}, 'unqualified_reasons': {}}
+   live record (qualified only): {'n': 0}; info {'n': 0}; verdict Promising
+   legacy without entry-time identity proof (kept, never counted): {'reason': 'LEGACY_NO_IDENTITY_PROOF', 'signal': {'n': 0}, 'info': {'n': 0}}
+
+== economic exposure (Phase 5): v8.identity/4 vs v8.identity/3 on the same contracts
+   wrapper_crypto_assets: 195
+   wrapper_crypto_by_state: {'AMBIGUOUS': 0, 'UNVERIFIED': 33, 'VERIFIED_CRYPTO': 160, 'VERIFIED_TRADFI': 2}
+   economic_crypto_verified: 433
+   economic_tradfi_verified: 267
+   wrapper_only_unverified: ['AGT', 'AIA', 'AIGENSYN', 'B', 'BAS', 'BILL', 'BTW', 'CFG', 'COLLECT', 'DATA', 'DOGS', 'EVAA', 'FHE', 'GRAM', 'GTC', 'HIVE', 'INX', 'JELLYJELLY', 'KAT', 'LUNC', 'LYN', 'MARS', 'OPEN', 'PLAY', 'PRL', 'PROM', 'RE', 'SWARMS', 'TRIA', 'TRUTH', 'TST', 'TURBO', 'XEC']
+   wrapper_with_economic_tradfi: ['PAXG', 'XAUT']
+   wrapper_with_ticker_list_crypto: ['AAVE', 'ADA', 'AERO', 'AIOT', 'AKE', 'AKT', 'ALGO', 'APE', 'APT', 'AR', 'ARB', 'ARC', 'ASTER', 'ATOM', 'AVAX', 'AVNT', 'AXS', 'AZTEC', 'BABY', 'BASED', 'BCH', 'BEAT', 'BNB', 'BOME', 'BONK', 'BSB', 'BTC', 'CASHCAT', 'CFX', 'CGPT', 'CHIP', 'CHZ', 'CRV', 'DASH', 'DEEP', 'DOGE', 'DOT', 'DUSK', 'DYDX', 'DYM', 'EDGE', 'EIGEN', 'ENA', 'ENJ', 'ENS', 'ETC', 'ETH', 'ETHFI', 'FARTCOIN', 'FET', 'FIDA', 'FIL', 'FLOKI', 'GALA', 'GENIUS', 'GIGGLE', 'GPS', 'GRASS', 'GRVT', 'GWEI', 'H', 'HBAR', 'HEMI', 'HMSTR', 'HYPE', 'ICP', 'INJ', 'IO', 'IRYS', 'JASMY', 'JTO', 'JUP', 'KAIA', 'KAITO', 'KITE', 'KSM', 'LAYER', 'LDO', 'LINEA', 'LINK', 'LIT', 'LTC', 'MAGMA', 'MEGA', 'MON', 'MORPHO', 'MOVE', 'MOVR', 'NAORIS', 'NEAR', 'NEIRO', 'NIL', 'NOT', 'ONDO', 'ONG', 'OP', 'OPG', 'ORCA', 'ORDI', 'PARTI', 'PENDLE', 'PENGU', 'PEOPLE', 'PEPE', 'PIEVERSE', 'PNUT', 'POL', 'POLYX', 'PONS', 'POPCAT', 'PTB', 'PUMP', 'Q', 'RECALL', 'RED', 'RENDER', 'RUNE', 'S', 'SAGA', 'SAHARA', 'SAND', 'SAPIEN', 'SEI', 'SHIB', 'SOL', 'SOON', 'SPK', 'SPX', 'STABLE', 'STRK', 'STX', 'SUI', 'TAC', 'TAG', 'TAO', 'TIA', 'TRUMP', 'TRX', 'TUT', 'UB', 'UNI', 'US', 'USELESS', 'VELVET', 'VIRTUAL', 'VVV', 'W', 'WIF', 'WLD', 'WLFI', 'XLM', 'XMR', 'XPL', 'XRP', 'ZBT', 'ZEC', 'ZEN', 'ZEREBRO', 'ZORA', 'ZRO']
+   wrapper_ambiguous: []
+   economic_conflicts: []
+   exposure_check_unavailable_assets: []
+   exposure_check_blocked: []
+   wrapper_unaccounted: 0
+   previous_states: {'AMBIGUOUS': 0, 'UNVERIFIED': 153, 'VERIFIED_CRYPTO': 433, 'VERIFIED_TRADFI': 267}
+   transitions_vs_previous: {}
+   LIGHTER_TOKENLIST: state OK, 213 markets, by check {'OK': 213}, by asset type {'CRYPTO': 118, 'RWA': 95}, without check [], detail {'duplicate_entries': [], 'malformed_entries': [], 'perps_entries': 244, 'tokens': 261}
+      tradfi evidence markets (95): lighter:AAOI, lighter:AAPL, lighter:AMD, lighter:AMZN, lighter:ANTHROPIC, lighter:ARM, lighter:ASML, lighter:AUDUSD, lighter:AVGO, lighter:AXTI, lighter:BABA, lighter:BB, lighter:BE, lighter:BMNR, lighter:BOT, lighter:BRENTOIL, lighter:BYD, lighter:CBRS, lighter:COIN, lighter:CRCL, lighter:CRWV, lighter:CXMT, lighter:DELL, lighter:DRAM, lighter:EURUSD, lighter:EWY, lighter:GBPUSD, lighter:GEV, lighter:GME, lighter:GOOGL, lighter:H100, lighter:HOOD, lighter:HYUNDAIUSD, lighter:IBM, lighter:INTC, lighter:IWM, lighter:KIOXIA, lighter:KORU, lighter:LITE, lighter:META, lighter:MINIMAX, lighter:MRNA, lighter:MRVL, lighter:MSFT, lighter:MSTR, lighter:MU, lighter:NATGAS, lighter:NBIS, lighter:NOK, lighter:NOW, lighter:NVDA, lighter:NZDUSD, lighter:OPENAI, lighter:ORCL, lighter:OURA, lighter:PAXG, lighter:PLTR, lighter:POPMART, lighter:QCOM, lighter:QQQ, lighter:RKLB, lighter:SAMSUNGUSD, lighter:SHEIN, lighter:SKHY, lighter:SKHYNIXUSD, lighter:SMIC, lighter:SNDK, lighter:SOXL, lighter:SOXS, lighter:SPCX, lighter:SPY, lighter:STABLECOINX, lighter:STRC, lighter:TENCENT, lighter:TSLA, lighter:TSM, lighter:TTWO, lighter:UNITREE, lighter:US100, lighter:US10Y, lighter:US500, lighter:USDCAD, lighter:USDCHF, lighter:USDJPY, lighter:USDKRW, lighter:WDC, lighter:WEN, lighter:WTI, lighter:XAG, lighter:XAU, lighter:XCU, lighter:XIAOMI, lighter:XPD, lighter:XPT, lighter:ZHIPU
+   crypto authority under the previous version: {'known_only': 433, 'extended_only': 0, 'known_and_extended': 0, 'other': 0}
+   verified crypto by Extended Crypto alone under the previous version (0), state now: {}
+   control PAXG        {'state': 'VERIFIED_TRADFI', 'decision': 'TRADFI_CLASSIFIED', 'reason': 'TICKER_TRADFI_LIST', 'previous': 'VERIFIED_TRADFI', 'wrapper': ['VENUE_CATEGORY:Crypto'], 'economic': ['NAME_PATTERN:gold', 'TICKER_TRADFI_LIST', 'VENUE_ASSET_TYPE:RWA', 'VENUE_SUBTYPE:Commodities'], 'exposures': [['PAXG#1', 'TRADFI', 4180.9677, ['hyperliquid:PAXG', 'variational:PAXG', 'aster:PAXGUSDT', 'lighter:PAXG', 'dydx:PAXG-USD', 'paradex:PAXG-USD-PERP', 'extended:PAXG-USD']]]}
+   control XAUT        {'state': 'VERIFIED_TRADFI', 'decision': 'TRADFI_CLASSIFIED', 'reason': 'TICKER_TRADFI_LIST', 'previous': 'VERIFIED_TRADFI', 'wrapper': ['VENUE_CATEGORY:Crypto'], 'economic': ['NAME_PATTERN:gold', 'TICKER_TRADFI_LIST'], 'exposures': [['XAUT#1', 'TRADFI', 4177.9286, ['variational:XAUT', 'extended:XAUT-USD']]]}
+   control SPY         {'state': 'VERIFIED_TRADFI', 'decision': 'TRADFI_CLASSIFIED', 'reason': 'TICKER_TRADFI_LIST', 'previous': 'VERIFIED_TRADFI', 'wrapper': [], 'economic': ['TICKER_TRADFI_LIST', 'VENUE_ASSET_TYPE:RWA', 'VENUE_SUBTYPE:ETF'], 'exposures': [['SPY#1', 'TRADFI', 778.87, ['aster:SPYUSDT', 'lighter:SPY']]]}
+   control NVDA        {'state': 'VERIFIED_TRADFI', 'decision': 'TRADFI_CLASSIFIED', 'reason': 'TICKER_TRADFI_LIST', 'previous': 'VERIFIED_TRADFI', 'wrapper': [], 'economic': ['NAME_PATTERN:corporation', 'TICKER_TRADFI_LIST', 'VENUE_ASSET_TYPE:RWA', 'VENUE_SUBTYPE:STOCK+Semiconductor'], 'exposures': [['NVDA#1', 'TRADFI', 230.417, ['variational:NVDA', 'aster:NVDAUSDT', 'lighter:NVDA', 'paradex:NVDA-USD-PERP']]]}
+   control TSLA        {'state': 'VERIFIED_TRADFI', 'decision': 'TRADFI_CLASSIFIED', 'reason': 'TICKER_TRADFI_LIST', 'previous': 'VERIFIED_TRADFI', 'wrapper': [], 'economic': ['NAME_PATTERN:inc', 'TICKER_TRADFI_LIST', 'VENUE_ASSET_TYPE:RWA', 'VENUE_SUBTYPE:STOCK'], 'exposures': [['TSLA#1', 'TRADFI', 382.61, ['variational:TSLA', 'aster:TSLAUSDT', 'lighter:TSLA', 'paradex:TSLA-USD-PERP']]]}
+   control XAU         {'state': 'VERIFIED_TRADFI', 'decision': 'TRADFI_CLASSIFIED', 'reason': 'TICKER_TRADFI_LIST', 'previous': 'VERIFIED_TRADFI', 'wrapper': [], 'economic': ['NAME_PATTERN:gold', 'TICKER_TRADFI_LIST', 'VENUE_ASSET_TYPE:RWA', 'VENUE_CATEGORY:RWA', 'VENUE_SUBTYPE:Commodities', 'VENUE_SUBTYPE:Commodities+USD1-RWA'], 'exposures': [['XAU#1', 'TRADFI', 4195.68, ['variational:XAU', 'aster:XAUUSDT', 'aster:XAUUSD1', 'lighter:XAU', 'paradex:XAU-USD-PERP', 'extended:XAU-USD']]]}
+   control US500       {'state': 'VERIFIED_TRADFI', 'decision': 'TRADFI_CLASSIFIED', 'reason': 'TICKER_TRADFI_LIST', 'previous': 'VERIFIED_TRADFI', 'wrapper': [], 'economic': ['NAME_PATTERN:spdr', 'TICKER_TRADFI_LIST', 'VENUE_ASSET_TYPE:RWA'], 'exposures': [['US500#1', 'TRADFI', 779.32867, ['variational:US500']], ['US500#2', 'TRADFI', 7810.1, ['lighter:US500', 'paradex:US500-USD-PERP']]]}
+   control US10Y       {'state': 'VERIFIED_TRADFI', 'decision': 'TRADFI_CLASSIFIED', 'reason': 'TRADFI_CONTRACT_EVIDENCE', 'previous': 'VERIFIED_TRADFI', 'wrapper': [], 'economic': ['VENUE_ASSET_TYPE:RWA'], 'exposures': [['US10Y#1', 'TRADFI', 96.04, ['lighter:US10Y']]]}
+   control BYD         {'state': 'VERIFIED_TRADFI', 'decision': 'TRADFI_CLASSIFIED', 'reason': 'TRADFI_CONTRACT_EVIDENCE', 'previous': 'VERIFIED_TRADFI', 'wrapper': [], 'economic': ['VENUE_ASSET_TYPE:RWA'], 'exposures': [['BYD#1', 'TRADFI', 2.9486, ['lighter:BYD']]]}
+   control SAMSUNGUSD  {'state': 'VERIFIED_TRADFI', 'decision': 'TRADFI_CLASSIFIED', 'reason': 'TRADFI_CONTRACT_EVIDENCE', 'previous': 'VERIFIED_TRADFI', 'wrapper': [], 'economic': ['PARSED_SYMBOL_EXPOSURE:SAMSUNG#1', 'PARSED_SYMBOL_TRADFI_LIST:SAMSUNG', 'VENUE_ASSET_TYPE:RWA'], 'exposures': [['SAMSUNGUSD#1', 'TRADFI', 193.065, ['lighter:SAMSUNGUSD']]]}
+   control HYUNDAIUSD  {'state': 'VERIFIED_TRADFI', 'decision': 'TRADFI_CLASSIFIED', 'reason': 'TRADFI_CONTRACT_EVIDENCE', 'previous': 'VERIFIED_TRADFI', 'wrapper': [], 'economic': ['PARSED_SYMBOL_EXPOSURE:HYUNDAI#1', 'VENUE_ASSET_TYPE:RWA'], 'exposures': [['HYUNDAIUSD#1', 'TRADFI', 239.936, ['lighter:HYUNDAIUSD']]]}
+   control XIAOMI      {'state': 'VERIFIED_TRADFI', 'decision': 'TRADFI_CLASSIFIED', 'reason': 'TRADFI_CONTRACT_EVIDENCE', 'previous': 'VERIFIED_TRADFI', 'wrapper': [], 'economic': ['VENUE_ASSET_TYPE:RWA', 'VENUE_CATEGORY:RWA', 'VENUE_SUBTYPE:STOCK'], 'exposures': [['XIAOMI#1', 'TRADFI', 3.2833, ['aster:XIAOMIUSDT', 'lighter:XIAOMI']], ['XIAOMI#2', 'TRADFI', 25.77914, ['extended:XIAOMI-USD']]]}
+   control BTC         {'state': 'VERIFIED_CRYPTO', 'decision': 'CRYPTO', 'reason': 'TICKER_KNOWN_CRYPTO_BOUND', 'previous': 'VERIFIED_CRYPTO', 'wrapper': ['VENUE_CATEGORY:Crypto'], 'economic': ['TICKER_KNOWN_CRYPTO'], 'exposures': [['BTC#1', 'CRYPTO', 82995.0, ['hyperliquid:BTC', 'variational:BTC', 'aster:BTCUSDT', 'aster:BTCUSD1', 'aster:BTCU', 'lighter:BTC', 'dydx:BTC-USD', 'paradex:BTC-USD-PERP', 'extended:BTC-USD']]]}
+   control ETH         {'state': 'VERIFIED_CRYPTO', 'decision': 'CRYPTO', 'reason': 'TICKER_KNOWN_CRYPTO_BOUND', 'previous': 'VERIFIED_CRYPTO', 'wrapper': ['VENUE_CATEGORY:Crypto'], 'economic': ['TICKER_KNOWN_CRYPTO'], 'exposures': [['ETH#1', 'CRYPTO', 2508.3, ['hyperliquid:ETH', 'variational:ETH', 'aster:ETHUSDT', 'aster:ETHUSD1', 'aster:ETHU', 'lighter:ETH', 'dydx:ETH-USD', 'paradex:ETH-USD-PERP', 'extended:ETH-USD']]]}
+   control SOL         {'state': 'VERIFIED_CRYPTO', 'decision': 'CRYPTO', 'reason': 'TICKER_KNOWN_CRYPTO_BOUND', 'previous': 'VERIFIED_CRYPTO', 'wrapper': ['VENUE_CATEGORY:Crypto'], 'economic': ['TICKER_KNOWN_CRYPTO'], 'exposures': [['SOL#1', 'CRYPTO', 110.2931, ['hyperliquid:SOL', 'variational:SOL', 'aster:SOLUSDT', 'aster:SOLUSD1', 'lighter:SOL', 'dydx:SOL-USD', 'paradex:SOL-USD-PERP', 'extended:SOL-USD']]]}
+   control QNT         {'state': 'VERIFIED_CRYPTO', 'decision': 'CRYPTO_EXPOSURE_SELECTED', 'reason': 'TICKER_KNOWN_CRYPTO_BOUND', 'previous': 'VERIFIED_CRYPTO', 'wrapper': [], 'economic': ['TICKER_KNOWN_CRYPTO', 'VENUE_CATEGORY:RWA'], 'exposures': [['QNT#1', 'CRYPTO', 243.58, ['variational:QNT', 'aster:QNTUSDT', 'lighter:QNT']], ['QNT#2', 'TRADFI', 41.518232, ['extended:QNT-USD']]]}
+   control PURR        {'state': 'VERIFIED_CRYPTO', 'decision': 'CRYPTO_EXPOSURE_SELECTED', 'reason': 'TICKER_KNOWN_CRYPTO_BOUND', 'previous': 'VERIFIED_CRYPTO', 'wrapper': [], 'economic': ['TICKER_KNOWN_CRYPTO', 'VENUE_CATEGORY:RWA'], 'exposures': [['PURR#1', 'CRYPTO', 0.12189, ['hyperliquid:PURR']], ['PURR#2', 'TRADFI', 11.290296, ['extended:PURR-USD']]]}
+   control BB          {'state': 'VERIFIED_CRYPTO', 'decision': 'CRYPTO_EXPOSURE_SELECTED', 'reason': 'TICKER_KNOWN_CRYPTO_BOUND', 'previous': 'VERIFIED_CRYPTO', 'wrapper': [], 'economic': ['TICKER_KNOWN_CRYPTO', 'VENUE_ASSET_TYPE:RWA', 'VENUE_CATEGORY:RWA'], 'exposures': [['BB#1', 'TRADFI', 8.8062, ['lighter:BB', 'extended:BB-USD']], ['BB#2', 'CRYPTO', 0.00942, ['variational:BBIT', 'aster:BBUSDT']]]}
+
+== known-crypto ticker binding (Phase 6): v8.identity/4
+   known_crypto_assets: 433
+   ticker_crypto_bindings: 433
+   ticker_crypto_unbound_assets: 0
+   ticker_crypto_unbound_exposures: 0
+   ticker_crypto_no_bindable_exposure: 0
+   ticker_crypto_blocked_by_exposure_check: []
+   ticker_crypto_with_tradfi_collision: ['BB', 'PURR', 'QNT']
+   ticker_crypto_with_direct_crypto_evidence: []
+   by_result: {'BOUND': 433, 'NO_BINDABLE_EXPOSURE': 0, 'UNBOUND_DIRECT_CRYPTO_EVIDENCE': 0, 'UNBOUND_MULTIPLE_CANDIDATES': 0}
+   binding_candidates: 433
+   unaccounted: 0
+   multi_exposure BB          VERIFIED_CRYPTO -> VERIFIED_CRYPTO  BOUND  bindable ['BB#2'] selected BB#2  excluded [['BB#1', 'TRADFI_EVIDENCE']]  vol 16728.336
+      exposures [['BB#1', 'TRADFI', 'TRADFI_CONTRACT_EVIDENCE', 8.8062, ['lighter:BB', 'extended:BB-USD']], ['BB#2', 'CRYPTO', 'TICKER_KNOWN_CRYPTO_BOUND', 0.00942, ['variational:BBIT', 'aster:BBUSDT']]]
+   multi_exposure PURR        VERIFIED_CRYPTO -> VERIFIED_CRYPTO  BOUND  bindable ['PURR#1'] selected PURR#1  excluded [['PURR#2', 'TRADFI_EVIDENCE']]  vol 1075680.6
+      exposures [['PURR#1', 'CRYPTO', 'TICKER_KNOWN_CRYPTO_BOUND', 0.12189, ['hyperliquid:PURR']], ['PURR#2', 'TRADFI', 'TRADFI_CONTRACT_EVIDENCE', 11.290296, ['extended:PURR-USD']]]
+   multi_exposure QNT         VERIFIED_CRYPTO -> VERIFIED_CRYPTO  BOUND  bindable ['QNT#1'] selected QNT#1  excluded [['QNT#2', 'TRADFI_EVIDENCE']]  vol 574203.19
+      exposures [['QNT#1', 'CRYPTO', 'TICKER_KNOWN_CRYPTO_BOUND', 243.58, ['variational:QNT', 'aster:QNTUSDT', 'lighter:QNT']], ['QNT#2', 'TRADFI', 'TRADFI_CONTRACT_EVIDENCE', 41.518232, ['extended:QNT-USD']]]
+   controls       PAXG        VERIFIED_TRADFI -> VERIFIED_TRADFI  None  bindable None selected None  excluded None  vol 1734202.3
+      exposures [['PAXG#1', 'TRADFI', 'TICKER_TRADFI_LIST', 4180.9677, ['hyperliquid:PAXG', 'variational:PAXG', 'aster:PAXGUSDT', 'lighter:PAXG', 'dydx:PAXG-USD', 'paradex:PAXG-USD-PERP', 'extended:PAXG-USD']]]
+   controls       XAUT        VERIFIED_TRADFI -> VERIFIED_TRADFI  None  bindable None selected None  excluded None  vol 184457.96
+      exposures [['XAUT#1', 'TRADFI', 'TICKER_TRADFI_LIST', 4177.9286, ['variational:XAUT', 'extended:XAUT-USD']]]
+   controls       SPY         VERIFIED_TRADFI -> VERIFIED_TRADFI  None  bindable None selected None  excluded None  vol 6308256.0
+      exposures [['SPY#1', 'TRADFI', 'TICKER_TRADFI_LIST', 778.87, ['aster:SPYUSDT', 'lighter:SPY']]]
+   controls       NVDA        VERIFIED_TRADFI -> VERIFIED_TRADFI  None  bindable None selected None  excluded None  vol 9448833.7
+      exposures [['NVDA#1', 'TRADFI', 'TICKER_TRADFI_LIST', 230.417, ['variational:NVDA', 'aster:NVDAUSDT', 'lighter:NVDA', 'paradex:NVDA-USD-PERP']]]
+   controls       TSLA        VERIFIED_TRADFI -> VERIFIED_TRADFI  None  bindable None selected None  excluded None  vol 3489465.8
+      exposures [['TSLA#1', 'TRADFI', 'TICKER_TRADFI_LIST', 382.61, ['variational:TSLA', 'aster:TSLAUSDT', 'lighter:TSLA', 'paradex:TSLA-USD-PERP']]]
+   controls       XAU         VERIFIED_TRADFI -> VERIFIED_TRADFI  None  bindable None selected None  excluded None  vol 155394730.0
+      exposures [['XAU#1', 'TRADFI', 'TICKER_TRADFI_LIST', 4195.68, ['variational:XAU', 'aster:XAUUSDT', 'aster:XAUUSD1', 'lighter:XAU', 'paradex:XAU-USD-PERP', 'extended:XAU-USD']]]
+   controls       US500       VERIFIED_TRADFI -> VERIFIED_TRADFI  None  bindable None selected None  excluded None  vol 6309564.7
+      exposures [['US500#1', 'TRADFI', 'TICKER_TRADFI_LIST', 779.32867, ['variational:US500']], ['US500#2', 'TRADFI', 'TICKER_TRADFI_LIST', 7810.1, ['lighter:US500', 'paradex:US500-USD-PERP']]]
+   controls       US10Y       VERIFIED_TRADFI -> VERIFIED_TRADFI  None  bindable None selected None  excluded None  vol 8849.7561
+      exposures [['US10Y#1', 'TRADFI', 'TRADFI_CONTRACT_EVIDENCE', 96.04, ['lighter:US10Y']]]
+   controls       BYD         VERIFIED_TRADFI -> VERIFIED_TRADFI  None  bindable None selected None  excluded None  vol 0.0
+      exposures [['BYD#1', 'TRADFI', 'TRADFI_CONTRACT_EVIDENCE', 2.9486, ['lighter:BYD']]]
+   controls       SAMSUNGUSD  VERIFIED_TRADFI -> VERIFIED_TRADFI  None  bindable None selected None  excluded None  vol 242229.29
+      exposures [['SAMSUNGUSD#1', 'TRADFI', 'TRADFI_CONTRACT_EVIDENCE', 193.065, ['lighter:SAMSUNGUSD']]]
+   controls       HYUNDAIUSD  VERIFIED_TRADFI -> VERIFIED_TRADFI  None  bindable None selected None  excluded None  vol 1795.0165
+      exposures [['HYUNDAIUSD#1', 'TRADFI', 'TRADFI_CONTRACT_EVIDENCE', 239.936, ['lighter:HYUNDAIUSD']]]
+   controls       XIAOMI      VERIFIED_TRADFI -> VERIFIED_TRADFI  None  bindable None selected None  excluded None  vol 1573046.5
+      exposures [['XIAOMI#1', 'TRADFI', 'TRADFI_CONTRACT_EVIDENCE', 3.2833, ['aster:XIAOMIUSDT', 'lighter:XIAOMI']], ['XIAOMI#2', 'TRADFI', 'TRADFI_CONTRACT_EVIDENCE', 25.77914, ['extended:XIAOMI-USD']]]
+   controls       BTC         VERIFIED_CRYPTO -> VERIFIED_CRYPTO  BOUND  bindable ['BTC#1'] selected BTC#1  excluded []  vol 862999140.0
+      exposures [['BTC#1', 'CRYPTO', 'TICKER_KNOWN_CRYPTO_BOUND', 82995.0, ['hyperliquid:BTC', 'variational:BTC', 'aster:BTCUSDT', 'aster:BTCUSD1', 'aster:BTCU', 'lighter:BTC', 'dydx:BTC-USD', 'paradex:BTC-USD-PERP', 'extended:BTC-USD']]]
+   controls       ETH         VERIFIED_CRYPTO -> VERIFIED_CRYPTO  BOUND  bindable ['ETH#1'] selected ETH#1  excluded []  vol 369142420.0
+      exposures [['ETH#1', 'CRYPTO', 'TICKER_KNOWN_CRYPTO_BOUND', 2508.3, ['hyperliquid:ETH', 'variational:ETH', 'aster:ETHUSDT', 'aster:ETHUSD1', 'aster:ETHU', 'lighter:ETH', 'dydx:ETH-USD', 'paradex:ETH-USD-PERP', 'extended:ETH-USD']]]
+   controls       SOL         VERIFIED_CRYPTO -> VERIFIED_CRYPTO  BOUND  bindable ['SOL#1'] selected SOL#1  excluded []  vol 90327617.0
+      exposures [['SOL#1', 'CRYPTO', 'TICKER_KNOWN_CRYPTO_BOUND', 110.2931, ['hyperliquid:SOL', 'variational:SOL', 'aster:SOLUSDT', 'aster:SOLUSD1', 'lighter:SOL', 'dydx:SOL-USD', 'paradex:SOL-USD-PERP', 'extended:SOL-USD']]]
+   controls       QNT         VERIFIED_CRYPTO -> VERIFIED_CRYPTO  BOUND  bindable ['QNT#1'] selected QNT#1  excluded [['QNT#2', 'TRADFI_EVIDENCE']]  vol 574203.19
+      exposures [['QNT#1', 'CRYPTO', 'TICKER_KNOWN_CRYPTO_BOUND', 243.58, ['variational:QNT', 'aster:QNTUSDT', 'lighter:QNT']], ['QNT#2', 'TRADFI', 'TRADFI_CONTRACT_EVIDENCE', 41.518232, ['extended:QNT-USD']]]
+   controls       PURR        VERIFIED_CRYPTO -> VERIFIED_CRYPTO  BOUND  bindable ['PURR#1'] selected PURR#1  excluded [['PURR#2', 'TRADFI_EVIDENCE']]  vol 1075680.6
+      exposures [['PURR#1', 'CRYPTO', 'TICKER_KNOWN_CRYPTO_BOUND', 0.12189, ['hyperliquid:PURR']], ['PURR#2', 'TRADFI', 'TRADFI_CONTRACT_EVIDENCE', 11.290296, ['extended:PURR-USD']]]
+   controls       BB          VERIFIED_CRYPTO -> VERIFIED_CRYPTO  BOUND  bindable ['BB#2'] selected BB#2  excluded [['BB#1', 'TRADFI_EVIDENCE']]  vol 16728.336
+      exposures [['BB#1', 'TRADFI', 'TRADFI_CONTRACT_EVIDENCE', 8.8062, ['lighter:BB', 'extended:BB-USD']], ['BB#2', 'CRYPTO', 'TICKER_KNOWN_CRYPTO_BOUND', 0.00942, ['variational:BBIT', 'aster:BBUSDT']]]
+   known-crypto list: 436 entries, 433 live, one priced exposure 430, several ['BB', 'PURR', 'QNT'], unpriced only [], all live exposures tradfi [], no live market 3: ['BLAST', 'HFUN', 'STG']
+
+== production outputs: base 30 ({'radar_ok': True, 'quant_ok': True, 'picks_ok': True}), this run 30 ({'radar_ok': True, 'quant_ok': True, 'picks_ok': True})
+   REMOVED day           ICP          long       identity VERIFIED_CRYPTO
+   REMOVED day           LDO          long       identity VERIFIED_CRYPTO
+   REMOVED swing         XRP          short      identity VERIFIED_CRYPTO
+   ADDED   day           BNB          long       identity VERIFIED_CRYPTO
+   ADDED   day           CRV          long       identity VERIFIED_CRYPTO
+   ADDED   swing         SUI          short      identity VERIFIED_CRYPTO
+
+== BB: Phase 1 TRADFI -> Phase 2 CRYPTO -> now VERIFIED_CRYPTO (CRYPTO_EXPOSURE_SELECTED); ticker list TICKER_KNOWN_CRYPTO; engines {'radar': ['NOT_EXECUTABLE', 'DEX_VOLUME_BELOW_LEGACY_MIN'], 'quant': ['NOT_EXECUTABLE', 'DEX_VOLUME_BELOW_LEGACY_MIN'], 'swing': ['NOT_EXECUTABLE', 'DEX_VOLUME_BELOW_LEGACY_MIN']}
+   variational:BBIT             px 0.0094114532   per coin 0.0094114532   vol 1351.4401    UNLABELED NO_CONTRACT_EVIDENCE         BB#2        CRYPTO     TICKER_KNOWN_CRYPTO_BOUND          SELECTED               crypto=True
+   aster:BBUSDT                 px 0.00942        per coin 0.00942        vol 7879.96      UNLABELED NO_CONTRACT_EVIDENCE         BB#2        CRYPTO     TICKER_KNOWN_CRYPTO_BOUND          SELECTED               crypto=True
+   lighter:BB                   px 8.8062         per coin 8.8062         vol 16728.336    TRADFI    VENUE_ASSET_TYPE:RWA         BB#1        TRADFI     TRADFI_CONTRACT_EVIDENCE           EXPOSURE_NOT_ADMITTED  crypto=False
+   extended:BB-USD              px 8.7945731      per coin 8.7945731      vol 552.958      TRADFI    VENUE_CATEGORY:RWA           BB#1        TRADFI     TRADFI_CONTRACT_EVIDENCE           EXPOSURE_NOT_ADMITTED  crypto=False
+== PURR: Phase 1 TRADFI -> Phase 2 CRYPTO -> now VERIFIED_CRYPTO (CRYPTO_EXPOSURE_SELECTED); ticker list TICKER_KNOWN_CRYPTO; engines {'radar': ['REJECTED', 'NO_STRATEGY_SIGNAL'], 'quant': ['INSUFFICIENT_DATA', 'PRICE_SCALE_CONFLICT'], 'swing': ['INSUFFICIENT_DATA', 'PRICE_SCALE_CONFLICT']}
+   hyperliquid:PURR             px 0.12189        per coin 0.12189        vol 1075680.6    UNLABELED NO_CONTRACT_EVIDENCE         PURR#1      CRYPTO     TICKER_KNOWN_CRYPTO_BOUND          SELECTED               crypto=True
+   extended:PURR-USD            px 11.290296      per coin 11.290296      vol 51927.792    TRADFI    VENUE_CATEGORY:RWA           PURR#2      TRADFI     TRADFI_CONTRACT_EVIDENCE           EXPOSURE_NOT_ADMITTED  crypto=False
+== QNT: Phase 1 TRADFI -> Phase 2 CRYPTO -> now VERIFIED_CRYPTO (CRYPTO_EXPOSURE_SELECTED); ticker list TICKER_KNOWN_CRYPTO; engines {'radar': ['NOT_EXECUTABLE', 'DEX_VOLUME_BELOW_LEGACY_MIN'], 'quant': ['NOT_EXECUTABLE', 'DEX_VOLUME_BELOW_LEGACY_MIN'], 'swing': ['NOT_EXECUTABLE', 'DEX_VOLUME_BELOW_LEGACY_MIN']}
+   variational:QNT              px 244.75074      per coin 244.75074      vol 431358.96    UNLABELED NO_CONTRACT_EVIDENCE         QNT#1       CRYPTO     TICKER_KNOWN_CRYPTO_BOUND          SELECTED               crypto=True
+   aster:QNTUSDT                px 243.58         per coin 243.58         vol 574203.19    UNLABELED NO_CONTRACT_EVIDENCE         QNT#1       CRYPTO     TICKER_KNOWN_CRYPTO_BOUND          SELECTED               crypto=True
+   lighter:QNT                  px 244.181        per coin 244.181        vol 122470.49    UNLABELED NO_CONTRACT_EVIDENCE         QNT#1       CRYPTO     TICKER_KNOWN_CRYPTO_BOUND          SELECTED               crypto=True
+   dydx:QNT-USD                 px 64.109         per coin None           vol 0.0          None      None                         None        None       None                               NOT_TRADING            crypto=None
+   extended:QNT-USD             px 41.518232      per coin 41.518232      vol 88928.293    TRADFI    VENUE_CATEGORY:RWA           QNT#2       TRADFI     TRADFI_CONTRACT_EVIDENCE           EXPOSURE_NOT_ADMITTED  crypto=False
+
+missing 24h volume (radar): []
+missing 24h volume (quant): []
+observed zero volume (quant): ['SFP']

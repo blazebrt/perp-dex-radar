@@ -1,0 +1,7 @@
+[16:15] universe: 853 coins across 7 DEXs, 433 crypto, 267 excluded, 153 identity unverified
+[16:15] journal (new): 0 open and 0 closed trades, 0 active variants
+[16:15] smart money: 150 of 150 top Hyperliquid traders read, 463 open positions
+[16:16] stage 1: 427 charted, 6 without data, sources {'mexc': 413, 'gate': 10, 'hyperliquid': 2, 'bitget': 1, 'aster': 1}
+[16:16] stage 2: 55 deep dives (15 extra), 55 signals on 34 coins, 0 publishable, Gate.io positioning for 24
+[16:16] journal: 109 new paper trades, 0 closed this scan, 104 open, 5 closed in total
+[16:16] done in 83.1s: 0 picks, regime Risk-on, 10 notes

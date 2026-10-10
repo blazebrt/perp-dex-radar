@@ -1,0 +1,604 @@
+test_plan_invariants_everywhere (test_analyze.AnalyzerEngine.test_plan_invariants_everywhere) ... ok
+test_price_formatting (test_analyze.AnalyzerEngine.test_price_formatting) ... ok
+test_real_candles_use_every_input (test_analyze.AnalyzerEngine.test_real_candles_use_every_input) ... ok
+test_short_history_is_refused (test_analyze.AnalyzerEngine.test_short_history_is_refused) ... ok
+test_trends_read_as_trends (test_analyze.AnalyzerEngine.test_trends_read_as_trends) ... ok
+test_verdict_matches_the_score (test_analyze.AnalyzerEngine.test_verdict_matches_the_score) ... ok
+test_zones_sit_on_the_right_side (test_analyze.AnalyzerEngine.test_zones_sit_on_the_right_side) ... ok
+test_a_mixed_record_trades_at_half_size (test_analyzer_call.AnalyzerCall.test_a_mixed_record_trades_at_half_size) ... ok
+test_a_score_under_80_is_not_a_signal (test_analyzer_call.AnalyzerCall.test_a_score_under_80_is_not_a_signal) ... ok
+test_a_swing_trade_stopped_today_is_not_reentered (test_analyzer_call.AnalyzerCall.test_a_swing_trade_stopped_today_is_not_reentered) ... ok
+test_helpers (test_analyzer_call.AnalyzerCall.test_helpers) ... ok
+test_long_crowds_are_information (test_analyzer_call.AnalyzerCall.test_long_crowds_are_information) ... ok
+test_no_scans_is_a_wait (test_analyzer_call.AnalyzerCall.test_no_scans_is_a_wait) ... ok
+test_promising_smart_short_at_half_size (test_analyzer_call.AnalyzerCall.test_promising_smart_short_at_half_size) ... ok
+test_proven_signals_on_both_sides_mean_wait (test_analyzer_call.AnalyzerCall.test_proven_signals_on_both_sides_mean_wait) ... ok
+test_quant_edge_cases (test_analyzer_call.AnalyzerCall.test_quant_edge_cases) ... ok
+test_quant_position_is_joined_at_its_own_stop (test_analyzer_call.AnalyzerCall.test_quant_position_is_joined_at_its_own_stop) ... ok
+test_ready_swing_is_the_tested_swing_trade (test_analyzer_call.AnalyzerCall.test_ready_swing_is_the_tested_swing_trade) ... ok
+test_signal_coins (test_analyzer_call.AnalyzerCall.test_signal_coins) ... ok
+test_smart_signal_needs_verified_crypto_identity (test_analyzer_call.AnalyzerCall.test_smart_signal_needs_verified_crypto_identity)
+v8 Phase 3, defense in depth: whatever smart.json says, the Analyzer takes a smart-money signal only from a ... ok
+test_the_trailing_stop_follows_the_best_price (test_analyzer_call.AnalyzerCall.test_the_trailing_stop_follows_the_best_price) ... ok
+test_the_lean_read_has_no_trade_in_it (test_analyzer_call.ContextRead.test_the_lean_read_has_no_trade_in_it) ... ok
+test_one_unit_and_honest_verdicts (test_dashboard.Accuracy.test_one_unit_and_honest_verdicts) ... ok
+test_per100_and_combine (test_dashboard.Accuracy.test_per100_and_combine) ... ok
+test_smart_money_engine_record_wins_when_present (test_dashboard.Accuracy.test_smart_money_engine_record_wins_when_present) ... ok
+test_shared_tab_bar (test_dashboard.Pages.test_shared_tab_bar) ... ok
+test_cards_market_and_agreement (test_dashboard.Versions.test_cards_market_and_agreement) ... ok
+test_main_writes_data_and_publishes_pages (test_dashboard.Versions.test_main_writes_data_and_publishes_pages) ... ok
+test_nothing_published_yet (test_dashboard.Versions.test_nothing_published_yet) ... ok
+dashboard: 3 of 4 sources, 3 coins where signals meet
+[16:14] picks: journal (new): 0 open, 0 closed
+[16:14] picks: 24 of 24 coins with 4h candles
+[16:14] picks: swing checks for 24 coins (day 2026-10-09)
+[16:14] picks: paper: 26 new, 0 closed, 26 open
+[16:14] picks: done in 0.9s: 24 swing and 24 day-trade scores; top swing BTC long 80.0, FAKE09 long 76.0, FAKE04 short 73.0
+[16:14] picks: journal (file): 26 open, 0 closed
+[16:14] picks: 24 of 24 coins with 4h candles
+[16:14] picks: swing checks for 24 coins (day 2026-10-09)
+[16:14] picks: paper: 0 new, 0 closed, 26 open
+[16:14] picks: done in 0.2s: 24 swing and 24 day-trade scores; top swing BTC long 80.0, FAKE09 long 76.0, FAKE04 short 73.0
+test_every_pick_has_15_checks_and_a_plan (test_picks.EndToEnd.test_every_pick_has_15_checks_and_a_plan) ... ok
+test_extra_points_stay_within_the_cap (test_picks.EndToEnd.test_extra_points_stay_within_the_cap) ... ok
+test_files_and_pages (test_picks.EndToEnd.test_files_and_pages) ... ok
+test_lists_and_scores (test_picks.EndToEnd.test_lists_and_scores) ... ok
+test_one_side_per_coin (test_picks.EndToEnd.test_one_side_per_coin) ... ok
+test_paper_trades_are_not_repeated (test_picks.EndToEnd.test_paper_trades_are_not_repeated) ... ok
+test_scores_for_the_analyzer (test_picks.EndToEnd.test_scores_for_the_analyzer) ... ok
+test_smart_money_is_read_from_the_scan (test_picks.EndToEnd.test_smart_money_is_read_from_the_scan) ... ok
+test_seven_day_values (test_picks.GateStats.test_seven_day_values) ... ok
+test_cut_off_answer_asks_the_other_model (test_picks.GeminiNotes.test_cut_off_answer_asks_the_other_model) ... ok
+test_cut_off_notes_are_not_kept_and_get_rewritten (test_picks.GeminiNotes.test_cut_off_notes_are_not_kept_and_get_rewritten) ... ok
+test_gemini_call_rejects_a_cut_off_answer (test_picks.GeminiNotes.test_gemini_call_rejects_a_cut_off_answer) ... ok
+test_headlines_rated_once_and_used (test_picks.GeminiNotes.test_headlines_rated_once_and_used) ... ok
+test_missing_model_falls_back_to_the_other (test_picks.GeminiNotes.test_missing_model_falls_back_to_the_other) ... ok
+test_notes_are_capped_cached_and_refreshed (test_picks.GeminiNotes.test_notes_are_capped_cached_and_refreshed) ... ok
+test_nothing_without_a_key (test_picks.GeminiNotes.test_nothing_without_a_key) ... ok
+test_overloaded_model_hands_over_for_the_rest_of_the_scan (test_picks.GeminiNotes.test_overloaded_model_hands_over_for_the_rest_of_the_scan) ... ok
+test_quota_stops_the_run (test_picks.GeminiNotes.test_quota_stops_the_run) ... ok
+test_record_names_its_band (test_picks.GeminiNotes.test_record_names_its_band) ... ok
+test_bollinger_width_of_a_flat_line_is_zero (test_picks.Indicators.test_bollinger_width_of_a_flat_line_is_zero) ... ok
+test_pct_rank_matches_pandas_average_rank (test_picks.Indicators.test_pct_rank_matches_pandas_average_rank) ... ok
+test_rsi_extremes (test_picks.Indicators.test_rsi_extremes) ... ok
+test_rsi_matches_wilder_by_hand (test_picks.Indicators.test_rsi_matches_wilder_by_hand) ... ok
+test_gap_exit_at_the_open (test_picks.Replay.test_gap_exit_at_the_open) ... ok
+test_open_until_the_bar_closes (test_picks.Replay.test_open_until_the_bar_closes) ... ok
+test_short_side (test_picks.Replay.test_short_side) ... ok
+test_stop_first_when_both_touched (test_picks.Replay.test_stop_first_when_both_touched) ... ok
+test_time_exit_after_the_last_bar (test_picks.Replay.test_time_exit_after_the_last_bar) ... ok
+test_trailing_stop_follows_highs_from_the_next_bar (test_picks.Replay.test_trailing_stop_follows_highs_from_the_next_bar) ... ok
+test_every_extra_check_has_seven_fields (test_picks.Scores.test_every_extra_check_has_seven_fields) ... ok
+test_extra_checks_are_capped (test_picks.Scores.test_extra_checks_are_capped) ... ok
+test_partial_credit (test_picks.Scores.test_partial_credit) ... ok
+test_perfect_long_scores_100 (test_picks.Scores.test_perfect_long_scores_100) ... ok
+test_proven_traders_from_the_smart_money_engine (test_picks.Scores.test_proven_traders_from_the_smart_money_engine) ... ok
+test_short_mirror (test_picks.Scores.test_short_mirror) ... ok
+test_smart_money_direction (test_picks.Scores.test_smart_money_direction) ... ok
+test_tested_extra_checks_follow_the_evidence (test_picks.Scores.test_tested_extra_checks_follow_the_evidence) ... ok
+test_weights_add_to_100 (test_picks.Scores.test_weights_add_to_100) ... ok
+test_apewisdom (test_picks.Sentiment.test_apewisdom) ... ok
+test_combined_score_is_ranked_against_the_other_coins (test_picks.Sentiment.test_combined_score_is_ranked_against_the_other_coins) ... ok
+test_news_matching_and_tone (test_picks.Sentiment.test_news_matching_and_tone) ... ok
+test_stocktwits_busy_coin (test_picks.Sentiment.test_stocktwits_busy_coin) ... ok
+test_stocktwits_thin_coin (test_picks.Sentiment.test_stocktwits_thin_coin) ... ok
+test_growth_over_thirty_days (test_picks.Supply.test_growth_over_thirty_days) ... ok
+test_update_keeps_one_snapshot_a_day (test_picks.Supply.test_update_keeps_one_snapshot_a_day) ... ok
+test_needs_ninety_days (test_picks.SwingValues.test_needs_ninety_days) ... ok
+test_values_on_a_simple_series (test_picks.SwingValues.test_values_on_a_simple_series) ... ok
+[16:14] quant: journal (new): 0 open, 0 closed
+[16:14] quant: 24 of 24 coins with 4h candles
+[16:14] quant: 7 signals, 7 new paper trades
+[16:14] quant: 0 trades closed this scan, 7 open
+[16:14] quant: done in 0.6s: 7 new signals, 7 open trades
+[16:14] quant: journal (file): 7 open, 0 closed
+[16:14] quant: 24 of 24 coins with 4h candles
+[16:14] quant: 0 signals, 0 new paper trades
+[16:14] quant: 0 trades closed this scan, 7 open
+[16:14] quant: done in 0.1s: 0 new signals, 7 open trades
+test_entries_are_filled_at_an_open (test_quant.EndToEnd.test_entries_are_filled_at_an_open) ... ok
+test_files_and_fields (test_quant.EndToEnd.test_files_and_fields) ... ok
+test_second_scan_does_not_repeat_signals (test_quant.EndToEnd.test_second_scan_does_not_repeat_signals) ... ok
+test_signals_are_valid_and_trades_are_unique (test_quant.EndToEnd.test_signals_are_valid_and_trades_are_unique) ... ok
+test_adx_stays_in_range (test_quant.Indicators.test_adx_stays_in_range) ... ok
+test_daily_bars_need_six_aligned_bars (test_quant.Indicators.test_daily_bars_need_six_aligned_bars) ... ok
+test_ema_and_wilder_on_a_constant (test_quant.Indicators.test_ema_and_wilder_on_a_constant) ... ok
+test_ema_matches_the_recursion (test_quant.Indicators.test_ema_matches_the_recursion) ... ok
+test_ranking_picks_the_extremes (test_quant.Indicators.test_ranking_picks_the_extremes) ... ok
+test_forming_hour_is_not_used (test_quant.PaperTrades.test_forming_hour_is_not_used) ... ok
+test_gap_through_the_stop_exits_at_the_open (test_quant.PaperTrades.test_gap_through_the_stop_exits_at_the_open) ... ok
+test_short_trailing_stop_moves_after_the_close (test_quant.PaperTrades.test_short_trailing_stop_moves_after_the_close) ... ok
+test_stop_first_when_both_are_touched (test_quant.PaperTrades.test_stop_first_when_both_are_touched) ... ok
+test_time_exit_and_funding (test_quant.PaperTrades.test_time_exit_and_funding) ... ok
+test_entries_in_the_last_day_and_signals (test_smart.Aggregate.test_entries_in_the_last_day_and_signals) ... ok
+test_one_vote_each_weighted_by_conviction (test_smart.Aggregate.test_one_vote_each_weighted_by_conviction) ... ok
+test_entries_by_size_not_by_price (test_smart.Changes.test_entries_by_size_not_by_price) ... ok
+test_small_or_new_traders_give_no_entries (test_smart.Changes.test_small_or_new_traders_give_no_entries) ... ok
+test_three_scans (test_smart.EndToEnd.test_three_scans) ... [16:14] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+[16:14] smart money: 6 of 6 proven traders read, 4 new entries, 1 signals and 1 long crowds, 2 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+[16:14] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 2 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+ok
+test_live_stats (test_smart.PaperTrades.test_live_stats) ... ok
+test_stop_from_the_hourly_low_and_time_exit (test_smart.PaperTrades.test_stop_from_the_hourly_low_and_time_exit) ... ok
+test_the_live_record_decides_after_enough_trades (test_smart.PaperTrades.test_the_live_record_decides_after_enough_trades) ... ok
+test_proven_traders_only (test_smart.Selection.test_proven_traders_only) ... ok
+test_two_traders_shorting_within_a_day (test_smart_backtest.CrowdRule.test_two_traders_shorting_within_a_day) ... ok
+test_stop_then_time_exit (test_smart_backtest.FollowTrade.test_stop_then_time_exit) ... ok
+test_skill_uses_only_what_was_known (test_smart_backtest.NoHindsight.test_skill_uses_only_what_was_known) ... ok
+test_the_live_rule (test_smart_backtest.NoHindsight.test_the_live_rule) ... ok
+test_entries_open_add_reduce_flip (test_smart_backtest.Positions.test_entries_open_add_reduce_flip) ... ok
+test_position_is_the_next_fills_start (test_smart_backtest.Positions.test_position_is_the_next_fills_start) ... ok
+test_live_spike_in_forming_candle_is_ignored (test_v5.ClosedCandles.test_live_spike_in_forming_candle_is_ignored) ... ok
+[16:14] universe: 60 coins across 2 DEXs, 60 crypto, 0 excluded, 0 identity unverified
+[16:14] journal (new): 0 open and 0 closed trades, 0 active variants
+[16:14] stage 1: 60 charted, 0 without data, sources {'mexc': 60}
+[16:14] market gate closed: the market is risk-off
+[16:14] backtest: 2 days, 60 coins, 1315 paper trades seeded
+[16:14] backtest done in 2s (9 strategies and variants)
+[16:14] stage 2: 40 deep dives (0 extra), 4 signals on 3 coins, 0 publishable, Gate.io positioning for 0
+[16:14] journal: 7 new paper trades, 0 closed this scan, 97 open, 1225 closed in total
+[16:14] done in 2.4s: 0 picks, regime Risk-off, 11 notes
+[16:14] universe: 60 coins across 2 DEXs, 60 crypto, 0 excluded, 0 identity unverified
+[16:14] journal (file): 97 open and 1225 closed trades, 0 active variants
+[16:14] stage 1: 60 charted, 0 without data, sources {'mexc': 60}
+[16:14] market gate closed: the market is risk-off
+[16:14] stage 2: 40 deep dives (0 extra), 4 signals on 3 coins, 0 publishable, Gate.io positioning for 0
+[16:14] journal: 5 new paper trades, 0 closed this scan, 101 open, 1226 closed in total
+[16:14] done in 0.2s: 0 picks, regime Risk-off, 11 notes
+test_csv_has_gate_column (test_v5.EndToEnd.test_csv_has_gate_column) ... ok
+test_gate_and_rules_are_published (test_v5.EndToEnd.test_gate_and_rules_are_published) ... ok
+test_only_passed_strategies_are_published (test_v5.EndToEnd.test_only_passed_strategies_are_published) ... ok
+test_strategy_rows_have_v5_fields (test_v5.EndToEnd.test_strategy_rows_have_v5_fields) ... ok
+test_twins_in_journal_but_never_published (test_v5.EndToEnd.test_twins_in_journal_but_never_published) ... ok
+test_version_and_files (test_v5.EndToEnd.test_version_and_files) ... ok
+test_gate (test_v5.Gate.test_gate) ... ok
+test_floor_survives_tighter_stop_factor (test_v5.Plan.test_floor_survives_tighter_stop_factor) ... ok
+test_live_price_sets_order_type_only (test_v5.Plan.test_live_price_sets_order_type_only) ... ok
+test_stop_floor (test_v5.Plan.test_stop_floor) ... ok
+test_clear_loser_is_rejected (test_v5.Stats.test_clear_loser_is_rejected) ... ok
+test_edge_uses_results_before_costs (test_v5.Stats.test_edge_uses_results_before_costs) ... ok
+test_same_day_trades_are_one_block (test_v5.Stats.test_same_day_trades_are_one_block) ... ok
+test_tournament_needs_live_proof_and_beating_twins (test_v5.Stats.test_tournament_needs_live_proof_and_beating_twins) ... ok
+test_rule_strategy_test_reports_twins (test_v5.Studio.test_rule_strategy_test_reports_twins) ... [16:14] study testv5a: RSI dip (1h), 30 days, 11 of 11 coins with data
+[16:14] study testv5a: done in 1.8s
+ok
+test_twin_clones_the_order (test_v5.Twins.test_twin_clones_the_order) ... ok
+test_twin_coin_is_another_coin_and_reproducible (test_v5.Twins.test_twin_coin_is_another_coin_and_reproducible) ... ok
+test_base_golden_and_manifest_are_the_phase_base (test_v8_audit.PipelineAudit.test_base_golden_and_manifest_are_the_phase_base) ... ok
+test_candidate_evidence_is_traced_never_authority (test_v8_audit.PipelineAudit.test_candidate_evidence_is_traced_never_authority)
+v8 Phase 4: the snapshot carries every contract's observed candidate evidence apart from its authoritative ... ok
+test_closure_manifest_is_pinned_to_production_main (test_v8_audit.PipelineAudit.test_closure_manifest_is_pinned_to_production_main)
+The closure is measured from production main f8648fe (Phase 3 merged), whose fixture golden is the Phase 3 ... ok
+test_crypto_exposure_admitted_tradfi_exposure_kept_out (test_v8_audit.PipelineAudit.test_crypto_exposure_admitted_tradfi_exposure_kept_out) ... ok
+test_crypto_wrapper_alone_is_unverified (test_v8_audit.PipelineAudit.test_crypto_wrapper_alone_is_unverified)
+v8 Phase 5, end to end: PRLX and EXTONLY were verified crypto by Extended's Crypto category alone. That ... ok
+test_every_returned_market_is_registered (test_v8_audit.PipelineAudit.test_every_returned_market_is_registered) ... ok
+test_first_seen_from_own_history (test_v8_audit.PipelineAudit.test_first_seen_from_own_history) ... ok
+test_identity_transitions_are_recorded_not_rewritten (test_v8_audit.PipelineAudit.test_identity_transitions_are_recorded_not_rewritten) ... ok
+test_legacy_outputs_identical_to_this_branch_golden (test_v8_audit.PipelineAudit.test_legacy_outputs_identical_to_this_branch_golden) ... ok
+test_lighter_tokenlist_health_and_coverage (test_v8_audit.PipelineAudit.test_lighter_tokenlist_health_and_coverage)
+v8 Phase 5: the token-list exposure check has explicit health and per-market coverage in the snapshot. ... ok
+test_missing_and_zero_volume_are_different (test_v8_audit.PipelineAudit.test_missing_and_zero_volume_are_different) ... ok
+test_no_published_output_without_crypto_identity (test_v8_audit.PipelineAudit.test_no_published_output_without_crypto_identity)
+Nothing any engine published - radar picks, watch list and table, radar paper trades, quant signals and ... /home/runner/work/perp-dex-radar/perp-dex-radar/tests/test_v8_audit.py:430: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/v8audit7z_ollki/site/data/latest.json' mode='r' encoding='UTF-8'>
+  load = lambda n: json.load(open(os.path.join(data, n)))  # noqa: E731
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/runner/work/perp-dex-radar/perp-dex-radar/tests/test_v8_audit.py:430: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/v8audit7z_ollki/site/data/quant.json' mode='r' encoding='UTF-8'>
+  load = lambda n: json.load(open(os.path.join(data, n)))  # noqa: E731
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/runner/work/perp-dex-radar/perp-dex-radar/tests/test_v8_audit.py:430: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/v8audit7z_ollki/site/data/picks.json' mode='r' encoding='UTF-8'>
+  load = lambda n: json.load(open(os.path.join(data, n)))  # noqa: E731
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/runner/work/perp-dex-radar/perp-dex-radar/tests/test_v8_audit.py:430: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/v8audit7z_ollki/site/data/journal.json' mode='r' encoding='UTF-8'>
+  load = lambda n: json.load(open(os.path.join(data, n)))  # noqa: E731
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_no_silent_disappearance (test_v8_audit.PipelineAudit.test_no_silent_disappearance) ... ok
+test_phase4_manifest_allows_no_delta (test_v8_audit.PipelineAudit.test_phase4_manifest_allows_no_delta)
+Phase 4 is measured from production main d011bcb (the closure merged), whose fixture golden is the closure ... ok
+test_phase5_manifest_is_the_phase_base (test_v8_audit.PipelineAudit.test_phase5_manifest_is_the_phase_base)
+Phase 5 is measured from production main 3288b15 (Phase 4 merged), whose fixture golden is the Phase 4 ... ok
+test_phase6_manifest_is_the_phase_base (test_v8_audit.PipelineAudit.test_phase6_manifest_is_the_phase_base)
+Phase 6 is measured from production main f7aa7f6 (Phase 5 merged), whose fixture golden is the Phase 5 ... ok
+test_price_conflict_is_conflicted (test_v8_audit.PipelineAudit.test_price_conflict_is_conflicted) ... ok
+test_published_items_are_surfaced (test_v8_audit.PipelineAudit.test_published_items_are_surfaced) ... ok
+test_quant_and_radar_journal_evidence_in_the_snapshot (test_v8_audit.PipelineAudit.test_quant_and_radar_journal_evidence_in_the_snapshot)
+v8 Phase 3 closure: the quant and radar journal evidence reaches the snapshot; on the fixture every live ... ok
+test_records_use_the_taxonomy (test_v8_audit.PipelineAudit.test_records_use_the_taxonomy) ... ok
+test_same_ticker_on_two_venues_is_two_contracts (test_v8_audit.PipelineAudit.test_same_ticker_on_two_venues_is_two_contracts) ... ok
+test_small_and_new_coins_have_a_reason (test_v8_audit.PipelineAudit.test_small_and_new_coins_have_a_reason) ... ok
+test_smart_money_uses_the_same_scan_identity_authority (test_v8_audit.PipelineAudit.test_smart_money_uses_the_same_scan_identity_authority)
+The scanner wrote this scan's identity states; smart money read them (same scan) and every smart row ... ok
+test_snapshot_is_deterministic_and_compact (test_v8_audit.PipelineAudit.test_snapshot_is_deterministic_and_compact) ... ok
+test_snapshot_step_leaves_legacy_files_alone (test_v8_audit.PipelineAudit.test_snapshot_step_leaves_legacy_files_alone) ... ok
+test_stocks_stay_out (test_v8_audit.PipelineAudit.test_stocks_stay_out)
+The stock leakage gate, end to end: a stock one venue did not label never reaches an engine. ... ok
+test_ticker_binding_end_to_end (test_v8_audit.PipelineAudit.test_ticker_binding_end_to_end)
+v8 Phase 6, end to end: the known-crypto list is bound to one exposure per ticker. QNT, BB and PURR keep ... ok
+test_tradfi_and_unknown_symbol_cases (test_v8_audit.PipelineAudit.test_tradfi_and_unknown_symbol_cases)
+M-P and SKHYNIXUSD end to end: venue-symbol parsing at the venue boundary, with provenance. ... ok
+test_unknown_new_coin_stays_discoverable (test_v8_audit.PipelineAudit.test_unknown_new_coin_stays_discoverable)
+The mandatory small-coin case, end to end: a brand-new unknown perp (NEWCOIN: Aster only, $18.5k, no ... ok
+test_unpriced_contract_does_not_poison (test_v8_audit.PipelineAudit.test_unpriced_contract_does_not_poison) ... ok
+test_a_changed_existing_value_fails (test_v8_delta.ClosureValidator.test_a_changed_existing_value_fails) ... ok
+test_another_field_or_value_fails (test_v8_delta.ClosureValidator.test_another_field_or_value_fails) ... ok
+test_append_requires_the_base_row_unchanged (test_v8_delta.ClosureValidator.test_append_requires_the_base_row_unchanged) ... ok
+test_count_and_counts_are_exact (test_v8_delta.ClosureValidator.test_count_and_counts_are_exact) ... ok
+test_each_entry_not_observed_fails (test_v8_delta.ClosureValidator.test_each_entry_not_observed_fails) ... ok
+test_exact_manifest_passes (test_v8_delta.ClosureValidator.test_exact_manifest_passes) ... ok
+test_repository_closure_manifest_is_narrow_and_pinned (test_v8_delta.ClosureValidator.test_repository_closure_manifest_is_narrow_and_pinned) ... ok
+test_repository_phase4_manifest_allows_nothing (test_v8_delta.ClosureValidator.test_repository_phase4_manifest_allows_nothing) ... ok
+test_repository_phase5_manifest_is_narrow_and_pinned (test_v8_delta.ClosureValidator.test_repository_phase5_manifest_is_narrow_and_pinned)
+v8 Phase 5 is measured from production main 3288b15 (Phase 4 merged). It may change exactly the economic- ... ok
+test_exact_manifest_passes (test_v8_delta.Phase3Validator.test_exact_manifest_passes) ... ok
+test_identity_state_not_in_manifest_fails (test_v8_delta.Phase3Validator.test_identity_state_not_in_manifest_fails) ... ok
+test_missing_identity_fails_closed (test_v8_delta.Phase3Validator.test_missing_identity_fails_closed) ... ok
+test_projection_excludes_only_coins_without_execution_identity (test_v8_delta.Phase3Validator.test_projection_excludes_only_coins_without_execution_identity) ... ok
+test_repository_phase3_manifest_is_narrow_and_pinned (test_v8_delta.Phase3Validator.test_repository_phase3_manifest_is_narrow_and_pinned) ... ok
+test_set_delta_not_observed_fails (test_v8_delta.Phase3Validator.test_set_delta_not_observed_fails) ... ok
+test_set_delta_with_another_item_fails (test_v8_delta.Phase3Validator.test_set_delta_with_another_item_fails) ... ok
+test_source_file_change_needs_its_exact_digests (test_v8_delta.Phase3Validator.test_source_file_change_needs_its_exact_digests) ... ok
+test_unlisted_decision_difference_fails (test_v8_delta.Phase3Validator.test_unlisted_decision_difference_fails) ... ok
+test_changed_venue_values_fail (test_v8_delta.Validator.test_changed_venue_values_fail) ... ok
+test_code_delta_on_another_row_fails (test_v8_delta.Validator.test_code_delta_on_another_row_fails) ... ok
+test_coin_order_change_fails (test_v8_delta.Validator.test_coin_order_change_fails) ... ok
+test_exact_manifest_passes (test_v8_delta.Validator.test_exact_manifest_passes) ... ok
+test_expected_delta_missing_fails (test_v8_delta.Validator.test_expected_delta_missing_fails) ... ok
+test_new_or_lost_coin_fails (test_v8_delta.Validator.test_new_or_lost_coin_fails) ... ok
+test_repository_manifest_is_narrow (test_v8_delta.Validator.test_repository_manifest_is_narrow) ... ok
+test_unexpected_code_delta_fails (test_v8_delta.Validator.test_unexpected_code_delta_fails) ... ok
+test_unexpected_note_fails (test_v8_delta.Validator.test_unexpected_note_fails) ... ok
+test_unexpected_universe_delta_fails (test_v8_delta.Validator.test_unexpected_universe_delta_fails) ... ok
+test_wrong_value_fails (test_v8_delta.Validator.test_wrong_value_fails) ... ok
+test_A_crypto_and_unrelated_stock_price_divergent (test_v8_identity.CollisionMatrix.test_A_crypto_and_unrelated_stock_price_divergent) ... ok
+test_B_stock_labeled_on_one_venue_unlabeled_on_another_coherent (test_v8_identity.CollisionMatrix.test_B_stock_labeled_on_one_venue_unlabeled_on_another_coherent) ... ok
+test_C_crypto_on_several_venues_one_wrong_tradfi_row (test_v8_identity.CollisionMatrix.test_C_crypto_on_several_venues_one_wrong_tradfi_row) ... ok
+test_D_two_valid_exposures_under_one_ticker_do_not_contaminate (test_v8_identity.CollisionMatrix.test_D_two_valid_exposures_under_one_ticker_do_not_contaminate) ... ok
+test_E_contract_without_price_cannot_poison (test_v8_identity.CollisionMatrix.test_E_contract_without_price_cannot_poison) ... ok
+test_F_multiplier_aliases_compare_per_coin (test_v8_identity.CollisionMatrix.test_F_multiplier_aliases_compare_per_coin) ... ok
+test_G_only_ambiguous_contracts_are_not_admitted (test_v8_identity.CollisionMatrix.test_G_only_ambiguous_contracts_are_not_admitted) ... ok
+test_H_qnt_live_shape (test_v8_identity.CollisionMatrix.test_H_qnt_live_shape) ... ok
+test_I_purr_live_shape (test_v8_identity.CollisionMatrix.test_I_purr_live_shape) ... ok
+test_J_bb_live_shape (test_v8_identity.CollisionMatrix.test_J_bb_live_shape) ... ok
+test_K_phase1_stock_collisions_stay_excluded (test_v8_identity.CollisionMatrix.test_K_phase1_stock_collisions_stay_excluded) ... ok
+test_known_crypto_list_only_counts_where_no_contract_evidence (test_v8_identity.CollisionMatrix.test_known_crypto_list_only_counts_where_no_contract_evidence) ... ok
+test_gate_gives_the_legacy_answer_for_every_coin (test_v8_identity.Liquidity.test_gate_gives_the_legacy_answer_for_every_coin) ... ok
+test_merge_keeps_observed_zero_and_missing_apart (test_v8_identity.Liquidity.test_merge_keeps_observed_zero_and_missing_apart) ... ok
+test_missing_never_passes_the_gate (test_v8_identity.Liquidity.test_missing_never_passes_the_gate) ... ok
+test_presentation_shows_missing_as_unavailable (test_v8_identity.Liquidity.test_presentation_shows_missing_as_unavailable) ... ok
+test_reason_codes (test_v8_identity.Liquidity.test_reason_codes) ... ok
+test_sorting_does_not_store_a_zero (test_v8_identity.Liquidity.test_sorting_does_not_store_a_zero) ... ok
+test_states (test_v8_identity.Liquidity.test_states) ... ok
+test_identical_to_legacy_without_tradfi_evidence (test_v8_identity.NoCollisionParity.test_identical_to_legacy_without_tradfi_evidence)
+Without tradfi evidence anywhere, every coin record is the legacy record of the contracts that form it. ... ok
+test_tradfi_list_tickers_unchanged (test_v8_identity.NoCollisionParity.test_tradfi_list_tickers_unchanged) ... ok
+test_classifier_names_no_ticker (test_v8_identity.NoHardcodedTickers.test_classifier_names_no_ticker)
+The identity module decides from evidence; no ticker appears in its code (docstrings aside). ... ok
+test_no_stock_leaks (test_v8_identity.StockLeakageGate.test_no_stock_leaks) ... ok
+test_status_counts_no_stock_market_as_crypto (test_v8_identity.StockLeakageGate.test_status_counts_no_stock_market_as_crypto) ... ok
+test_quant (test_v8_phase3.ExecutionSafety.test_quant) ... [16:14] quant: journal (new): 0 open, 0 closed
+[16:14] quant: 16 of 16 coins with 4h candles
+[16:14] quant: 6 signals, 6 new paper trades
+[16:14] quant: 0 trades closed this scan, 6 open
+[16:14] quant: done in 0.3s: 6 new signals, 6 open trades
+[16:14] quant: journal (new): 0 open, 0 closed
+[16:14] quant: 15 of 15 coins with 4h candles
+[16:14] quant: 5 signals, 5 new paper trades
+[16:14] quant: 0 trades closed this scan, 5 open
+[16:14] quant: done in 0.1s: 5 new signals, 5 open trades
+ok
+test_radar (test_v8_phase3.ExecutionSafety.test_radar) ... [16:14] universe: 24 coins across 2 DEXs, 24 crypto, 0 excluded, 0 identity unverified
+[16:14] journal (new): 0 open and 0 closed trades, 0 active variants
+[16:14] stage 1: 24 charted, 0 without data, sources {'mexc': 24}
+[16:14] market gate closed: the market is risk-off
+[16:14] stage 2: 24 deep dives (0 extra), 7 signals on 6 coins, 0 publishable, Gate.io positioning for 0
+[16:14] journal: 14 new paper trades, 0 closed this scan, 14 open, 0 closed in total
+[16:14] done in 0.1s: 0 picks, regime Risk-off, 11 notes
+[16:14] universe: 24 coins across 2 DEXs, 23 crypto, 0 excluded, 1 identity unverified
+[16:14] journal (new): 0 open and 0 closed trades, 0 active variants
+[16:14] stage 1: 23 charted, 0 without data, sources {'mexc': 23}
+[16:14] market gate closed: the market is risk-off
+[16:14] stage 2: 23 deep dives (0 extra), 6 signals on 5 coins, 0 publishable, Gate.io positioning for 0
+[16:14] journal: 12 new paper trades, 0 closed this scan, 12 open, 0 closed in total
+[16:14] done in 0.0s: 0 picks, regime Risk-off, 11 notes
+ok
+test_swing_and_day (test_v8_phase3.ExecutionSafety.test_swing_and_day) ... [16:14] picks: journal (new): 0 open, 0 closed
+[16:14] picks: 16 of 16 coins with 4h candles
+[16:14] picks: swing checks for 16 coins (day 2026-10-09)
+[16:14] picks: paper: 0 new, 0 closed, 0 open
+[16:14] picks: done in 0.2s: 16 swing and 16 day-trade scores; top swing FAKE08 short 78.0, FAKE01 short 78.0, FAKE06 short 78.0
+[16:14] picks: journal (new): 0 open, 0 closed
+[16:14] picks: 14 of 14 coins with 4h candles
+[16:14] picks: swing checks for 14 coins (day 2026-10-09)
+[16:14] picks: paper: 0 new, 0 closed, 0 open
+[16:14] picks: done in 0.1s: 14 swing and 14 day-trade scores; top swing FAKE01 short 78.0, FAKE06 short 78.0, FAKE09 short 73.0
+ok
+test_fallback_universe_is_the_known_crypto_list (test_v8_phase3.FourStates.test_fallback_universe_is_the_known_crypto_list) ... ok
+test_states_and_gate (test_v8_phase3.FourStates.test_states_and_gate) ... ok
+test_A_explicit_crypto_metadata (test_v8_phase3.Matrix.test_A_explicit_crypto_metadata) ... ok
+test_B_known_crypto_without_metadata (test_v8_phase3.Matrix.test_B_known_crypto_without_metadata) ... ok
+test_C_explicit_rwa_metadata (test_v8_phase3.Matrix.test_C_explicit_rwa_metadata) ... ok
+test_D_coherent_unlabeled_next_to_verified_tradfi (test_v8_phase3.Matrix.test_D_coherent_unlabeled_next_to_verified_tradfi) ... ok
+test_E_contradictory_evidence (test_v8_phase3.Matrix.test_E_contradictory_evidence) ... ok
+test_F_unlabeled_single_venue_new_perp (test_v8_phase3.Matrix.test_F_unlabeled_single_venue_new_perp) ... ok
+test_G_multi_venue_unlabeled_coherent_is_still_unverified (test_v8_phase3.Matrix.test_G_multi_venue_unlabeled_coherent_is_still_unverified) ... ok
+test_H_new_small_coin_stays_visible (test_v8_phase3.Matrix.test_H_new_small_coin_stays_visible)
+The mandatory small-coin case at unit level: contract registry, asset registry, discovery universe, ... ok
+test_I_qnt (test_v8_phase3.Matrix.test_I_qnt) ... ok
+test_J_purr (test_v8_phase3.Matrix.test_J_purr) ... ok
+test_K_bb (test_v8_phase3.Matrix.test_K_bb) ... ok
+test_L_xiaomi (test_v8_phase3.Matrix.test_L_xiaomi) ... ok
+test_M_samsungusd_class (test_v8_phase3.Matrix.test_M_samsungusd_class)
+A base-only-symbol venue's symbol ending in USD whose candidate is on the existing tradfi list. ... ok
+test_N_hyundaiusd_class (test_v8_phase3.Matrix.test_N_hyundaiusd_class) ... ok
+test_O_rates_style_instrument (test_v8_phase3.Matrix.test_O_rates_style_instrument) ... ok
+test_P_byd_class (test_v8_phase3.Matrix.test_P_byd_class) ... ok
+test_parsed_symbol_never_grants_crypto (test_v8_phase3.Matrix.test_parsed_symbol_never_grants_crypto) ... ok
+test_same_venue_fields_tradfi_direction_only (test_v8_phase3.Matrix.test_same_venue_fields_tradfi_direction_only)
+Aster underlyingSubType and Variational names, chosen from the live venue field census: the tradfi-only ... ok
+test_unverified_exposure_not_merged_into_crypto_coin (test_v8_phase3.Matrix.test_unverified_exposure_not_merged_into_crypto_coin) ... ok
+test_no_exposure_is_crypto_by_default (test_v8_phase3.NoDefaultCrypto.test_no_exposure_is_crypto_by_default)
+On random market lists: no exposure is crypto without positive evidence, every coin with crypto execution ... ok
+[16:14] quant: journal (file): 7 open, 2 closed, 6 marked LEGACY_NO_IDENTITY_PROOF
+[16:14] quant: 12 of 12 coins with 4h candles
+[16:14] quant: 5 signals, 4 new paper trades
+[16:14] quant: 3 trades closed this scan, 8 open
+[16:14] quant: 3 open position(s) without current crypto execution identity kept out of the actionable set: FAKE03 TSMOM (IDENTITY_UNVERIFIED), FAKE09 TSMOM (IDENTITY_AUTHORITY_MISSING), FAKE07 TSMOM (AMBIGUOUS_EXPOSURE)
+[16:15] quant: done in 0.3s: 4 new signals, 8 open trades
+[16:15] quant: journal (file): 7 open, 2 closed, 6 marked LEGACY_NO_IDENTITY_PROOF
+[16:15] quant: 16 of 16 coins with 4h candles
+[16:15] quant: 5 signals, 4 new paper trades
+[16:15] quant: 3 trades closed this scan, 8 open
+[16:15] quant: done in 0.2s: 4 new signals, 8 open trades
+test_analyzer_gives_a_note_never_a_signal (test_v8_phase3_closure.QuantEvidence.test_analyzer_gives_a_note_never_a_signal) ... ok
+test_dashboard_never_aggregates_a_blocked_position (test_v8_phase3_closure.QuantEvidence.test_dashboard_never_aggregates_a_blocked_position) ... ok
+test_every_journal_trade_is_kept (test_v8_phase3_closure.QuantEvidence.test_every_journal_trade_is_kept) ... ok
+test_identity_degrades_after_entry (test_v8_phase3_closure.QuantEvidence.test_identity_degrades_after_entry) ... ok
+test_legacy_unverified_open_is_kept_simulated_and_blocked (test_v8_phase3_closure.QuantEvidence.test_legacy_unverified_open_is_kept_simulated_and_blocked) ... ok
+test_legacy_verified_open_is_actionable_but_never_evidence (test_v8_phase3_closure.QuantEvidence.test_legacy_verified_open_is_actionable_but_never_evidence) ... ok
+test_live_record (test_v8_phase3_closure.QuantEvidence.test_live_record) ... ok
+test_missing_current_identity_fails_closed (test_v8_phase3_closure.QuantEvidence.test_missing_current_identity_fails_closed) ... ok
+test_new_verified_position_has_full_proof_and_counts (test_v8_phase3_closure.QuantEvidence.test_new_verified_position_has_full_proof_and_counts) ... ok
+test_backtest_rows_are_untouched (test_v8_phase3_closure.RadarEvidence.test_backtest_rows_are_untouched) ... ok
+test_forty_legacy_winners_never_pass_forty_qualified_ones_do (test_v8_phase3_closure.RadarEvidence.test_forty_legacy_winners_never_pass_forty_qualified_ones_do) ... ok
+test_legacy_rows_cannot_tip_a_qualified_record (test_v8_phase3_closure.RadarEvidence.test_legacy_rows_cannot_tip_a_qualified_record)
+A qualified record one trade short of a pass stays short however many legacy winners sit beside it. ... ok
+test_legacy_rows_do_not_teach_lessons_tune_or_cool_down (test_v8_phase3_closure.RadarEvidence.test_legacy_rows_do_not_teach_lessons_tune_or_cool_down) ... ok
+test_live_picks_record_and_summary (test_v8_phase3_closure.RadarEvidence.test_live_picks_record_and_summary) ... ok
+test_new_live_trades_carry_proof (test_v8_phase3_closure.RadarEvidence.test_new_live_trades_carry_proof)
+What scanner.run() writes for a signal and its twin (the stamp and stamp_pair calls of step 4). ... ok
+test_pairs_are_kept_or_excluded_together (test_v8_phase3_closure.RadarEvidence.test_pairs_are_kept_or_excluded_together) ... ok
+test_legacy_quant_trades_cannot_become_qualified (test_v8_phase3_closure.ScanGateInvariants.test_legacy_quant_trades_cannot_become_qualified) ... ok
+test_legacy_radar_live_trades_cannot_grant_a_pass (test_v8_phase3_closure.ScanGateInvariants.test_legacy_radar_live_trades_cannot_grant_a_pass) ... ok
+test_non_verified_open_positions_cannot_become_actionable (test_v8_phase3_closure.ScanGateInvariants.test_non_verified_open_positions_cannot_become_actionable) ... ok
+test_identical_apart_from_provenance (test_v8_phase3_journal.FreshVerifiedRunUnchanged.test_identical_apart_from_provenance) ... [16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 4 new entries, 1 signals and 1 long crowds, 2 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 2 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+ok
+test_no_hindsight (test_v8_phase3_journal.IdentityChangesAfterEntry.test_no_hindsight) ... [16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 4 new entries, 1 signals and 1 long crowds, 2 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 1 long crowds, 2 paper trades open, 0 closed; 1 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 2 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+ok
+test_legacy_trades_cannot_affect_proven_rule (test_v8_phase3_journal.LegacyClosedSignal.test_legacy_trades_cannot_affect_proven_rule)
+proven_rule is decided before the scan's crowds: a qualified signal crowd is not 'proven' by legacy ... [16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 4 new entries, 1 signals and 1 long crowds, 2 paper trades open, 45 closed; 0 crowds without crypto identity (identity authority: given); 45 paper trades without entry-time identity proof kept out of the live record (45 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 4 new entries, 1 signals and 1 long crowds, 2 paper trades open, 45 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+ok
+test_legacy_winners_cannot_prevent_no_edge (test_v8_phase3_journal.LegacyClosedSignal.test_legacy_winners_cannot_prevent_no_edge) ... ok
+test_strong_legacy_winners_cannot_make_the_rule_proven (test_v8_phase3_journal.LegacyClosedSignal.test_strong_legacy_winners_cannot_make_the_rule_proven) ... ok
+test_audit_marks_a_coin_with_a_legacy_open_trade (test_v8_phase3_journal.LegacyOpenSignal.test_audit_marks_a_coin_with_a_legacy_open_trade) ... [16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 4 new entries, 1 signals and 1 long crowds, 2 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: given); 1 paper trades without entry-time identity proof kept out of the live record (1 marked this scan)
+ok
+test_closes_normally_and_stays_unqualified (test_v8_phase3_journal.LegacyOpenSignal.test_closes_normally_and_stays_unqualified) ... [16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 1 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: given); 1 paper trades without entry-time identity proof kept out of the live record (1 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 1 closed; 0 crowds without crypto identity (identity authority: given); 1 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+ok
+test_fail_closed_without_rewriting_history (test_v8_phase3_journal.MissingAuthority.test_fail_closed_without_rewriting_history) ... [16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 4 new entries, 0 signals and 0 long crowds, 1 paper trades open, 2 closed; 2 crowds without crypto identity (identity authority: NO_AUTHORITY_FILE); 1 paper trades without entry-time identity proof kept out of the live record (1 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 3 closed; 2 crowds without crypto identity (identity authority: NO_AUTHORITY_FILE); 1 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+ok
+test_no_trade_no_evidence (test_v8_phase3_journal.NewUnverifiedCrowd.test_no_trade_no_evidence) ... [16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 4 new entries, 0 signals and 0 long crowds, 0 paper trades open, 0 closed; 2 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+ok
+test_provenance_and_live_record (test_v8_phase3_journal.NewVerifiedSignal.test_provenance_and_live_record) ... [16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: SAME_SCAN); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 4 new entries, 1 signals and 1 long crowds, 2 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: SAME_SCAN); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 2 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+ok
+test_rules (test_v8_phase3_smart.SameScanAuthority.test_rules) ... /home/runner/work/perp-dex-radar/perp-dex-radar/tests/test_v8_phase3_smart.py:193: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/v8authcyjpgwtt/data/v8/identity_authority.json' mode='r' encoding='UTF-8'>
+  rec = json.load(open(p))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/runner/work/perp-dex-radar/perp-dex-radar/tests/test_v8_phase3_smart.py:195: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/v8authcyjpgwtt/data/v8/identity_authority.json' mode='w' encoding='UTF-8'>
+  json.dump(rec, open(p, "w"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_scanner_writes_every_universe_coin (test_v8_phase3_smart.SameScanAuthority.test_scanner_writes_every_universe_coin) ... [16:15] universe: 24 coins across 2 DEXs, 23 crypto, 0 excluded, 1 identity unverified
+[16:15] journal (new): 0 open and 0 closed trades, 0 active variants
+[16:15] stage 1: 23 charted, 0 without data, sources {'mexc': 23}
+[16:15] market gate closed: the market is risk-off
+[16:15] stage 2: 23 deep dives (0 extra), 7 signals on 6 coins, 0 publishable, Gate.io positioning for 0
+[16:15] journal: 14 new paper trades, 0 closed this scan, 14 open, 0 closed in total
+[16:15] done in 0.1s: 0 picks, regime Risk-off, 20 notes
+ok
+test_smart_reads_the_scanners_file_from_its_own_scan (test_v8_phase3_smart.SameScanAuthority.test_smart_reads_the_scanners_file_from_its_own_scan) ... [16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: SAME_SCAN); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 4 new entries, 1 signals and 0 long crowds, 1 paper trades open, 0 closed; 1 crowds without crypto identity (identity authority: SAME_SCAN); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+ok
+test_ambiguous_crowd_is_blocked (test_v8_phase3_smart.SmartIdentityGate.test_ambiguous_crowd_is_blocked) ... [16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 4 new entries, 0 signals and 1 long crowds, 1 paper trades open, 0 closed; 1 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+ok
+test_coin_missing_from_the_authority_fails_closed (test_v8_phase3_smart.SmartIdentityGate.test_coin_missing_from_the_authority_fails_closed) ... [16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 4 new entries, 0 signals and 1 long crowds, 1 paper trades open, 0 closed; 1 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+ok
+test_inherited_tradfi_crowd_is_blocked (test_v8_phase3_smart.SmartIdentityGate.test_inherited_tradfi_crowd_is_blocked) ... [16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 4 new entries, 0 signals and 1 long crowds, 1 paper trades open, 0 closed; 1 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+ok
+test_no_authority_at_all_fails_closed (test_v8_phase3_smart.SmartIdentityGate.test_no_authority_at_all_fails_closed) ... [16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: NO_AUTHORITY_FILE); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 4 new entries, 0 signals and 0 long crowds, 0 paper trades open, 0 closed; 2 crowds without crypto identity (identity authority: NO_AUTHORITY_FILE); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+ok
+test_tradfi_crowd_is_blocked (test_v8_phase3_smart.SmartIdentityGate.test_tradfi_crowd_is_blocked) ... [16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 4 new entries, 0 signals and 1 long crowds, 1 paper trades open, 0 closed; 1 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+ok
+test_unverified_crowd_is_blocked (test_v8_phase3_smart.SmartIdentityGate.test_unverified_crowd_is_blocked) ... [16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 4 new entries, 0 signals and 1 long crowds, 1 paper trades open, 0 closed; 1 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+ok
+test_verified_crypto_signal_and_paper_trade_unchanged (test_v8_phase3_smart.SmartIdentityGate.test_verified_crypto_signal_and_paper_trade_unchanged) ... [16:15] smart money: 6 of 6 proven traders read, 0 new entries, 0 signals and 0 long crowds, 0 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+[16:15] smart money: 6 of 6 proven traders read, 4 new entries, 1 signals and 1 long crowds, 2 paper trades open, 0 closed; 0 crowds without crypto identity (identity authority: given); 0 paper trades without entry-time identity proof kept out of the live record (0 marked this scan)
+ok
+test_candidate_evidence_values (test_v8_phase4.CandidateTrace.test_candidate_evidence_values) ... ok
+test_registry_keeps_candidates_apart (test_v8_phase4.CandidateTrace.test_registry_keeps_candidates_apart) ... ok
+test_clean_theme_tag_fails_semantics_only (test_v8_phase4.CensusGate.test_clean_theme_tag_fails_semantics_only) ... ok
+test_inventory_lists_every_unverified_asset (test_v8_phase4.CensusGate.test_inventory_lists_every_unverified_asset) ... ok
+test_lighter_strategy_index_fails_semantics_and_contamination (test_v8_phase4.CensusGate.test_lighter_strategy_index_fails_semantics_and_contamination) ... ok
+test_nothing_qualifies (test_v8_phase4.CensusGate.test_nothing_qualifies) ... ok
+test_reproduction_is_exact (test_v8_phase4.CensusGate.test_reproduction_is_exact) ... ok
+test_scan_states (test_v8_phase4.CensusGate.test_scan_states) ... ok
+test_tradfi_class_tag_as_crypto_fails_negative_controls (test_v8_phase4.CensusGate.test_tradfi_class_tag_as_crypto_fails_negative_controls) ... ok
+test_value_on_a_tradfi_list_ticker_fails_contamination (test_v8_phase4.CensusGate.test_value_on_a_tradfi_list_ticker_fails_contamination) ... ok
+test_aster_stock_sent_as_coin_is_not_crypto (test_v8_phase4.Matrix.test_aster_stock_sent_as_coin_is_not_crypto) ... ok
+test_aster_tradfi_subtypes_still_tradfi (test_v8_phase4.Matrix.test_aster_tradfi_subtypes_still_tradfi) ... ok
+test_candidate_on_unpriced_contract_poisons_nothing (test_v8_phase4.Matrix.test_candidate_on_unpriced_contract_poisons_nothing) ... ok
+test_every_aster_candidate_value_stays_unverified (test_v8_phase4.Matrix.test_every_aster_candidate_value_stays_unverified) ... ok
+test_every_lighter_candidate_value_stays_unverified (test_v8_phase4.Matrix.test_every_lighter_candidate_value_stays_unverified) ... ok
+test_explicit_extended_crypto_still_verified (test_v8_phase4.Matrix.test_explicit_extended_crypto_still_verified) ... ok
+test_known_crypto_still_verified (test_v8_phase4.Matrix.test_known_crypto_still_verified) ... ok
+test_missing_and_unknown_values_fail_closed (test_v8_phase4.Matrix.test_missing_and_unknown_values_fail_closed) ... ok
+test_new_tiny_coin_is_unverified_and_visible (test_v8_phase4.Matrix.test_new_tiny_coin_is_unverified_and_visible) ... ok
+test_price_separated_collision_keeps_both_sides (test_v8_phase4.Matrix.test_price_separated_collision_keeps_both_sides) ... ok
+test_trusted_tradfi_plus_crypto_is_ambiguous (test_v8_phase4.Matrix.test_trusted_tradfi_plus_crypto_is_ambiguous) ... ok
+test_outcome_pinned (test_v8_phase4.NoRuleQualified.test_outcome_pinned) ... ok
+test_bb_stock_no_longer_depends_on_extended (test_v8_phase5.Controls.test_bb_stock_no_longer_depends_on_extended)
+The live BB shape without Extended's market (an Extended outage or delisting): v8.identity/2 had nothing ... ok
+test_controls_are_not_rules (test_v8_phase5.Controls.test_controls_are_not_rules) ... ok
+test_negative_controls_never_crypto (test_v8_phase5.Controls.test_negative_controls_never_crypto) ... ok
+test_paxg_and_xaut_by_exposure_not_by_ticker (test_v8_phase5.Controls.test_paxg_and_xaut_by_exposure_not_by_ticker)
+Section 17, live shapes: Extended files both under Crypto (subCategory Commodity) with their own names; ... ok
+test_positive_controls_stay_crypto_with_collisions (test_v8_phase5.Controls.test_positive_controls_stay_crypto_with_collisions)
+Sections 21 and 22, live shapes: crypto by the known-crypto list; the price-separated stock under the same ... ok
+test_downgrade (test_v8_phase5.DowngradeGates.test_downgrade) ... ok
+test_quant_and_dashboard (test_v8_phase5.DowngradeGates.test_quant_and_dashboard) ... ok
+test_smart_money (test_v8_phase5.DowngradeGates.test_smart_money) ... ok
+test_crypto_wrapper_plus_tradfi_exposure_is_never_crypto_authorized (test_v8_phase5.ScanGateInvariants.test_crypto_wrapper_plus_tradfi_exposure_is_never_crypto_authorized) ... ok
+test_current_gate_reacts_to_a_downgrade (test_v8_phase5.ScanGateInvariants.test_current_gate_reacts_to_a_downgrade) ... ok
+test_entry_proof_stays_historical (test_v8_phase5.ScanGateInvariants.test_entry_proof_stays_historical) ... ok
+test_wrapper_only_unknown_fails_closed (test_v8_phase5.ScanGateInvariants.test_wrapper_only_unknown_fails_closed) ... ok
+test_adapter_one_bulk_request_and_health (test_v8_phase5.TokenList.test_adapter_one_bulk_request_and_health) ... ok
+test_failed_check_never_makes_a_market_crypto (test_v8_phase5.TokenList.test_failed_check_never_makes_a_market_crypto)
+Section 28 / gate E: whatever the check's failure, a market seen only through it is never verified by the ... ok
+test_index_semantics (test_v8_phase5.TokenList.test_index_semantics) ... ok
+test_market_fields (test_v8_phase5.TokenList.test_market_fields) ... ok
+test_only_rwa_is_evidence (test_v8_phase5.TokenList.test_only_rwa_is_evidence) ... ok
+test_registry_records_health_and_coverage (test_v8_phase5.TokenList.test_registry_records_health_and_coverage) ... ok
+test_config_hash_changed_with_the_rules (test_v8_phase5.VersionAndProvenance.test_config_hash_changed_with_the_rules) ... ok
+test_new_proof_records_v3 (test_v8_phase5.VersionAndProvenance.test_new_proof_records_v3)
+A new proof records the current identity version (v8.identity/3 in Phase 5; /4 since Phase 6); a proof ... ok
+test_v2_authority_files_fail (test_v8_phase5.VersionAndProvenance.test_v2_authority_files_fail) ... ok
+test_v2_entry_proof_stays_qualified (test_v8_phase5.VersionAndProvenance.test_v2_entry_proof_stays_qualified)
+Section 24: no hindsight. A trade entered while VERIFIED_CRYPTO under v8.identity/2 stays historically ... ok
+test_a_wrapper_on_one_exposure_never_reclassifies_another (test_v8_phase5.WrapperVsEconomicExposure.test_a_wrapper_on_one_exposure_never_reclassifies_another)
+Section 22: price-separated exposures keep their own class. ... ok
+test_newgold_crypto_wrapper_plus_commodity_exposure_is_tradfi (test_v8_phase5.WrapperVsEconomicExposure.test_newgold_crypto_wrapper_plus_commodity_exposure_is_tradfi)
+Section 18: venue A wraps it as Crypto, venue B's documented exposure metadata says commodity; same ... ok
+test_newstock_crypto_wrapper_plus_equity_exposure_is_tradfi (test_v8_phase5.WrapperVsEconomicExposure.test_newstock_crypto_wrapper_plus_equity_exposure_is_tradfi)
+Section 19, with each documented equity source: Lighter token-list RWA, an Aster STOCK subtype, an Aster ... ok
+test_newtoken_crypto_wrapper_without_exposure_proof_is_unverified (test_v8_phase5.WrapperVsEconomicExposure.test_newtoken_crypto_wrapper_without_exposure_proof_is_unverified)
+Section 20, the key false-positive prevention test. ... ok
+test_trading_schedule_and_rfq_are_never_evidence (test_v8_phase5.WrapperVsEconomicExposure.test_trading_schedule_and_rfq_are_never_evidence)
+Section 36: CONTINUOUS, WEEKDAYS, RFQ and off-hours flags are execution metadata, not asset class. ... ok
+test_true_conflict_of_two_economic_sources_is_ambiguous (test_v8_phase5.WrapperVsEconomicExposure.test_true_conflict_of_two_economic_sources_is_ambiguous)
+Section 13: AMBIGUOUS stays for two trusted economic sources that disagree inside one exposure. No source ... ok
+test_undocumented_subcategory_alone_is_not_evidence (test_v8_phase5.WrapperVsEconomicExposure.test_undocumented_subcategory_alone_is_not_evidence)
+Extended's subCategory is not in Extended's documented market schema: an unknown gold token seen only on ... ok
+test_unknown_tokenized_index_and_rate (test_v8_phase5.WrapperVsEconomicExposure.test_unknown_tokenized_index_and_rate) ... ok
+test_version_and_rules (test_v8_phase5.WrapperVsEconomicExposure.test_version_and_rules) ... ok
+test_census_tool_model2_matches_the_resolver (test_v8_phase6.Audit.test_census_tool_model2_matches_the_resolver)
+The Stage A tool computes model 2 independently from the v8.identity/3 exposure classes; on every matrix ... ok
+test_decision_trace_explains_no_unique_binding (test_v8_phase6.Audit.test_decision_trace_explains_no_unique_binding) ... ok
+test_registry_counts_account_for_every_candidate (test_v8_phase6.Audit.test_registry_counts_account_for_every_candidate) ... ok
+test_v4_previous_v3_and_older_versions_replay (test_v8_phase6.Audit.test_v4_previous_v3_and_older_versions_replay)
+Section 22/48: production resolves v4 with v3 as `previous`; v2, v3 and v4 replay by their own rules. ... ok
+test_list_alone_is_still_ticker_level_input (test_v8_phase6.Binding.test_list_alone_is_still_ticker_level_input)
+The ticker-level assertion stays in the evidence (the input); the binding is the separate result. ... ok
+test_nothing_chooses_between_candidates (test_v8_phase6.Binding.test_nothing_chooses_between_candidates)
+Sections 15-16: no volume, venue count, open interest, order or majority decides. Every permutation of the ... ok
+test_same_price_multi_venue_is_one_candidate (test_v8_phase6.Binding.test_same_price_multi_venue_is_one_candidate)
+Section 36: three venues within the 20% tolerance are one exposure and one candidate. ... ok
+test_version (test_v8_phase6.Binding.test_version) ... ok
+test_zknown_two_unlabeled_exposures_are_both_unverified (test_v8_phase6.Binding.test_zknown_two_unlabeled_exposures_are_both_unverified)
+Section 9, the critical test. ... ok
+test_01_one_priced_unlabeled_exposure_is_crypto (test_v8_phase6.CollisionMatrix.test_01_one_priced_unlabeled_exposure_is_crypto) ... ok
+test_02_two_price_separated_unlabeled_exposures_are_unverified (test_v8_phase6.CollisionMatrix.test_02_two_price_separated_unlabeled_exposures_are_unverified) ... ok
+test_03_one_unlabeled_plus_one_tradfi_binds_the_unlabeled (test_v8_phase6.CollisionMatrix.test_03_one_unlabeled_plus_one_tradfi_binds_the_unlabeled)
+Section 10: the generic QNT / PURR / BB architecture, with each deterministic tradfi source. ... ok
+test_04_two_unlabeled_plus_one_tradfi_are_unverified (test_v8_phase6.CollisionMatrix.test_04_two_unlabeled_plus_one_tradfi_are_unverified)
+Section 11: after the tradfi exposure is removed two candidates are left; do not choose. ... ok
+test_05_failed_check_never_consumes_the_binding (test_v8_phase6.CollisionMatrix.test_05_failed_check_never_consumes_the_binding)
+Section 12: a Lighter-only exposure whose token-list check failed stays EXPOSURE_CHECK_UNAVAILABLE and is ... ok
+test_06_two_normal_candidates_plus_failed_check_are_unbound (test_v8_phase6.CollisionMatrix.test_06_two_normal_candidates_plus_failed_check_are_unbound) ... ok
+test_07_direct_crypto_plus_extra_unlabeled_is_direct_only (test_v8_phase6.CollisionMatrix.test_07_direct_crypto_plus_extra_unlabeled_is_direct_only)
+Section 14: direct qualified crypto evidence needs no binding, and the list cannot verify a second, ... ok
+test_08_only_tradfi_exposures_give_no_crypto (test_v8_phase6.CollisionMatrix.test_08_only_tradfi_exposures_give_no_crypto) ... ok
+test_09_unpriced_only_is_unverified (test_v8_phase6.CollisionMatrix.test_09_unpriced_only_is_unverified)
+Section 17: an unpriced contract cannot bind the list (v8.identity/3 verified it). ... ok
+test_10_true_economic_conflict_stays_ambiguous (test_v8_phase6.CollisionMatrix.test_10_true_economic_conflict_stays_ambiguous) ... ok
+test_11_qnt (test_v8_phase6.CollisionMatrix.test_11_qnt) ... ok
+test_12_purr (test_v8_phase6.CollisionMatrix.test_12_purr) ... ok
+test_13_bb (test_v8_phase6.CollisionMatrix.test_13_bb)
+BounceBit (crypto) and BlackBerry (stock: Lighter token-list RWA, Extended RWA) share the ticker. The ... ok
+test_negative_controls_never_acquire_crypto (test_v8_phase6.Controls.test_negative_controls_never_acquire_crypto) ... ok
+test_positive_controls_bind_their_one_exposure (test_v8_phase6.Controls.test_positive_controls_bind_their_one_exposure) ... ok
+test_quant_dashboard_and_analyzer (test_v8_phase6.DowngradeGates.test_quant_dashboard_and_analyzer) ... ok
+test_radar_swing_day (test_v8_phase6.DowngradeGates.test_radar_swing_day) ... ok
+test_smart_money_same_scan (test_v8_phase6.DowngradeGates.test_smart_money_same_scan) ... ok
+test_fallback_only_when_every_venue_failed (test_v8_phase6.Fallback.test_fallback_only_when_every_venue_failed) ... ok
+test_partly_degraded_scan_never_bypasses_the_binding (test_v8_phase6.Fallback.test_partly_degraded_scan_never_bypasses_the_binding) ... ok
+test_current_downgrade_blocks_actionability (test_v8_phase6.ScanGateInvariants.test_current_downgrade_blocks_actionability) ... ok
+test_failed_exposure_check_cannot_acquire_crypto (test_v8_phase6.ScanGateInvariants.test_failed_exposure_check_cannot_acquire_crypto) ... ok
+test_one_known_crypto_exposure_binds (test_v8_phase6.ScanGateInvariants.test_one_known_crypto_exposure_binds) ... ok
+test_prior_entry_proof_stays_historical (test_v8_phase6.ScanGateInvariants.test_prior_entry_proof_stays_historical) ... ok
+test_tradfi_collision_leaves_one_bindable (test_v8_phase6.ScanGateInvariants.test_tradfi_collision_leaves_one_bindable) ... ok
+test_two_unresolved_exposures_never_both_crypto (test_v8_phase6.ScanGateInvariants.test_two_unresolved_exposures_never_both_crypto) ... ok
+test_config_hash_changed (test_v8_phase6.VersionAndProvenance.test_config_hash_changed) ... ok
+test_entry_proofs (test_v8_phase6.VersionAndProvenance.test_entry_proofs)
+Sections 23, 41-43: new entries stamp v4; v2 and v3 proofs stay qualified (no hindsight). ... ok
+test_v3_authority_file_fails_a_v4_consumer (test_v8_phase6.VersionAndProvenance.test_v3_authority_file_fails_a_v4_consumer) ... ok
+test_append_only (test_v8_units.Archive.test_append_only) ... ok
+test_basis (test_v8_units.Health.test_basis) ... ok
+test_funding_default_is_identifiable (test_v8_units.Health.test_funding_default_is_identifiable) ... ok
+test_liquidity_tells_missing_from_zero (test_v8_units.Health.test_liquidity_tells_missing_from_zero)
+Phase 2 moved the liquidity states to v8.liquidity (tests/test_v8_identity.py covers them). ... ok
+test_worst_and_contract_state (test_v8_units.Health.test_worst_and_contract_state) ... ok
+test_accounting (test_v8_units.Ledger.test_accounting) ... ok
+test_expand_has_every_event_field (test_v8_units.Ledger.test_expand_has_every_event_field) ... ok
+test_canon_reason_matches_canon (test_v8_units.Mirrors.test_canon_reason_matches_canon) ... ok
+test_explain_plan_matches_build_plan (test_v8_units.Mirrors.test_explain_plan_matches_build_plan) ... ok
+test_quant_why_not_matches_signals (test_v8_units.Mirrors.test_quant_why_not_matches_signals) ... ok
+test_trader_reasons_match_select_traders (test_v8_units.Mirrors.test_trader_reasons_match_select_traders) ... ok
+test_tradfi_reason_matches_is_tradfi (test_v8_units.Mirrors.test_tradfi_reason_matches_is_tradfi) ... ok
+test_recorder_never_raises (test_v8_units.NeverBreaksTheScan.test_recorder_never_raises) ... ok
+test_safe_audit_swallows_errors (test_v8_units.NeverBreaksTheScan.test_safe_audit_swallows_errors) ... [v8] radar audit failed: RuntimeError: audit bug
+ok
+test_scan_survives_a_broken_audit (test_v8_units.NeverBreaksTheScan.test_scan_survives_a_broken_audit) ... [16:15] universe: 24 coins across 2 DEXs, 24 crypto, 0 excluded, 0 identity unverified
+[16:15] journal (new): 0 open and 0 closed trades, 0 active variants
+[16:15] stage 1: 24 charted, 0 without data, sources {'mexc': 24}
+[16:15] market gate closed: the market is risk-off
+[16:15] stage 2: 24 deep dives (0 extra), 7 signals on 6 coins, 0 publishable, Gate.io positioning for 0
+[16:15] journal: 14 new paper trades, 0 closed this scan, 14 open, 0 closed in total
+[v8] radar audit failed: RuntimeError: broken
+[16:15] done in 0.1s: 0 picks, regime Risk-off, 29 notes
+ok
+test_config_hash_is_stable_and_ignores_schedule (test_v8_units.Provenance.test_config_hash_is_stable_and_ignores_schedule) ... ok
+test_hard_coded_quant_authority_is_exposed (test_v8_units.Provenance.test_hard_coded_quant_authority_is_exposed) ... ok
+test_no_secret_in_config (test_v8_units.Provenance.test_no_secret_in_config) ... ok
+test_scan_id (test_v8_units.Provenance.test_scan_id) ... ok
+test_forward_variant_and_adjustment (test_v8_units.RadarMapping.test_forward_variant_and_adjustment) ... ok
+test_stages_and_blocks (test_v8_units.RadarMapping.test_stages_and_blocks) ... ok
+test_duplicate_raw_symbols_are_not_collapsed (test_v8_units.RegistryAgainstAdapters.test_duplicate_raw_symbols_are_not_collapsed) ... ok
+test_failed_adapter_and_fallback (test_v8_units.RegistryAgainstAdapters.test_failed_adapter_and_fallback) ... ok
+test_registry_reconciles_with_build_universe (test_v8_units.RegistryAgainstAdapters.test_registry_reconciles_with_build_universe) ... ok
+test_doc_lists_every_code (test_v8_units.TaxonomyDoc.test_doc_lists_every_code) ... ok
+
+----------------------------------------------------------------------
+Ran 386 tests in 39.863s
+
+OK

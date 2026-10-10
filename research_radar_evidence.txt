@@ -1,0 +1,555 @@
+[16:26] universe: 853 coins across 7 DEXs, 433 crypto, 267 excluded, 153 identity unverified
+[16:26] journal (file): 167 open and 20174 closed trades, 0 active variants
+[16:26] smart money: 150 of 150 top Hyperliquid traders read, 450 open positions
+[16:27] stage 1: 427 charted, 6 without data, sources {'mexc': 413, 'gate': 10, 'hyperliquid': 2, 'aster': 1, 'bitget': 1}
+[16:27] stage 2: 56 deep dives (16 extra), 50 signals on 35 coins, 0 publishable, Gate.io positioning for 24
+[16:27] journal: 74 new paper trades, 45 closed this scan, 182 open, 20193 closed in total
+[16:27] done in 85.6s: 0 picks, regime Risk-on, 10 notes
+[16:27] universe: 853 coins across 7 DEXs, 433 crypto, 267 excluded, 153 identity unverified
+[16:27] journal (file): 167 open and 20174 closed trades, 0 active variants
+[16:27] smart money: 150 of 150 top Hyperliquid traders read, 450 open positions
+[16:28] stage 1: 427 charted, 6 without data, sources {'mexc': 413, 'gate': 10, 'hyperliquid': 2, 'bitget': 1, 'aster': 1}
+[16:28] stage 2: 56 deep dives (16 extra), 50 signals on 35 coins, 0 publishable, Gate.io positioning for 24
+[16:28] journal: 76 new paper trades, 45 closed this scan, 184 open, 20193 closed in total
+[16:29] done in 86.0s: 0 picks, regime Risk-on, 10 notes
+{
+ "after": {
+  "cool": [],
+  "lessons": 7,
+  "strategies": {
+   "BRK": {
+    "bt_n": 250,
+    "edge_live": null,
+    "live_days": null,
+    "live_exp": null,
+    "live_n": 0,
+    "n": 250,
+    "status": "rejected",
+    "why": "48% winners, -0.10R per trade, profit factor 0.82 over 250 trades"
+   },
+   "HI24": {
+    "bt_n": 250,
+    "edge_live": null,
+    "live_days": null,
+    "live_exp": null,
+    "live_n": 0,
+    "n": 250,
+    "status": "rejected",
+    "why": "39% winners, -0.18R per trade, profit factor 0.73 over 250 trades"
+   },
+   "MOM": {
+    "bt_n": 250,
+    "edge_live": null,
+    "live_days": null,
+    "live_exp": null,
+    "live_n": 0,
+    "n": 250,
+    "status": "rejected",
+    "why": "41% winners, -0.26R per trade, profit factor 0.58 over 250 trades"
+   },
+   "MR": {
+    "bt_n": 134,
+    "edge_live": null,
+    "live_days": null,
+    "live_exp": null,
+    "live_n": 0,
+    "n": 134,
+    "status": "testing",
+    "why": "60% winners, +0.13R per trade, profit factor 1.28 over 134 trades; 0 of 40 live trades needed for a pass"
+   },
+   "PB": {
+    "bt_n": 250,
+    "edge_live": null,
+    "live_days": null,
+    "live_exp": null,
+    "live_n": 0,
+    "n": 250,
+    "status": "rejected",
+    "why": "48% winners, -0.20R per trade, profit factor 0.64 over 250 trades"
+   },
+   "SMF": {
+    "bt_n": 0,
+    "edge_live": null,
+    "live_days": null,
+    "live_exp": null,
+    "live_n": 0,
+    "n": 0,
+    "status": "testing",
+    "why": "0 of 15 closed trades so far"
+   },
+   "SQZ": {
+    "bt_n": 250,
+    "edge_live": null,
+    "live_days": null,
+    "live_exp": null,
+    "live_n": 0,
+    "n": 250,
+    "status": "testing",
+    "why": "45% winners, -0.06R per trade, profit factor 0.88 over 250 trades; 0 of 40 live trades needed for a pass"
+   },
+   "VWAP": {
+    "bt_n": 159,
+    "edge_live": null,
+    "live_days": null,
+    "live_exp": null,
+    "live_n": 0,
+    "n": 159,
+    "status": "rejected",
+    "why": "47% winners, -0.05R per trade, profit factor 0.91 over 159 trades; stays rejected until it makes money again (profit factor 1.05+)"
+   },
+   "XOVER": {
+    "bt_n": 250,
+    "edge_live": null,
+    "live_days": null,
+    "live_exp": null,
+    "live_n": 0,
+    "n": 250,
+    "status": "testing",
+    "why": "52% winners, +0.00R per trade, profit factor 1.00 over 250 trades; 0 of 40 live trades needed for a pass"
+   }
+  },
+  "tp_r": []
+ },
+ "before": {
+  "cool": [],
+  "lessons": 7,
+  "strategies": {
+   "BRK": {
+    "bt_n": 250,
+    "edge_live": null,
+    "live_days": null,
+    "live_exp": null,
+    "live_n": 0,
+    "n": 250,
+    "status": "rejected",
+    "why": "48% winners, -0.10R per trade, profit factor 0.82 over 250 trades"
+   },
+   "HI24": {
+    "bt_n": 250,
+    "edge_live": null,
+    "live_days": null,
+    "live_exp": null,
+    "live_n": 0,
+    "n": 250,
+    "status": "rejected",
+    "why": "39% winners, -0.18R per trade, profit factor 0.73 over 250 trades"
+   },
+   "MOM": {
+    "bt_n": 250,
+    "edge_live": null,
+    "live_days": null,
+    "live_exp": null,
+    "live_n": 0,
+    "n": 250,
+    "status": "rejected",
+    "why": "41% winners, -0.26R per trade, profit factor 0.58 over 250 trades"
+   },
+   "MR": {
+    "bt_n": 134,
+    "edge_live": null,
+    "live_days": null,
+    "live_exp": null,
+    "live_n": 0,
+    "n": 134,
+    "status": "testing",
+    "why": "60% winners, +0.13R per trade, profit factor 1.28 over 134 trades; 0 of 40 live trades needed for a pass"
+   },
+   "PB": {
+    "bt_n": 250,
+    "edge_live": null,
+    "live_days": null,
+    "live_exp": null,
+    "live_n": 0,
+    "n": 250,
+    "status": "rejected",
+    "why": "48% winners, -0.20R per trade, profit factor 0.64 over 250 trades"
+   },
+   "SMF": {
+    "bt_n": 0,
+    "edge_live": null,
+    "live_days": null,
+    "live_exp": null,
+    "live_n": 0,
+    "n": 0,
+    "status": "testing",
+    "why": "0 of 15 closed trades so far"
+   },
+   "SQZ": {
+    "bt_n": 250,
+    "edge_live": null,
+    "live_days": null,
+    "live_exp": null,
+    "live_n": 0,
+    "n": 250,
+    "status": "testing",
+    "why": "45% winners, -0.06R per trade, profit factor 0.88 over 250 trades; 0 of 40 live trades needed for a pass"
+   },
+   "VWAP": {
+    "bt_n": 159,
+    "edge_live": null,
+    "live_days": null,
+    "live_exp": null,
+    "live_n": 0,
+    "n": 159,
+    "status": "rejected",
+    "why": "47% winners, -0.05R per trade, profit factor 0.91 over 159 trades; stays rejected until it makes money again (profit factor 1.05+)"
+   },
+   "XOVER": {
+    "bt_n": 250,
+    "edge_live": null,
+    "live_days": null,
+    "live_exp": null,
+    "live_n": 0,
+    "n": 250,
+    "status": "testing",
+    "why": "52% winners, +0.00R per trade, profit factor 1.00 over 250 trades; 0 of 40 live trades needed for a pass"
+   }
+  },
+  "tp_r": []
+ },
+ "evidence": {
+  "backtest": {
+   "strategy_closed": 8275,
+   "strategy_closed_copy": 511,
+   "total": 18378,
+   "twin_closed": 9592
+  },
+  "legacy_coin_identity": {
+   "UNVERIFIED": {
+    "coins": [
+     "AIN",
+     "BTW",
+     "BULLA",
+     "GRAM",
+     "GRIFFAIN",
+     "GTC",
+     "LYN",
+     "SKYAI",
+     "UP",
+     "龙虾"
+    ],
+    "n": 10
+   },
+   "VERIFIED_CRYPTO": {
+    "coins": [
+     "AAVE",
+     "ACE",
+     "ADA",
+     "AERO",
+     "AKE",
+     "ALGO",
+     "APT",
+     "AR",
+     "ARB",
+     "ASTER",
+     "ATOM",
+     "AVAX",
+     "AXS",
+     "BCH",
+     "BNB",
+     "BONK",
+     "BR",
+     "BTC",
+     "CASHCAT",
+     "CC",
+     "CHIP",
+     "CRV",
+     "DOGE",
+     "DOT",
+     "ENA",
+     "ETC",
+     "ETH",
+     "ETHFI",
+     "FARTCOIN",
+     "FET",
+     "FIL",
+     "FLOKI",
+     "GRASS",
+     "HBAR",
+     "HEMI",
+     "HUMA",
+     "HYPE",
+     "ICP",
+     "INJ",
+     "IOTA"
+    ],
+    "n": 103
+   },
+   "VERIFIED_TRADFI": {
+    "coins": [
+     "ACN",
+     "MOONSHOT"
+    ],
+    "n": 2
+   }
+  },
+  "legacy_coins": 115,
+  "legacy_live": {
+   "strategy_closed": 667,
+   "total": 1413,
+   "twin_closed": 746
+  },
+  "pair_excluded_live": {
+   "total": 0
+  },
+  "pairs": {
+   "legacy_twins_unlinked": 746,
+   "live_twins": 1031,
+   "pair_class_mismatch": 0,
+   "pair_trade_in_journal": 245,
+   "with_pair_link": 285
+  },
+  "qualified_live": {
+   "strategy_closed": 175,
+   "strategy_open": 90,
+   "total": 550,
+   "twin_closed": 208,
+   "twin_open": 77
+  },
+  "rule": "forward evidence = backtest trades + identity-qualified live trades (entry-time VERIFIED_CRYPTO proof); legacy live trades are kept and reported here, never counted",
+  "unqualified_reasons": {
+   "LEGACY_NO_IDENTITY_PROOF": 1413
+  }
+ },
+ "identity_authority": {
+  "scan_id": "gh-38066839845-1",
+  "version": "v8.identity/4"
+ },
+ "journal": {
+  "closed": 20174,
+  "created": 1791057821,
+  "open": 167,
+  "scans": 44,
+  "updated": 1791646523,
+  "with_entry_proof": 1963
+ },
+ "passed_after": [],
+ "passed_before": [],
+ "published_outputs": {
+  "base": {
+   "counts": {
+    "closed": 9646,
+    "done": 6345,
+    "legacy_live": 667,
+    "live": 299,
+    "open": 88,
+    "replay": 7884,
+    "twins": 7285,
+    "window": 8183
+   },
+   "live_picks": 0,
+   "picks": [],
+   "strategies": {
+    "BRK": [
+     "rejected",
+     0,
+     250
+    ],
+    "HI24": [
+     "rejected",
+     0,
+     250
+    ],
+    "MOM": [
+     "rejected",
+     0,
+     250
+    ],
+    "MR": [
+     "testing",
+     0,
+     134
+    ],
+    "PB": [
+     "rejected",
+     0,
+     250
+    ],
+    "SMF": [
+     "testing",
+     0,
+     0
+    ],
+    "SQZ": [
+     "testing",
+     0,
+     250
+    ],
+    "VWAP": [
+     "rejected",
+     0,
+     159
+    ],
+    "XOVER": [
+     "testing",
+     0,
+     250
+    ]
+   },
+   "watch": []
+  },
+  "head": {
+   "counts": {
+    "closed": 9646,
+    "done": 6345,
+    "legacy_live": 667,
+    "live": 299,
+    "open": 88,
+    "replay": 7884,
+    "twins": 7285,
+    "window": 8183
+   },
+   "live_picks": 0,
+   "picks": [],
+   "strategies": {
+    "BRK": [
+     "rejected",
+     0,
+     250
+    ],
+    "HI24": [
+     "rejected",
+     0,
+     250
+    ],
+    "MOM": [
+     "rejected",
+     0,
+     250
+    ],
+    "MR": [
+     "testing",
+     0,
+     134
+    ],
+    "PB": [
+     "rejected",
+     0,
+     250
+    ],
+    "SMF": [
+     "testing",
+     0,
+     0
+    ],
+    "SQZ": [
+     "testing",
+     0,
+     250
+    ],
+    "VWAP": [
+     "rejected",
+     0,
+     159
+    ],
+    "XOVER": [
+     "testing",
+     0,
+     250
+    ]
+   },
+   "watch": []
+  },
+  "legacy_unqualified": {
+   "counts": {
+    "done": 503,
+    "live": 667,
+    "twins": 540
+   },
+   "picks": {
+    "avg_r": null,
+    "closed": 0,
+    "filled": 0,
+    "missed": 0,
+    "picks": 0,
+    "sd_r": null,
+    "stopped": 0,
+    "total_r": 0,
+    "tp1": 0,
+    "tp1_rate": null,
+    "win_rate": null
+   },
+   "reason": "LEGACY_NO_IDENTITY_PROOF",
+   "strategies": {
+    "BRK": {
+     "days": 4,
+     "exp": -0.17,
+     "n": 43,
+     "pf": 0.708,
+     "wr": 0.419
+    },
+    "HI24": {
+     "days": 4,
+     "exp": -0.079,
+     "n": 31,
+     "pf": 0.875,
+     "wr": 0.387
+    },
+    "MOM": {
+     "days": 4,
+     "exp": -0.131,
+     "n": 97,
+     "pf": 0.755,
+     "wr": 0.464
+    },
+    "MR": {
+     "days": 3,
+     "exp": 0.186,
+     "n": 7,
+     "pf": 1.389,
+     "wr": 0.571
+    },
+    "PB": {
+     "days": 4,
+     "exp": -0.2,
+     "n": 111,
+     "pf": 0.669,
+     "wr": 0.423
+    },
+    "SMF": {
+     "days": 4,
+     "exp": -0.23,
+     "n": 45,
+     "pf": 0.571,
+     "wr": 0.378
+    },
+    "SQZ": {
+     "days": 4,
+     "exp": -0.079,
+     "n": 20,
+     "pf": 0.841,
+     "wr": 0.5
+    },
+    "VWAP": {
+     "days": 3,
+     "exp": 0.495,
+     "n": 13,
+     "pf": 2.399,
+     "wr": 0.615
+    },
+    "XOVER": {
+     "days": 4,
+     "exp": 0.219,
+     "n": 18,
+     "pf": 1.566,
+     "wr": 0.556
+    }
+   }
+  },
+  "minutes_apart": 1.5,
+  "picks_added": [],
+  "picks_removed": [],
+  "status_changes": {},
+  "watch_added": [],
+  "watch_removed": []
+ },
+ "rows": {
+  "backtest": 18378,
+  "copies": 511,
+  "live": 1963,
+  "live_twins": 1031,
+  "total": 20341,
+  "twins": 10623
+ },
+ "status_changes": {}
+}

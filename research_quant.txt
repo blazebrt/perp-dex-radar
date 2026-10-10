@@ -1,0 +1,5 @@
+[16:18] quant: journal (new): 0 open, 0 closed
+[16:19] quant: 76 of 77 coins with 4h candles
+[16:19] quant: 5 signals, 5 new paper trades
+[16:19] quant: 0 trades closed this scan, 5 open
+[16:19] quant: done in 18.3s: 5 new signals, 5 open trades

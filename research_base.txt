@@ -1,0 +1,20 @@
+phase base f7aa7f6d318f4dfcd84c74df27d38314e4349208
+Preparing worktree (detached HEAD f7aa7f6)
+HEAD is now at f7aa7f6 v8 Phase 5: separate crypto wrappers from economic exposure (#16)
+[16:20] universe: 853 coins across 7 DEXs, 433 crypto, 267 excluded, 153 identity unverified
+[16:20] journal (new): 0 open and 0 closed trades, 0 active variants
+[16:21] smart money: 150 of 150 top Hyperliquid traders read, 450 open positions
+[16:21] stage 1: 428 charted, 5 without data, sources {'mexc': 413, 'gate': 10, 'hyperliquid': 2, 'aster': 1, 'bitget': 2}
+[16:22] stage 2: 56 deep dives (16 extra), 56 signals on 35 coins, 0 publishable, Gate.io positioning for 24
+[16:22] journal: 111 new paper trades, 0 closed this scan, 105 open, 6 closed in total
+[16:22] done in 83.5s: 0 picks, regime Risk-on, 9 notes
+[16:22] quant: journal (new): 0 open, 0 closed
+[16:22] quant: 76 of 77 coins with 4h candles
+[16:22] quant: 5 signals, 5 new paper trades
+[16:22] quant: 0 trades closed this scan, 5 open
+[16:22] quant: done in 18.5s: 5 new signals, 5 open trades
+[16:22] picks: journal (new): 0 open, 0 closed
+[16:22] picks: 76 of 77 coins with 4h candles
+[16:22] picks: swing checks for 52 coins (day 2026-10-09)
+[16:23] picks: paper: 2 new, 0 closed, 2 open
+[16:23] picks: done in 94.0s: 52 swing and 49 day-trade scores; top swing LIT short 78.0, ASTER long 77.0, DOGE short 77.0

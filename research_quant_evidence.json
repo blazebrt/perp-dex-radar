@@ -1,0 +1,472 @@
+{
+ "actionable_open": {
+  "coins": [
+   "AAVE",
+   "ADA",
+   "ALGO",
+   "ASTER",
+   "ATOM",
+   "AVAX",
+   "BCH",
+   "BNB",
+   "BTC",
+   "CRV",
+   "DOGE",
+   "DOT",
+   "ENA",
+   "ETH",
+   "ETHFI",
+   "HBAR",
+   "HYPE",
+   "ICP",
+   "LINK",
+   "LTC",
+   "ONDO",
+   "OP",
+   "PEPE",
+   "RENDER",
+   "SAND",
+   "SEI",
+   "SOL",
+   "SUI",
+   "TAO",
+   "TRUMP",
+   "UNI",
+   "VIRTUAL",
+   "XLM",
+   "XRP"
+  ],
+  "n": 45
+ },
+ "added_actionable": [],
+ "analyzer": {
+  "signal_coins": [
+   [
+    "AAVE",
+    "long",
+    "Proven"
+   ],
+   [
+    "ADA",
+    "long",
+    "Proven"
+   ],
+   [
+    "ALGO",
+    "short",
+    "Proven"
+   ],
+   [
+    "ASTER",
+    "short",
+    "Proven"
+   ],
+   [
+    "ATOM",
+    "long",
+    "Proven"
+   ],
+   [
+    "BCH",
+    "long",
+    "Proven"
+   ],
+   [
+    "BNB",
+    "short",
+    "Proven"
+   ],
+   [
+    "CRV",
+    "short",
+    "Proven"
+   ],
+   [
+    "DOT",
+    "long",
+    "Proven"
+   ],
+   [
+    "ENA",
+    "short",
+    "Proven"
+   ],
+   [
+    "ETH",
+    "short",
+    "Proven"
+   ],
+   [
+    "ETHFI",
+    "short",
+    "Proven"
+   ],
+   [
+    "HBAR",
+    "short",
+    "Proven"
+   ],
+   [
+    "ICP",
+    "short",
+    "Proven"
+   ],
+   [
+    "LINK",
+    "long",
+    "Proven"
+   ],
+   [
+    "ONDO",
+    "long",
+    "Proven"
+   ],
+   [
+    "OP",
+    "long",
+    "Proven"
+   ],
+   [
+    "PEPE",
+    "short",
+    "Proven"
+   ],
+   [
+    "RENDER",
+    "long",
+    "Proven"
+   ],
+   [
+    "SAND",
+    "long",
+    "Proven"
+   ],
+   [
+    "SOL",
+    "short",
+    "Proven"
+   ],
+   [
+    "SUI",
+    "long",
+    "Proven"
+   ],
+   [
+    "TAO",
+    "long",
+    "Proven"
+   ],
+   [
+    "TRUMP",
+    "short",
+    "Proven"
+   ],
+   [
+    "UNI",
+    "short",
+    "Proven"
+   ],
+   [
+    "VIRTUAL",
+    "short",
+    "Proven"
+   ],
+   [
+    "XLM",
+    "short",
+    "Proven"
+   ],
+   [
+    "XRP",
+    "long",
+    "Proven"
+   ]
+  ],
+  "tested": {
+   "NIGHT": {
+    "notes": [
+     "The quant journal still contains this historical paper position (Momentum rotation long since Oct 4), but NIGHT is not currently verified as crypto (UNVERIFIED), so it is not a trade signal."
+    ],
+    "signals": []
+   }
+  }
+ },
+ "analyzer_blocked_in_signal_coins": [],
+ "analyzer_blocked_signals": {},
+ "base_actionable_open": {
+  "coins": [
+   "AAVE",
+   "ADA",
+   "ALGO",
+   "ASTER",
+   "ATOM",
+   "AVAX",
+   "BCH",
+   "BNB",
+   "BTC",
+   "CRV",
+   "DOGE",
+   "DOT",
+   "ENA",
+   "ETH",
+   "ETHFI",
+   "HBAR",
+   "HYPE",
+   "ICP",
+   "LINK",
+   "LTC",
+   "ONDO",
+   "OP",
+   "PEPE",
+   "RENDER",
+   "SAND",
+   "SEI",
+   "SOL",
+   "SUI",
+   "TAO",
+   "TRUMP",
+   "UNI",
+   "VIRTUAL",
+   "XLM",
+   "XRP"
+  ],
+  "n": 45
+ },
+ "blocked_in_dashboard": [],
+ "blocked_open": [
+  {
+   "c": "NIGHT",
+   "d": 1,
+   "exit_stop": 0.038284872,
+   "exit_time": 1792281600,
+   "id": "NIGHT-XSMOM-1791072000",
+   "identity": "UNVERIFIED",
+   "identity_qualified": false,
+   "identity_reason": "IDENTITY_UNVERIFIED",
+   "identity_unqualified_reason": "LEGACY_NO_IDENTITY_PROOF",
+   "r_now": 0.0583,
+   "s": "XSMOM",
+   "t_in": 1791072000
+  }
+ ],
+ "current_identity_of_open": {
+  "UNVERIFIED": 1,
+  "VERIFIED_CRYPTO": 45
+ },
+ "dashboard_quant_signals": {
+  "added": [],
+  "base": [
+   "AAVE",
+   "ADA",
+   "ALGO",
+   "ASTER",
+   "ATOM",
+   "AVAX",
+   "BCH",
+   "BNB",
+   "BTC",
+   "CRV",
+   "DOGE",
+   "DOT",
+   "ENA",
+   "ETH",
+   "ETHFI",
+   "HBAR",
+   "HYPE",
+   "ICP",
+   "LINK",
+   "LTC",
+   "ONDO",
+   "OP",
+   "PEPE",
+   "RENDER",
+   "SAND",
+   "SEI",
+   "SOL",
+   "SUI",
+   "TAO",
+   "TRUMP",
+   "UNI",
+   "VIRTUAL",
+   "XLM",
+   "XRP"
+  ],
+  "head": [
+   "AAVE",
+   "ADA",
+   "ALGO",
+   "ASTER",
+   "ATOM",
+   "AVAX",
+   "BCH",
+   "BNB",
+   "BTC",
+   "CRV",
+   "DOGE",
+   "DOT",
+   "ENA",
+   "ETH",
+   "ETHFI",
+   "HBAR",
+   "HYPE",
+   "ICP",
+   "LINK",
+   "LTC",
+   "ONDO",
+   "OP",
+   "PEPE",
+   "RENDER",
+   "SAND",
+   "SEI",
+   "SOL",
+   "SUI",
+   "TAO",
+   "TRUMP",
+   "UNI",
+   "VIRTUAL",
+   "XLM",
+   "XRP"
+  ],
+  "removed": []
+ },
+ "evidence": {
+  "actionable_open": 45,
+  "blocked_coins": [
+   "NIGHT"
+  ],
+  "blocked_open": 1,
+  "blocked_reasons": {
+   "IDENTITY_UNVERIFIED": 1
+  },
+  "live_record_rule": "identity-qualified closed trades only (entry-time VERIFIED_CRYPTO proof)",
+  "proof_complete": {
+   "closed": 2,
+   "open": 11
+  },
+  "qualified": {
+   "closed": 2,
+   "open": 11
+  },
+  "unqualified": {
+   "closed": 16,
+   "open": 35
+  },
+  "unqualified_reasons": {
+   "LEGACY_NO_IDENTITY_PROOF": 51
+  }
+ },
+ "journal_after": {
+  "closed": 18,
+  "lost": [],
+  "open": 46,
+  "published_trades_kept": true
+ },
+ "legacy_closed": 16,
+ "legacy_unqualified": {
+  "live": {
+   "TREND_EMA": {
+    "avg": 0.024,
+    "long_n": 0,
+    "n": 9,
+    "pf": 1.14,
+    "short_n": 9,
+    "sum": 0.22,
+    "wr": 0.667
+   },
+   "TSMOM": {
+    "avg": -0.84,
+    "long_n": 6,
+    "n": 6,
+    "pf": 0.0,
+    "short_n": 0,
+    "sum": -5.04,
+    "wr": 0.0
+   },
+   "XSMOM": {
+    "avg": -1.014,
+    "long_n": 1,
+    "n": 1,
+    "pf": 0.0,
+    "short_n": 0,
+    "sum": -1.01,
+    "wr": 0.0
+   }
+  },
+  "live_all": {
+   "avg": -0.365,
+   "long_n": 7,
+   "n": 16,
+   "pf": 0.23,
+   "short_n": 9,
+   "sum": -5.84,
+   "wr": 0.375
+  },
+  "reason": "LEGACY_NO_IDENTITY_PROOF"
+ },
+ "live": {
+  "base": {
+   "TREND_EMA": {
+    "avg": -1.024,
+    "long_n": 0,
+    "n": 2,
+    "pf": 0.0,
+    "short_n": 2,
+    "sum": -2.05,
+    "wr": 0.0
+   },
+   "TSMOM": {
+    "n": 0
+   },
+   "XSMOM": {
+    "n": 0
+   }
+  },
+  "head": {
+   "TREND_EMA": {
+    "avg": -1.024,
+    "long_n": 0,
+    "n": 2,
+    "pf": 0.0,
+    "short_n": 2,
+    "sum": -2.05,
+    "wr": 0.0
+   },
+   "TSMOM": {
+    "n": 0
+   },
+   "XSMOM": {
+    "n": 0
+   }
+  }
+ },
+ "live_all": {
+  "base": {
+   "avg": -1.024,
+   "long_n": 0,
+   "n": 2,
+   "pf": 0.0,
+   "short_n": 2,
+   "sum": -2.05,
+   "wr": 0.0
+  },
+  "head": {
+   "avg": -1.024,
+   "long_n": 0,
+   "n": 2,
+   "pf": 0.0,
+   "short_n": 2,
+   "sum": -2.05,
+   "wr": 0.0
+  }
+ },
+ "published_journal": {
+  "closed": 18,
+  "open": 45,
+  "scans": 41,
+  "updated": 1791646641,
+  "with_entry_proof": 63
+ },
+ "qualified_closed": 2,
+ "removed_actionable": [],
+ "rule": "The journal by evidence class: qualified (entry-time VERIFIED_CRYPTO proof, in the live record) or not (kept,"
+}

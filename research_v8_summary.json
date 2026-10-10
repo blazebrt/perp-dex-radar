@@ -1,0 +1,3875 @@
+{
+ "manifest": {
+  "audit_version": "v8-phase6.0",
+  "config_hashes": {
+   "day": "0baf4185fde78a21ebb9c0b902d64e1c53d35f1179d8fe83e4b5b44e0ec44e79",
+   "quant": "b2db56b8fb0b8bee2671f26a1db8c8e1d2126d551c7f15709ccd54b11deaaf16",
+   "radar": "c5fe4cfc0d05b9080c459435a60ac50a6897f8a2c825bb7fac0e0ced5f8382d0",
+   "smart": "220cc78ac74c42cdba7a7c1419f858f3b1bc10d9cec244216eb2a33b99d1e790",
+   "swing": "0baf4185fde78a21ebb9c0b902d64e1c53d35f1179d8fe83e4b5b44e0ec44e79",
+   "universe": "e5ad876b8ec60040f8c190593c00b0d2f7ce4d879dde50dd868b12cde41be1fa"
+  },
+  "data_sources": {
+   "dex_market_lists": {
+    "aster": true,
+    "dydx": true,
+    "edgex": false,
+    "extended": true,
+    "hyperliquid": true,
+    "lighter": true,
+    "paradex": true,
+    "variational": true
+   },
+   "exposure_metadata": {
+    "LIGHTER_TOKENLIST": "OK"
+   },
+   "fallback_universe": false
+  },
+  "dispositions": 4639,
+  "engine_versions": {
+   "day": "1.2.0",
+   "quant": "1.0.0",
+   "radar": "5.0.0",
+   "smart": "1.0.0",
+   "swing": "1.2.0",
+   "universe": "5.0.0"
+  },
+  "git_sha": "356ccb57e9df2e7f9ea01ebbdeb041e505d837d8",
+  "identity_config_hash": "96a10dc22e22d0bcf2c6ed1970ea1de72307426dfad2b53020a2b998c125d12c",
+  "identity_version": "v8.identity/4",
+  "legacy_output_hashes": {
+   "data/dashboard.json": "7e4d6f080e1d6b501889aa8b9b87c1746b3966e121442105f764259cc6f25237",
+   "data/journal.csv": "3623e01d3efe482d345a79ffab0fb09e3706c2f31a6ae123c2730bb28ea33719",
+   "data/journal.json": "6cbeaa3ed542960f3daf0b3b9457241c280382536fb2a3a9512007374e8edcb4",
+   "data/latest.json": "7be7e2b55ee5f57e3a42aa8dd2bfaa821087ee1f05ad55b75cffea84e4d26ca2",
+   "data/picks.json": "66488acadbb23074b3829981157e0f17e9792fcf82e7e5c8d2ffd439212752c5",
+   "data/picks_journal.json": "3d1458050652b7e84e93da44b6d4ecee0a2c0b1328fed019359e93f5281b313d",
+   "data/quant.json": "f260c0e402c88647357f869bbf5ed8ed7a57a0b6912cc0468e6086c2051f16cd",
+   "data/quant_journal.json": "3d85ca46e73d5d7c477ef471a04dd4307a0b49b52c8bfaed0033a306b89598fb",
+   "data/smart.json": "e82cc960738b7ff66fa19f39ba1bcd23ba3bfc18eaf26a275dbf575cbd979273",
+   "data/smart_journal.json": "dbb808dbfa0f612b45820f0d134ba927c644b5d97a731ec0c35925aa822c424b"
+  },
+  "liquidity_version": "v8.liquidity/1",
+  "parts": {
+   "day": "ok",
+   "quant": "ok",
+   "radar": "ok",
+   "smart": "ok",
+   "swing": "ok",
+   "universe": "ok"
+  },
+  "ref": "v8/phase-6-exposure-local-crypto-authority",
+  "registry_contracts": 12292,
+  "repo": "blazebrt/perp-dex-radar",
+  "scan_id": "gh-38066839845-1",
+  "scan_ids_consistent": true,
+  "schema": "v8.audit/4",
+  "strategy_authority": {
+   "files": {
+    "quant.py": "8f9a1f4fbac73f8bb26216c7f4d056e1e0c904c627dc404d37b8bc16892873f5",
+    "quant_research.json": "132a1aeddc7ea834fbfebf8deb70ac1ef110717df8ae4c34f51659b4f2f1745e",
+    "tools/research/qexport.py": "0cb6b1a94619bcd08f295100c8dbb5b2436b746e055fdc66845ded698bca1595"
+   },
+   "quant_runtime_order": [
+    "TSMOM",
+    "TREND_EMA",
+    "XSMOM"
+   ],
+   "research_file_verdicts": {
+    "BTC_LEAD": "rejected",
+    "DC20_D": "rejected",
+    "DC55_D": "rejected",
+    "EMA10_50_D": "rejected",
+    "EMA5_20_D": "rejected",
+    "FAIL_BRK": "rejected",
+    "FUND_CARRY": "rejected",
+    "FUND_FADE": "rejected",
+    "LIQ_FLUSH": "rejected",
+    "PULLBACK": "rejected",
+    "RS_BRK": "rejected",
+    "SQZ_4H": "rejected",
+    "SQZ_D": "rejected",
+    "TREND_DC20": "rejected",
+    "TREND_DC55": "rejected",
+    "TREND_EMA": "live",
+    "TSMOM": "live",
+    "TSMOM_FAST": "rejected",
+    "TSMOM_SLOW": "rejected",
+    "VOL_SPIKE": "rejected",
+    "XSMOM": "live",
+    "XSMOM_14D_7": "rejected",
+    "XSMOM_7D": "rejected",
+    "XSREV_1D": "rejected"
+   },
+   "research_final": [
+    "TSMOM",
+    "TREND_EMA",
+    "XSMOM"
+   ],
+   "research_verdict_preassigned_live": true
+  },
+  "ts": 1791648904
+ },
+ "summary": {
+  "active_perps": 2017,
+  "ambiguous_exclusions": 0,
+  "assets_by_identity": {
+   "CRYPTO": 430,
+   "CRYPTO_EXPOSURE_SELECTED": 3,
+   "IDENTITY_UNVERIFIED": 153,
+   "TRADFI_CLASSIFIED": 267
+  },
+  "canonical_assets": 1040,
+  "collisions": [
+   "BB",
+   "PURR",
+   "QNT"
+  ],
+  "crypto_exposure_selected": [
+   "BB",
+   "PURR",
+   "QNT"
+  ],
+  "dispositions": {
+   "day": {
+    "INSUFFICIENT_DATA": 155,
+    "MODEL_INELIGIBLE": 291,
+    "NOT_EXECUTABLE": 356,
+    "REJECTED": 34,
+    "SURFACED": 4,
+    "WATCHED": 13
+   },
+   "quant": {
+    "INSUFFICIENT_DATA": 154,
+    "MODEL_INELIGIBLE": 291,
+    "NOT_EXECUTABLE": 356,
+    "REJECTED": 47,
+    "SURFACED": 5,
+    "WATCHED": 0
+   },
+   "radar": {
+    "INSUFFICIENT_DATA": 159,
+    "MODEL_INELIGIBLE": 267,
+    "NOT_EXECUTABLE": 350,
+    "REJECTED": 77,
+    "SURFACED": 0,
+    "WATCHED": 0
+   },
+   "smart": {
+    "INSUFFICIENT_DATA": 0,
+    "MODEL_INELIGIBLE": 862,
+    "NOT_EXECUTABLE": 0,
+    "REJECTED": 178,
+    "SURFACED": 0,
+    "WATCHED": 0
+   },
+   "swing": {
+    "INSUFFICIENT_DATA": 154,
+    "MODEL_INELIGIBLE": 291,
+    "NOT_EXECUTABLE": 356,
+    "REJECTED": 36,
+    "SURFACED": 0,
+    "WATCHED": 16
+   },
+   "universe": {
+    "INSUFFICIENT_DATA": 0,
+    "MODEL_INELIGIBLE": 0,
+    "NOT_EXECUTABLE": 187,
+    "REJECTED": 0,
+    "SURFACED": 0,
+    "WATCHED": 0
+   }
+  },
+  "dispositions_total": {
+   "INSUFFICIENT_DATA": 622,
+   "MODEL_INELIGIBLE": 2002,
+   "NOT_EXECUTABLE": 1605,
+   "REJECTED": 372,
+   "SURFACED": 9,
+   "WATCHED": 29
+  },
+  "engine_universe_differences": {
+   "quant": {
+    "in_engine_universe_only": [],
+    "in_scanner_universe_only": [],
+    "n_engine_only": 0,
+    "n_scanner_only": 0
+   },
+   "smart": {
+    "registry_assets_without_record": 0
+   },
+   "swing": {
+    "in_engine_universe_only": [],
+    "in_scanner_universe_only": [],
+    "n_engine_only": 0,
+    "n_scanner_only": 0
+   }
+  },
+  "identity": {
+   "changed_vs_phase2": [
+    "4STOCK",
+    "ACN",
+    "ACU",
+    "ADBE",
+    "AEON",
+    "AGPU",
+    "AGT",
+    "AI",
+    "AIA",
+    "AIGENSYN",
+    "AIN",
+    "AIO",
+    "AIW3",
+    "ANSEM",
+    "APM",
+    "APR",
+    "APRO",
+    "ARGUS",
+    "ARX",
+    "ASTEROID",
+    "AT",
+    "AVAAI",
+    "AVL",
+    "AWE",
+    "B",
+    "B-MONEY",
+    "BANANA",
+    "BANK",
+    "BAS",
+    "BASECAT",
+    "BAY",
+    "BCHSV",
+    "BILL",
+    "BIRB",
+    "BLEND",
+    "BLUAI",
+    "BONER",
+    "BREW",
+    "BSV",
+    "BTCDOM",
+    "BTW",
+    "BULLA",
+    "BYD",
+    "CARDS",
+    "CATE",
+    "CFG",
+    "CHEEMS",
+    "CLO",
+    "COAI",
+    "COCOAP",
+    "COLLECT",
+    "CT",
+    "CTR",
+    "CXMT",
+    "DATA",
+    "DELTA",
+    "DOGS",
+    "DOS",
+    "DRV",
+    "EDEN",
+    "EVAA",
+    "FHE",
+    "FIGHT",
+    "FLORK",
+    "FONE",
+    "FORM",
+    "FRAX",
+    "FUN",
+    "FUTU",
+    "G",
+    "GASOLP",
+    "GRAM",
+    "GRIFFAIN",
+    "GSTOCK",
+    "GTC",
+    "GUN",
+    "H100",
+    "HANA",
+    "HIVE",
+    "HYUNDAI",
+    "HYUNDAIUSD",
+    "INX",
+    "JCT",
+    "JELLYJELLY",
+    "KAT",
+    "KO",
+    "KUAISHOU",
+    "LAPTOP",
+    "LIGHT",
+    "LISTA",
+    "LUNC",
+    "LYN",
+    "LYTE",
+    "MANTRA",
+    "MARS",
+    "MARSCOIN",
+    "MAX",
+    "MEITUAN",
+    "MEME",
+    "MOONSHOT",
+    "MUU",
+    "NES",
+    "NEX",
+    "NIGHT",
+    "NOM",
+    "NOW",
+    "NULLMASK",
+    "OPEN",
+    "OPN",
+    "OPN_OPINION",
+    "PAID",
+    "PAIR",
+    "PEARL",
+    "PIPPIN",
+    "PLAY",
+    "POD",
+    "POPMART",
+    "PRL",
+    "PROM",
+    "PROS",
+    "PUNDIAI",
+    "RAIL",
+    "RATS",
+    "RE",
+    "RESOLV",
+    "RE_ETH",
+    "RIF",
+    "ROBO",
+    "RONIN",
+    "RTX",
+    "SAMSUNGUSD",
+    "SCR",
+    "SDEV",
+    "SENT",
+    "SHROOM",
+    "SI",
+    "SIREN",
+    "SKHYNIXUSD",
+    "SKR",
+    "SKYAI",
+    "SLX",
+    "SNXX",
+    "SOLV",
+    "SPACE",
+    "STABLECOINX",
+    "STAR",
+    "STONK",
+    "STONKBROKER",
+    "STONKS",
+    "SWARMS",
+    "SYN",
+    "TAKE",
+    "TENCENT",
+    "THE",
+    "TMX",
+    "TOSHI",
+    "TQQQ",
+    "TRIA",
+    "TROLL",
+    "TRUTH",
+    "TST",
+    "TURBO",
+    "UP",
+    "US100S",
+    "US10Y",
+    "US500S",
+    "USD1",
+    "V",
+    "VARIATIONAL",
+    "VERONA",
+    "XAI",
+    "XDP",
+    "XEC",
+    "XIAOMI",
+    "ZCAT",
+    "ZEST",
+    "ZKP",
+    "ZZZ",
+    "\u54c8\u57fa\u7c73",
+    "\u5e01\u5b89\u4eba\u751f",
+    "\u6211\u8e0f\u9a6c\u6765\u4e86",
+    "\u725b\u6765",
+    "\u9f99\u867e"
+   ],
+   "discovery_visible_assets": 853,
+   "discovery_visible_contracts": 2017,
+   "execution_identity_eligible": 433,
+   "exposure_safety": {
+    "changed_vs_previous": {},
+    "economic_conflicts": 0,
+    "economic_crypto_verified": 433,
+    "economic_tradfi_verified": 267,
+    "exposure_check_blocked": 0,
+    "exposure_check_unavailable_assets": 0,
+    "identity_version": "v8.identity/4",
+    "previous_states": {
+     "AMBIGUOUS": 0,
+     "UNVERIFIED": 153,
+     "VERIFIED_CRYPTO": 433,
+     "VERIFIED_TRADFI": 267
+    },
+    "previous_version": "v8.identity/3",
+    "transitions_vs_previous": {},
+    "wrapper_ambiguous": 0,
+    "wrapper_crypto_assets": 195,
+    "wrapper_crypto_by_state": {
+     "AMBIGUOUS": 0,
+     "UNVERIFIED": 33,
+     "VERIFIED_CRYPTO": 160,
+     "VERIFIED_TRADFI": 2
+    },
+    "wrapper_only_unverified": 33,
+    "wrapper_unaccounted": 0,
+    "wrapper_with_economic_tradfi": 2,
+    "wrapper_with_ticker_list_crypto": 160
+   },
+   "phase2_default_crypto_any": 150,
+   "phase2_default_crypto_now": {
+    "UNVERIFIED": 121,
+    "VERIFIED_TRADFI": 29
+   },
+   "phase2_default_crypto_only": 149,
+   "phase2_states": {
+    "AMBIGUOUS": 1,
+    "CRYPTO": 615,
+    "TRADFI": 237
+   },
+   "states": {
+    "AMBIGUOUS": 0,
+    "UNVERIFIED": 153,
+    "VERIFIED_CRYPTO": 433,
+    "VERIFIED_TRADFI": 267
+   },
+   "ticker_authority": {
+    "binding_candidates": 433,
+    "by_result": {
+     "BOUND": 433,
+     "NO_BINDABLE_EXPOSURE": 0,
+     "UNBOUND_DIRECT_CRYPTO_EVIDENCE": 0,
+     "UNBOUND_MULTIPLE_CANDIDATES": 0
+    },
+    "identity_version": "v8.identity/4",
+    "known_crypto_assets": 433,
+    "no_bindable_exposure": [],
+    "ticker_crypto_bindings": 433,
+    "ticker_crypto_blocked_by_exposure_check": [],
+    "ticker_crypto_no_bindable_exposure": 0,
+    "ticker_crypto_unbound_assets": 0,
+    "ticker_crypto_unbound_exposures": 0,
+    "ticker_crypto_with_direct_crypto_evidence": [],
+    "ticker_crypto_with_tradfi_collision": [
+     "BB",
+     "PURR",
+     "QNT"
+    ],
+    "unaccounted": 0,
+    "unaccounted_assets": 0,
+    "unaccounted_candidates": 0,
+    "unbound": {}
+   },
+   "transitions": [],
+   "transitions_source": "none",
+   "unverified_assets": [
+    "4STOCK",
+    "ACU",
+    "AEON",
+    "AGT",
+    "AI",
+    "AIA",
+    "AIGENSYN",
+    "AIN",
+    "AIO",
+    "AIW3",
+    "ANSEM",
+    "APM",
+    "APR",
+    "APRO",
+    "ARGUS",
+    "ARX",
+    "ASTEROID",
+    "AT",
+    "AVAAI",
+    "AVL",
+    "AWE",
+    "B",
+    "B-MONEY",
+    "BANANA",
+    "BANK",
+    "BAS",
+    "BASECAT",
+    "BAY",
+    "BCHSV",
+    "BILL",
+    "BIRB",
+    "BLEND",
+    "BLUAI",
+    "BONER",
+    "BREW",
+    "BSV",
+    "BTCDOM",
+    "BTW",
+    "BULLA",
+    "CARDS",
+    "CATE",
+    "CFG",
+    "CHEEMS",
+    "CLO",
+    "COAI",
+    "COLLECT",
+    "CT",
+    "CTR",
+    "DATA",
+    "DELTA",
+    "DOGS",
+    "DOS",
+    "DRV",
+    "EDEN",
+    "EVAA",
+    "FHE",
+    "FIGHT",
+    "FLORK",
+    "FONE",
+    "FORM",
+    "FRAX",
+    "FUN",
+    "G",
+    "GRAM",
+    "GRIFFAIN",
+    "GSTOCK",
+    "GTC",
+    "GUN",
+    "HANA",
+    "HIVE",
+    "INX",
+    "JCT",
+    "JELLYJELLY",
+    "KAT",
+    "KO",
+    "LAPTOP",
+    "LIGHT",
+    "LISTA",
+    "LUNC",
+    "LYN",
+    "MANTRA",
+    "MARS",
+    "MARSCOIN",
+    "MAX",
+    "MEME",
+    "NES",
+    "NEX",
+    "NIGHT",
+    "NOM",
+    "NULLMASK",
+    "OPEN",
+    "OPN",
+    "OPN_OPINION",
+    "PAID",
+    "PAIR",
+    "PEARL",
+    "PIPPIN",
+    "PLAY",
+    "POD",
+    "PRL",
+    "PROM",
+    "PROS",
+    "PUNDIAI",
+    "RAIL",
+    "RATS",
+    "RE",
+    "RESOLV",
+    "RE_ETH",
+    "RIF",
+    "ROBO",
+    "RONIN",
+    "RTX",
+    "SCR",
+    "SENT",
+    "SHROOM",
+    "SI",
+    "SIREN",
+    "SKR",
+    "SKYAI",
+    "SLX",
+    "SOLV",
+    "SPACE",
+    "STAR",
+    "STONK",
+    "STONKBROKER",
+    "STONKS",
+    "SWARMS",
+    "SYN",
+    "TAKE",
+    "THE",
+    "TMX",
+    "TOSHI",
+    "TRIA",
+    "TROLL",
+    "TRUTH",
+    "TST",
+    "TURBO",
+    "UP",
+    "USD1",
+    "VARIATIONAL",
+    "VERONA",
+    "XAI",
+    "XDP",
+    "XEC",
+    "ZCAT",
+    "ZEST",
+    "ZKP",
+    "ZZZ",
+    "\u54c8\u57fa\u7c73",
+    "\u5e01\u5b89\u4eba\u751f",
+    "\u6211\u8e0f\u9a6c\u6765\u4e86",
+    "\u725b\u6765",
+    "\u9f99\u867e"
+   ],
+   "unverified_exclusions": {
+    "day": 153,
+    "quant": 153,
+    "radar": 153,
+    "swing": 153
+   },
+   "unverified_exclusions_radar": 153
+  },
+  "legacy_crypto": 433,
+  "legacy_universe": 853,
+  "no_data_exclusions_radar": 159,
+  "quant_eligible": 52,
+  "raw_contracts": 12292,
+  "scanner_deep_dives": 55,
+  "scanner_extras": 15,
+  "scanner_stage1": 427,
+  "scanner_stage2": 40,
+  "smart_represented": 104,
+  "swing_eligible": 52,
+  "tradfi_collisions": 3,
+  "tradfi_exclusions": 267,
+  "unaccounted": {
+   "day": 0,
+   "quant": 0,
+   "radar": 0,
+   "registry_assets": 0,
+   "smart": 0,
+   "swing": 0,
+   "universe": 0
+  },
+  "unaccounted_registry_assets": [],
+  "universe_exclusions": 187
+ },
+ "engines": {
+  "day": {
+   "by_disposition": {
+    "INSUFFICIENT_DATA": 155,
+    "MODEL_INELIGIBLE": 291,
+    "NOT_EXECUTABLE": 356,
+    "REJECTED": 34,
+    "SURFACED": 4,
+    "WATCHED": 13
+   },
+   "by_reason": {
+    "DAY_CANDIDATE_NOT_SELECTED": 2,
+    "DAY_READY": 4,
+    "DAY_SETTING_UP": 13,
+    "DEX_VOLUME_BELOW_LEGACY_MIN": 356,
+    "IDENTITY_UNVERIFIED": 153,
+    "NO_HOURLY_CANDLES": 1,
+    "OUTPUT_TOP_N_CUTOFF": 19,
+    "PRICE_SCALE_CONFLICT": 1,
+    "REF_VOLUME_BELOW_LEGACY_MIN": 24,
+    "SCORE_BELOW_THRESHOLD": 13,
+    "TRADFI_CLASSIFIED": 267
+   },
+   "disposed": 853,
+   "duplicates": [],
+   "input": 853,
+   "outside_input": [],
+   "stages": {
+    "day_candidates": 50,
+    "day_scored": 49,
+    "listed": 17,
+    "paper_new": 3
+   },
+   "status": "OK",
+   "unaccounted": 0,
+   "unaccounted_assets": [],
+   "unclassified": 0
+  },
+  "quant": {
+   "by_disposition": {
+    "INSUFFICIENT_DATA": 154,
+    "MODEL_INELIGIBLE": 291,
+    "NOT_EXECUTABLE": 356,
+    "REJECTED": 47,
+    "SURFACED": 5,
+    "WATCHED": 0
+   },
+   "by_reason": {
+    "DEX_VOLUME_BELOW_LEGACY_MIN": 356,
+    "IDENTITY_UNVERIFIED": 153,
+    "NO_STRATEGY_SIGNAL": 28,
+    "PRICE_SCALE_CONFLICT": 1,
+    "QUANT_NEW_SIGNAL": 5,
+    "REF_VOLUME_BELOW_LEGACY_MIN": 24,
+    "STOP_TOO_WIDE": 19,
+    "TRADFI_CLASSIFIED": 267
+   },
+   "disposed": 853,
+   "duplicates": [],
+   "input": 853,
+   "journal": {
+    "blocked_open": [],
+    "evidence": {
+     "actionable_open": 5,
+     "blocked_coins": [],
+     "blocked_open": 0,
+     "blocked_reasons": {},
+     "live_record_rule": "identity-qualified closed trades only (entry-time VERIFIED_CRYPTO proof)",
+     "proof_complete": {
+      "closed": 0,
+      "open": 5
+     },
+     "qualified": {
+      "closed": 0,
+      "open": 5
+     },
+     "unqualified": {
+      "closed": 0,
+      "open": 0
+     },
+     "unqualified_reasons": {}
+    },
+    "qualified_closed_n": 0,
+    "unqualified_n": 0,
+    "unqualified_trades": []
+   },
+   "outside_input": [],
+   "stages": {
+    "blocked_open": 0,
+    "eligible_latest_day": 52,
+    "latest_day": 1791504000,
+    "liquid_crypto": 77,
+    "new_signals": 5,
+    "open": 5,
+    "universe": 853,
+    "with_4h": 76,
+    "xsmom_ranked": 52
+   },
+   "status": "OK",
+   "unaccounted": 0,
+   "unaccounted_assets": [],
+   "unclassified": 0
+  },
+  "radar": {
+   "by_disposition": {
+    "INSUFFICIENT_DATA": 159,
+    "MODEL_INELIGIBLE": 267,
+    "NOT_EXECUTABLE": 350,
+    "REJECTED": 77,
+    "SURFACED": 0,
+    "WATCHED": 0
+   },
+   "by_reason": {
+    "DEX_VOLUME_BELOW_LEGACY_MIN": 350,
+    "IDENTITY_UNVERIFIED": 153,
+    "NO_STRATEGY_SIGNAL": 18,
+    "NO_SUPPORTED_CANDLES": 4,
+    "PAST_TARGET": 2,
+    "PRICE_SCALE_CONFLICT": 2,
+    "RADAR_STAGE2_NOT_SELECTED": 22,
+    "STOP_TOO_WIDE": 1,
+    "STRATEGY_NOT_PASSED": 34,
+    "TRADFI_CLASSIFIED": 267
+   },
+   "disposed": 853,
+   "duplicates": [],
+   "input": 853,
+   "journal": {
+    "evidence": {
+     "backtest": {
+      "total": 0
+     },
+     "legacy_coin_identity": {},
+     "legacy_coins": 0,
+     "legacy_live": {
+      "total": 0
+     },
+     "pair_excluded_live": {
+      "total": 0
+     },
+     "pairs": {
+      "legacy_twins_unlinked": 0,
+      "live_twins": 54,
+      "pair_class_mismatch": 0,
+      "pair_trade_in_journal": 54,
+      "with_pair_link": 54
+     },
+     "qualified_live": {
+      "strategy_open": 55,
+      "total": 109,
+      "twin_closed": 5,
+      "twin_open": 49
+     },
+     "rule": "forward evidence = backtest trades + identity-qualified live trades (entry-time VERIFIED_CRYPTO proof); legacy live trades are kept and reported here, never counted",
+     "unqualified_reasons": {}
+    },
+    "legacy_open_coins": [],
+    "live_record_rule": "backtest trades + identity-qualified live trades only; legacy live trades are kept and reported, never forward evidence"
+   },
+   "outside_input": [],
+   "stages": {
+    "crypto": 433,
+    "deep_dives": 55,
+    "market_gate": null,
+    "picks": 0,
+    "plan_rejections": 6,
+    "publishable": 0,
+    "signal_coins": 34,
+    "signals": 55,
+    "stage1_charted": 427,
+    "stage2_extras": 15,
+    "stage2_selected": 40,
+    "universe": 853,
+    "watch": 0
+   },
+   "status": "OK",
+   "unaccounted": 0,
+   "unaccounted_assets": [],
+   "unclassified": 0
+  },
+  "smart": {
+   "by_disposition": {
+    "INSUFFICIENT_DATA": 0,
+    "MODEL_INELIGIBLE": 862,
+    "NOT_EXECUTABLE": 0,
+    "REJECTED": 178,
+    "SURFACED": 0,
+    "WATCHED": 0
+   },
+   "by_reason": {
+    "SMART_NOT_HELD": 56,
+    "SMART_NO_CROWD": 104,
+    "SMART_POSITIONS_BELOW_MIN": 18,
+    "SMART_VENUE_NOT_COVERED": 862
+   },
+   "disposed": 1040,
+   "duplicates": [],
+   "filled_at_snapshot": 918,
+   "input": 1040,
+   "journal": {
+    "evidence": {
+     "qualified": {
+      "closed_info": 0,
+      "closed_signal": 0,
+      "open_info": 0,
+      "open_signal": 0
+     },
+     "unqualified": {
+      "closed_info": 0,
+      "closed_signal": 0,
+      "open_info": 0,
+      "open_signal": 0
+     },
+     "unqualified_reasons": {}
+    },
+    "live_record_rule": "identity_qualified trades only (entry-time VERIFIED_CRYPTO proof)",
+    "unqualified_n": 0,
+    "unqualified_trades": []
+   },
+   "outside_input": [],
+   "stages": {
+    "coins_held": 122,
+    "coins_min_size": 104,
+    "identity": {
+     "UNVERIFIED": 5,
+     "VERIFIED_CRYPTO": 98,
+     "VERIFIED_TRADFI": 1
+    },
+    "identity_authority": {
+     "coins": 853,
+     "ok": true,
+     "scan_id": "gh-38066839845-1",
+     "source": "data/v8/identity_authority.json",
+     "ts": 1791648904,
+     "why": "SAME_SCAN"
+    },
+    "identity_blocked": [],
+    "info": 0,
+    "paper_opened": 0,
+    "published": 60,
+    "rows": 104,
+    "signals": 0
+   },
+   "status": "OK",
+   "unaccounted": 0,
+   "unaccounted_assets": [],
+   "unclassified": 0
+  },
+  "swing": {
+   "by_disposition": {
+    "INSUFFICIENT_DATA": 154,
+    "MODEL_INELIGIBLE": 291,
+    "NOT_EXECUTABLE": 356,
+    "REJECTED": 36,
+    "SURFACED": 0,
+    "WATCHED": 16
+   },
+   "by_reason": {
+    "DEX_VOLUME_BELOW_LEGACY_MIN": 356,
+    "IDENTITY_UNVERIFIED": 153,
+    "LISTED_BELOW_WATCH": 4,
+    "OUTPUT_TOP_N_CUTOFF": 1,
+    "PRICE_SCALE_CONFLICT": 1,
+    "REF_VOLUME_BELOW_LEGACY_MIN": 24,
+    "SCORE_BELOW_THRESHOLD": 31,
+    "SWING_SETTING_UP": 16,
+    "TRADFI_CLASSIFIED": 267
+   },
+   "disposed": 853,
+   "duplicates": [],
+   "input": 853,
+   "outside_input": [],
+   "stages": {
+    "last_day": 1791504000,
+    "liquid_crypto": 77,
+    "listed": 20,
+    "paper_new": 0,
+    "swing_checked": 52,
+    "universe": 853,
+    "with_4h": 76
+   },
+   "status": "OK",
+   "unaccounted": 0,
+   "unaccounted_assets": [],
+   "unclassified": 0
+  },
+  "universe": {
+   "by_disposition": {
+    "INSUFFICIENT_DATA": 0,
+    "MODEL_INELIGIBLE": 0,
+    "NOT_EXECUTABLE": 187,
+    "REJECTED": 0,
+    "SURFACED": 0,
+    "WATCHED": 0
+   },
+   "by_reason": {
+    "NO_ACTIVE_PERP_CONTRACT": 187
+   },
+   "disposed": 187,
+   "duplicates": [],
+   "input": 1040,
+   "outside_input": [],
+   "passed_to_engines": 853,
+   "stages": null,
+   "status": "OK",
+   "unaccounted": 0,
+   "unaccounted_assets": [],
+   "unclassified": 0
+  }
+ },
+ "registry_counts": {
+  "active_perps": 2017,
+  "adapter_mismatches": 0,
+  "alias_mapped": [
+   "aster:LUNA2USDT",
+   "variational:1NEIRO",
+   "variational:ALLORA",
+   "variational:ARCSOL",
+   "variational:BABYL",
+   "variational:BBIT",
+   "variational:BROCCOLI",
+   "variational:BTR0",
+   "variational:ESPRESSO",
+   "variational:FF0",
+   "variational:HUMIDIFI",
+   "variational:LAGRANGE",
+   "variational:LIGHTER",
+   "variational:LUNA2",
+   "variational:METEORA",
+   "variational:PUMPFUN",
+   "variational:SOPHON",
+   "variational:TUTORIAL",
+   "variational:VANATOKEN"
+  ],
+  "ambiguous": [],
+  "assets_by_identity": {
+   "CRYPTO": 430,
+   "CRYPTO_EXPOSURE_SELECTED": 3,
+   "IDENTITY_UNVERIFIED": 153,
+   "TRADFI_CLASSIFIED": 267
+  },
+  "assets_by_legacy": {
+   "CRYPTO": 433,
+   "NO_ACTIVE_PERP_CONTRACT": 187,
+   "TRADFI": 267,
+   "UNVERIFIED": 153
+  },
+  "by_contract_class": {
+   "TRADFI": 484,
+   "UNLABELED": 1533
+  },
+  "by_exposure_class": {
+   "CRYPTO": 1286,
+   "TRADFI": 528,
+   "UNVERIFIED": 203
+  },
+  "by_health": {
+   "CONFLICTED": 7,
+   "HEALTHY": 12280,
+   "MISSING": 5
+  },
+  "by_legacy_state": {
+   "DELISTED": 56,
+   "DUPLICATE_NOT_SELECTED": 12,
+   "EXPOSURE_NOT_ADMITTED": 4,
+   "NOT_PERPETUAL": 9871,
+   "NOT_TRADING": 348,
+   "PRICE_CONFLICT_DROPPED": 7,
+   "SELECTED": 1994
+  },
+  "by_venue": {
+   "aster": 620,
+   "dydx": 296,
+   "extended": 406,
+   "hyperliquid": 234,
+   "lighter": 239,
+   "paradex": 9929,
+   "variational": 568
+  },
+  "candidate_evidence": {
+   "by_value_and_exposure_state": {
+    "aster.underlyingSubType=AI": {
+     "UNVERIFIED": 12,
+     "VERIFIED_CRYPTO": 28
+    },
+    "aster.underlyingSubType=AOS2": {
+     "VERIFIED_CRYPTO": 2,
+     "VERIFIED_TRADFI": 14
+    },
+    "aster.underlyingSubType=Meme": {
+     "UNVERIFIED": 28,
+     "VERIFIED_CRYPTO": 28,
+     "VERIFIED_TRADFI": 1
+    },
+    "aster.underlyingSubType=Top": {
+     "VERIFIED_CRYPTO": 16
+    },
+    "aster.underlyingSubType=pre-launch": {
+     "VERIFIED_TRADFI": 5
+    },
+    "aster.underlyingType=COIN": {
+     "UNVERIFIED": 141,
+     "VERIFIED_CRYPTO": 316,
+     "VERIFIED_TRADFI": 136
+    },
+    "extended.subCategory=AI": {
+     "UNVERIFIED": 4,
+     "VERIFIED_CRYPTO": 21
+    },
+    "extended.subCategory=Commodity": {
+     "VERIFIED_TRADFI": 9
+    },
+    "extended.subCategory=DeFi": {
+     "UNVERIFIED": 6,
+     "VERIFIED_CRYPTO": 32
+    },
+    "extended.subCategory=ETF/Index": {
+     "VERIFIED_TRADFI": 8
+    },
+    "extended.subCategory=Equity": {
+     "VERIFIED_TRADFI": 112
+    },
+    "extended.subCategory=FX": {
+     "VERIFIED_TRADFI": 2
+    },
+    "extended.subCategory=Infra": {
+     "UNVERIFIED": 6,
+     "VERIFIED_CRYPTO": 29
+    },
+    "extended.subCategory=L1": {
+     "UNVERIFIED": 6,
+     "VERIFIED_CRYPTO": 40
+    },
+    "extended.subCategory=L2": {
+     "UNVERIFIED": 1,
+     "VERIFIED_CRYPTO": 11
+    },
+    "extended.subCategory=Meme": {
+     "UNVERIFIED": 10,
+     "VERIFIED_CRYPTO": 27
+    },
+    "extended.subCategory=Pre-market": {
+     "VERIFIED_TRADFI": 2
+    },
+    "lighter.asset_categories=AI": {
+     "UNVERIFIED": 2,
+     "VERIFIED_CRYPTO": 12
+    },
+    "lighter.asset_categories=BONDS": {
+     "VERIFIED_TRADFI": 1
+    },
+    "lighter.asset_categories=COMMODITIES": {
+     "VERIFIED_TRADFI": 9
+    },
+    "lighter.asset_categories=COMPUTE": {
+     "VERIFIED_TRADFI": 2
+    },
+    "lighter.asset_categories=DEFI": {
+     "UNVERIFIED": 1,
+     "VERIFIED_CRYPTO": 36
+    },
+    "lighter.asset_categories=ETF": {
+     "VERIFIED_TRADFI": 10
+    },
+    "lighter.asset_categories=FX": {
+     "VERIFIED_TRADFI": 8
+    },
+    "lighter.asset_categories=KRW": {
+     "VERIFIED_TRADFI": 4
+    },
+    "lighter.asset_categories=LAYER_1": {
+     "UNVERIFIED": 2,
+     "VERIFIED_CRYPTO": 28
+    },
+    "lighter.asset_categories=LAYER_2": {
+     "UNVERIFIED": 1,
+     "VERIFIED_CRYPTO": 10
+    },
+    "lighter.asset_categories=MAJOR": {
+     "VERIFIED_CRYPTO": 3,
+     "VERIFIED_TRADFI": 7
+    },
+    "lighter.asset_categories=MEMES": {
+     "UNVERIFIED": 2,
+     "VERIFIED_CRYPTO": 15
+    },
+    "lighter.asset_categories=NEW": {
+     "UNVERIFIED": 4,
+     "VERIFIED_CRYPTO": 1,
+     "VERIFIED_TRADFI": 16
+    },
+    "lighter.asset_categories=PRE_IPO": {
+     "VERIFIED_TRADFI": 3
+    },
+    "lighter.asset_categories=PRE_LAUNCH": {
+     "UNVERIFIED": 1
+    },
+    "lighter.asset_categories=STOCK": {
+     "VERIFIED_TRADFI": 58
+    },
+    "lighter.asset_type=CRYPTO": {
+     "UNVERIFIED": 12,
+     "VERIFIED_CRYPTO": 105,
+     "VERIFIED_TRADFI": 1
+    },
+    "lighter.insurance_fund_account_index=281474976710654": {
+     "UNVERIFIED": 6,
+     "VERIFIED_CRYPTO": 9,
+     "VERIFIED_TRADFI": 90
+    },
+    "lighter.insurance_fund_account_index=281474976710655": {
+     "UNVERIFIED": 6,
+     "VERIFIED_CRYPTO": 96,
+     "VERIFIED_TRADFI": 6
+    },
+    "lighter.market_flags=0": {
+     "UNVERIFIED": 12,
+     "VERIFIED_CRYPTO": 105,
+     "VERIFIED_TRADFI": 96
+    },
+    "lighter.strategy_index=2": {
+     "UNVERIFIED": 7,
+     "VERIFIED_CRYPTO": 105,
+     "VERIFIED_TRADFI": 1
+    },
+    "lighter.strategy_index=3": {
+     "VERIFIED_TRADFI": 9
+    },
+    "lighter.strategy_index=4": {
+     "VERIFIED_TRADFI": 9
+    },
+    "lighter.strategy_index=5": {
+     "VERIFIED_TRADFI": 55
+    },
+    "lighter.strategy_index=6": {
+     "VERIFIED_TRADFI": 17
+    },
+    "lighter.strategy_index=7": {
+     "UNVERIFIED": 5,
+     "VERIFIED_TRADFI": 5
+    }
+   },
+   "qualified_rules": [],
+   "status": "OBSERVED_NOT_AUTHORITY",
+   "unverified_with_candidate": [
+    "4STOCK",
+    "ACU",
+    "AEON",
+    "AGT",
+    "AI",
+    "AIA",
+    "AIGENSYN",
+    "AIN",
+    "AIO",
+    "AIW3",
+    "ANSEM",
+    "APM",
+    "APR",
+    "ARGUS",
+    "ARX",
+    "ASTEROID",
+    "AT",
+    "AVAAI",
+    "AVL",
+    "AWE",
+    "B",
+    "B-MONEY",
+    "BANK",
+    "BAS",
+    "BASECAT",
+    "BAY",
+    "BILL",
+    "BIRB",
+    "BLEND",
+    "BLUAI",
+    "BONER",
+    "BREW",
+    "BTCDOM",
+    "BTW",
+    "BULLA",
+    "CARDS",
+    "CATE",
+    "CFG",
+    "CHEEMS",
+    "CLO",
+    "COAI",
+    "COLLECT",
+    "CT",
+    "CTR",
+    "DATA",
+    "DELTA",
+    "DOGS",
+    "DOS",
+    "DRV",
+    "EDEN",
+    "EVAA",
+    "FHE",
+    "FIGHT",
+    "FLORK",
+    "FONE",
+    "FORM",
+    "FRAX",
+    "FUN",
+    "G",
+    "GRAM",
+    "GRIFFAIN",
+    "GSTOCK",
+    "GTC",
+    "GUN",
+    "HANA",
+    "HIVE",
+    "INX",
+    "JCT",
+    "JELLYJELLY",
+    "KAT",
+    "LAPTOP",
+    "LIGHT",
+    "LISTA",
+    "LUNC",
+    "LYN",
+    "MANTRA",
+    "MARS",
+    "MARSCOIN",
+    "MAX",
+    "MEME",
+    "NES",
+    "NEX",
+    "NIGHT",
+    "NOM",
+    "NULLMASK",
+    "OPEN",
+    "OPN",
+    "PAID",
+    "PAIR",
+    "PEARL",
+    "PIPPIN",
+    "PLAY",
+    "POD",
+    "PRL",
+    "PROM",
+    "PROS",
+    "PUNDIAI",
+    "RAIL",
+    "RATS",
+    "RE",
+    "RESOLV",
+    "RIF",
+    "ROBO",
+    "RONIN",
+    "RTX",
+    "SCR",
+    "SENT",
+    "SHROOM",
+    "SI",
+    "SIREN",
+    "SKR",
+    "SKYAI",
+    "SLX",
+    "SOLV",
+    "SPACE",
+    "STAR",
+    "STONK",
+    "STONKBROKER",
+    "STONKS",
+    "SWARMS",
+    "SYN",
+    "TAKE",
+    "THE",
+    "TMX",
+    "TOSHI",
+    "TRIA",
+    "TROLL",
+    "TRUTH",
+    "TST",
+    "TURBO",
+    "UP",
+    "USD1",
+    "VARIATIONAL",
+    "VERONA",
+    "XAI",
+    "XDP",
+    "XEC",
+    "ZCAT",
+    "ZEST",
+    "ZKP",
+    "ZZZ",
+    "\u54c8\u57fa\u7c73",
+    "\u5e01\u5b89\u4eba\u751f",
+    "\u6211\u8e0f\u9a6c\u6765\u4e86",
+    "\u725b\u6765",
+    "\u9f99\u867e"
+   ],
+   "unverified_without_candidate": [
+    "APRO",
+    "BANANA",
+    "BCHSV",
+    "BSV",
+    "KO",
+    "OPN_OPINION",
+    "RE_ETH"
+   ]
+  },
+  "canonical_assets": 1040,
+  "changed_vs_phase1": [
+   "4STOCK",
+   "ACN",
+   "ACU",
+   "ADBE",
+   "AEON",
+   "AGPU",
+   "AGT",
+   "AI",
+   "AIA",
+   "AIGENSYN",
+   "AIN",
+   "AIO",
+   "AIW3",
+   "ANSEM",
+   "APM",
+   "APR",
+   "APRO",
+   "ARGUS",
+   "ARX",
+   "ASTEROID",
+   "AT",
+   "AVAAI",
+   "AVL",
+   "AWE",
+   "B",
+   "B-MONEY",
+   "BANANA",
+   "BANK",
+   "BAS",
+   "BASECAT",
+   "BAY",
+   "BB",
+   "BCHSV",
+   "BILL",
+   "BIRB",
+   "BLEND",
+   "BLUAI",
+   "BONER",
+   "BREW",
+   "BSV",
+   "BTCDOM",
+   "BTW",
+   "BULLA",
+   "BYD",
+   "CARDS",
+   "CATE",
+   "CFG",
+   "CHEEMS",
+   "CLO",
+   "COAI",
+   "COCOAP",
+   "COLLECT",
+   "CT",
+   "CTR",
+   "CXMT",
+   "DATA",
+   "DELTA",
+   "DOGS",
+   "DOS",
+   "DRV",
+   "EDEN",
+   "EVAA",
+   "FHE",
+   "FIGHT",
+   "FLORK",
+   "FONE",
+   "FORM",
+   "FRAX",
+   "FUN",
+   "FUTU",
+   "G",
+   "GASOLP",
+   "GRAM",
+   "GRIFFAIN",
+   "GSTOCK",
+   "GTC",
+   "GUN",
+   "H100",
+   "HANA",
+   "HIVE",
+   "HYUNDAI",
+   "HYUNDAIUSD",
+   "INX",
+   "JCT",
+   "JELLYJELLY",
+   "KAT",
+   "KO",
+   "KUAISHOU",
+   "LAPTOP",
+   "LIGHT",
+   "LISTA",
+   "LUNC",
+   "LYN",
+   "LYTE",
+   "MANTRA",
+   "MARS",
+   "MARSCOIN",
+   "MAX",
+   "MEITUAN",
+   "MEME",
+   "MOONSHOT",
+   "MUU",
+   "NES",
+   "NEX",
+   "NIGHT",
+   "NOM",
+   "NOW",
+   "NULLMASK",
+   "OPEN",
+   "OPN",
+   "OPN_OPINION",
+   "PAID",
+   "PAIR",
+   "PEARL",
+   "PIPPIN",
+   "PLAY",
+   "POD",
+   "POPMART",
+   "PRL",
+   "PROM",
+   "PROS",
+   "PUNDIAI",
+   "PURR",
+   "QNT",
+   "RAIL",
+   "RATS",
+   "RE",
+   "RESOLV",
+   "RE_ETH",
+   "RIF",
+   "ROBO",
+   "RONIN",
+   "RTX",
+   "SAMSUNGUSD",
+   "SCR",
+   "SDEV",
+   "SENT",
+   "SHROOM",
+   "SI",
+   "SIREN",
+   "SKHYNIXUSD",
+   "SKR",
+   "SKYAI",
+   "SLX",
+   "SNXX",
+   "SOLV",
+   "SPACE",
+   "STABLECOINX",
+   "STAR",
+   "STONK",
+   "STONKBROKER",
+   "STONKS",
+   "SWARMS",
+   "SYN",
+   "TAKE",
+   "TENCENT",
+   "THE",
+   "TMX",
+   "TOSHI",
+   "TQQQ",
+   "TRIA",
+   "TROLL",
+   "TRUTH",
+   "TST",
+   "TURBO",
+   "UP",
+   "US100S",
+   "US10Y",
+   "US500S",
+   "USD1",
+   "V",
+   "VARIATIONAL",
+   "VERONA",
+   "XAI",
+   "XDP",
+   "XEC",
+   "ZCAT",
+   "ZEST",
+   "ZKP",
+   "ZZZ",
+   "\u54c8\u57fa\u7c73",
+   "\u5e01\u5b89\u4eba\u751f",
+   "\u6211\u8e0f\u9a6c\u6765\u4e86",
+   "\u725b\u6765",
+   "\u9f99\u867e"
+  ],
+  "changed_vs_phase2": [
+   "4STOCK",
+   "ACN",
+   "ACU",
+   "ADBE",
+   "AEON",
+   "AGPU",
+   "AGT",
+   "AI",
+   "AIA",
+   "AIGENSYN",
+   "AIN",
+   "AIO",
+   "AIW3",
+   "ANSEM",
+   "APM",
+   "APR",
+   "APRO",
+   "ARGUS",
+   "ARX",
+   "ASTEROID",
+   "AT",
+   "AVAAI",
+   "AVL",
+   "AWE",
+   "B",
+   "B-MONEY",
+   "BANANA",
+   "BANK",
+   "BAS",
+   "BASECAT",
+   "BAY",
+   "BCHSV",
+   "BILL",
+   "BIRB",
+   "BLEND",
+   "BLUAI",
+   "BONER",
+   "BREW",
+   "BSV",
+   "BTCDOM",
+   "BTW",
+   "BULLA",
+   "BYD",
+   "CARDS",
+   "CATE",
+   "CFG",
+   "CHEEMS",
+   "CLO",
+   "COAI",
+   "COCOAP",
+   "COLLECT",
+   "CT",
+   "CTR",
+   "CXMT",
+   "DATA",
+   "DELTA",
+   "DOGS",
+   "DOS",
+   "DRV",
+   "EDEN",
+   "EVAA",
+   "FHE",
+   "FIGHT",
+   "FLORK",
+   "FONE",
+   "FORM",
+   "FRAX",
+   "FUN",
+   "FUTU",
+   "G",
+   "GASOLP",
+   "GRAM",
+   "GRIFFAIN",
+   "GSTOCK",
+   "GTC",
+   "GUN",
+   "H100",
+   "HANA",
+   "HIVE",
+   "HYUNDAI",
+   "HYUNDAIUSD",
+   "INX",
+   "JCT",
+   "JELLYJELLY",
+   "KAT",
+   "KO",
+   "KUAISHOU",
+   "LAPTOP",
+   "LIGHT",
+   "LISTA",
+   "LUNC",
+   "LYN",
+   "LYTE",
+   "MANTRA",
+   "MARS",
+   "MARSCOIN",
+   "MAX",
+   "MEITUAN",
+   "MEME",
+   "MOONSHOT",
+   "MUU",
+   "NES",
+   "NEX",
+   "NIGHT",
+   "NOM",
+   "NOW",
+   "NULLMASK",
+   "OPEN",
+   "OPN",
+   "OPN_OPINION",
+   "PAID",
+   "PAIR",
+   "PEARL",
+   "PIPPIN",
+   "PLAY",
+   "POD",
+   "POPMART",
+   "PRL",
+   "PROM",
+   "PROS",
+   "PUNDIAI",
+   "RAIL",
+   "RATS",
+   "RE",
+   "RESOLV",
+   "RE_ETH",
+   "RIF",
+   "ROBO",
+   "RONIN",
+   "RTX",
+   "SAMSUNGUSD",
+   "SCR",
+   "SDEV",
+   "SENT",
+   "SHROOM",
+   "SI",
+   "SIREN",
+   "SKHYNIXUSD",
+   "SKR",
+   "SKYAI",
+   "SLX",
+   "SNXX",
+   "SOLV",
+   "SPACE",
+   "STABLECOINX",
+   "STAR",
+   "STONK",
+   "STONKBROKER",
+   "STONKS",
+   "SWARMS",
+   "SYN",
+   "TAKE",
+   "TENCENT",
+   "THE",
+   "TMX",
+   "TOSHI",
+   "TQQQ",
+   "TRIA",
+   "TROLL",
+   "TRUTH",
+   "TST",
+   "TURBO",
+   "UP",
+   "US100S",
+   "US10Y",
+   "US500S",
+   "USD1",
+   "V",
+   "VARIATIONAL",
+   "VERONA",
+   "XAI",
+   "XDP",
+   "XEC",
+   "XIAOMI",
+   "ZCAT",
+   "ZEST",
+   "ZKP",
+   "ZZZ",
+   "\u54c8\u57fa\u7c73",
+   "\u5e01\u5b89\u4eba\u751f",
+   "\u6211\u8e0f\u9a6c\u6765\u4e86",
+   "\u725b\u6765",
+   "\u9f99\u867e"
+  ],
+  "changed_vs_phase2_detail": {
+   "4STOCK": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "ACN": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "ACU": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "ADBE": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "AEON": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "AGPU": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "AGT": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "AI": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "AIA": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "AIGENSYN": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "AIN": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "AIO": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "AIW3": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "ANSEM": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "APM": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "APR": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "APRO": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "ARGUS": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "ARX": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "ASTEROID": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "AT": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "AVAAI": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "AVL": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "AWE": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "B": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "B-MONEY": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "BANANA": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "BANK": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "BAS": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "BASECAT": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "BAY": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "BCHSV": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "BILL": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "BIRB": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "BLEND": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "BLUAI": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "BONER": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "BREW": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "BSV": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "BTCDOM": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "BTW": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "BULLA": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "BYD": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "CARDS": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "CATE": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "CFG": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "CHEEMS": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "CLO": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "COAI": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "COCOAP": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "COLLECT": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "CT": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "CTR": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "CXMT": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "DATA": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "DELTA": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "DOGS": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "DOS": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "DRV": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "EDEN": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "EVAA": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "FHE": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "FIGHT": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "FLORK": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "FONE": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "FORM": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "FRAX": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "FUN": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "FUTU": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "G": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "GASOLP": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "GRAM": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "GRIFFAIN": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "GSTOCK": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "GTC": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "GUN": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "H100": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "HANA": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "HIVE": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "HYUNDAI": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "HYUNDAIUSD": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "INX": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "JCT": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "JELLYJELLY": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "KAT": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "KO": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "KUAISHOU": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "LAPTOP": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "LIGHT": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "LISTA": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "LUNC": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "LYN": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "LYTE": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "MANTRA": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "MARS": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "MARSCOIN": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "MAX": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "MEITUAN": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "MEME": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "MOONSHOT": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "MUU": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "NES": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "NEX": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "NIGHT": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "NOM": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "NOW": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "NULLMASK": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "OPEN": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "OPN": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "OPN_OPINION": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "PAID": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "PAIR": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "PEARL": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "PIPPIN": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "PLAY": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "POD": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "POPMART": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "PRL": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "PROM": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "PROS": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "PUNDIAI": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "RAIL": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "RATS": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "RE": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "RESOLV": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "RE_ETH": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "RIF": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "ROBO": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "RONIN": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "RTX": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "SAMSUNGUSD": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "SCR": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "SDEV": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "SENT": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "SHROOM": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "SI": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "SIREN": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "SKHYNIXUSD": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "SKR": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "SKYAI": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "SLX": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "SNXX": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "SOLV": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "SPACE": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "STABLECOINX": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "STAR": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "STONK": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "STONKBROKER": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "STONKS": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "SWARMS": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "SYN": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "TAKE": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "TENCENT": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "THE": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "TMX": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "TOSHI": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "TQQQ": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "TRIA": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "TROLL": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "TRUTH": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "TST": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "TURBO": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "UP": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "US100S": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "US10Y": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "US500S": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "USD1": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "V": [
+    "CRYPTO",
+    "VERIFIED_TRADFI"
+   ],
+   "VARIATIONAL": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "VERONA": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "XAI": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "XDP": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "XEC": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "XIAOMI": [
+    "AMBIGUOUS",
+    "VERIFIED_TRADFI"
+   ],
+   "ZCAT": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "ZEST": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "ZKP": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "ZZZ": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "\u54c8\u57fa\u7c73": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "\u5e01\u5b89\u4eba\u751f": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "\u6211\u8e0f\u9a6c\u6765\u4e86": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "\u725b\u6765": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ],
+   "\u9f99\u867e": [
+    "CRYPTO",
+    "UNVERIFIED"
+   ]
+  },
+  "crypto_exposure_selected": [
+   "BB",
+   "PURR",
+   "QNT"
+  ],
+  "discovery_visible_assets": 853,
+  "discovery_visible_contracts": 2017,
+  "execution_identity_eligible": 433,
+  "exposure_safety": {
+   "changed_vs_previous": {},
+   "changed_vs_previous_detail": {},
+   "economic_conflicts": [],
+   "economic_crypto_verified": 433,
+   "economic_tradfi_verified": 267,
+   "exposure_check_blocked": [],
+   "exposure_check_unavailable_assets": [],
+   "identity_version": "v8.identity/4",
+   "previous_states": {
+    "AMBIGUOUS": 0,
+    "UNVERIFIED": 153,
+    "VERIFIED_CRYPTO": 433,
+    "VERIFIED_TRADFI": 267
+   },
+   "previous_version": "v8.identity/3",
+   "transitions_vs_previous": {},
+   "wrapper_ambiguous": [],
+   "wrapper_crypto_assets": 195,
+   "wrapper_crypto_by_state": {
+    "AMBIGUOUS": 0,
+    "UNVERIFIED": 33,
+    "VERIFIED_CRYPTO": 160,
+    "VERIFIED_TRADFI": 2
+   },
+   "wrapper_only_unverified": [
+    "AGT",
+    "AIA",
+    "AIGENSYN",
+    "B",
+    "BAS",
+    "BILL",
+    "BTW",
+    "CFG",
+    "COLLECT",
+    "DATA",
+    "DOGS",
+    "EVAA",
+    "FHE",
+    "GRAM",
+    "GTC",
+    "HIVE",
+    "INX",
+    "JELLYJELLY",
+    "KAT",
+    "LUNC",
+    "LYN",
+    "MARS",
+    "OPEN",
+    "PLAY",
+    "PRL",
+    "PROM",
+    "RE",
+    "SWARMS",
+    "TRIA",
+    "TRUTH",
+    "TST",
+    "TURBO",
+    "XEC"
+   ],
+   "wrapper_unaccounted": 0,
+   "wrapper_with_economic_tradfi": [
+    "PAXG",
+    "XAUT"
+   ],
+   "wrapper_with_ticker_list_crypto": [
+    "AAVE",
+    "ADA",
+    "AERO",
+    "AIOT",
+    "AKE",
+    "AKT",
+    "ALGO",
+    "APE",
+    "APT",
+    "AR",
+    "ARB",
+    "ARC",
+    "ASTER",
+    "ATOM",
+    "AVAX",
+    "AVNT",
+    "AXS",
+    "AZTEC",
+    "BABY",
+    "BASED",
+    "BCH",
+    "BEAT",
+    "BNB",
+    "BOME",
+    "BONK",
+    "BSB",
+    "BTC",
+    "CASHCAT",
+    "CFX",
+    "CGPT",
+    "CHIP",
+    "CHZ",
+    "CRV",
+    "DASH",
+    "DEEP",
+    "DOGE",
+    "DOT",
+    "DUSK",
+    "DYDX",
+    "DYM",
+    "EDGE",
+    "EIGEN",
+    "ENA",
+    "ENJ",
+    "ENS",
+    "ETC",
+    "ETH",
+    "ETHFI",
+    "FARTCOIN",
+    "FET",
+    "FIDA",
+    "FIL",
+    "FLOKI",
+    "GALA",
+    "GENIUS",
+    "GIGGLE",
+    "GPS",
+    "GRASS",
+    "GRVT",
+    "GWEI",
+    "H",
+    "HBAR",
+    "HEMI",
+    "HMSTR",
+    "HYPE",
+    "ICP",
+    "INJ",
+    "IO",
+    "IRYS",
+    "JASMY",
+    "JTO",
+    "JUP",
+    "KAIA",
+    "KAITO",
+    "KITE",
+    "KSM",
+    "LAYER",
+    "LDO",
+    "LINEA",
+    "LINK",
+    "LIT",
+    "LTC",
+    "MAGMA",
+    "MEGA",
+    "MON",
+    "MORPHO",
+    "MOVE",
+    "MOVR",
+    "NAORIS",
+    "NEAR",
+    "NEIRO",
+    "NIL",
+    "NOT",
+    "ONDO",
+    "ONG",
+    "OP",
+    "OPG",
+    "ORCA",
+    "ORDI",
+    "PARTI",
+    "PENDLE",
+    "PENGU",
+    "PEOPLE",
+    "PEPE",
+    "PIEVERSE",
+    "PNUT",
+    "POL",
+    "POLYX",
+    "PONS",
+    "POPCAT",
+    "PTB",
+    "PUMP",
+    "Q",
+    "RECALL",
+    "RED",
+    "RENDER",
+    "RUNE",
+    "S",
+    "SAGA",
+    "SAHARA",
+    "SAND",
+    "SAPIEN",
+    "SEI",
+    "SHIB",
+    "SOL",
+    "SOON",
+    "SPK",
+    "SPX",
+    "STABLE",
+    "STRK",
+    "STX",
+    "SUI",
+    "TAC",
+    "TAG",
+    "TAO",
+    "TIA",
+    "TRUMP",
+    "TRX",
+    "TUT",
+    "UB",
+    "UNI",
+    "US",
+    "USELESS",
+    "VELVET",
+    "VIRTUAL",
+    "VVV",
+    "W",
+    "WIF",
+    "WLD",
+    "WLFI",
+    "XLM",
+    "XMR",
+    "XPL",
+    "XRP",
+    "ZBT",
+    "ZEC",
+    "ZEN",
+    "ZEREBRO",
+    "ZORA",
+    "ZRO"
+   ]
+  },
+  "identity_states": {
+   "AMBIGUOUS": 0,
+   "UNVERIFIED": 153,
+   "VERIFIED_CRYPTO": 433,
+   "VERIFIED_TRADFI": 267
+  },
+  "identity_version": "v8.identity/4",
+  "known_crypto_list": {
+   "all_live_exposures_tradfi": [],
+   "entries": 436,
+   "in_live_universe": 433,
+   "multiple_priced_exposures": [
+    "BB",
+    "PURR",
+    "QNT"
+   ],
+   "no_live_market": [
+    "BLAST",
+    "HFUN",
+    "STG"
+   ],
+   "one_priced_exposure": 430,
+   "unpriced_only": []
+  },
+  "multi_symbol_assets": [
+   "ALLO",
+   "ARC",
+   "ASTEROID",
+   "BABY",
+   "BB",
+   "BOME",
+   "BONK",
+   "BROCCOLI714",
+   "BTR",
+   "CAT",
+   "DOGS",
+   "ESP",
+   "FF",
+   "FLOKI",
+   "HMSTR",
+   "LA",
+   "LIT",
+   "LUNC",
+   "MET",
+   "MOG",
+   "NEIRO",
+   "NOT",
+   "PEPE",
+   "PTB",
+   "PUMP",
+   "SATS",
+   "SHIB",
+   "SOPH",
+   "TOSHI",
+   "TUT",
+   "VANA",
+   "WET",
+   "XEC"
+  ],
+  "now_crypto": 433,
+  "now_excluded": 267,
+  "now_unverified": 153,
+  "parsed_symbol_links": [
+   "lighter:EURUSD",
+   "lighter:HYUNDAIUSD",
+   "lighter:SAMSUNGUSD",
+   "lighter:SKHYNIXUSD"
+  ],
+  "phase1_crypto": 612,
+  "phase1_excluded": 241,
+  "phase2_default_crypto_any": [
+   "4STOCK",
+   "ACN",
+   "ACU",
+   "ADBE",
+   "AEON",
+   "AGPU",
+   "AI",
+   "AIN",
+   "AIO",
+   "AIW3",
+   "ANSEM",
+   "APM",
+   "APR",
+   "APRO",
+   "ARGUS",
+   "ARX",
+   "ASTEROID",
+   "AT",
+   "AVAAI",
+   "AVL",
+   "AWE",
+   "B-MONEY",
+   "BANANA",
+   "BANK",
+   "BASECAT",
+   "BAY",
+   "BCHSV",
+   "BIRB",
+   "BLEND",
+   "BLUAI",
+   "BONER",
+   "BREW",
+   "BSV",
+   "BTCDOM",
+   "BULLA",
+   "BYD",
+   "CARDS",
+   "CATE",
+   "CHEEMS",
+   "CLO",
+   "COAI",
+   "COCOAP",
+   "CT",
+   "CTR",
+   "CXMT",
+   "DELTA",
+   "DOS",
+   "DRV",
+   "EDEN",
+   "FIGHT",
+   "FLORK",
+   "FONE",
+   "FORM",
+   "FRAX",
+   "FUN",
+   "FUTU",
+   "G",
+   "GASOLP",
+   "GRIFFAIN",
+   "GSTOCK",
+   "GUN",
+   "H100",
+   "HANA",
+   "HYUNDAI",
+   "HYUNDAIUSD",
+   "JCT",
+   "KO",
+   "KUAISHOU",
+   "LAPTOP",
+   "LIGHT",
+   "LISTA",
+   "LYTE",
+   "MANTRA",
+   "MARSCOIN",
+   "MAX",
+   "MEITUAN",
+   "MEME",
+   "MOONSHOT",
+   "MUU",
+   "NES",
+   "NEX",
+   "NIGHT",
+   "NOM",
+   "NOW",
+   "NULLMASK",
+   "OPN",
+   "OPN_OPINION",
+   "PAID",
+   "PAIR",
+   "PEARL",
+   "PIPPIN",
+   "POD",
+   "POPMART",
+   "PRL",
+   "PROS",
+   "PUNDIAI",
+   "RAIL",
+   "RATS",
+   "RESOLV",
+   "RE_ETH",
+   "RIF",
+   "ROBO",
+   "RONIN",
+   "RTX",
+   "SAMSUNGUSD",
+   "SCR",
+   "SDEV",
+   "SENT",
+   "SHROOM",
+   "SI",
+   "SIREN",
+   "SKHYNIXUSD",
+   "SKR",
+   "SKYAI",
+   "SLX",
+   "SNXX",
+   "SOLV",
+   "SPACE",
+   "STABLECOINX",
+   "STAR",
+   "STONK",
+   "STONKBROKER",
+   "STONKS",
+   "SYN",
+   "TAKE",
+   "TENCENT",
+   "THE",
+   "TMX",
+   "TOSHI",
+   "TQQQ",
+   "TROLL",
+   "UP",
+   "US100S",
+   "US10Y",
+   "US500S",
+   "USD1",
+   "V",
+   "VARIATIONAL",
+   "VERONA",
+   "XAI",
+   "XDP",
+   "ZCAT",
+   "ZEST",
+   "ZKP",
+   "ZZZ",
+   "\u54c8\u57fa\u7c73",
+   "\u5e01\u5b89\u4eba\u751f",
+   "\u6211\u8e0f\u9a6c\u6765\u4e86",
+   "\u725b\u6765",
+   "\u9f99\u867e"
+  ],
+  "phase2_default_crypto_now": {
+   "UNVERIFIED": [
+    "4STOCK",
+    "ACU",
+    "AEON",
+    "AI",
+    "AIN",
+    "AIO",
+    "AIW3",
+    "ANSEM",
+    "APM",
+    "APR",
+    "APRO",
+    "ARGUS",
+    "ARX",
+    "ASTEROID",
+    "AT",
+    "AVAAI",
+    "AVL",
+    "AWE",
+    "B-MONEY",
+    "BANANA",
+    "BANK",
+    "BASECAT",
+    "BAY",
+    "BCHSV",
+    "BIRB",
+    "BLEND",
+    "BLUAI",
+    "BONER",
+    "BREW",
+    "BSV",
+    "BTCDOM",
+    "BULLA",
+    "CARDS",
+    "CATE",
+    "CHEEMS",
+    "CLO",
+    "COAI",
+    "CT",
+    "CTR",
+    "DELTA",
+    "DOS",
+    "DRV",
+    "EDEN",
+    "FIGHT",
+    "FLORK",
+    "FONE",
+    "FORM",
+    "FRAX",
+    "FUN",
+    "G",
+    "GRIFFAIN",
+    "GSTOCK",
+    "GUN",
+    "HANA",
+    "JCT",
+    "KO",
+    "LAPTOP",
+    "LIGHT",
+    "LISTA",
+    "MANTRA",
+    "MARSCOIN",
+    "MAX",
+    "MEME",
+    "NES",
+    "NEX",
+    "NIGHT",
+    "NOM",
+    "NULLMASK",
+    "OPN",
+    "OPN_OPINION",
+    "PAID",
+    "PAIR",
+    "PEARL",
+    "PIPPIN",
+    "POD",
+    "PRL",
+    "PROS",
+    "PUNDIAI",
+    "RAIL",
+    "RATS",
+    "RESOLV",
+    "RE_ETH",
+    "RIF",
+    "ROBO",
+    "RONIN",
+    "RTX",
+    "SCR",
+    "SENT",
+    "SHROOM",
+    "SI",
+    "SIREN",
+    "SKR",
+    "SKYAI",
+    "SLX",
+    "SOLV",
+    "SPACE",
+    "STAR",
+    "STONK",
+    "STONKBROKER",
+    "STONKS",
+    "SYN",
+    "TAKE",
+    "THE",
+    "TMX",
+    "TOSHI",
+    "TROLL",
+    "UP",
+    "USD1",
+    "VARIATIONAL",
+    "VERONA",
+    "XAI",
+    "XDP",
+    "ZCAT",
+    "ZEST",
+    "ZKP",
+    "ZZZ",
+    "\u54c8\u57fa\u7c73",
+    "\u5e01\u5b89\u4eba\u751f",
+    "\u6211\u8e0f\u9a6c\u6765\u4e86",
+    "\u725b\u6765",
+    "\u9f99\u867e"
+   ],
+   "VERIFIED_TRADFI": [
+    "ACN",
+    "ADBE",
+    "AGPU",
+    "BYD",
+    "COCOAP",
+    "CXMT",
+    "FUTU",
+    "GASOLP",
+    "H100",
+    "HYUNDAI",
+    "HYUNDAIUSD",
+    "KUAISHOU",
+    "LYTE",
+    "MEITUAN",
+    "MOONSHOT",
+    "MUU",
+    "NOW",
+    "POPMART",
+    "SAMSUNGUSD",
+    "SDEV",
+    "SKHYNIXUSD",
+    "SNXX",
+    "STABLECOINX",
+    "TENCENT",
+    "TQQQ",
+    "US100S",
+    "US10Y",
+    "US500S",
+    "V"
+   ]
+  },
+  "phase2_default_crypto_only": [
+   "4STOCK",
+   "ACN",
+   "ACU",
+   "ADBE",
+   "AEON",
+   "AGPU",
+   "AI",
+   "AIN",
+   "AIO",
+   "AIW3",
+   "ANSEM",
+   "APM",
+   "APR",
+   "APRO",
+   "ARGUS",
+   "ARX",
+   "ASTEROID",
+   "AT",
+   "AVAAI",
+   "AVL",
+   "AWE",
+   "B-MONEY",
+   "BANANA",
+   "BANK",
+   "BASECAT",
+   "BAY",
+   "BCHSV",
+   "BIRB",
+   "BLEND",
+   "BLUAI",
+   "BONER",
+   "BREW",
+   "BSV",
+   "BTCDOM",
+   "BULLA",
+   "BYD",
+   "CARDS",
+   "CATE",
+   "CHEEMS",
+   "CLO",
+   "COAI",
+   "COCOAP",
+   "CT",
+   "CTR",
+   "CXMT",
+   "DELTA",
+   "DOS",
+   "DRV",
+   "EDEN",
+   "FIGHT",
+   "FLORK",
+   "FONE",
+   "FORM",
+   "FRAX",
+   "FUN",
+   "FUTU",
+   "G",
+   "GASOLP",
+   "GRIFFAIN",
+   "GSTOCK",
+   "GUN",
+   "H100",
+   "HANA",
+   "HYUNDAI",
+   "HYUNDAIUSD",
+   "JCT",
+   "KO",
+   "KUAISHOU",
+   "LAPTOP",
+   "LIGHT",
+   "LISTA",
+   "LYTE",
+   "MANTRA",
+   "MARSCOIN",
+   "MAX",
+   "MEITUAN",
+   "MEME",
+   "MOONSHOT",
+   "MUU",
+   "NES",
+   "NEX",
+   "NIGHT",
+   "NOM",
+   "NOW",
+   "NULLMASK",
+   "OPN",
+   "OPN_OPINION",
+   "PAID",
+   "PAIR",
+   "PEARL",
+   "PIPPIN",
+   "POD",
+   "POPMART",
+   "PROS",
+   "PUNDIAI",
+   "RAIL",
+   "RATS",
+   "RESOLV",
+   "RE_ETH",
+   "RIF",
+   "ROBO",
+   "RONIN",
+   "RTX",
+   "SAMSUNGUSD",
+   "SCR",
+   "SDEV",
+   "SENT",
+   "SHROOM",
+   "SI",
+   "SIREN",
+   "SKHYNIXUSD",
+   "SKR",
+   "SKYAI",
+   "SLX",
+   "SNXX",
+   "SOLV",
+   "SPACE",
+   "STABLECOINX",
+   "STAR",
+   "STONK",
+   "STONKBROKER",
+   "STONKS",
+   "SYN",
+   "TAKE",
+   "TENCENT",
+   "THE",
+   "TMX",
+   "TOSHI",
+   "TQQQ",
+   "TROLL",
+   "UP",
+   "US100S",
+   "US10Y",
+   "US500S",
+   "USD1",
+   "V",
+   "VARIATIONAL",
+   "VERONA",
+   "XAI",
+   "XDP",
+   "ZCAT",
+   "ZEST",
+   "ZKP",
+   "ZZZ",
+   "\u54c8\u57fa\u7c73",
+   "\u5e01\u5b89\u4eba\u751f",
+   "\u6211\u8e0f\u9a6c\u6765\u4e86",
+   "\u725b\u6765",
+   "\u9f99\u867e"
+  ],
+  "phase2_states": {
+   "AMBIGUOUS": 1,
+   "CRYPTO": 615,
+   "TRADFI": 237
+  },
+  "raw_contracts": 12292,
+  "selected": 1994,
+  "ticker_authority": {
+   "binding_candidates": 433,
+   "by_result": {
+    "BOUND": 433,
+    "NO_BINDABLE_EXPOSURE": 0,
+    "UNBOUND_DIRECT_CRYPTO_EVIDENCE": 0,
+    "UNBOUND_MULTIPLE_CANDIDATES": 0
+   },
+   "identity_version": "v8.identity/4",
+   "known_crypto_assets": 433,
+   "multi_exposure": {
+    "BB": {
+     "bindable": [
+      "BB#2"
+     ],
+     "excluded": [
+      [
+       "BB#1",
+       "TRADFI_EVIDENCE"
+      ]
+     ],
+     "priced_exposures": 2,
+     "result": "BOUND",
+     "selected": "BB#2",
+     "state": "VERIFIED_CRYPTO"
+    },
+    "PURR": {
+     "bindable": [
+      "PURR#1"
+     ],
+     "excluded": [
+      [
+       "PURR#2",
+       "TRADFI_EVIDENCE"
+      ]
+     ],
+     "priced_exposures": 2,
+     "result": "BOUND",
+     "selected": "PURR#1",
+     "state": "VERIFIED_CRYPTO"
+    },
+    "QNT": {
+     "bindable": [
+      "QNT#1"
+     ],
+     "excluded": [
+      [
+       "QNT#2",
+       "TRADFI_EVIDENCE"
+      ]
+     ],
+     "priced_exposures": 2,
+     "result": "BOUND",
+     "selected": "QNT#1",
+     "state": "VERIFIED_CRYPTO"
+    }
+   },
+   "no_bindable_exposure": [],
+   "ticker_crypto_bindings": 433,
+   "ticker_crypto_blocked_by_exposure_check": [],
+   "ticker_crypto_no_bindable_exposure": 0,
+   "ticker_crypto_unbound_assets": 0,
+   "ticker_crypto_unbound_exposures": 0,
+   "ticker_crypto_with_direct_crypto_evidence": [],
+   "ticker_crypto_with_tradfi_collision": [
+    "BB",
+    "PURR",
+    "QNT"
+   ],
+   "unaccounted": 0,
+   "unaccounted_assets": 0,
+   "unaccounted_candidates": 0,
+   "unbound": {}
+  },
+  "tradfi_collisions": [
+   "BB",
+   "PURR",
+   "QNT"
+  ],
+  "unverified_assets": [
+   "4STOCK",
+   "ACU",
+   "AEON",
+   "AGT",
+   "AI",
+   "AIA",
+   "AIGENSYN",
+   "AIN",
+   "AIO",
+   "AIW3",
+   "ANSEM",
+   "APM",
+   "APR",
+   "APRO",
+   "ARGUS",
+   "ARX",
+   "ASTEROID",
+   "AT",
+   "AVAAI",
+   "AVL",
+   "AWE",
+   "B",
+   "B-MONEY",
+   "BANANA",
+   "BANK",
+   "BAS",
+   "BASECAT",
+   "BAY",
+   "BCHSV",
+   "BILL",
+   "BIRB",
+   "BLEND",
+   "BLUAI",
+   "BONER",
+   "BREW",
+   "BSV",
+   "BTCDOM",
+   "BTW",
+   "BULLA",
+   "CARDS",
+   "CATE",
+   "CFG",
+   "CHEEMS",
+   "CLO",
+   "COAI",
+   "COLLECT",
+   "CT",
+   "CTR",
+   "DATA",
+   "DELTA",
+   "DOGS",
+   "DOS",
+   "DRV",
+   "EDEN",
+   "EVAA",
+   "FHE",
+   "FIGHT",
+   "FLORK",
+   "FONE",
+   "FORM",
+   "FRAX",
+   "FUN",
+   "G",
+   "GRAM",
+   "GRIFFAIN",
+   "GSTOCK",
+   "GTC",
+   "GUN",
+   "HANA",
+   "HIVE",
+   "INX",
+   "JCT",
+   "JELLYJELLY",
+   "KAT",
+   "KO",
+   "LAPTOP",
+   "LIGHT",
+   "LISTA",
+   "LUNC",
+   "LYN",
+   "MANTRA",
+   "MARS",
+   "MARSCOIN",
+   "MAX",
+   "MEME",
+   "NES",
+   "NEX",
+   "NIGHT",
+   "NOM",
+   "NULLMASK",
+   "OPEN",
+   "OPN",
+   "OPN_OPINION",
+   "PAID",
+   "PAIR",
+   "PEARL",
+   "PIPPIN",
+   "PLAY",
+   "POD",
+   "PRL",
+   "PROM",
+   "PROS",
+   "PUNDIAI",
+   "RAIL",
+   "RATS",
+   "RE",
+   "RESOLV",
+   "RE_ETH",
+   "RIF",
+   "ROBO",
+   "RONIN",
+   "RTX",
+   "SCR",
+   "SENT",
+   "SHROOM",
+   "SI",
+   "SIREN",
+   "SKR",
+   "SKYAI",
+   "SLX",
+   "SOLV",
+   "SPACE",
+   "STAR",
+   "STONK",
+   "STONKBROKER",
+   "STONKS",
+   "SWARMS",
+   "SYN",
+   "TAKE",
+   "THE",
+   "TMX",
+   "TOSHI",
+   "TRIA",
+   "TROLL",
+   "TRUTH",
+   "TST",
+   "TURBO",
+   "UP",
+   "USD1",
+   "VARIATIONAL",
+   "VERONA",
+   "XAI",
+   "XDP",
+   "XEC",
+   "ZCAT",
+   "ZEST",
+   "ZKP",
+   "ZZZ",
+   "\u54c8\u57fa\u7c73",
+   "\u5e01\u5b89\u4eba\u751f",
+   "\u6211\u8e0f\u9a6c\u6765\u4e86",
+   "\u725b\u6765",
+   "\u9f99\u867e"
+  ]
+ },
+ "data_health": {
+  "audit_problems": {},
+  "contracts_by_venue": {
+   "aster": {
+    "CONFLICTED": 3,
+    "HEALTHY": 612,
+    "MISSING": 5,
+    "STALE": 0
+   },
+   "dydx": {
+    "CONFLICTED": 0,
+    "HEALTHY": 296,
+    "MISSING": 0,
+    "STALE": 0
+   },
+   "extended": {
+    "CONFLICTED": 2,
+    "HEALTHY": 404,
+    "MISSING": 0,
+    "STALE": 0
+   },
+   "hyperliquid": {
+    "CONFLICTED": 0,
+    "HEALTHY": 234,
+    "MISSING": 0,
+    "STALE": 0
+   },
+   "lighter": {
+    "CONFLICTED": 1,
+    "HEALTHY": 238,
+    "MISSING": 0,
+    "STALE": 0
+   },
+   "paradex": {
+    "CONFLICTED": 1,
+    "HEALTHY": 9928,
+    "MISSING": 0,
+    "STALE": 0
+   },
+   "variational": {
+    "CONFLICTED": 0,
+    "HEALTHY": 568,
+    "MISSING": 0,
+    "STALE": 0
+   }
+  },
+  "exposure_metadata": {
+   "LIGHTER_TOKENLIST": {
+    "detail": {
+     "duplicate_entries": [],
+     "malformed_entries": [],
+     "perps_entries": 244,
+     "tokens": 261
+    },
+    "markets": 213,
+    "markets_by_asset_type": {
+     "CRYPTO": 118,
+     "RWA": 95
+    },
+    "markets_by_check": {
+     "OK": 213
+    },
+    "markets_without_check": [],
+    "state": "OK",
+    "tradfi_evidence_markets": [
+     "lighter:AAOI",
+     "lighter:AAPL",
+     "lighter:AMD",
+     "lighter:AMZN",
+     "lighter:ANTHROPIC",
+     "lighter:ARM",
+     "lighter:ASML",
+     "lighter:AUDUSD",
+     "lighter:AVGO",
+     "lighter:AXTI",
+     "lighter:BABA",
+     "lighter:BB",
+     "lighter:BE",
+     "lighter:BMNR",
+     "lighter:BOT",
+     "lighter:BRENTOIL",
+     "lighter:BYD",
+     "lighter:CBRS",
+     "lighter:COIN",
+     "lighter:CRCL",
+     "lighter:CRWV",
+     "lighter:CXMT",
+     "lighter:DELL",
+     "lighter:DRAM",
+     "lighter:EURUSD",
+     "lighter:EWY",
+     "lighter:GBPUSD",
+     "lighter:GEV",
+     "lighter:GME",
+     "lighter:GOOGL",
+     "lighter:H100",
+     "lighter:HOOD",
+     "lighter:HYUNDAIUSD",
+     "lighter:IBM",
+     "lighter:INTC",
+     "lighter:IWM",
+     "lighter:KIOXIA",
+     "lighter:KORU",
+     "lighter:LITE",
+     "lighter:META",
+     "lighter:MINIMAX",
+     "lighter:MRNA",
+     "lighter:MRVL",
+     "lighter:MSFT",
+     "lighter:MSTR",
+     "lighter:MU",
+     "lighter:NATGAS",
+     "lighter:NBIS",
+     "lighter:NOK",
+     "lighter:NOW",
+     "lighter:NVDA",
+     "lighter:NZDUSD",
+     "lighter:OPENAI",
+     "lighter:ORCL",
+     "lighter:OURA",
+     "lighter:PAXG",
+     "lighter:PLTR",
+     "lighter:POPMART",
+     "lighter:QCOM",
+     "lighter:QQQ",
+     "lighter:RKLB",
+     "lighter:SAMSUNGUSD",
+     "lighter:SHEIN",
+     "lighter:SKHY",
+     "lighter:SKHYNIXUSD",
+     "lighter:SMIC",
+     "lighter:SNDK",
+     "lighter:SOXL",
+     "lighter:SOXS",
+     "lighter:SPCX",
+     "lighter:SPY",
+     "lighter:STABLECOINX",
+     "lighter:STRC",
+     "lighter:TENCENT",
+     "lighter:TSLA",
+     "lighter:TSM",
+     "lighter:TTWO",
+     "lighter:UNITREE",
+     "lighter:US100",
+     "lighter:US10Y",
+     "lighter:US500",
+     "lighter:USDCAD",
+     "lighter:USDCHF",
+     "lighter:USDJPY",
+     "lighter:USDKRW",
+     "lighter:WDC",
+     "lighter:WEN",
+     "lighter:WTI",
+     "lighter:XAG",
+     "lighter:XAU",
+     "lighter:XCU",
+     "lighter:XIAOMI",
+     "lighter:XPD",
+     "lighter:XPT",
+     "lighter:ZHIPU"
+    ],
+    "venue": "lighter"
+   }
+  },
+  "first_seen_source": "none",
+  "records_by_engine": {
+   "day": {
+    "CONFLICTED": 1,
+    "HEALTHY": 698,
+    "MISSING": 154,
+    "STALE": 0
+   },
+   "quant": {
+    "CONFLICTED": 1,
+    "HEALTHY": 699,
+    "MISSING": 153,
+    "STALE": 0
+   },
+   "radar": {
+    "CONFLICTED": 2,
+    "HEALTHY": 694,
+    "MISSING": 157,
+    "STALE": 0
+   },
+   "smart": {
+    "CONFLICTED": 0,
+    "HEALTHY": 1040,
+    "MISSING": 0,
+    "STALE": 0
+   },
+   "swing": {
+    "CONFLICTED": 1,
+    "HEALTHY": 699,
+    "MISSING": 153,
+    "STALE": 0
+   },
+   "universe": {
+    "CONFLICTED": 0,
+    "HEALTHY": 187,
+    "MISSING": 0,
+    "STALE": 0
+   }
+  },
+  "sources": {
+   "candle_sources": {
+    "aster": 1,
+    "bitget": 1,
+    "gate": 10,
+    "hyperliquid": 2,
+    "mexc": 413
+   },
+   "dex_ok": true,
+   "dexes": {
+    "aster": {
+     "markets": 593,
+     "ok": true
+    },
+    "dydx": {
+     "markets": 73,
+     "ok": true
+    },
+    "edgex": {
+     "markets": 0,
+     "ok": false
+    },
+    "extended": {
+     "markets": 326,
+     "ok": true
+    },
+    "hyperliquid": {
+     "markets": 178,
+     "ok": true
+    },
+    "lighter": {
+     "markets": 213,
+     "ok": true
+    },
+    "paradex": {
+     "markets": 66,
+     "ok": true
+    },
+    "variational": {
+     "markets": 568,
+     "ok": true
+    }
+   }
+  },
+  "steps": {
+   "day": {
+    "CRYPTO_EXPOSURE_SELECTED": 3,
+    "PAPER_OPENED": 3
+   },
+   "quant": {
+    "CRYPTO_EXPOSURE_SELECTED": 3,
+    "PAPER_OPENED": 5
+   },
+   "radar": {
+    "CRYPTO_EXPOSURE_SELECTED": 3,
+    "EXTRA_DEEP_DIVE": 15,
+    "PLAN_REJECTED": 3
+   },
+   "smart": {
+    "NOT_IN_PUBLISHED_LIST": 44
+   },
+   "swing": {
+    "CRYPTO_EXPOSURE_SELECTED": 3
+   }
+  },
+  "value_basis": {
+   "fund8h": {
+    "MISSING": 10103,
+    "OBSERVED": 1721,
+    "OBSERVED_ZERO": 468
+   },
+   "oi": {
+    "MISSING": 859,
+    "OBSERVED": 1535,
+    "OBSERVED_ZERO": 9898
+   },
+   "price": {
+    "MISSING": 1,
+    "OBSERVED": 12284,
+    "OBSERVED_ZERO": 7
+   },
+   "vol": {
+    "MISSING": 5,
+    "OBSERVED": 1994,
+    "OBSERVED_ZERO": 10293
+   }
+  }
+ },
+ "venues": {
+  "aster": {
+   "kept": 593,
+   "mismatch": 0,
+   "ok": true,
+   "payload": true,
+   "raw": 620,
+   "skipped": 27
+  },
+  "dydx": {
+   "kept": 73,
+   "mismatch": 0,
+   "ok": true,
+   "payload": true,
+   "raw": 296,
+   "skipped": 223
+  },
+  "edgex": {
+   "kept": 0,
+   "mismatch": 0,
+   "ok": false,
+   "payload": false,
+   "raw": 0,
+   "skipped": 0
+  },
+  "extended": {
+   "kept": 326,
+   "mismatch": 0,
+   "ok": true,
+   "payload": true,
+   "raw": 406,
+   "skipped": 80
+  },
+  "hyperliquid": {
+   "kept": 178,
+   "mismatch": 0,
+   "ok": true,
+   "payload": true,
+   "raw": 234,
+   "skipped": 56
+  },
+  "lighter": {
+   "kept": 213,
+   "mismatch": 0,
+   "ok": true,
+   "payload": true,
+   "raw": 239,
+   "skipped": 26
+  },
+  "paradex": {
+   "kept": 66,
+   "mismatch": 0,
+   "ok": true,
+   "payload": true,
+   "raw": 9929,
+   "skipped": 9863
+  },
+  "variational": {
+   "kept": 568,
+   "mismatch": 0,
+   "ok": true,
+   "payload": true,
+   "raw": 568,
+   "skipped": 0
+  }
+ },
+ "storage": {
+  "gzip_bytes": 577352,
+  "note": "Sizes of this scan's snapshot; the projection multiplies by scans per day. The Scan workflow is scheduled 72 times a day but GitHub runs it far less often (about 4 a day observed).",
+  "projection": {
+   "hourly_24_per_day": {
+    "1y_gz": 5057603520,
+    "1y_raw": 76456570440,
+    "30d_gz": 415693440,
+    "30d_raw": 6284101680,
+    "day_gz": 13856448,
+    "day_raw": 209470056
+   },
+   "nominal_72_per_day": {
+    "1y_gz": 15172810560,
+    "1y_raw": 229369711320,
+    "30d_gz": 1247080320,
+    "30d_raw": 18852305040,
+    "day_gz": 41569344,
+    "day_raw": 628410168
+   },
+   "observed_4_per_day": {
+    "1y_gz": 842933920,
+    "1y_raw": 12742761740,
+    "30d_gz": 69282240,
+    "30d_raw": 1047350280,
+    "day_gz": 2309408,
+    "day_raw": 34911676
+   }
+  },
+  "sections_bytes": {
+   "coverage": 11651,
+   "data_health": 4318,
+   "dispositions": 1478709,
+   "legacy_output_refs": 1203,
+   "manifest": 3268,
+   "reasons": 9823,
+   "registry": 7216259,
+   "schema": 12,
+   "steps": 2556
+  },
+  "uncompressed_bytes": 8727919
+ }
+}

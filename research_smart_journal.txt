@@ -1,0 +1,147 @@
+{
+ "already_with_provenance": 54,
+ "coins": {
+  "qualified_closed_info": [
+   "BTC",
+   "ZEC",
+   "HYPE",
+   "PUMP",
+   "ENA",
+   "ZRO",
+   "UNI",
+   "ETH",
+   "STRK"
+  ],
+  "qualified_closed_signal": [
+   "FARTCOIN",
+   "SOL"
+  ],
+  "qualified_open_info": [
+   "BTC",
+   "HYPE",
+   "ENA",
+   "ZRO",
+   "STRK"
+  ],
+  "qualified_open_signal": [
+   "XRP",
+   "ETH"
+  ],
+  "unqualified_closed_info": [
+   "ZEC",
+   "ENA",
+   "ZEC",
+   "ENA",
+   "VVV",
+   "WLD",
+   "HYPE",
+   "ZEC",
+   "VVV",
+   "TAO",
+   "ENA",
+   "PUMP",
+   "ZEC",
+   "WLD",
+   "BTC",
+   "HYPE",
+   "TAO",
+   "ZEC",
+   "PUMP",
+   "ENA",
+   "BTC"
+  ],
+  "unqualified_closed_signal": [
+   "ETH",
+   "SOL",
+   "NEAR",
+   "XRP",
+   "FARTCOIN",
+   "ETH",
+   "BTC",
+   "ZRO",
+   "XMR",
+   "SOL",
+   "UNI",
+   "ETH",
+   "SOL",
+   "NEAR",
+   "XRP"
+  ]
+ },
+ "evidence": {
+  "qualified": {
+   "closed_info": 9,
+   "closed_signal": 2,
+   "open_info": 5,
+   "open_signal": 2
+  },
+  "unqualified": {
+   "closed_info": 21,
+   "closed_signal": 15,
+   "open_info": 0,
+   "open_signal": 0
+  },
+  "unqualified_reasons": {
+   "LEGACY_NO_IDENTITY_PROOF": 36
+  }
+ },
+ "journal": {
+  "closed": 47,
+  "created": 1791194666,
+  "engine": 1,
+  "open": 7,
+  "scans": 30,
+  "updated": 1791646613
+ },
+ "marked_legacy": 0,
+ "phase3": {
+  "legacy_unqualified": {
+   "info": {
+    "n": 21,
+    "r": -0.832,
+    "ret": -0.04339,
+    "t": -8.38,
+    "win": 0.095
+   },
+   "reason": "LEGACY_NO_IDENTITY_PROOF",
+   "signal": {
+    "n": 15,
+    "r": 1.038,
+    "ret": 0.03207,
+    "t": 4.83,
+    "win": 1.0
+   }
+  },
+  "live": {
+   "n": 2,
+   "r": 0.103,
+   "ret": 0.00487,
+   "t": null,
+   "win": 1.0
+  },
+  "live_info": {
+   "n": 9,
+   "r": 0.359,
+   "ret": 0.01648,
+   "t": 1.42,
+   "win": 0.778
+  },
+  "verdict": "Promising"
+ },
+ "pre_phase3": {
+  "live": {
+   "n": 17,
+   "r": 0.928,
+   "ret": 0.02887,
+   "t": 4.56,
+   "win": 1.0
+  },
+  "live_info": {
+   "n": 30,
+   "r": -0.475,
+   "ret": -0.02543,
+   "t": -3.33,
+   "win": 0.3
+  }
+ }
+}

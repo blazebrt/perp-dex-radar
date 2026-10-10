@@ -1,0 +1,2623 @@
+{
+ "observations": [
+  {
+   "git_sha": "356ccb57e9df2e7f9ea01ebbdeb041e505d837d8",
+   "identity_version": "v8.identity/4",
+   "kept_contracts": 2017,
+   "raw_contracts": 12292,
+   "scan_id": "gh-38066839845-1",
+   "ts": 1791648904
+  },
+  {
+   "git_sha": "f7aa7f6d318f4dfcd84c74df27d38314e4349208",
+   "identity_version": "v8.identity/3",
+   "kept_contracts": 2017,
+   "raw_contracts": 12284,
+   "scan_id": "gh-38064191210-1",
+   "ts": 1791646523
+  },
+  {
+   "git_sha": "bf88b17dadffac0bf6acd6c5dad88d0a78878867",
+   "identity_version": "v8.identity/3",
+   "kept_contracts": 2018,
+   "raw_contracts": 12763,
+   "scan_id": "gh-37984238598-1",
+   "ts": 1791576165
+  }
+ ],
+ "qualified_rules": [],
+ "qualified_with_impact": [],
+ "reproduction": {
+  "gh-37984238598-1": {
+   "assets": 854,
+   "state_differences": 0,
+   "states": {
+    "UNVERIFIED": 153,
+    "VERIFIED_CRYPTO": 434,
+    "VERIFIED_TRADFI": 267
+   }
+  },
+  "gh-38064191210-1": {
+   "assets": 853,
+   "state_differences": 0,
+   "states": {
+    "UNVERIFIED": 153,
+    "VERIFIED_CRYPTO": 433,
+    "VERIFIED_TRADFI": 267
+   }
+  },
+  "gh-38066839845-1": {
+   "assets": 853,
+   "state_differences": 0,
+   "states": {
+    "UNVERIFIED": 153,
+    "VERIFIED_CRYPTO": 433,
+    "VERIFIED_TRADFI": 267
+   }
+  }
+ },
+ "rules": [
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: margin currency, not the underlying; the value states no asset class"
+   ],
+   "rule": "aster.marginAsset==U"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 3
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 3
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 3
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: margin currency, not the underlying; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "aster.marginAsset==USD1"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 141,
+     "VERIFIED_TRADFI->AMBIGUOUS": 11
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 141,
+     "VERIFIED_TRADFI->AMBIGUOUS": 11
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 141,
+     "VERIFIED_TRADFI->AMBIGUOUS": 11
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: margin currency, not the underlying; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "aster.marginAsset==USDT"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: settlement currency, not the underlying; the value states no asset class"
+   ],
+   "rule": "aster.quoteAsset==U"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 3
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 3
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 3
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: settlement currency, not the underlying; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "aster.quoteAsset==USD1"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 141,
+     "VERIFIED_TRADFI->AMBIGUOUS": 11
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 141,
+     "VERIFIED_TRADFI->AMBIGUOUS": 11
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 141,
+     "VERIFIED_TRADFI->AMBIGUOUS": 11
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: settlement currency, not the underlying; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "aster.quoteAsset==USDT"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 12
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 12
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 12
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: sector / theme tag"
+   ],
+   "rule": "aster.underlyingSubType == only AI AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: programme tag"
+   ],
+   "rule": "aster.underlyingSubType == only AOS2 AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: tradfi asset class (commodity)",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "aster.underlyingSubType == only Commodities AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: tradfi asset class (fund)",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "aster.underlyingSubType == only ETF AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 28
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 28
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 28
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: theme tag",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets"
+   ],
+   "rule": "aster.underlyingSubType == only Meme AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 7
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 7
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 7
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: tradfi asset class (equity)",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "aster.underlyingSubType == only STOCK AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: industry sector (tradfi evidence since Phase 3)"
+   ],
+   "rule": "aster.underlyingSubType == only Semiconductor AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: tier tag"
+   ],
+   "rule": "aster.underlyingSubType == only Top AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: real-world asset"
+   ],
+   "rule": "aster.underlyingSubType == only USD1-RWA AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: listing stage"
+   ],
+   "rule": "aster.underlyingSubType == only pre-launch AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 12
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 12
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 12
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: sector / theme tag"
+   ],
+   "rule": "aster.underlyingSubType contains AI"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 3
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 3
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 3
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: programme tag",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "aster.underlyingSubType contains AOS2"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: tradfi asset class (commodity)",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "aster.underlyingSubType contains Commodities"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 2
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 2
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 2
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: tradfi asset class (fund)",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "aster.underlyingSubType contains ETF"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 28
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 28
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 28
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: theme tag",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets"
+   ],
+   "rule": "aster.underlyingSubType contains Meme"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 14
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 14
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 14
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: tradfi asset class (equity)",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "aster.underlyingSubType contains STOCK"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 2
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 2
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 2
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: industry sector (tradfi evidence since Phase 3)",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "aster.underlyingSubType contains Semiconductor"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: tier tag"
+   ],
+   "rule": "aster.underlyingSubType contains Top"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 3
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 3
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 3
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: real-world asset",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "aster.underlyingSubType contains USD1-RWA"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: listing stage",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "aster.underlyingSubType contains pre-launch"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 12
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 12
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 12
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: sector / theme tag"
+   ],
+   "rule": "aster.underlyingSubType == only AI"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: programme tag"
+   ],
+   "rule": "aster.underlyingSubType == only AOS2"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: tradfi asset class (commodity)",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "aster.underlyingSubType == only Commodities"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: tradfi asset class (fund)",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "aster.underlyingSubType == only ETF"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 28
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 28
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 28
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: theme tag",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets"
+   ],
+   "rule": "aster.underlyingSubType == only Meme"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 7
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 7
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 7
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: tradfi asset class (equity)",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "aster.underlyingSubType == only STOCK"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: industry sector (tradfi evidence since Phase 3)"
+   ],
+   "rule": "aster.underlyingSubType == only Semiconductor"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: tier tag"
+   ],
+   "rule": "aster.underlyingSubType == only Top"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: real-world asset"
+   ],
+   "rule": "aster.underlyingSubType == only USD1-RWA"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented free-form tag list (the API docs show one example, [\"STORAGE\"]); values mix asset classes (STOCK, ETF), sectors (AI, Semiconductor), themes (Meme), tiers (Top), programmes (AOS2) and listing stages (pre-launch); the value states: listing stage"
+   ],
+   "rule": "aster.underlyingSubType == only pre-launch"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 141,
+     "VERIFIED_TRADFI->AMBIGUOUS": 14
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 141,
+     "VERIFIED_TRADFI->AMBIGUOUS": 14
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 141,
+     "VERIFIED_TRADFI->AMBIGUOUS": 14
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: documented by example only (\"COIN\"); Aster sends COIN for the stocks it lists too, so COIN is no evidence (Phase 2); the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "aster.underlyingType==COIN"
+  },
+  {
+   "gate": {
+    "A": true,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 33
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 33
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 33
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "extended.category==Crypto"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 72
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 72
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 72
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: Extended's market category (Crypto / RWA): already authority since Phase 2; the value states: real-world asset",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "extended.category==RWA"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 4
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 4
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 4
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "extended.subCategory==AI"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "extended.subCategory==Commodity"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 6
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 6
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 6
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "extended.subCategory==DeFi"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 4
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 4
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 4
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "extended.subCategory==ETF/Index"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 65
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 65
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 65
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "extended.subCategory==Equity"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "extended.subCategory==FX"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 6
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 6
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 6
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "extended.subCategory==Infra"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 6
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 6
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 6
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "extended.subCategory==L1"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 1
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 1
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 1
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "extended.subCategory==L2"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 10
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 10
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 10
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "extended.subCategory==Meme"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "extended.subCategory==Pre-market"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only AI AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only BONDS AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only COMMODITIES AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only COMPUTE AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only DEFI AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only ETF AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only FX AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only KRW AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only LAYER_1 AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only LAYER_2 AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only MAJOR AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only MEMES AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only NEW AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only PRE_IPO AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only PRE_LAUNCH AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only STOCK AND underlyingType == COIN"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 2
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 2
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 2
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories contains AI"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.asset_categories contains BONDS"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.asset_categories contains COMMODITIES"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.asset_categories contains COMPUTE"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 1
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 1
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 1
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories contains DEFI"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.asset_categories contains ETF"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.asset_categories contains FX"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 3
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 3
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 3
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.asset_categories contains KRW"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 2
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 2
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 2
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories contains LAYER_1"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 1
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 1
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 1
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories contains LAYER_2"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.asset_categories contains MAJOR"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 2
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 2
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 2
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories contains MEMES"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 4,
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 4,
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 4,
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.asset_categories contains NEW"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.asset_categories contains PRE_IPO"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 1
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 1
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 1
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories contains PRE_LAUNCH"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 4
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 4
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 4
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.asset_categories contains STOCK"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 1
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 1
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 1
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only AI"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.asset_categories == only BONDS"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.asset_categories == only COMMODITIES"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.asset_categories == only COMPUTE"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only DEFI"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.asset_categories == only ETF"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.asset_categories == only FX"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only KRW"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 2
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 2
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 2
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only LAYER_1"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 1
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 1
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 1
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only LAYER_2"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only MAJOR"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 2
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 2
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 2
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only MEMES"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 1,
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 1,
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 1,
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.asset_categories == only NEW"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only PRE_IPO"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class"
+   ],
+   "rule": "lighter.asset_categories == only PRE_LAUNCH"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.asset_categories == only STOCK"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": true,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 12
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 12
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 12
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets"
+   ],
+   "rule": "lighter.asset_type==CRYPTO"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 7
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 7
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 7
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: no documented meaning; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.asset_type==RWA"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 6,
+     "VERIFIED_TRADFI->AMBIGUOUS": 7
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 6,
+     "VERIFIED_TRADFI->AMBIGUOUS": 7
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 6,
+     "VERIFIED_TRADFI->AMBIGUOUS": 7
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: documented as an account index (the insurance fund that backs the market): a risk pool, not an asset class; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.insurance_fund_account_index==281474976710654"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 6
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 6
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 6
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: documented as an account index (the insurance fund that backs the market): a risk pool, not an asset class; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.insurance_fund_account_index==281474976710655"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 12,
+     "VERIFIED_TRADFI->AMBIGUOUS": 7
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 12,
+     "VERIFIED_TRADFI->AMBIGUOUS": 7
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 12,
+     "VERIFIED_TRADFI->AMBIGUOUS": 7
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: undocumented bit field; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.market_flags==0"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 7
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 7
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 7
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: absent from Lighter's OpenAPI schema for orderBookDetails; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.strategy_index==2"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 1
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: absent from Lighter's OpenAPI schema for orderBookDetails; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.strategy_index==3"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: absent from Lighter's OpenAPI schema for orderBookDetails; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.strategy_index==4"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {},
+    "gh-38064191210-1": {},
+    "gh-38066839845-1": {}
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: absent from Lighter's OpenAPI schema for orderBookDetails; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.strategy_index==5"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 4
+    },
+    "gh-38064191210-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 4
+    },
+    "gh-38066839845-1": {
+     "VERIFIED_TRADFI->AMBIGUOUS": 4
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: absent from Lighter's OpenAPI schema for orderBookDetails; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.strategy_index==6"
+  },
+  {
+   "gate": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": false,
+    "E": true
+   },
+   "impact": {
+    "gh-37984238598-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 5,
+     "VERIFIED_TRADFI->AMBIGUOUS": 2
+    },
+    "gh-38064191210-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 5,
+     "VERIFIED_TRADFI->AMBIGUOUS": 2
+    },
+    "gh-38066839845-1": {
+     "UNVERIFIED->VERIFIED_CRYPTO": 5,
+     "VERIFIED_TRADFI->AMBIGUOUS": 2
+    }
+   },
+   "qualified": false,
+   "rejected_because": [
+    "A: absent from Lighter's OpenAPI schema for orderBookDetails; the value states no asset class",
+    "B: selects contracts on VERIFIED_TRADFI exposures/assets",
+    "D: negative controls fail (own tradfi evidence, or a tradfi/ambiguous asset would change)"
+   ],
+   "rule": "lighter.strategy_index==7"
+  }
+ ]
+}
