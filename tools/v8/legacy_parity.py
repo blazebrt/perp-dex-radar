@@ -42,6 +42,7 @@ ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 T_NOW = 1_791_014_400 + 7 * 60 + 13      # a fixed scan time (2026-10-03 07:07:13 UTC)
 SMART_T1 = T_NOW - 3600                  # the first smart-money run, one hour earlier
 STAGES = ("scanner", "smart1", "smart2", "quant", "picks", "dashboard")
+LIGHTER_TOKENLIST = "https://mainnet.zklighter.elliot.ai/api/v1/tokenlist"     # v8 Phase 5 (scanner.LIGHTER_TOKENLIST)
 AUDIT_PREFIX = "data/v8/"                # new audit files: listed, never part of the legacy digest
 VOLATILE_KEYS = {"duration_s"}           # wall-clock durations (0 under frozen time, dropped anyway)
 
@@ -235,6 +236,23 @@ def _make_exchange():
                      "daily_quote_token_volume": 1e6},
                     {"symbol": "FAKE05", "market_type": "spot", "status": "active", "mark_price": self.px("FAKE05"),
                      "daily_quote_token_volume": 1e6}]}
+            if url == LIGHTER_TOKENLIST:
+                # v8 Phase 5: Lighter's token list (asset_type CRYPTO | RWA per market; the stocks, the ETF and the rate
+                # are RWA, as live). A literal URL: the base code never requests it (legacy_parity.py runs on both)
+                def tok(sym, at, cats=(), market="PERPS", backend=None, allowed=True):
+                    e = {"symbol": sym, "name": sym, "market": market, "asset_type": at, "categories": list(cats),
+                         "is_allowed_mainnet": allowed, "is_asset_allowed_mainnet": False}
+                    if backend:
+                        e["backend_symbol"] = backend
+                    return e
+                return {"code": 200, "tokens": [
+                    tok("FAKE03", "CRYPTO", ["LAYER_1"]), tok("LONLY", "CRYPTO"), tok("QNT", "CRYPTO", ["DEFI"]),
+                    tok("BB", "RWA", ["STOCK"]), tok("KORU", "RWA", ["ETF"]), tok("XIAOMI", "RWA", ["STOCK"]),
+                    tok("KIOXIA", "RWA", ["STOCK", "NEW"]), tok("SAMSUNGUSD", "RWA", ["STOCK", "KRW"]),
+                    tok("SKHYNIXUSD", "RWA", ["STOCK", "KRW"]), tok("HYUNDAIUSD", "RWA", ["STOCK", "KRW"]),
+                    tok("US10Y", "RWA", ["BONDS"]), tok("BYD", "RWA", ["NEW"], allowed=False),
+                    tok("PRLX", "CRYPTO", ["NEW", "AI"]), tok("kFAKE06", "CRYPTO", ["MEMES"], backend="1000FAKE06"),
+                    tok("FAKE04", "CRYPTO"), tok("FAKE05", "CRYPTO", market="SPOT"), tok("SAMSUNG", "RWA", ["STOCK"])]}
             if url == sc.DYDX_MARKETS:
                 return {"markets": {
                     "FAKE07-USD": {"status": "ACTIVE", "oraclePrice": str(self.px("FAKE07") * 1.3),
@@ -255,49 +273,49 @@ def _make_exchange():
             if url == sc.EXTENDED_MARKETS:
                 return {"data": [
                     {"name": "FAKE10-USD", "assetName": "FAKE10", "active": True, "status": "ACTIVE",
-                     "type": "PERPETUAL", "category": "Crypto", "description": "Fake ten",
+                     "type": "PERPETUAL", "category": "Crypto", "subCategory": "L1", "description": "Fake ten",
                      "marketStats": {"markPrice": str(self.px("FAKE10")), "dailyVolume": "900000",
                                      "openInterest": "50000", "fundingRate": "0.00001"}},
                     {"name": "PURR-USD", "assetName": "PURR", "active": True, "status": "ACTIVE", "type": "PERPETUAL",
-                     "category": "RWA", "description": "Hyperliquid Strategies Inc.",
+                     "category": "RWA", "subCategory": "Equity", "description": "Hyperliquid Strategies Inc.",
                      "marketStats": {"markPrice": "12.772243", "dailyVolume": "3031.1206"}},
                     {"name": "QNT-USD", "assetName": "QNT", "active": True, "status": "ACTIVE", "type": "PERPETUAL",
-                     "category": "RWA", "description": "QNT real-world asset",
+                     "category": "RWA", "subCategory": "Equity", "description": "QNT real-world asset",
                      "marketStats": {"markPrice": "46.030332", "dailyVolume": "386135.13"}},
                     {"name": "BB-USD", "assetName": "BB", "active": True, "status": "ACTIVE", "type": "PERPETUAL",
-                     "category": "RWA", "description": "BB real-world asset",
+                     "category": "RWA", "subCategory": "Equity", "description": "BB real-world asset",
                      "marketStats": {"markPrice": "9.6065788", "dailyVolume": "40.051"}},
                     {"name": "ASTS-USD", "assetName": "ASTS", "active": True, "status": "ACTIVE", "type": "PERPETUAL",
-                     "category": "RWA", "description": "ASTS real-world asset",
+                     "category": "RWA", "subCategory": "Equity", "description": "ASTS real-world asset",
                      "marketStats": {"markPrice": "64.655214", "dailyVolume": "321833.84"}},
                     {"name": "KORU-USD", "assetName": "KORU", "active": True, "status": "ACTIVE", "type": "PERPETUAL",
-                     "category": "RWA", "description": "KORU real-world asset",
+                     "category": "RWA", "subCategory": "ETF/Index", "description": "KORU real-world asset",
                      "marketStats": {"markPrice": "22.106764", "dailyVolume": "279020.93"}},
                     {"name": "XIAOMI-USD", "assetName": "XIAOMI", "active": True, "status": "ACTIVE",
-                     "type": "PERPETUAL", "category": "RWA", "description": "XIAOMI real-world asset",
+                     "type": "PERPETUAL", "category": "RWA", "subCategory": "Equity", "description": "XIAOMI real-world asset",
                      "marketStats": {"markPrice": "24.187487", "dailyVolume": "0"}},
                     {"name": "KIOXIA-USD", "assetName": "KIOXIA", "active": True, "status": "ACTIVE",
-                     "type": "PERPETUAL", "category": "RWA", "description": "KIOXIA real-world asset",
+                     "type": "PERPETUAL", "category": "RWA", "subCategory": "Equity", "description": "KIOXIA real-world asset",
                      "marketStats": {"markPrice": "119.02363", "dailyVolume": "0"}},
                     {"name": "FAKE13-USD", "assetName": "FAKE13", "active": True, "status": "ACTIVE",
-                     "type": "PERPETUAL", "category": "RWA", "description": "FAKE13 real-world asset",
+                     "type": "PERPETUAL", "category": "RWA", "subCategory": "Equity", "description": "FAKE13 real-world asset",
                      "marketStats": {"dailyVolume": "1000"}},
                     {"name": "EXTONLY-USD", "assetName": "EXTONLY", "active": True, "status": "ACTIVE",
-                     "type": "PERPETUAL", "category": "Crypto", "description": "Extended-only coin",
+                     "type": "PERPETUAL", "category": "Crypto", "subCategory": "Meme", "description": "Extended-only coin",
                      "marketStats": {"markPrice": "3.0", "dailyVolume": "2000000"}},
                     {"name": "SECT-USD", "assetName": "SECT", "active": True, "status": "ACTIVE", "type": "PERPETUAL",
                      "category": "L1", "description": "Sector coin",
                      "marketStats": {"markPrice": "2.0", "dailyVolume": "500000"}},
                     {"name": "SKHYNIX-USD", "assetName": "SKHYNIX", "active": True, "status": "ACTIVE",
-                     "type": "PERPETUAL", "category": "RWA", "description": "SKHYNIX real-world asset",
+                     "type": "PERPETUAL", "category": "RWA", "subCategory": "Equity", "description": "SKHYNIX real-world asset",
                      "marketStats": {"markPrice": "1334.15", "dailyVolume": "412000"}},
                     {"name": "PRLX-USD", "assetName": "PRLX", "active": True, "status": "ACTIVE", "type": "PERPETUAL",
-                     "category": "Crypto", "description": "Prlx coin",
+                     "category": "Crypto", "subCategory": "AI", "description": "Prlx coin",
                      "marketStats": {"markPrice": "0.11105012", "dailyVolume": "232844.47"}},
                     {"name": "FAKE11-USD", "assetName": "FAKE11", "active": False, "status": "ACTIVE",
-                     "type": "PERPETUAL", "category": "Crypto", "marketStats": {}},
+                     "type": "PERPETUAL", "category": "Crypto", "subCategory": "L1", "marketStats": {}},
                     {"name": "EURUSD-USD", "assetName": "EURUSD", "active": True, "status": "ACTIVE",
-                     "type": "PERPETUAL", "category": "RWA", "description": "Euro",
+                     "type": "PERPETUAL", "category": "RWA", "subCategory": "FX", "description": "Euro",
                      "marketStats": {"markPrice": "1.08", "dailyVolume": "3000000"}}]}
             return None
 

@@ -341,9 +341,17 @@ def report(paths):
     for obs in observations:
         rows = rows_with_vmeta(obs["snap"])
         base = resolve(rows)
-        diff = sorted(t for t, a in base.assets.items() if obs["astate"](t) != a["state"])
-        repro[obs["label"]] = {"assets": len(base.assets), "state_differences": diff,
-                               "states": dict(collections.Counter(a["state"] for a in base.assets.values()))}
+        # v8 Phase 5: a snapshot is reproduced by the identity version that recorded it (v8.identity/2 snapshots by
+        # the rules=2 resolution); the candidate projections are always measured against this checkout's rules
+        recorded = obs["meta"].get("identity_version")
+        same = base if recorded != ID.PREVIOUS_VERSION else ID._resolve(
+            rows, sc.DEXES, ID.Lists(sc.TRADFI, sc.KNOWN_CRYPTO, sc.is_fx, sc.TRADFI_NAME), sc.in_my_dexes, None,
+            rules=2)
+        diff = sorted(t for t, a in same.assets.items() if obs["astate"](t) != a["state"])
+        repro[obs["label"]] = {"assets": len(base.assets), "state_differences": diff, "recorded_version": recorded,
+                               "states": dict(collections.Counter(a["state"] for a in base.assets.values())),
+                               "states_now_vs_recorded": sorted(t for t, a in base.assets.items()
+                                                                if obs["astate"](t) != a["state"])}
         bases[obs["label"]] = (rows, base)
     rules = rules_from(observations)
     results = [evaluate(r, observations, bases) for r in rules]

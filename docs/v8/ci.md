@@ -7,7 +7,7 @@ Runs on every pull request to main, every push to main and to `v8/*` branches, a
 
 | Job | Steps |
 |---|---|
-| Unit tests and legacy parity | all unit tests (`python -m unittest discover -s tests`); the v8 tests on their own (Phase 1 audit, Phase 2 identity, liquidity and delta validator, Phase 3 identity coverage, smart-money identity and journal provenance, Phase 3 closure quant and radar evidence, Phase 4 candidate identity evidence); legacy parity against this branch's committed golden digests; differential parity against the phase base commit rebuilt on the same runner (`tools/v8/delta_parity.py`: only the deltas listed in `tests/fixtures/v8/phase4_expected_deltas.json`, all of them, nothing else; Phase 4 lists none); every workflow file parses |
+| Unit tests and legacy parity | all unit tests (`python -m unittest discover -s tests`); the v8 tests on their own (Phase 1 audit, Phase 2 identity, liquidity and delta validator, Phase 3 identity coverage, smart-money identity and journal provenance, Phase 3 closure quant and radar evidence, Phase 4 candidate identity evidence, Phase 5 economic exposure); legacy parity against this branch's committed golden digests (`legacy_parity_golden_phase5.json`); differential parity against the phase base commit rebuilt on the same runner (`tools/v8/delta_parity.py`: only the deltas listed in `tests/fixtures/v8/phase5_expected_deltas.json`, all of them, nothing else); every workflow file parses |
 | Simulator and no-edge checks | installs numpy and numba; `tools/research/test_qsim.py`; `tools/no_edge_check.py` |
 
 Both jobs are required status checks of `main` (ruleset 24588029, strict). Their names are what the ruleset matches:
@@ -34,6 +34,17 @@ universe, identity, DEX status, note, engine-decision, code or file delta at all
 the audit trace only, which the parity harness does not compare). The closure manifest is kept for the record and no
 longer checked.
 
+Phase 5 moves the base to production main `3288b15` (Phase 4 merged) with `phase5_expected_deltas.json`. The allowed deltas:
+
+* The economic-exposure identity changes of six fixture coins:
+  * EXTONLY and PRLX lose crypto execution identity, because Extended Crypto was their only authority.
+  * BYD, HYUNDAIUSD, US10Y and XIAOMI become tradfi through Lighter token-list RWA.
+* The two DEX crypto counts and the one price-check note that follow from them.
+* The published unverified/tradfi lists.
+* The identity version (v2 -> v3) on the entry-time proof of the trades the run opens.
+
+The fixture gains only what the base never reads: Extended `subCategory` and a Lighter token-list response. Where the base row lacks them, the delta validator ignores the new raw adapter fields (`xcheck`, `asset_type`, `asset_categories`), as it does for the Phase 2/3 ones, and it still compares every value both sides carry. The Phase 4 manifest is kept for the record and no longer checked.
+
 Phase 1 required the legacy outputs to be identical to the base. Phase 2 changes them on purpose, so the base check
 became a differential one: the base commit named in the manifest must reproduce its own golden digests (also with
 its own universe injected, which proves injection changes nothing else); this branch must reproduce its own; the
@@ -48,7 +59,9 @@ liquidity tests; since Phase 3 also the identity coverage and execution-safety t
 `tests.test_v8_phase3_smart` and `tests.test_v8_phase3_journal`; since the Phase 3 closure also
 `tests.test_v8_phase3_closure`: no quant position without crypto identity is actionable, legacy quant trades never
 become live evidence, legacy radar trades never grant a pass; since Phase 4 also `tests.test_v8_phase4`: no candidate
-venue field is crypto evidence, candidates are traced and never authority; about 30 seconds) right after
+venue field is crypto evidence, candidates are traced and never authority; since Phase 5 also `tests.test_v8_phase5`:
+a crypto wrapper beside tradfi exposure is never crypto-authorized, a wrapper-only unknown and a failed exposure check
+fail closed, the current gates react to an identity downgrade, entry-time proof stays historical; about 30 seconds) right after
 Python is set up. If they fail, the job stops there: the scanner does not run and nothing is published. The
 downstream resilience of the scan is unchanged: smart money, quant desk and coin picks keep `continue-on-error`
 with their "keep the published files" fallbacks, and the v8 snapshot step is also `continue-on-error` because an
@@ -65,4 +78,11 @@ states, the default-crypto inventory, every unverified asset, the venue field ce
 the identity gate removes or adds (the base's outputs are saved as `base_*.json`). Since the Phase 3 closure it
 also replays the published quant journal through both versions of `quant.py` and classifies and learns the published
 radar journal with both versions, then scans with it (`tools/v8/closure_evidence_report.py`:
-`research_quant_evidence.json`, `research_radar_evidence.json`).
+`research_quant_evidence.json`, `research_radar_evidence.json`). Since Phase 4 it also runs the candidate census (`research_candidate_census.json`).
+
+Since Phase 5 it also runs the economic-exposure safety report on the same observations (`tools/v8/exposure_safety.py`: `research_exposure_safety.json`). `research_identity.json` gains a Phase 5 section with:
+
+* the wrapper vs economic evidence counts;
+* the token-list health and coverage;
+* every transition against the previous identity version;
+* the controls.

@@ -9,15 +9,15 @@ Every snapshot starts with a manifest:
 | `scan_id` | `gh-<run id>-<attempt>` in GitHub Actions (shared by every engine of one scan), `local-<time>` offline |
 | `ts` | the scanner's scan time |
 | `repo`, `ref`, `git_sha` | where the code came from |
-| `schema`, `audit_version` | `v8.audit/3`, `v8-phase3.0` (Phase 1 wrote `v8.audit/1`, Phase 2 `v8.audit/2`) |
-| `identity_version`, `liquidity_version` | `v8.identity/2`, `v8.liquidity/1`: the universe identity and liquidity semantics that built this scan's universe (Phase 2 wrote `v8.identity/1`) |
+| `schema`, `audit_version` | `v8.audit/4`, `v8-phase5.0` (Phase 1 wrote `v8.audit/1`, Phase 2 `v8.audit/2`, Phases 3 and 4 `v8.audit/3`) |
+| `identity_version`, `liquidity_version` | `v8.identity/3`, `v8.liquidity/1`: the universe identity and liquidity semantics that built this scan's universe (Phase 2 wrote `v8.identity/1`, Phases 3 and 4 `v8.identity/2`) |
 | `identity_config_hash` | Phase 3: sha256 of everything that decides an identity state (`v8.provenance.identity_config()`: version, tolerance, venue label sets, base-only-symbol venues and quote suffixes, the tradfi and known-crypto lists, FX codes, the tradfi name pattern), also in every engine part's header |
 | `engine_versions` | each legacy engine's own version string |
 | `config_hashes` | per engine, sha256 of its decision-relevant configuration (below) |
 | `parts` | whether each engine's audit part was written (`ok`, `failed`, `missing`) |
 | `scan_ids_consistent` | all parts come from the same scan |
 | `registry_contracts`, `dispositions` | counts |
-| `data_sources` | which DEX market lists loaded, whether the fallback coin list was used |
+| `data_sources` | which DEX market lists loaded, whether the fallback coin list was used, and (Phase 5) the state of each economic-exposure metadata source (`exposure_metadata.LIGHTER_TOKENLIST`: OK, FAILED, UNAVAILABLE, MALFORMED or NOT_REQUESTED) |
 | `legacy_output_hashes` | sha256 of every legacy data file of the scan (the audit never changes them) |
 | `strategy_authority` | where quant strategy authority comes from today: `quant.py`'s runtime `ORDER`, the research `FINAL` tuple in `tools/research/qexport.py`, whether its `verdict()` pre-assigns "live", the research file's verdicts, and the hashes of those files (exposed, not changed) |
 
@@ -34,10 +34,14 @@ webhook URLs stay in the environment and are never read by the audit.
 
 ## Snapshot
 
-`data/v8/audit_latest.json` (and `.json.gz`), schema `v8.audit/3` (Phase 2 added the identity columns of every
-contract, `registry.assets[t].identity` and the identity counts; Phase 3 the identity state, evidence, parsed
-symbols, links and raw venue fields, and `coverage.summary.identity`; see [contract-identity.md](contract-identity.md)
-and [phase3-identity-coverage.md](phase3-identity-coverage.md)). Next to it, `data/v8/identity_state.json` (Phase 3:
+`data/v8/audit_latest.json` (and `.json.gz`) has schema `v8.audit/4`. What each phase added:
+
+* **Phase 2:** the identity columns of every contract, `registry.assets[t].identity` and the identity counts.
+* **Phase 3:** the identity state, evidence, parsed symbols, links and raw venue fields, and `coverage.summary.identity`.
+* **Phase 4:** the candidate evidence.
+* **Phase 5:** the contract columns `wrapper` and `xcheck`, and, per asset, `wrapper_evidence`, `exposure_checks`, `wrapper_only`, `exposure_trace` and `previous` (the previous identity version on the same contracts). Also `registry.counts.exposure_safety`, `data_health.exposure_metadata` and `coverage.summary.identity.exposure_safety`.
+
+See [contract-identity.md](contract-identity.md), [phase3-identity-coverage.md](phase3-identity-coverage.md) and [phase5-economic-exposure.md](phase5-economic-exposure.md). Next to it, `data/v8/identity_state.json` (Phase 3:
 asset -> [identity state, since], read back from the site next scan to list identity transitions), and
 `data/v8/identity_authority.json`, which the scanner writes for the engines of the same scan that do not build the
 universe (smart money; see [phase3-identity-coverage.md](phase3-identity-coverage.md#smart-money-the-same-scan-identity-authority)).

@@ -140,16 +140,26 @@ class CollisionMatrix(unittest.TestCase):
         self.assertFalse(r.rows[("extended", 0)]["admitted"])
 
     def test_D_two_valid_exposures_under_one_ticker_do_not_contaminate(self):
-        # an unlisted ticker: crypto by Extended's own category on one side, a stock by its name on the other
+        # an unlisted ticker: Extended's Crypto wrapper on one side, a stock by its name on the other. v8 Phase 5:
+        # the wrapper side has no economic evidence (v8.identity/2: CRYPTO), so the Phase 3 collision rule makes it
+        # AMBIGUOUS (an unlabeled exposure beside a tradfi one); the stock's class is not inherited across exposures
         r = resolve(ext("NOVA-USD", "NOVA", 0.5, 2e6, cat="Crypto", desc="Nova"),
                     var("NOVA", 30.0, 4e5, "Nova Holdings Inc"), aster("NOVAUSDT", "NOVA", 30.2, 1e5))
         a = r.asset("NOVA")
         cls = {x["id"]: x["class"] for x in a["exposures"]}
-        self.assertEqual(sorted(cls.values()), [ID.CRYPTO, ID.TRADFI])
-        self.assertTrue(admitted(r, "NOVA"))
-        self.assertEqual(list(r.coins["NOVA"]["venues"]), ["extended"])
+        self.assertEqual(sorted(cls.values()), [ID.AMBIGUOUS, ID.TRADFI])
+        self.assertFalse(admitted(r, "NOVA"))
         self.assertEqual(r.rows[("aster", 0)]["exp_cls"], ID.TRADFI)       # inherited inside its own exposure
-        self.assertEqual(r.rows[("extended", 0)]["exp_cls"], ID.CRYPTO)     # never inherited across exposures
+        self.assertEqual(r.rows[("extended", 0)]["exp_cls"], ID.AMBIGUOUS)  # never inherited across exposures
+        self.assertEqual(r.rows[("extended", 0)]["exp_why"], "UNLABELED_UNDER_TRADFI_COLLISION")
+        # a known-crypto ticker in the same shape keeps both sides apart: crypto by the list, the stock tradfi
+        r = resolve(ext("SOL-USD", "SOL", 150.0, 2e6, cat="Crypto", desc="Solana"),
+                    var("SOL", 30.0, 4e5, "Sol Holdings Inc"), aster("SOLUSDT", "SOL", 30.2, 1e5, ut="EQUITY"))
+        cls = sorted(x["class"] for x in r.asset("SOL")["exposures"])
+        self.assertEqual(cls, [ID.CRYPTO, ID.TRADFI])
+        self.assertTrue(admitted(r, "SOL"))
+        self.assertEqual(list(r.coins["SOL"]["venues"]), ["extended"])
+        self.assertEqual(r.rows[("aster", 0)]["exp_cls"], ID.TRADFI)
 
     def test_E_contract_without_price_cannot_poison(self):
         # an unpriced RWA market next to a priced coin: it neither joins nor reclassifies it
@@ -197,10 +207,13 @@ class CollisionMatrix(unittest.TestCase):
         r = resolve(ext("SECT-USD", "SECT", 2.0, 5e5, cat="L1"))
         self.assertFalse(admitted(r, "SECT"))
         self.assertEqual(r.asset("SECT")["decision"], ID.D_AMBIGUOUS)
-        # crypto and tradfi evidence in one price-coherent exposure
+        # a crypto wrapper and tradfi economic evidence in one price-coherent exposure: v8 Phase 5 reads the wrapper
+        # as wrapper only, so the exposure is tradfi (v8.identity/2: CONFLICTING_CONTRACT_EVIDENCE, AMBIGUOUS)
         r = resolve(ext("ZED-USD", "ZED", 5.0, 1e6, cat="Crypto", desc="Zed"), var("ZED", 5.05, 1e6, "Zed Holdings Inc"))
         self.assertFalse(admitted(r, "ZED"))
-        self.assertEqual(r.asset("ZED")["exposures"][0]["reason"], "CONFLICTING_CONTRACT_EVIDENCE")
+        self.assertEqual(r.asset("ZED")["exposures"][0]["reason"], "TRADFI_CONTRACT_EVIDENCE")
+        self.assertEqual(r.asset("ZED")["exposures"][0]["wrapper"], ["VENUE_CATEGORY:Crypto"])
+        self.assertEqual(r.asset("ZED")["previous"]["decision"], ID.D_AMBIGUOUS)
 
     def test_H_qnt_live_shape(self):
         self.test_C_crypto_on_several_venues_one_wrong_tradfi_row()

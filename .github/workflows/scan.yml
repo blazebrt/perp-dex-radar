@@ -45,14 +45,17 @@ jobs:
         # The fast unit tests of every engine and of the v8 audit (about 20 seconds), including the identity
         # invariants (v8 Phase 3: no coin without positive identity evidence reaches an engine; unverified coins stay
         # visible) and the evidence boundary (v8 Phase 3 closure: a quant position without crypto execution identity
-        # is never actionable, and legacy quant or radar trades never become live evidence or grant a pass) and the
-        # Phase 4 outcome (no candidate venue field is crypto evidence; candidates are traced, never authority). The full
-        # suite, the end-to-end legacy parity check and the research checks run in the CI workflow.
+        # is never actionable, and legacy quant or radar trades never become live evidence or grant a pass), the
+        # Phase 4 outcome (no candidate venue field is crypto evidence; candidates are traced, never authority) and the
+        # Phase 5 invariants (a crypto wrapper beside tradfi exposure is never crypto-authorized, a wrapper-only unknown
+        # and a failed exposure check fail closed, the current gates react to an identity downgrade, entry-time proof
+        # stays historical). The full suite, the end-to-end legacy parity check and the research checks run in the CI
+        # workflow.
         run: >-
           python -m unittest tests.test_v5 tests.test_quant tests.test_picks tests.test_smart
           tests.test_smart_backtest tests.test_dashboard tests.test_analyze tests.test_analyzer_call
           tests.test_v8_units tests.test_v8_identity tests.test_v8_phase3 tests.test_v8_phase3_smart
-          tests.test_v8_phase3_journal tests.test_v8_phase3_closure tests.test_v8_phase4
+          tests.test_v8_phase3_journal tests.test_v8_phase3_closure tests.test_v8_phase4 tests.test_v8_phase5
 
       - id: pages
         uses: actions/configure-pages@v5

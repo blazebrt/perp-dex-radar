@@ -1,5 +1,5 @@
-"""Universe identity (v8 Phase 2, hardened in Phase 3): contract-first classification, price-coherent exposures and
-four explicit identity states.
+"""Universe identity (v8 Phase 2, hardened in Phase 3, economic exposure in Phase 5): contract-first classification,
+price-coherent exposures and four explicit identity states.
 
 The single authority that turns the eight DEX market lists into the coin universe every engine reads
 (scanner.build_universe() calls resolve(); quant and picks call build_universe()), and the single place that says
@@ -16,12 +16,25 @@ Phase 3 retires the implicit rule "no tradfi evidence and no crypto evidence = c
 An exposure without positive evidence is UNVERIFIED: it stays in the universe (discovery: the coin record, the
 registry, the audit, every engine's ledger), it is not called tradfi, and it has no crypto execution authority.
 
+Two dimensions (v8 Phase 5, v8.identity/3). The identity answers "what economic exposure does a position on this
+market take", not "is the instrument implemented as a crypto token or perpetual":
+  wrapper evidence     what a venue says about how the instrument is represented (Extended category "Crypto": the
+                       market is a crypto-native token/perp wrapper). Recorded per contract (CRYPTO_WRAPPER), shown in
+                       the trace, and never evidence of the economic exposure in either direction: Extended files
+                       tokenized gold (PAXG, XAUT) under Crypto.
+  economic evidence    what price risk the position carries (rules 1-4 below). Only economic evidence decides.
+A crypto wrapper on a market whose economic evidence is tradfi is VERIFIED_TRADFI, not a conflict; a crypto wrapper
+with no economic evidence is UNVERIFIED (WRAPPER_ONLY_NO_ECONOMIC_EVIDENCE), unless the ticker list verifies it.
+
 Rules (deterministic; no statistics, no per-ticker exceptions, no network):
 
-1. Contract evidence.
-   Venue metadata: Extended category "RWA" or a "_24_5" market: tradfi; Extended category "Crypto": crypto; any other
-   Extended category: ambiguous. Aster underlyingType other than "COIN": tradfi; "COIN" is no evidence (Aster sends
-   it for the stocks it lists too). Hyperliquid, Lighter, dYdX, Paradex, edgeX and Variational send no asset-class
+1. Contract evidence (economic).
+   Venue metadata: Extended category "RWA" or a "_24_5" market: tradfi; Extended category "Crypto": no economic
+   evidence (v8.identity/2 counted it as crypto; since /3 it is wrapper evidence only); any other Extended category:
+   ambiguous. Aster underlyingType other than "COIN": tradfi; "COIN" is no evidence (Aster sends it for the stocks it
+   lists too). Lighter (Phase 5): the documented `asset_type` of the market's entry in Lighter's token list
+   (/api/v1/tokenlist, enum CRYPTO | RWA) is "RWA": tradfi; "CRYPTO" is no evidence (Lighter files the FX pair USDHKD
+   and tokenized gold spot under CRYPTO). Hyperliquid, dYdX, Paradex, edgeX and Variational send no asset-class
    field.
    Contract name: a name matching the tradfi name pattern (Inc, Holdings, ETF, ...) is tradfi unless the ticker is
    on the known-crypto list (the precedence of scanner.is_tradfi()).
@@ -45,11 +58,16 @@ Rules (deterministic; no statistics, no per-ticker exceptions, no network):
    nothing (HYUNDAIUSD -> HYUNDAI, both unverified). Tickers that gained evidence are classified again; the links
    are not followed further.
 4. Exposure class. A ticker on the tradfi list or an FX pair: TRADFI (unchanged legacy lists). Otherwise from the
-   contracts inside the exposure only: tradfi and crypto evidence together: AMBIGUOUS; tradfi evidence: TRADFI, and
-   its unlabeled contracts inherit it; ambiguous evidence: AMBIGUOUS; crypto evidence: CRYPTO. Without contract
-   evidence: CRYPTO when the ticker is on the repository's known-crypto list; AMBIGUOUS when another priced exposure
-   of the ticker is tradfi or ambiguous; else UNVERIFIED (Phase 2: CRYPTO by default). An unpriced contract alone
-   with no evidence: UNVERIFIED.
+   contracts inside the exposure only: tradfi and crypto economic evidence together: AMBIGUOUS (a true conflict of
+   two economic sources); tradfi evidence: TRADFI, and its unlabeled contracts inherit it; ambiguous evidence:
+   AMBIGUOUS; crypto economic evidence: CRYPTO (no source produces it since /3; QUALIFIED_CRYPTO_RULES is empty).
+   Wrapper evidence is not consulted. Without contract evidence: CRYPTO when the ticker is on the repository's
+   known-crypto list - except (Phase 5, fail closed) when every contract of the exposure is on a venue whose exposure
+   check did not run this scan (EXPOSURE_CHECK_UNAVAILABLE: the Lighter token list failed, was malformed or has no
+   entry for the market), which stays UNVERIFIED; AMBIGUOUS when another priced exposure of the ticker is tradfi or
+   ambiguous; else UNVERIFIED (Phase 2: CRYPTO by default), reason WRAPPER_ONLY_NO_ECONOMIC_EVIDENCE when a contract
+   carries a crypto wrapper and NO_POSITIVE_IDENTITY_EVIDENCE otherwise. An unpriced contract alone with no
+   evidence: UNVERIFIED.
 5. Asset state and the coin record. Any CRYPTO exposure: VERIFIED_CRYPTO; the CRYPTO exposures are admitted and the
    coin record is built from them (plus unpriced contracts without tradfi or ambiguous evidence, as before);
    price-separated UNVERIFIED exposures of the ticker stay out. Else any UNVERIFIED exposure: UNVERIFIED; the coin
@@ -64,8 +82,14 @@ fails closed. Liquidity, history and strategy gates are separate and unchanged.
 Candidate evidence (Phase 4, Stage A): venue fields that are not evidence in either direction (CANDIDATE_FIELDS:
 Aster underlyingType COIN and the non-tradfi underlyingSubType tags, Lighter strategy_index, insurance fund and market
 flags) are recorded per contract as observed candidate evidence (candidate_evidence()) for the audit, apart from the
-authoritative evidence above. Phase 4 qualified no candidate rule (QUALIFIED_CRYPTO_RULES is empty), so the rules
-above and VERSION are unchanged.
+authoritative evidence above. Phase 4 qualified no candidate rule (QUALIFIED_CRYPTO_RULES is empty). Phase 5 adds the
+Extended subCategory (undocumented in Extended's market schema) and the Lighter token-list values that are not
+evidence (asset_type CRYPTO, categories) to the candidates.
+
+Versions. v8.identity/3 (Phase 5) differs from /2 only in Extended category "Crypto" (wrapper, no longer crypto
+evidence), the Lighter token-list RWA evidence and its fail-closed rule. resolve() also resolves the same contracts
+under the /2 rules and records the result per asset (`previous`), so every audit shows exactly which assets the
+version change moved and why.
 
 Volumes: an observed 0 counts (best_vol, tot_vol, trade_vol are 0.0, not None); None means no venue reported one."""
 from __future__ import annotations
@@ -74,7 +98,8 @@ import json
 import os
 import statistics
 
-VERSION = "v8.identity/2"
+VERSION = "v8.identity/3"
+PREVIOUS_VERSION = "v8.identity/2"      # resolved beside it on the same contracts, for the audit's before/after
 TOL = 0.2          # price tolerance of one exposure (the legacy price-conflict tolerance)
 
 # contract classes (a contract's own evidence) and exposure classes
@@ -102,6 +127,9 @@ STATE_OF_DECISION = {D_CRYPTO: VERIFIED_CRYPTO, D_SELECTED: VERIFIED_CRYPTO, D_T
                      D_TRADFI_EXPOSURE: VERIFIED_TRADFI, D_AMBIGUOUS: AMBIGUOUS, D_UNVERIFIED: UNVERIFIED}
 
 EXTENDED_TRADFI_CATEGORIES = frozenset({"RWA"})
+# The category Extended files crypto-native markets under. v8.identity/2 read it as crypto evidence; Phase 5 found it
+# describes the instrument wrapper, not the economic exposure (tokenized gold PAXG and XAUT are filed under it), so
+# since v8.identity/3 it is wrapper evidence only (wrapper_evidence()).
 EXTENDED_CRYPTO_CATEGORIES = frozenset({"Crypto"})
 ASTER_NEUTRAL_UNDERLYING = frozenset({"COIN"})
 # Phase 3, from the venue field census of the exact-head live scan gh-37782095629-1 (2,016 active perps): Aster
@@ -117,9 +145,10 @@ NAMED_VENUES = ("variational", "extended")     # the venues whose market name th
 BASE_ONLY_SYMBOL_VENUES = ("hyperliquid", "lighter", "variational")
 QUOTE_SUFFIXES = ("USD",)
 MIN_CANDIDATE_LEN = 2
-PROMOTION = ("positive identity evidence on a price-coherent contract: a venue asset-class label (Extended "
-             "category, Aster underlyingType), the repository's known-crypto or tradfi list, a tradfi contract name, "
-             "or a verified tradfi exposure linked by the venue symbol")
+PROMOTION = ("positive identity evidence on a price-coherent contract: the repository's known-crypto or tradfi list, "
+             "a venue tradfi label (Extended category RWA, Aster underlyingType or tradfi subtype, Lighter token-list "
+             "asset type RWA), a tradfi contract name, or a verified tradfi exposure linked by the venue symbol; a "
+             "crypto wrapper label (Extended category Crypto) is not evidence")
 
 # v8 Phase 4 (Stage A): candidate evidence. Venue fields that could look like an asset class but are NOT evidence.
 # Phase 4 censused every value of them against the identity states of the retained and live scans and put each one
@@ -131,9 +160,35 @@ PROMOTION = ("positive identity evidence on a price-coherent contract: a venue a
 # contract_evidence(), and they decide nothing. A value used as authority already (an Aster underlyingType other
 # than COIN, an Aster tradfi subtype) is authoritative evidence and is not repeated here.
 CANDIDATE_FIELDS = {"aster": ("underlyingType", "underlyingSubType"),
-                    "lighter": ("strategy_index", "insurance_fund_account_index", "market_flags")}
-QUALIFIED_CRYPTO_RULES = ()      # Phase 4: no candidate rule qualified as positive crypto evidence
+                    "lighter": ("strategy_index", "insurance_fund_account_index", "market_flags", "asset_type",
+                                "asset_categories"),
+                    "extended": ("subCategory",)}
+QUALIFIED_CRYPTO_RULES = ()      # Phase 4: no candidate rule qualified as positive crypto evidence (Phase 5: still none)
 CANDIDATE_STATUS = "OBSERVED_NOT_AUTHORITY"
+
+# --------------------------------------------------------------------------- v8 Phase 5: wrapper vs economic exposure
+CRYPTO_WRAPPER = "CRYPTO_WRAPPER"        # wrapper evidence: how the instrument is represented, never its exposure
+WRAPPER_ONLY = "WRAPPER_ONLY"            # the effect of wrapper evidence on the identity: none
+# Lighter's token list (GET /api/v1/tokenlist, one bulk request): Token.asset_type is documented in Lighter's OpenAPI
+# schema with the enum CRYPTO | RWA, and Lighter's documentation defines its RWAs as commodities, equities and fixed
+# income markets. A market's entry: market == "PERPS" and backend_symbol (when set) or symbol == the market symbol of
+# /api/v1/orderBookDetails. Only RWA is evidence (tradfi); CRYPTO is not (Phase 5 census: the FX pair USDHKD and
+# tokenized gold spot XAUT are filed under CRYPTO).
+LIGHTER_ASSET_TYPES = ("CRYPTO", "RWA")
+LIGHTER_TRADFI_ASSET_TYPES = frozenset({"RWA"})
+LIGHTER_TOKENLIST = "LIGHTER_TOKENLIST"
+# Exposure-check states of a contract on a venue that has one (EXPOSURE_CHECKS). Anything but OK means the check did
+# not run for that market this scan: the whole list failed (network, 429/5xx after retries), was unavailable (another
+# HTTP error), was malformed, had no entry for the market, or a malformed entry; NOT_REQUESTED when the adapter row
+# carries no check at all. The check failing never makes a market crypto (rule 4).
+XCHECK_OK, XCHECK_FAILED, XCHECK_UNAVAILABLE, XCHECK_MALFORMED = "OK", "FAILED", "UNAVAILABLE", "MALFORMED"
+XCHECK_NO_ENTRY, XCHECK_MALFORMED_ENTRY, XCHECK_NOT_REQUESTED = "NO_ENTRY", "MALFORMED_ENTRY", "NOT_REQUESTED"
+XCHECK_STATES = (XCHECK_OK, XCHECK_FAILED, XCHECK_UNAVAILABLE, XCHECK_MALFORMED, XCHECK_NO_ENTRY,
+                 XCHECK_MALFORMED_ENTRY, XCHECK_NOT_REQUESTED)
+EXPOSURE_CHECKS = {"lighter": LIGHTER_TOKENLIST}      # venue -> its economic-exposure check
+R_CHECK_UNAVAILABLE = "EXPOSURE_CHECK_UNAVAILABLE"
+R_WRAPPER_ONLY = "WRAPPER_ONLY_NO_ECONOMIC_EVIDENCE"
+R_NO_EVIDENCE = "NO_POSITIVE_IDENTITY_EVIDENCE"
 
 
 def candidate_evidence(venue, vmeta):
@@ -151,8 +206,62 @@ def candidate_evidence(venue, vmeta):
                 continue
             if venue == "aster" and field == "underlyingSubType" and x in ASTER_TRADFI_SUBTYPES:
                 continue
+            if venue == "lighter" and field == "asset_type" and x in LIGHTER_TRADFI_ASSET_TYPES:
+                continue
             out.append([field, x])
     return out
+
+
+def lighter_tokenlist_index(payload):
+    """(state, index, detail) from a Lighter /api/v1/tokenlist payload (pure; no network).
+
+    index: {market symbol: {"asset_type": ..., "categories": [...]}} for every PERPS entry, keyed by backend_symbol
+    when set (kPEPE -> 1000PEPE) else symbol; an entry whose asset_type is outside the documented enum, or two entries
+    for one market that disagree, map to None (MALFORMED_ENTRY). state: OK, or MALFORMED when the payload is not the
+    documented TokenList (code 200 and a tokens array) or holds no usable PERPS entry."""
+    detail = {"tokens": 0, "perps_entries": 0, "malformed_entries": [], "duplicate_entries": []}
+    if not isinstance(payload, dict) or not isinstance(payload.get("tokens"), list):
+        return XCHECK_MALFORMED, {}, dict(detail, why="no tokens array")
+    if payload.get("code") not in (None, 200):
+        return XCHECK_MALFORMED, {}, dict(detail, why=f"code {payload.get('code')}")
+    index = {}
+    for e in payload["tokens"]:
+        detail["tokens"] += 1
+        if not isinstance(e, dict) or e.get("market") != "PERPS":
+            continue
+        detail["perps_entries"] += 1
+        key = str(e.get("backend_symbol") or e.get("symbol") or "")
+        if not key:
+            detail["malformed_entries"].append(str(e.get("symbol")))
+            continue
+        at = e.get("asset_type")
+        cats = e.get("categories")
+        rec = {"asset_type": at, "categories": [str(c) for c in cats] if isinstance(cats, list) else []}
+        if at not in LIGHTER_ASSET_TYPES:
+            detail["malformed_entries"].append(key)
+            rec = None
+        if key in index:
+            detail["duplicate_entries"].append(key)
+            if index[key] is None or rec is None or index[key]["asset_type"] != rec["asset_type"]:
+                index[key] = None
+            continue
+        index[key] = rec
+    if not any(v is not None for v in index.values()):
+        return XCHECK_MALFORMED, {}, dict(detail, why="no usable PERPS entry")
+    return XCHECK_OK, index, detail
+
+
+def lighter_exposure_fields(sym, state, index):
+    """The exposure-check fields of one Lighter market: {"xcheck": state, "asset_type": ..., "asset_categories": [...]}.
+    state is the token list's state this scan (OK, FAILED, UNAVAILABLE, MALFORMED, NOT_REQUESTED)."""
+    if state != XCHECK_OK:
+        return {"xcheck": state or XCHECK_NOT_REQUESTED}
+    if sym not in index:
+        return {"xcheck": XCHECK_NO_ENTRY}
+    rec = index[sym]
+    if rec is None:
+        return {"xcheck": XCHECK_MALFORMED_ENTRY}
+    return {"xcheck": XCHECK_OK, "asset_type": rec["asset_type"], "asset_categories": list(rec["categories"])}
 
 
 class Lists:
@@ -187,14 +296,45 @@ def parse_symbol(dex, t):
     return None, None
 
 
-def contract_evidence(row, lists, dex=None):
-    """[(class, reason, authority), ...]: what the contract itself says (Phase 2 evidence, then the Phase 3 venue
-    field and parsed-symbol evidence)."""
-    return base_evidence(row, lists) + venue_field_evidence(row, lists) + parsed_evidence(row, lists, dex)
+def contract_evidence(row, lists, dex=None, rules=3):
+    """[(class, reason, authority), ...]: the economic evidence of what the contract itself says (Phase 2 evidence,
+    the Phase 3 venue field and parsed-symbol evidence, since Phase 5 the documented exposure fields). rules=2: as
+    v8.identity/2 decided (Extended Crypto as crypto evidence, no exposure fields)."""
+    if rules >= 3:
+        return (base_evidence(row, lists, 3) + venue_field_evidence(row, lists) + exposure_field_evidence(row)
+                + parsed_evidence(row, lists, dex))
+    return base_evidence(row, lists, 2) + venue_field_evidence(row, lists) + parsed_evidence(row, lists, dex)
 
 
-def base_evidence(row, lists):
-    """The Phase 2 evidence of one contract: venue metadata and the contract name."""
+def wrapper_evidence(row):
+    """[(CRYPTO_WRAPPER, reason, authority)]: what the venue says about the instrument wrapper (Phase 5). Never
+    evidence of the economic exposure: recorded and traced, consulted by no rule."""
+    if row.get("dex") == "extended" and row.get("category") in EXTENDED_CRYPTO_CATEGORIES:
+        return [(CRYPTO_WRAPPER, f"VENUE_CATEGORY:{row.get('category')}", VENUE_METADATA)]
+    return []
+
+
+def exposure_field_evidence(row):
+    """Phase 5: tradfi evidence from documented venue exposure metadata - a Lighter market whose token-list entry
+    (checked this scan) has asset_type RWA. Same contract only; nothing for a market whose check did not run."""
+    if row.get("dex") == "lighter" and row.get("xcheck") == XCHECK_OK \
+            and row.get("asset_type") in LIGHTER_TRADFI_ASSET_TYPES:
+        return [(TRADFI, f"VENUE_ASSET_TYPE:{row.get('asset_type')}", VENUE_METADATA)]
+    return []
+
+
+def exposure_check(row, dex=None):
+    """The exposure-check state of a contract on a venue that has one (EXPOSURE_CHECKS), else None."""
+    dex = dex or row.get("dex")
+    if dex not in EXPOSURE_CHECKS:
+        return None
+    x = row.get("xcheck")
+    return x if x in XCHECK_STATES else XCHECK_NOT_REQUESTED
+
+
+def base_evidence(row, lists, rules=3):
+    """The Phase 2 evidence of one contract: venue metadata and the contract name. rules=2 (what Phase 2 and
+    v8.identity/2 knew) reads Extended category Crypto as crypto evidence; rules=3 does not (wrapper_evidence)."""
     t, dex = row.get("t"), row.get("dex")
     ev = []
     if dex == "extended":
@@ -205,7 +345,8 @@ def base_evidence(row, lists):
             if cat in EXTENDED_TRADFI_CATEGORIES:
                 ev.append((TRADFI, f"VENUE_CATEGORY:{cat}", VENUE_METADATA))
             elif cat in EXTENDED_CRYPTO_CATEGORIES:
-                ev.append((CRYPTO, f"VENUE_CATEGORY:{cat}", VENUE_METADATA))
+                if rules < 3:
+                    ev.append((CRYPTO, f"VENUE_CATEGORY:{cat}", VENUE_METADATA))
             else:
                 ev.append((AMBIGUOUS, f"VENUE_CATEGORY_UNRECOGNIZED:{cat}", VENUE_METADATA))
     elif dex == "aster":
@@ -264,9 +405,9 @@ def classify_evidence(ev):
     return UNLABELED, "NO_CONTRACT_EVIDENCE", NONE   # not reached
 
 
-def classify_contract(row, lists):
-    """(class, reason, authority) of one contract from its own evidence; UNLABELED when it carries none."""
-    return classify_evidence(contract_evidence(row, lists))
+def classify_contract(row, lists, rules=3):
+    """(class, reason, authority) of one contract from its own economic evidence; UNLABELED when it carries none."""
+    return classify_evidence(contract_evidence(row, lists, rules=rules))
 
 
 def ticker_class(t, lists):
@@ -283,14 +424,18 @@ def ticker_class(t, lists):
 # --------------------------------------------------------------------------- 2. exposures of one ticker
 class Member:
     __slots__ = ("dex", "i", "row", "ev2", "ev", "cls", "why", "auth", "cls2", "npx", "vol", "cand", "cand_rule",
-                 "link")
+                 "link", "wrap", "xcheck", "xmissing")
 
-    def __init__(self, dex, i, row, lists):
+    def __init__(self, dex, i, row, lists, rules=3):
         self.dex, self.i, self.row = dex, i, row
-        self.ev2 = base_evidence(row, lists)                     # what Phase 2 knew
-        self.ev = self.ev2 + venue_field_evidence(row, lists) + parsed_evidence(row, lists, dex)   # Phase 3
+        self.ev2 = base_evidence(row, lists, 2)                  # what Phase 2 knew
+        self.ev = contract_evidence(row, lists, dex, rules)      # economic evidence (Phase 3; Phase 5 since /3)
         self.cls, self.why, self.auth = classify_evidence(self.ev)
         self.cls2 = classify_evidence(self.ev2)[0]
+        # Phase 5: wrapper evidence (never decides) and the venue's exposure check (fail closed when it did not run)
+        self.wrap = wrapper_evidence(row) if rules >= 3 else []
+        self.xcheck = exposure_check(row, dex) if rules >= 3 else None
+        self.xmissing = self.xcheck is not None and self.xcheck != XCHECK_OK
         p, m = row.get("price"), row.get("mult") or 1.0
         self.npx = p / m if p else None          # price per 1 coin; legacy `if v.get("price")`
         self.vol = row.get("vol") or 0
@@ -341,7 +486,8 @@ def group(t, members):
 
 def classify_exposures(t, exps, lists, phase2=False):
     """Sets cls/why/auth of every exposure of ticker t (rule 4 of the module docstring). phase2=True classifies as
-    Phase 2 did (no parsed-symbol evidence; no evidence = CRYPTO by default), for the before/after only."""
+    Phase 2 did (no parsed-symbol evidence; no evidence = CRYPTO by default), for the before/after only. The rules
+    version is the members' own (Member(rules=...)): wrapper evidence and exposure checks exist only under /3."""
     tcls, twhy = ticker_class(t, lists)
     pending = []
     for g in exps:
@@ -364,13 +510,19 @@ def classify_exposures(t, exps, lists, phase2=False):
     collision = any(g.cls in (TRADFI, AMBIGUOUS) for g in exps if not g.single)
     for g in pending:
         if tcls == CRYPTO:
-            g.cls, g.why, g.auth = CRYPTO, twhy, TICKER_LIST
+            if not phase2 and g.members and all(m.xmissing for m in g.members):
+                # Phase 5, fail closed: every contract of this exposure is on a venue whose exposure check did not
+                # run this scan; the ticker list alone does not verify what the missing check might have shown
+                g.cls, g.why, g.auth = UNVERIFIED, R_CHECK_UNAVAILABLE, NONE
+            else:
+                g.cls, g.why, g.auth = CRYPTO, twhy, TICKER_LIST
         elif collision:
             g.cls, g.why, g.auth = AMBIGUOUS, "UNLABELED_UNDER_TRADFI_COLLISION", NONE
         elif phase2:
             g.cls, g.why, g.auth = CRYPTO, "DEFAULT_CRYPTO", DEFAULT
         else:
-            g.cls, g.why, g.auth = UNVERIFIED, "NO_POSITIVE_IDENTITY_EVIDENCE", NONE
+            wrapped = any(m.wrap for m in g.members)
+            g.cls, g.why, g.auth = UNVERIFIED, (R_WRAPPER_ONLY if wrapped else R_NO_EVIDENCE), NONE
     return exps
 
 
@@ -462,7 +614,20 @@ def link_symbols(by_t, exps_of, lists):
 
 def resolve(results, dexes, lists, in_my_dexes, on_conflict=None):
     """results: {dex: adapter rows or None (the adapter failed)}. Returns a Resolution; .coins is the legacy coin
-    dict in the legacy order (first appearance of each ticker in market-list order), each with `identity`."""
+    dict in the legacy order (first appearance of each ticker in market-list order), each with `identity`.
+
+    Since Phase 5 every asset also carries `previous`: the state, decision, reason and authority the previous identity
+    version (PREVIOUS_VERSION) gives the same contracts - the audit's before/after. Only VERSION decides."""
+    res = _resolve(results, dexes, lists, in_my_dexes, on_conflict, rules=3)
+    prev = _resolve(results, dexes, lists, in_my_dexes, None, rules=2, before_after=False)
+    for t, info in res.assets.items():
+        p = prev.assets.get(t)
+        info["previous"] = ({"version": PREVIOUS_VERSION, "state": p["state"], "decision": p["decision"],
+                             "reason": p["reason"], "authority": p["authority"]} if p is not None else None)
+    return res
+
+
+def _resolve(results, dexes, lists, in_my_dexes, on_conflict=None, rules=3, before_after=True):
     res = Resolution()
     by_t = {}
     for dex in dexes:
@@ -471,7 +636,7 @@ def resolve(results, dexes, lists, in_my_dexes, on_conflict=None):
             continue
         res.crypto_rows[dex] = 0
         for i, r in enumerate(rows):
-            by_t.setdefault(r["t"], []).append(Member(dex, i, r, lists))
+            by_t.setdefault(r["t"], []).append(Member(dex, i, r, lists, rules))
     exps_of = {t: classify_exposures(t, group(t, ms), lists) for t, ms in by_t.items()}
     for t in link_symbols(by_t, exps_of, lists):
         exps_of[t] = classify_exposures(t, group(t, by_t[t]), lists)
@@ -522,8 +687,9 @@ def resolve(results, dexes, lists, in_my_dexes, on_conflict=None):
                 res.rows[(m.dex, m.i)] = _row_info(m, g, st, info["state"])
                 if res.rows[(m.dex, m.i)]["admitted"]:
                     res.crypto_rows[m.dex] = res.crypto_rows.get(m.dex, 0) + 1
-        info["phase1_tradfi"] = _phase1_tradfi(t, members, lists)
-        info["phase2"] = _phase2(t, members, lists)
+        if before_after:
+            info["phase1_tradfi"] = _phase1_tradfi(t, members, lists)
+            info["phase2"] = _phase2(t, members, lists)
         res.assets[t] = info
     return res
 
@@ -566,12 +732,15 @@ def _row_info(m, g, state, asset_state):
             "admitted": in_record and asset_state == VERIFIED_CRYPTO, "in_record": in_record,
             "inherited_from": inherited, "state": state, "meta": _meta(m.row),
             "evidence": [[c, w, a] for c, w, a in m.ev] or None,
-            "parsed": [m.cand, m.cand_rule] if m.cand else None, "link": m.link}
+            "parsed": [m.cand, m.cand_rule] if m.cand else None, "link": m.link,
+            # v8 Phase 5: wrapper evidence (never decides) and the venue's exposure check
+            "wrapper": [[c, w, a] for c, w, a in m.wrap] or None, "xcheck": m.xcheck}
 
 
 def _meta(row):
+    """The adapter-row fields the identity rules read (the audit keeps them, so a snapshot re-resolves offline)."""
     out = {}
-    for k in ("underlying", "category", "subtypes"):
+    for k in ("underlying", "category", "subtypes", "asset_type", "xcheck"):
         if row.get(k) is not None:
             out[k] = row.get(k)
     return out or None
@@ -597,13 +766,17 @@ def _asset_info(t, members, exps, state, lists):
     out = []
     for g in exps:
         px = [m.npx for m in g.members if m.npx]
-        out.append({"id": g.id, "class": g.cls, "state": STATE_OF.get(g.cls), "reason": g.why, "authority": g.auth,
-                    "priced": g.priced,
-                    "anchor": f"{g.anchor.dex}:{g.anchor.row.get('sym')}" if g.anchor is not None else None,
-                    "anchor_price": _r(g.anchor.npx) if g.anchor is not None else None,
-                    "price_range": [_r(min(px)), _r(max(px))] if px else None,
-                    "members": [f"{m.dex}:{m.row.get('sym')}" for m in g.members],
-                    "admitted": bool(g.admitted), "attached": bool(g.attached), "recorded": bool(g.recorded)})
+        x = {"id": g.id, "class": g.cls, "state": STATE_OF.get(g.cls), "reason": g.why, "authority": g.auth,
+             "priced": g.priced,
+             "anchor": f"{g.anchor.dex}:{g.anchor.row.get('sym')}" if g.anchor is not None else None,
+             "anchor_price": _r(g.anchor.npx) if g.anchor is not None else None,
+             "price_range": [_r(min(px)), _r(max(px))] if px else None,
+             "members": [f"{m.dex}:{m.row.get('sym')}" for m in g.members],
+             "admitted": bool(g.admitted), "attached": bool(g.attached), "recorded": bool(g.recorded)}
+        wr = sorted({w for m in g.members for _, w, _ in m.wrap})
+        if wr:                       # v8 Phase 5: the exposure's wrapper labels, beside (not part of) its class
+            x["wrapper"] = wr
+        out.append(x)
     # a ticker collision: the ticker's own contracts disagree (some carry tradfi or ambiguous evidence, others do
     # not) and no ticker list settles it for the whole ticker
     labels = {m.cls for g in exps for m in g.members}
@@ -611,7 +784,10 @@ def _asset_info(t, members, exps, state, lists):
     evidence = [[m.cid, c, w, a] for m in members for c, w, a in m.ev]
     if twhy:
         evidence.append(["ticker:" + t, tcls, twhy, TICKER_LIST])
+    wrapper = [[m.cid, c, w, a] for m in members for c, w, a in m.wrap]
+    checks = [[m.cid, EXPOSURE_CHECKS[m.dex], m.xcheck] for m in members if m.xcheck is not None]
     first = deciding[0] if deciding else None
+    wrapper_only = state == UNVERIFIED and any(g.why == R_WRAPPER_ONLY for g in deciding)
     return {"decision": decision, "state": state, "admitted": state == VERIFIED_CRYPTO,
             "authority": first.auth if first is not None else NONE,
             "reason": first.why if first is not None else None,
@@ -619,7 +795,23 @@ def _asset_info(t, members, exps, state, lists):
             "discovery_eligible": True, "execution_identity_eligible": state == VERIFIED_CRYPTO,
             "promotion": PROMOTION if state == UNVERIFIED else None,
             "excluded_unverified": [g.id for g in excluded if g.cls == UNVERIFIED and not g.single] or None,
-            "links": [dict(m.link, contract=m.cid) for m in members if m.link] or None}
+            "links": [dict(m.link, contract=m.cid) for m in members if m.link] or None,
+            # v8 Phase 5: the two evidence paths, kept apart (Decision Trace)
+            "wrapper_evidence": wrapper, "exposure_checks": checks, "wrapper_only": wrapper_only,
+            "exposure_trace": exposure_trace(wrapper, evidence, checks, state, decision,
+                                             first.why if first is not None else None)}
+
+
+def exposure_trace(wrapper, evidence, checks, state, decision, reason):
+    """The Decision Trace of one asset's identity (v8 Phase 5): the wrapper path and its effect (none), the economic
+    path and its result, the exposure checks, the final state and whether crypto execution is allowed."""
+    econ_classes = sorted({c for _, c, _, _ in evidence})
+    return {"wrapper": [{"source": s, "evidence": w, "effect": WRAPPER_ONLY} for s, _, w, _ in wrapper],
+            "economic": [{"source": s, "class": c, "evidence": w, "authority": a} for s, c, w, a in evidence],
+            "economic_classes": econ_classes,
+            "checks": [{"source": s, "check": k, "state": v} for s, k, v in checks],
+            "final": state, "decision": decision, "reason": reason,
+            "crypto_execution": "ALLOWED" if state == VERIFIED_CRYPTO else "BLOCKED"}
 
 
 def _r(x, nd=8):

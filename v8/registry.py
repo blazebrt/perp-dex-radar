@@ -159,6 +159,9 @@ def read_edgex(p):
 def read_lighter(p):
     rcv, d = p.get("books", (None, None))
     lst = (d or {}).get("order_book_details") or (d or {}).get("order_books") or []
+    # v8 Phase 5: the token list fetched beside the market list (None when it failed); its entry per market
+    tl = p.get("tokenlist")
+    xst, xidx = (ID.lighter_tokenlist_index(tl[1])[:2] if tl else (None, {}))
     out = []
     for b in lst:
         mt, st = b.get("market_type", "perp"), b.get("status", "active")
@@ -168,6 +171,9 @@ def read_lighter(p):
         cfgm = b.get("market_config") if isinstance(b.get("market_config"), dict) else {}
         vm = _vm(b, ("market_flags", "strategy_index")) or {}
         vm.update(_vm(cfgm, ("trading_hours", "insurance_fund_account_index")) or {})
+        if xst == ID.XCHECK_OK:
+            xf = ID.lighter_exposure_fields(sym, xst, xidx)
+            vm.update(_vm(xf, ("asset_type", "asset_categories")) or {})
         out.append(_rec("lighter", sym, sym, str(mt), st == "active", skip,
                         price=_f(b.get("mark_price")) or _f(b.get("last_trade_price")),
                         vol=_f(b.get("daily_quote_token_volume")), rcv=rcv, status=st, vmeta=vm or None))
@@ -220,7 +226,7 @@ def read_extended(p):
                         oi=_f(st.get("openInterest")), fund8h=fr * 8 if fr is not None else None,
                         tradfi=True if tf else None, tradfi_why=why, name=m.get("description"), rcv=rcv,
                         status=m.get("status", "ACTIVE") if m.get("active") is not False else "inactive",
-                        vmeta=_vm(m, ("category", "assetName", "description"))))
+                        vmeta=_vm(m, ("category", "subCategory", "assetName", "description"))))
     return out
 
 
@@ -320,7 +326,9 @@ def build(trace, coins, dex_status, dex_ok, scan_ts):
                 "evidence": (info or {}).get("evidence"), "parsed": (info or {}).get("parsed"),
                 "link": (info or {}).get("link"), "vmeta": rec.get("vmeta"),
                 # v8 Phase 4: observed candidate evidence (never authority; see v8.identity.CANDIDATE_FIELDS)
-                "candidate": ID.candidate_evidence(dex, rec.get("vmeta")) or None})
+                "candidate": ID.candidate_evidence(dex, rec.get("vmeta")) or None,
+                # v8 Phase 5: wrapper evidence (never decides) and the venue's economic-exposure check
+                "wrapper": (info or {}).get("wrapper"), "xcheck": (info or {}).get("xcheck")})
         # adapter rows the registry could not match to any raw record
         left = sum(len(v) for v in pool.values())
         if left:
@@ -329,7 +337,32 @@ def build(trace, coins, dex_status, dex_ok, scan_ts):
     assets = asset_summary(contracts, coins, dex_ok, ident)
     events = [[code, kw] for code, kw in trace.events]
     return {"contracts": contracts, "assets": assets, "venues": venues, "events": events,
-            "fallback": not dex_ok, "scan_ts": scan_ts}
+            "fallback": not dex_ok, "scan_ts": scan_ts,
+            "exposure_metadata": exposure_metadata(trace, contracts)}
+
+
+def exposure_metadata(trace, contracts):
+    """v8 Phase 5: the health and coverage of every economic-exposure metadata source this scan (the Lighter token
+    list): state (OK / FAILED / UNAVAILABLE / MALFORMED, NOT_REQUESTED when the market list itself failed), what it
+    returned, and per kept market of its venue the check result (mapped, no entry, malformed entry) and asset type."""
+    out = {}
+    got = dict(getattr(trace, "exposure", None) or {})
+    for venue, name in sorted(ID.EXPOSURE_CHECKS.items()):
+        h = got.get(name) or {"state": ID.XCHECK_NOT_REQUESTED, "detail": {}}
+        kept = [c for c in contracts if c["venue"] == venue and c.get("legacy") in ID.KEPT_STATES]
+        by_check, by_type = {}, {}
+        for c in kept:
+            x = c.get("xcheck") or ID.XCHECK_NOT_REQUESTED
+            by_check[x] = by_check.get(x, 0) + 1
+            at = ((c.get("meta") or {}).get("asset_type")) if x == ID.XCHECK_OK else None
+            if at:
+                by_type[at] = by_type.get(at, 0) + 1
+        out[name] = {"venue": venue, "state": h["state"], "detail": h.get("detail") or {}, "markets": len(kept),
+                     "markets_by_check": dict(sorted(by_check.items())), "markets_by_asset_type": dict(sorted(by_type.items())),
+                     "markets_without_check": sorted(c["id"] for c in kept if c.get("xcheck") != ID.XCHECK_OK),
+                     "tradfi_evidence_markets": sorted(c["id"] for c in kept if any(
+                         (e or [None, None])[1] == "VENUE_ASSET_TYPE:RWA" for e in (c.get("evidence") or [])))}
+    return out
 
 
 def _r(x, nd=8):
@@ -397,6 +430,11 @@ def _identity_block(info, coin):
     """The asset's identity as the audit shows it: Input -> Rule -> Result -> Effect (v8 Phase 3)."""
     return {"state": info.get("state"), "decision": info["decision"], "authority": info.get("authority"),
             "reason": info.get("reason"), "ticker_list": info["ticker_list"], "evidence": info.get("evidence") or [],
+            # v8 Phase 5: wrapper evidence apart from the economic evidence above, the exposure checks, the Decision
+            # Trace of both paths, and what the previous identity version gave the same contracts
+            "wrapper_evidence": info.get("wrapper_evidence") or [], "exposure_checks": info.get("exposure_checks") or [],
+            "wrapper_only": bool(info.get("wrapper_only")), "exposure_trace": info.get("exposure_trace"),
+            "previous": info.get("previous"),
             "discovery_eligible": bool(info.get("discovery_eligible")) and bool((coin or {}).get("venues")),
             "execution_identity_eligible": ID.execution_identity_eligible(coin),
             "promotion": info.get("promotion"), "links": info.get("links"),
@@ -477,7 +515,52 @@ def identity_counts(assets, cs):
             "changed_vs_phase2_detail": {t: [idents[t].get("phase2"), idents[t].get("state")] for t in changed},
             "parsed_symbol_links": sorted(c["id"] for c in cs if c.get("link")),
             "now_unverified": by_state[ID.UNVERIFIED],
-            "candidate_evidence": candidate_counts(assets, cs)}
+            "candidate_evidence": candidate_counts(assets, cs),
+            "exposure_safety": exposure_counts(assets, cs)}
+
+
+def exposure_counts(assets, cs):
+    """v8 Phase 5: wrapper vs economic exposure in this scan. Every asset that carries a crypto wrapper is counted in
+    exactly one identity state (unaccounted = 0); the before/after against the previous identity version lists every
+    asset the version change moved, with its old and new reason."""
+    idents = {t: a["identity"] for t, a in assets.items() if a.get("identity")}
+    wrapped = sorted(t for t, i in idents.items() if i.get("wrapper_evidence"))
+    by_state = {st: sorted(t for t in wrapped if idents[t].get("state") == st) for st in ID.STATES}
+    conflicts = sorted(t for t, i in idents.items()
+                       if any(x.get("reason") == "CONFLICTING_CONTRACT_EVIDENCE" for x in i.get("exposures") or []))
+    unchecked = sorted({c["asset"] for c in cs if c.get("legacy") in ID.KEPT_STATES and c.get("xcheck") is not None
+                        and c.get("xcheck") != ID.XCHECK_OK})
+    check_blocked = sorted(t for t, i in idents.items()
+                           if any(x.get("reason") == ID.R_CHECK_UNAVAILABLE for x in i.get("exposures") or []))
+    moved = {t: [(i.get("previous") or {}).get("state"), i.get("state")] for t, i in idents.items()
+             if i.get("previous") and i["previous"].get("state") != i.get("state")}
+    moves = {}
+    for t, (a, b) in moved.items():
+        moves.setdefault(f"{a}->{b}", []).append(t)
+    prev = {st: sum(1 for i in idents.values() if (i.get("previous") or {}).get("state") == st) for st in ID.STATES}
+    return {"identity_version": ID.VERSION, "previous_version": ID.PREVIOUS_VERSION,
+            "wrapper_crypto_assets": len(wrapped),
+            "wrapper_crypto_by_state": {k: len(v) for k, v in by_state.items()},
+            "economic_crypto_verified": sum(1 for i in idents.values() if i.get("state") == ID.VERIFIED_CRYPTO),
+            "economic_tradfi_verified": sum(1 for i in idents.values() if i.get("state") == ID.VERIFIED_TRADFI),
+            "wrapper_only_unverified": sorted(t for t, i in idents.items() if i.get("wrapper_only")),
+            "wrapper_with_economic_tradfi": by_state[ID.VERIFIED_TRADFI],
+            "wrapper_with_ticker_list_crypto": by_state[ID.VERIFIED_CRYPTO],
+            "wrapper_ambiguous": by_state[ID.AMBIGUOUS],
+            "economic_conflicts": conflicts,
+            "exposure_check_unavailable_assets": unchecked, "exposure_check_blocked": check_blocked,
+            "wrapper_unaccounted": len(wrapped) - sum(len(v) for v in by_state.values()),
+            "previous_states": prev, "changed_vs_previous": dict(sorted(moved.items())),
+            "transitions_vs_previous": {k: sorted(v) for k, v in sorted(moves.items())},
+            "changed_vs_previous_detail": {t: {"previous": idents[t].get("previous"), "state": idents[t].get("state"),
+                                               "decision": idents[t].get("decision"), "reason": idents[t].get("reason"),
+                                               "authority": idents[t].get("authority"),
+                                               "contracts": assets[t].get("contracts"),
+                                               "exposures": [[x["id"], x["class"], x["reason"], x["anchor_price"],
+                                                              x["members"]] for x in idents[t].get("exposures") or []],
+                                               "economic": idents[t].get("evidence"),
+                                               "wrapper": idents[t].get("wrapper_evidence")}
+                                           for t in sorted(moved)}}
 
 
 def candidate_counts(assets, cs):

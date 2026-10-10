@@ -78,13 +78,13 @@ jobs:
           python -c "import json; s = json.load(open('out_new/data/v8/audit_latest.json')); json.dump({'manifest': s['manifest'], 'summary': s['coverage']['summary'], 'engines': s['coverage']['engines'], 'registry_counts': s['registry']['counts'], 'data_health': {k: v for k, v in s['data_health'].items() if k != 'registry_venues'}, 'venues': s['data_health'].get('registry_venues'), 'storage': s['storage']}, open('research_v8_summary.json', 'w'), indent=1)" >> research_v8.txt 2>&1 || true
 
       - name: Phase base engines on the same live data (comparison only, nothing published)
-        # The phase base (the base commit of the expected-delta manifest: since Phase 4, production main d011bcb) runs
+        # The phase base (the base commit of the expected-delta manifest: since Phase 5, production main 3288b15) runs
         # the scanner, the quant desk and the coin picks on live data right after this branch, so the reports can list
         # every production output the change removes or adds. The two runs are minutes apart; the reports say which
         # differences the change explains.
         continue-on-error: true
         run: |
-          BASE_SHA=$(python -c "import json; print(json.load(open('tests/fixtures/v8/phase4_expected_deltas.json'))['base']['sha'])")
+          BASE_SHA=$(python -c "import json; print(json.load(open('tests/fixtures/v8/phase5_expected_deltas.json'))['base']['sha'])")
           echo "phase base $BASE_SHA" > research_base.txt
           git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA" >> research_base.txt 2>&1 || true
           cd "$RUNNER_TEMP/base"
@@ -111,6 +111,20 @@ jobs:
           if git fetch -q origin research 2>> research_candidate_census.txt && git show FETCH_HEAD:new_audit_latest.json.gz > previous_research_audit.json.gz 2>> research_candidate_census.txt; then OBS="$OBS previous_research_audit.json.gz"; fi
           python tools/v8/candidate_census.py $OBS --json research_candidate_census.json >> research_candidate_census.txt 2>&1 || true
           head -120 research_candidate_census.txt
+
+      - name: Economic exposure safety (v8 Phase 5; read-only) - crypto authority inventory and Extended Crypto models
+        # On the same observations as the census: who holds crypto authority under v8.identity/2 (the known-crypto
+        # list, Extended category Crypto, both, other), and every asset that changes state when Extended Crypto is
+        # wrapper evidence only (model 2, production since Phase 5) or needs the known-crypto list (model 3), with
+        # liquidity, the tokenized-RWA and collision controls, and the outputs of the phase base's run on the same
+        # live data. The exact-head observation also carries every Lighter market's token-list check.
+        continue-on-error: true
+        run: |
+          OBS="out_new/data/v8/audit_latest.json"
+          if [ -f production_audit_latest.json ]; then OBS="$OBS production_audit_latest.json"; fi
+          if [ -f previous_research_audit.json.gz ]; then OBS="$OBS previous_research_audit.json.gz"; fi
+          python tools/v8/exposure_safety.py $OBS --outputs out_base/data --json research_exposure_safety.json > research_exposure_safety.txt 2>&1 || true
+          head -150 research_exposure_safety.txt
 
       - name: Published smart journal under the Phase 3 evidence rules (read-only; the copy on the journal-data branch)
         continue-on-error: true
@@ -167,7 +181,7 @@ jobs:
           if [ -f research_v8_summary.json ]; then cp research_v8_summary.json R/; fi
           if [ -f research_identity.json ]; then cp research_identity.json R/; fi
           if [ -f research_smart_journal.json ]; then cp research_smart_journal.json R/; fi
-          for f in research_quant_evidence.json research_radar_evidence.json research_candidate_census.json; do
+          for f in research_quant_evidence.json research_radar_evidence.json research_candidate_census.json research_exposure_safety.json; do
             if [ -f "$f" ]; then cp "$f" R/; fi
           done
           if [ -f out_pubq/data/quant.json ]; then cp out_pubq/data/quant.json R/pub_quant.json; fi
