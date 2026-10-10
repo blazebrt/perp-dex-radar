@@ -338,7 +338,9 @@ def build(trace, coins, dex_status, dex_ok, scan_ts):
     events = [[code, kw] for code, kw in trace.events]
     return {"contracts": contracts, "assets": assets, "venues": venues, "events": events,
             "fallback": not dex_ok, "scan_ts": scan_ts,
-            "exposure_metadata": exposure_metadata(trace, contracts)}
+            "exposure_metadata": exposure_metadata(trace, contracts),
+            # v8 Phase 6: the known-crypto list the identity read (the list audit; never changes it)
+            "known_crypto": list(getattr(ident, "known_crypto", None) or [])}
 
 
 def exposure_metadata(trace, contracts):
@@ -435,6 +437,8 @@ def _identity_block(info, coin):
             "wrapper_evidence": info.get("wrapper_evidence") or [], "exposure_checks": info.get("exposure_checks") or [],
             "wrapper_only": bool(info.get("wrapper_only")), "exposure_trace": info.get("exposure_trace"),
             "previous": info.get("previous"),
+            # v8 Phase 6: how the known-crypto list was bound to this ticker's exposures (None: not on the list)
+            "ticker_authority": info.get("ticker_authority"),
             "discovery_eligible": bool(info.get("discovery_eligible")) and bool((coin or {}).get("venues")),
             "execution_identity_eligible": ID.execution_identity_eligible(coin),
             "promotion": info.get("promotion"), "links": info.get("links"),
@@ -479,6 +483,7 @@ def counts(reg):
             "by_contract_class": _count(cs, "cls"), "by_exposure_class": _count(cs, "exp_class"),
             "multi_symbol_assets": sorted(t for t, a in assets.items() if a.get("aliases")),
             **identity_counts(assets, cs),
+            "known_crypto_list": known_crypto_list_audit(assets, reg.get("known_crypto")),
             "alias_mapped": sorted({c["id"] for c in cs if str(c.get("canon", "")).startswith(("ALIAS", "MULTIPLIER_ALIAS"))}),
             "adapter_mismatches": by_legacy.get("AUDIT_ADAPTER_MISMATCH", 0)}
 
@@ -516,7 +521,64 @@ def identity_counts(assets, cs):
             "parsed_symbol_links": sorted(c["id"] for c in cs if c.get("link")),
             "now_unverified": by_state[ID.UNVERIFIED],
             "candidate_evidence": candidate_counts(assets, cs),
-            "exposure_safety": exposure_counts(assets, cs)}
+            "exposure_safety": exposure_counts(assets, cs),
+            "ticker_authority": ticker_authority_counts(assets)}
+
+
+def ticker_authority_counts(assets):
+    """v8 Phase 6: the exposure-local binding of the known-crypto list in this scan. Every known-crypto asset has
+    exactly one binding result, and every binding candidate is either bound or unbound (unaccounted = 0)."""
+    idents = {t: a["identity"] for t, a in assets.items() if a.get("identity")}
+    known = sorted(t for t, i in idents.items() if i.get("ticker_list") == ID.R_TICKER)
+    tas = {t: idents[t]["ticker_authority"] for t in known if idents[t].get("ticker_authority")}
+    by_result = {r: sorted(t for t, x in tas.items() if x.get("result") == r) for r in ID.TICKER_RESULTS}
+    unbound = by_result[ID.T_UNBOUND_MULTI] + by_result[ID.T_UNBOUND_DIRECT]
+    cands = sum(len(x.get("bindable_exposures") or []) for x in tas.values())
+    bound = sum(1 for x in tas.values() if x.get("selected_exposure"))
+    unbound_exp = sum(len(tas[t].get("bindable_exposures") or []) for t in unbound)
+    multi = {t: {"priced_exposures": sum(1 for x in idents[t].get("exposures") or [] if x.get("priced")),
+                 "bindable": tas[t].get("bindable_exposures"), "selected": tas[t].get("selected_exposure"),
+                 "result": tas[t].get("result"), "excluded": tas[t].get("excluded"), "state": idents[t].get("state")}
+             for t in tas if sum(1 for x in idents[t].get("exposures") or [] if x.get("priced")) > 1}
+    unacc_assets = len(known) - sum(len(v) for v in by_result.values())
+    unacc_cands = cands - bound - unbound_exp
+    return {"identity_version": ID.VERSION,
+            "known_crypto_assets": len(known),
+            "ticker_crypto_bindings": bound,
+            "ticker_crypto_unbound_assets": len(unbound),
+            "ticker_crypto_unbound_exposures": unbound_exp,
+            "ticker_crypto_no_bindable_exposure": len(by_result[ID.T_NO_CANDIDATE]),
+            "ticker_crypto_blocked_by_exposure_check": sorted(t for t, x in tas.items()
+                                                              if x.get("check_blocked_exposures")),
+            "ticker_crypto_with_tradfi_collision": sorted(t for t, x in tas.items() if x.get("tradfi_exposures")),
+            "ticker_crypto_with_direct_crypto_evidence": sorted(t for t, x in tas.items()
+                                                                if x.get("direct_crypto_exposures")),
+            "by_result": {r: len(v) for r, v in by_result.items()},
+            "unbound": {t: tas[t].get("bindable_exposures") for t in sorted(unbound)},
+            "no_bindable_exposure": by_result[ID.T_NO_CANDIDATE],
+            "multi_exposure": dict(sorted(multi.items())),
+            "binding_candidates": cands,
+            "unaccounted_assets": unacc_assets, "unaccounted_candidates": unacc_cands,
+            "unaccounted": unacc_assets + unacc_cands}
+
+
+def known_crypto_list_audit(assets, known_list):
+    """v8 Phase 6, observability only (the list is not changed): the repository's known-crypto list against this
+    scan's universe - entries with a live market, with one or several priced exposures, entries whose live exposures
+    are all tradfi, entries with no live market."""
+    known_list = sorted(known_list or [])
+    idents = {t: (assets.get(t) or {}).get("identity") for t in known_list}
+    live = [t for t in known_list if idents[t]]
+
+    def priced(t):
+        return sum(1 for x in idents[t].get("exposures") or [] if x.get("priced"))
+    return {"entries": len(known_list), "in_live_universe": len(live),
+            "one_priced_exposure": sum(1 for t in live if priced(t) == 1),
+            "multiple_priced_exposures": sorted(t for t in live if priced(t) > 1),
+            "unpriced_only": sorted(t for t in live if priced(t) == 0),
+            "all_live_exposures_tradfi": sorted(t for t in live if idents[t].get("exposures") and
+                                                all(x.get("class") == ID.TRADFI for x in idents[t]["exposures"])),
+            "no_live_market": sorted(t for t in known_list if not idents[t])}
 
 
 def exposure_counts(assets, cs):

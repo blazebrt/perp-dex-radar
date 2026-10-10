@@ -64,6 +64,10 @@ def identity_config():
             "lighter_tradfi_asset_types": sorted(ID.LIGHTER_TRADFI_ASSET_TYPES),
             "lighter_asset_types": list(ID.LIGHTER_ASSET_TYPES),
             "exposure_checks": dict(sorted(ID.EXPOSURE_CHECKS.items())), "exposure_check_ok": ID.XCHECK_OK,
+            # v8.identity/4 (Phase 6): the known-crypto list is bound to at most one price-coherent exposure
+            "rules": ID.RULES, "previous_version": ID.PREVIOUS_VERSION,
+            "ticker_binding": {"bound": ID.R_BOUND, "unbound": ID.R_UNBOUND, "results": list(ID.TICKER_RESULTS),
+                               "max_bound_exposures": 1},
             "aster_neutral": sorted(ID.ASTER_NEUTRAL_UNDERLYING), "base_only_symbol_venues": list(ID.BASE_ONLY_SYMBOL_VENUES),
             "aster_tradfi_subtypes": sorted(ID.ASTER_TRADFI_SUBTYPES),
             "variational_tradfi_name_prefix": ID.VARIATIONAL_TRADFI_NAME_PREFIX,

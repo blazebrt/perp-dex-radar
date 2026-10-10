@@ -452,7 +452,7 @@ class ClosureValidator(unittest.TestCase):
                 self.assertTrue(set(EV.TRADE_IDENTITY_FIELDS) <= set(f), e)
                 # the identity version of the closure's time (v8.identity/2; Phase 5 moved on to /3)
                 self.assertEqual((f["identity_state_at_entry"], f["identity_qualified"], f["identity_version"]),
-                                 (ID.VERIFIED_CRYPTO, True, ID.PREVIOUS_VERSION))
+                                 (ID.VERIFIED_CRYPTO, True, "v8.identity/2"))
                 self.assertLessEqual(set(f) - set(EV.TRADE_IDENTITY_FIELDS),
                                      {"identity", "pair", "identity_coin_state_at_entry"})
                 if "identity" in f:

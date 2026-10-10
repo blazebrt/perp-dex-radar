@@ -70,10 +70,13 @@ def ext(name, asset, price, vol, cat="RWA", desc=None):
                category=cat)
 
 
-def resolve(*rows):
+def resolve(*rows, version=None):
+    """This checkout's identity on the given rows; version="v8.identity/2" (or /3) reproduces an older version."""
     res = {d: [] for d in sc.DEXES}
     for r in rows:
         res[r["dex"]].append(r)
+    if version is not None:
+        return ID.resolve_version(version, res, sc.DEXES, LISTS, sc.in_my_dexes)
     return ID.resolve(res, sc.DEXES, LISTS, sc.in_my_dexes)
 
 
@@ -128,11 +131,16 @@ class Matrix(unittest.TestCase):
         self.assertEqual(a["wrapper_evidence"],
                          [["extended:NOVA-USD", ID.CRYPTO_WRAPPER, "VENUE_CATEGORY:Crypto", "VENUE_METADATA"]])
         self.assertFalse(row_of(r, "hyperliquid")["admitted"])
-        self.assertEqual((a["previous"]["state"], a["previous"]["reason"]), (ID.VERIFIED_CRYPTO, "CRYPTO_VENUE_METADATA"))
-        # the same shape under a known-crypto ticker is verified by the ticker list; the wrapper is still only recorded
+        v2 = resolve(ext("NOVA-USD", "NOVA", 1.0, 2e6, cat="Crypto"), hl("NOVA", 1.01, 5e6), version="v8.identity/2")
+        self.assertEqual((v2.asset("NOVA")["state"], v2.asset("NOVA")["reason"]),
+                         (ID.VERIFIED_CRYPTO, "CRYPTO_VENUE_METADATA"))
+        self.assertEqual((a["previous"]["version"], a["previous"]["state"]), ("v8.identity/3", ID.UNVERIFIED))
+        # the same shape under a known-crypto ticker is verified by the ticker list, bound to its one price exposure
+        # (v8 Phase 6); the wrapper is still only recorded
         r = resolve(ext("SOL-USD", "SOL", 150.0, 2e6, cat="Crypto"), hl("SOL", 150.2, 5e6))
         self.assertEqual(state(r, "SOL"), ID.VERIFIED_CRYPTO)
-        self.assertEqual((r.asset("SOL")["authority"], r.asset("SOL")["reason"]), (ID.TICKER_LIST, "TICKER_KNOWN_CRYPTO"))
+        self.assertEqual((r.asset("SOL")["authority"], r.asset("SOL")["reason"]),
+                         (ID.TICKER_LIST, "TICKER_KNOWN_CRYPTO_BOUND"))
         self.assertTrue(row_of(r, "hyperliquid")["admitted"])
 
     def test_B_known_crypto_without_metadata(self):
@@ -163,7 +171,10 @@ class Matrix(unittest.TestCase):
         # sources is still AMBIGUOUS (tests.test_v8_phase5), and so is an unrecognized Extended category.
         r = resolve(ext("MIXD-USD", "MIXD", 3.0, 1e6, cat="Crypto"), aster("MIXDUSDT", "MIXD", 3.01, 1e5, ut="EQUITY"))
         self.assertEqual(state(r, "MIXD"), ID.VERIFIED_TRADFI)
-        self.assertEqual(r.asset("MIXD")["previous"]["state"], ID.AMBIGUOUS)
+        v2 = resolve(ext("MIXD-USD", "MIXD", 3.0, 1e6, cat="Crypto"), aster("MIXDUSDT", "MIXD", 3.01, 1e5, ut="EQUITY"),
+                     version="v8.identity/2")
+        self.assertEqual(v2.asset("MIXD")["state"], ID.AMBIGUOUS)
+        self.assertEqual(r.asset("MIXD")["previous"]["state"], ID.VERIFIED_TRADFI)     # v8.identity/3
         r = resolve(ext("SECX-USD", "SECX", 2.0, 5e5, cat="L1"))
         self.assertEqual(state(r, "SECX"), ID.AMBIGUOUS)
         for t in ("MIXD", "SECX"):
@@ -341,7 +352,10 @@ class Matrix(unittest.TestCase):
         r = resolve(ext("PRLX-USD", "PRLX", 0.111, 232844.0, cat="Crypto"), aster("PRLXUSDT", "PRLX", 0.1122, 2646.9),
                     lighter("PRLX", 1.34, 196238.6))
         self.assertEqual(state(r, "PRLX"), ID.UNVERIFIED)
-        self.assertEqual(r.asset("PRLX")["previous"]["state"], ID.VERIFIED_CRYPTO)
+        v2 = resolve(ext("PRLX-USD", "PRLX", 0.111, 232844.0, cat="Crypto"), aster("PRLXUSDT", "PRLX", 0.1122, 2646.9),
+                     lighter("PRLX", 1.34, 196238.6), version="v8.identity/2")
+        self.assertEqual(v2.asset("PRLX")["state"], ID.VERIFIED_CRYPTO)
+        self.assertEqual(r.asset("PRLX")["previous"]["state"], ID.UNVERIFIED)          # v8.identity/3
         self.assertFalse(ID.execution_identity_eligible(r.coins["PRLX"]))
         # the rule itself, on a crypto exposure verified by the ticker list beside a price-separated exposure seen
         # only on Lighter without its exposure check (rows built here carry none: EXPOSURE_CHECK_UNAVAILABLE)

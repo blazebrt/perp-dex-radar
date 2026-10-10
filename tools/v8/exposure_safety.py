@@ -15,7 +15,7 @@ outputs an identity change would touch.
    is checked first, against the identity version that recorded them) are re-resolved through this checkout's
    v8.identity under three readings of Extended Crypto:
      model 1  economic crypto evidence (v8.identity/2: the rules=2 resolution, no Phase 5 evidence)
-     model 2  wrapper evidence only: no economic evidence either way (v8.identity/3, production since Phase 5)
+     model 2  wrapper evidence only: no economic evidence either way (v8.identity/3, production in Phase 5)
      model 3  wrapper evidence that counts as crypto only when corroborated by an independent crypto authority (the
               known-crypto list, the only other positive crypto authority): v8.identity/3 plus that evidence
    and every asset that changes state from model 1 is listed with its contracts, exposures, old and new authority,
@@ -91,10 +91,19 @@ def with_checks(rows):
 
 
 def resolve(rows, name):
+    """Models 1-3 are readings of the Phase 5 wrapper question and keep their Phase 5 rules (v8.identity/2 and /3)
+    whatever this checkout's identity version; the Phase 6 ticker binding is measured by tools/v8/ticker_binding.py."""
     if name == "model1":
         return ID._resolve(rows, sc.DEXES, lists(), sc.in_my_dexes, None, rules=2)
     with model(name):
-        return ID.resolve(with_checks(rows), sc.DEXES, lists(), sc.in_my_dexes)
+        return ID._resolve(with_checks(rows), sc.DEXES, lists(), sc.in_my_dexes, None, rules=3)
+
+
+def reproduce(rows, recorded):
+    """The resolution under the rules of the identity version that recorded a snapshot (VERSION_RULES)."""
+    rules = ID.VERSION_RULES.get(recorded, ID.RULES)
+    return ID._resolve(with_checks(rows) if rules >= 3 else rows, sc.DEXES, lists(), sc.in_my_dexes, None,
+                       rules=rules)
 
 
 # --------------------------------------------------------------------------- 1. inventory
@@ -252,7 +261,7 @@ def report(paths, outputs=None):
         rows = CC.rows_with_vmeta(o["snap"])
         res = {m: resolve(rows, m) for m in MODELS}
         recorded = (o["snap"].get("manifest") or {}).get("identity_version")
-        same = res["model1"] if recorded == ID.PREVIOUS_VERSION else res["model2"]   # the rules that recorded it
+        same = reproduce(rows, recorded)                   # the rules that recorded it (v2, v3 or v4)
         diff = sorted(t for t, a in same.assets.items() if o["astate"](t) != a["state"])
         inv = inventory(res["model1"], rows)
         obs.append({"observation": o["meta"], "recorded_identity_version": recorded,

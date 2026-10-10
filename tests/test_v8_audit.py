@@ -21,6 +21,9 @@ then the audit snapshot is assembled. Checks:
   alone before, are UNVERIFIED), Lighter token-list RWA markets carry their own tradfi evidence (US10Y, BYD,
   HYUNDAIUSD, the Lighter stocks), the audit keeps wrapper and economic evidence apart, records the token list's
   health and coverage, and compares every asset with the previous identity version;
+* exposure-local ticker authority (Phase 6): the known-crypto list is bound to at most one price exposure per ticker
+  (QNT, BB, PURR keep their one crypto exposure; FAKE07, a fixture known-crypto coin whose dYdX market sits 30% away
+  from its other market, has two candidates and is UNVERIFIED), every binding is in the audit and accounted for;
 * coverage: no asset disappears silently (unaccounted is zero everywhere);
 * the snapshot is deterministic and compact.
 
@@ -44,11 +47,14 @@ import legacy_parity as LP  # noqa: E402
 from v8 import snapshot as SN  # noqa: E402
 from v8 import taxonomy as T  # noqa: E402
 
-# v8 Phase 5: this branch's golden; its base (main 3288b15 = the Phase 4 golden) and the Phase 5 manifest
-# (phase5_expected_deltas.json) are checked by tools/v8/delta_parity.py in CI. The Phase 3, closure and Phase 4 manifests
-# and their goldens are kept for the record and still checked for consistency below: their identity states are the
-# v8.identity/2 states, which this run's audit reproduces per asset as `previous`.
-GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase5.json")
+# v8 Phase 6: this branch's golden; its base (main f7aa7f6 = the Phase 5 golden) and the Phase 6 manifest
+# (phase6_expected_deltas.json) are checked by tools/v8/delta_parity.py in CI. The Phase 3, closure, Phase 4 and Phase 5
+# manifests and their goldens are kept for the record and still checked for consistency below: the Phase 3, closure
+# and Phase 4 identity states are the v8.identity/2 states (this run's contracts replayed under the /2 rules), the
+# Phase 5 states are the v8.identity/3 states, which this run's audit records per asset as `previous`.
+GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase6.json")
+PHASE5_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase5.json")
+PHASE6_MANIFEST = os.path.join(HERE, "fixtures", "v8", "phase6_expected_deltas.json")
 PHASE4_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase4.json")
 PHASE5_MANIFEST = os.path.join(HERE, "fixtures", "v8", "phase5_expected_deltas.json")
 CLOSURE_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_closure.json")
@@ -58,8 +64,10 @@ CLOSURE_MANIFEST = os.path.join(HERE, "fixtures", "v8", "phase3_closure_expected
 BASE_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase3_base.json")
 MANIFEST = os.path.join(HERE, "fixtures", "v8", "phase3_expected_deltas.json")
 # the fixture's coins without positive identity evidence (v8 Phase 3; tools/v8/legacy_parity.py). Phase 5: EXTONLY and
-# PRLX (Extended Crypto wrapper only) joined; BYD, HYUNDAIUSD and US10Y left (Lighter token-list RWA: tradfi)
-UNVERIFIED = ("EXTONLY", "HYUNDAI", "MOONX", "NEWCOIN", "PRLX")
+# PRLX (Extended Crypto wrapper only) joined; BYD, HYUNDAIUSD and US10Y left (Lighter token-list RWA: tradfi). Phase 6:
+# FAKE07 joined (known crypto with two price-separated exposures the list cannot choose between)
+UNVERIFIED = ("EXTONLY", "FAKE07", "HYUNDAI", "MOONX", "NEWCOIN", "PRLX")
+UNBOUND = ("FAKE07",)
 WRAPPER_ONLY = ("EXTONLY", "PRLX")
 
 
@@ -81,13 +89,29 @@ class PipelineAudit(unittest.TestCase):
     def tearDownClass(cls):
         shutil.rmtree(cls.tmp, ignore_errors=True)
 
-    def states(self, previous=False):
-        """Identity state of every coin of this run, or (previous=True) what v8.identity/2 gives the same contracts."""
+    def states(self, previous=False, version=None):
+        """Identity state of every coin of this run; previous=True: what the previous version (v8.identity/3) gave
+        the same contracts, as the audit records it; version="v8.identity/2": this run's contracts replayed offline
+        under the /2 rules with the fixture world's lists (rescore_identity), as the census tools replay a snapshot."""
+        if version is not None:
+            return self.replay(version)
         out = {}
         for t, a in self.snap["registry"]["assets"].items():
             if a["legacy"] in ("CRYPTO", "TRADFI", "AMBIGUOUS", "UNVERIFIED"):
                 out[t] = a["identity"]["previous"]["state"] if previous else a["identity"]["state"]
         return out
+
+    _replayed = {}
+
+    def replay(self, version):
+        if version not in self._replayed:
+            import rescore_identity as RS
+            from v8 import identity as ID
+            PE, sc, _ = LP._make_exchange()
+            lists = ID.Lists(sc.TRADFI, sc.KNOWN_CRYPTO | LP.fixture_known_crypto(PE()), sc.is_fx, sc.TRADFI_NAME)
+            res = ID.resolve_version(version, RS.rows_of(self.snap), sc.DEXES, lists, sc.in_my_dexes)
+            self._replayed[version] = {t: res.assets[t]["state"] for t in self.states()}
+        return self._replayed[version]
 
     # ---- parity
     def test_legacy_outputs_identical_to_this_branch_golden(self):
@@ -110,8 +134,8 @@ class PipelineAudit(unittest.TestCase):
         self.assertNotEqual(base["combined"], self.summary["combined"])   # Phase 3 changes outputs on purpose
         for e in man.get("decisions") or []:
             self.assertIn(e["rule"], man["rules"])
-        # every coin's identity state is pinned: the v8.identity/2 states, which this run reproduces as `previous`
-        self.assertEqual(man["identity_states"], self.states(previous=True))
+        # every coin's identity state is pinned: the v8.identity/2 states, which this run's contracts reproduce
+        self.assertEqual(man["identity_states"], self.states(version="v8.identity/2"))
         # narrow: every allowed delta names its ticker or file path and an approved rule
         for e in man["universe"]:
             self.assertIn(e["rule"], man["rules"])
@@ -140,7 +164,7 @@ class PipelineAudit(unittest.TestCase):
                          ([], [], [], [], [], {}))
         self.assertEqual(man["notes"], {"removed": [], "added": []})
         self.assertEqual(base, head)                                          # the head golden is the base golden
-        self.assertEqual(man["identity_states"], self.states(previous=True))    # the v8.identity/2 states
+        self.assertEqual(man["identity_states"], self.states(version="v8.identity/2"))   # the v8.identity/2 states
 
     def test_phase5_manifest_is_the_phase_base(self):
         """Phase 5 is measured from production main 3288b15 (Phase 4 merged), whose fixture golden is the Phase 4
@@ -154,16 +178,38 @@ class PipelineAudit(unittest.TestCase):
         self.assertEqual(man["base"]["tree"], "d56ef755e23827ba8e2910a6d69d4b6f61090c2f")
         self.assertEqual(man["head_golden"], "tests/fixtures/v8/legacy_parity_golden_phase5.json")
         self.assertNotEqual(base["combined"], self.summary["combined"])     # Phase 5 changes outputs on purpose
+        # the Phase 5 head states are the v8.identity/3 states (this run's `previous`); it moved the assets whose
+        # v8.identity/2 state differs
+        self.assertEqual(man["identity_states"], self.states(previous=True))
+        v2, v3 = self.states(version="v8.identity/2"), self.states(previous=True)
+        self.assertEqual({e["ticker"] for e in man["universe"]}, {t for t in v3 if v2[t] != v3[t]})
+
+    def test_phase6_manifest_is_the_phase_base(self):
+        """Phase 6 is measured from production main f7aa7f6 (Phase 5 merged), whose fixture golden is the Phase 5
+        golden. Its manifest pins every identity state of this run, and the states it moves are exactly the ones whose
+        v8.identity/3 state (`previous`) differs: the tickers the known-crypto list can no longer be bound to."""
+        with open(PHASE6_MANIFEST) as fh:
+            man = json.load(fh)
+        with open(PHASE5_GOLDEN) as fh:
+            base = json.load(fh)
+        self.assertEqual(man["base"]["sha"], "f7aa7f6d318f4dfcd84c74df27d38314e4349208")
+        self.assertEqual(man["base"]["tree"], "aff2774ce726c10711ec3276c59e6dec81b453e8")
+        self.assertEqual(man["base"]["golden"], "tests/fixtures/v8/legacy_parity_golden_phase5.json")
+        self.assertEqual(man["head_golden"], "tests/fixtures/v8/legacy_parity_golden_phase6.json")
+        self.assertNotEqual(base["combined"], self.summary["combined"])     # Phase 6 changes outputs on purpose
         self.assertEqual(man["identity_states"], self.states())
         prev, now = self.states(previous=True), self.states()
-        self.assertEqual({e["ticker"] for e in man["universe"]}, {t for t in now if prev[t] != now[t]})
+        moved = {t for t in now if prev[t] != now[t]}
+        self.assertEqual(moved, set(UNBOUND))
+        self.assertEqual({e["ticker"] for e in man["universe"]}, moved)
         es = self.snap["registry"]["counts"]["exposure_safety"]
-        self.assertEqual(set(es["changed_vs_previous"]), {t for t in now if prev[t] != now[t]})
+        self.assertEqual(set(es["changed_vs_previous"]), moved)
+        self.assertEqual(es["transitions_vs_previous"], {"VERIFIED_CRYPTO->UNVERIFIED": list(UNBOUND)})
 
     def test_candidate_evidence_is_traced_never_authority(self):
         """v8 Phase 4: the snapshot carries every contract's observed candidate evidence apart from its authoritative
         evidence, and counts it; no candidate rule is qualified."""
-        self.assertEqual(self.snap["manifest"]["audit_version"], "v8-phase5.0")
+        self.assertEqual(self.snap["manifest"]["audit_version"], "v8-phase6.0")
         self.assertIn("candidate", SN.CONTRACT_FIELDS)
         self.assertTrue({"wrapper", "xcheck"} <= set(SN.CONTRACT_FIELDS))
         cc = self.snap["registry"]["counts"]["candidate_evidence"]
@@ -195,7 +241,7 @@ class PipelineAudit(unittest.TestCase):
             closure = json.load(fh)
         self.assertNotEqual(base["combined"], closure["combined"])         # the closure changes outputs on purpose
         self.assertEqual(base["decisions"], closure["decisions"])         # ... but no engine decision
-        self.assertEqual(man["identity_states"], self.states(previous=True))    # the v8.identity/2 states
+        self.assertEqual(man["identity_states"], self.states(version="v8.identity/2"))   # the v8.identity/2 states
         # only quant and radar outputs (and the Analyzer source) change; smart money, picks and dashboard do not
         files = {e["file"] for e in man["code"]} | {f["file"] for f in man["files"]}
         self.assertEqual(files, {"data/quant.json", "data/quant_journal.json", "data/journal.json", "data/latest.json",
@@ -296,7 +342,10 @@ class PipelineAudit(unittest.TestCase):
         self.assertEqual(self.contracts["dydx:QNT-USD"]["legacy"], "NOT_TRADING")
         x = assets["QNT"]["identity"]["exposures"]
         self.assertEqual([(e["class"], e["admitted"]) for e in x], [("CRYPTO", True), ("TRADFI", False)])
-        self.assertEqual(x[0]["reason"], "TICKER_KNOWN_CRYPTO")
+        self.assertEqual(x[0]["reason"], "TICKER_KNOWN_CRYPTO_BOUND")          # v8 Phase 6: bound to QNT#1 only
+        ta = assets["QNT"]["identity"]["ticker_authority"]
+        self.assertEqual((ta["bindable_exposures"], ta["selected_exposure"], ta["result"], ta["excluded"]),
+                         (["QNT#1"], "QNT#1", "BOUND", [["QNT#2", "TRADFI_EVIDENCE"]]))
         self.assertEqual(self.contracts["aster:FAKE01USDT"]["type"], "perp")
         self.assertEqual(self.snap["registry"]["contracts"]["fields"][0], "id")
 
@@ -421,7 +470,8 @@ class PipelineAudit(unittest.TestCase):
         self.assertIn(["TRADFI", "PARSED_SYMBOL_TRADFI_LIST:SAMSUNG", "PARSED_SYMBOL"], s["evidence"])
         for t in ("HYUNDAIUSD", "US10Y", "BYD"):
             self.assertEqual(A[t]["identity"]["state"], "VERIFIED_TRADFI", t)
-            self.assertEqual(A[t]["identity"]["previous"]["state"], "UNVERIFIED", t)
+            self.assertEqual(A[t]["identity"]["previous"]["state"], "VERIFIED_TRADFI", t)     # v8.identity/3
+            self.assertEqual(self.states(version="v8.identity/2")[t], "UNVERIFIED", t)
         self.assertEqual(A["HYUNDAI"]["identity"]["state"], "UNVERIFIED")      # Aster COIN: still no evidence
         # same-venue fields, tradfi direction (the live venue field census): an Aster STOCK subtype, a Variational swap
         u = C["variational:US100S"]
@@ -450,7 +500,9 @@ class PipelineAudit(unittest.TestCase):
             i = a["identity"]
             self.assertEqual((a["legacy"], i["state"], i["reason"], i["wrapper_only"]),
                              ("UNVERIFIED", "UNVERIFIED", "WRAPPER_ONLY_NO_ECONOMIC_EVIDENCE", True), t)
-            self.assertEqual((i["previous"]["state"], i["previous"]["reason"]), ("VERIFIED_CRYPTO", "CRYPTO_VENUE_METADATA"))
+            self.assertEqual((i["previous"]["state"], i["previous"]["reason"]),
+                             ("UNVERIFIED", "WRAPPER_ONLY_NO_ECONOMIC_EVIDENCE"))                   # v8.identity/3
+            self.assertEqual(self.states(version="v8.identity/2")[t], "VERIFIED_CRYPTO")
             self.assertEqual(i["evidence"], [])
             self.assertEqual([w[2] for w in i["wrapper_evidence"]], ["VENUE_CATEGORY:Crypto"])
             tr = i["exposure_trace"]
@@ -475,9 +527,17 @@ class PipelineAudit(unittest.TestCase):
         es = self.snap["registry"]["counts"]["exposure_safety"]
         self.assertEqual((es["wrapper_crypto_assets"], es["wrapper_only_unverified"], es["wrapper_with_ticker_list_crypto"],
                           es["economic_conflicts"], es["wrapper_unaccounted"]), (3, ["EXTONLY", "PRLX"], ["FAKE10"], [], 0))
-        self.assertEqual(es["transitions_vs_previous"], {"AMBIGUOUS->VERIFIED_TRADFI": ["XIAOMI"],
-                                                         "UNVERIFIED->VERIFIED_TRADFI": ["BYD", "HYUNDAIUSD", "US10Y"],
-                                                         "VERIFIED_CRYPTO->UNVERIFIED": ["EXTONLY", "PRLX"]})
+        # the Phase 5 transitions (v8.identity/2 -> /3, replayed on this run's contracts); since Phase 6 the audit's
+        # own before/after is /3 -> /4 (FAKE07 only: tests.test_v8_audit.test_phase6_manifest_is_the_phase_base)
+        v2, v3 = self.states(version="v8.identity/2"), self.states(previous=True)
+        moves = {}
+        for t in sorted(v3):
+            if v2[t] != v3[t]:
+                moves.setdefault(f"{v2[t]}->{v3[t]}", []).append(t)
+        self.assertEqual(moves, {"AMBIGUOUS->VERIFIED_TRADFI": ["XIAOMI"],
+                                 "UNVERIFIED->VERIFIED_TRADFI": ["BYD", "HYUNDAIUSD", "US10Y"],
+                                 "VERIFIED_CRYPTO->UNVERIFIED": ["EXTONLY", "PRLX"]})
+        self.assertEqual(es["transitions_vs_previous"], {"VERIFIED_CRYPTO->UNVERIFIED": ["FAKE07"]})
 
     def test_lighter_tokenlist_health_and_coverage(self):
         """v8 Phase 5: the token-list exposure check has explicit health and per-market coverage in the snapshot."""
@@ -499,7 +559,7 @@ class PipelineAudit(unittest.TestCase):
         carries its coin's state; on the fixture every smart coin is verified crypto, so nothing is blocked."""
         with open(os.path.join(self.out, "data", "v8", "identity_authority.json")) as fh:
             auth = json.load(fh)
-        self.assertEqual(auth["identity_version"], "v8.identity/3")
+        self.assertEqual(auth["identity_version"], "v8.identity/4")
         self.assertEqual({t: v[0] for t, v in auth["states"].items()},
                          {t: a["identity"]["state"] for t, a in self.snap["registry"]["assets"].items()
                           if a["legacy"] in ("CRYPTO", "TRADFI", "AMBIGUOUS", "UNVERIFIED")})
@@ -521,7 +581,7 @@ class PipelineAudit(unittest.TestCase):
         self.assertTrue(J["open"])
         for tr in J["open"]:
             self.assertEqual((tr["identity_state_at_entry"], tr["identity_qualified"], tr["identity_version"],
-                              tr["identity_scan_id"]), ("VERIFIED_CRYPTO", True, "v8.identity/3", "local-1791014833"))
+                              tr["identity_scan_id"]), ("VERIFIED_CRYPTO", True, "v8.identity/4", "local-1791014833"))
         jn = self.snap["coverage"]["engines"]["smart"]["journal"]
         self.assertEqual(jn["evidence"]["qualified"]["open_signal"] + jn["evidence"]["qualified"]["open_info"],
                          len(J["open"]))
@@ -613,10 +673,43 @@ class PipelineAudit(unittest.TestCase):
         self.assertEqual(r["radar"]["NOCAND"]["c"], "NO_SUPPORTED_CANDLES")
         self.assertEqual(r["radar"]["VANA"]["c"], "NO_SUPPORTED_CANDLES")
 
+    def test_ticker_binding_end_to_end(self):
+        """v8 Phase 6, end to end: the known-crypto list is bound to one exposure per ticker. QNT, BB and PURR keep
+        their one crypto exposure (deterministic tradfi evidence removes the other); FAKE07 (fixture known crypto,
+        dYdX 30% away from Hyperliquid and Variational) has two candidates: UNVERIFIED in every engine, its record and
+        venues unchanged, nothing chosen. Every candidate is accounted for, in the registry counts and the summary."""
+        A = self.snap["registry"]["assets"]
+        for t, sel, other in (("QNT", "QNT#1", "QNT#2"), ("BB", "BB#1", "BB#2"), ("PURR", "PURR#1", "PURR#2")):
+            ta = A[t]["identity"]["ticker_authority"]
+            self.assertEqual((A[t]["identity"]["state"], ta["result"], ta["selected_exposure"], ta["excluded"]),
+                             ("VERIFIED_CRYPTO", "BOUND", sel, [[other, "TRADFI_EVIDENCE"]]), t)
+        i = A["FAKE07"]["identity"]
+        ta = i["ticker_authority"]
+        self.assertEqual((i["state"], i["reason"], i["previous"]["state"], ta["result"], ta["bindable_exposures"],
+                          ta["selected_exposure"]),
+                         ("UNVERIFIED", "TICKER_CRYPTO_EXPOSURE_UNBOUND", "VERIFIED_CRYPTO", "UNBOUND_MULTIPLE_CANDIDATES",
+                          ["FAKE07#1", "FAKE07#2"], None))
+        self.assertEqual(i["exposure_trace"]["binding"]["result"], "NO UNIQUE EXPOSURE BINDING")
+        self.assertEqual((self.contracts["dydx:FAKE07-USD"]["legacy"], self.contracts["dydx:FAKE07-USD"]["exp_reason"]),
+                         ("PRICE_CONFLICT_DROPPED", "TICKER_CRYPTO_EXPOSURE_UNBOUND"))
+        for e in ("radar", "quant", "swing", "day"):
+            self.assertEqual(self.recs[e]["FAKE07"]["c"], "IDENTITY_UNVERIFIED", e)
+        t = self.snap["registry"]["counts"]["ticker_authority"]
+        self.assertEqual((t["identity_version"], t["ticker_crypto_unbound_assets"], t["ticker_crypto_unbound_exposures"],
+                          t["ticker_crypto_with_tradfi_collision"], t["unaccounted"]),
+                         ("v8.identity/4", 1, 2, ["BB", "PURR", "QNT"], 0))
+        self.assertEqual(t["binding_candidates"], t["ticker_crypto_bindings"] + t["ticker_crypto_unbound_exposures"])
+        s = self.snap["coverage"]["summary"]["identity"]["ticker_authority"]
+        self.assertEqual((s["unaccounted"], s["unbound"]), (0, {"FAKE07": ["FAKE07#1", "FAKE07#2"]}))
+        k = self.snap["registry"]["counts"]["known_crypto_list"]
+        self.assertEqual(k["multiple_priced_exposures"], ["BB", "FAKE07", "PURR", "QNT"])
+        self.assertEqual(k["all_live_exposures_tradfi"], [])
+
     # ---- coverage
     def test_no_silent_disappearance(self):
         s = self.snap["coverage"]["summary"]
         self.assertEqual(s["unaccounted"], {k: 0 for k in s["unaccounted"]})
+        self.assertEqual(s["identity"]["ticker_authority"]["unaccounted"], 0)          # v8 Phase 6
         for e in SN.ENGINES:
             cov = self.snap["coverage"]["engines"][e]
             self.assertEqual(cov["status"], "OK", e)
@@ -643,7 +736,7 @@ class PipelineAudit(unittest.TestCase):
                 self.assertNotIn(r["c"], T.RETIRED, (e, a))
         self.assertNotIn("FILTERED", T.REASONS)
         self.assertEqual(self.snap["schema"], "v8.audit/4")
-        self.assertEqual(self.snap["manifest"]["identity_version"], "v8.identity/3")
+        self.assertEqual(self.snap["manifest"]["identity_version"], "v8.identity/4")
         self.assertEqual(len(self.snap["manifest"]["identity_config_hash"]), 64)
         self.assertEqual(self.snap["manifest"]["liquidity_version"], "v8.liquidity/1")
 

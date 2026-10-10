@@ -70,10 +70,13 @@ def edgex(sym):
     return sc._venue(t, "edgex", sym, m)
 
 
-def resolve(*rows):
+def resolve(*rows, version=None):
+    """This checkout's identity on the given rows; version="v8.identity/2" (or /3) reproduces an older version."""
     res = {d: [] for d in sc.DEXES}
     for r in rows:
         res[r["dex"]].append(r)
+    if version is not None:
+        return ID.resolve_version(version, res, sc.DEXES, LISTS, sc.in_my_dexes)
     return ID.resolve(res, sc.DEXES, LISTS, sc.in_my_dexes)
 
 
@@ -213,7 +216,14 @@ class CollisionMatrix(unittest.TestCase):
         self.assertFalse(admitted(r, "ZED"))
         self.assertEqual(r.asset("ZED")["exposures"][0]["reason"], "TRADFI_CONTRACT_EVIDENCE")
         self.assertEqual(r.asset("ZED")["exposures"][0]["wrapper"], ["VENUE_CATEGORY:Crypto"])
-        self.assertEqual(r.asset("ZED")["previous"]["decision"], ID.D_AMBIGUOUS)
+        v2 = resolve(ext("ZED-USD", "ZED", 5.0, 1e6, cat="Crypto", desc="Zed"), var("ZED", 5.05, 1e6, "Zed Holdings Inc"),
+                     version="v8.identity/2")
+        self.assertEqual(v2.asset("ZED")["decision"], ID.D_AMBIGUOUS)
+        # the previous version recorded beside v8.identity/4 is /3, which decided the same
+        self.assertEqual(r.asset("ZED")["previous"], {"version": "v8.identity/3", "state": ID.VERIFIED_TRADFI,
+                                                       "decision": ID.D_TRADFI_EXPOSURE,
+                                                       "reason": "TRADFI_CONTRACT_EVIDENCE",
+                                                       "authority": "CONTRACT_NAME"})
 
     def test_H_qnt_live_shape(self):
         self.test_C_crypto_on_several_venues_one_wrong_tradfi_row()
@@ -394,9 +404,20 @@ class NoCollisionParity(unittest.TestCase):
             self.assertEqual(sorted(got), sorted(legacy), seed)
             for t in legacy:
                 a = r.asset(t)
-                # crypto evidence on a priced contract (an unpriced contract never defines an exposure)
-                has_crypto = t in LISTS.known_crypto or any(info["cls"] == ID.CRYPTO and info["npx"]
-                                                            for _, _, info in members[t])
+                # crypto evidence on a priced contract (an unpriced contract never defines an exposure). v8 Phase 6
+                # (v8.identity/4): the known-crypto list is bound to exactly one price exposure or to none - a ticker
+                # with several priced exposures the list could be bound to (a priced exposure with a contract off
+                # Lighter: these Lighter rows carry no token-list check, so a Lighter-only exposure is blocked) is
+                # UNVERIFIED, every contract recorded
+                exps = {}
+                for dex, _, info in members[t]:
+                    if info["npx"]:
+                        exps.setdefault(info["exp"], set()).add(dex)
+                bindable = [x for x, dexes in exps.items() if dexes != {"lighter"}]
+                has_crypto = (t in LISTS.known_crypto and len(bindable) == 1) or any(
+                    info["cls"] == ID.CRYPTO and info["npx"] for _, _, info in members[t])
+                if t in LISTS.known_crypto:
+                    self.assertEqual(a["ticker_authority"]["bindable_exposures"], sorted(bindable), (seed, t))
                 self.assertEqual(got[t]["identity"], ID.VERIFIED_CRYPTO if has_crypto else ID.UNVERIFIED, (seed, t))
                 self.assertFalse(got[t]["tradfi"], (seed, t))           # unknown is not tradfi
                 if not has_crypto:

@@ -29,6 +29,12 @@ Phase 5 part (economic exposure):
   old state / reason / authority, new economic and wrapper evidence, new state, liquidity, and its outputs;
 * the tokenized-RWA and collision controls with their wrapper and economic evidence.
 
+Phase 6 part (exposure-local ticker authority):
+* the ticker_authority counts (bindings, unbound assets and exposures, check-blocked, tradfi collisions, direct
+  crypto, unaccounted), every known-crypto ticker with several priced exposures and every unbound or check-blocked one
+  (exposures, bindable count, result, selected, why the others were excluded, liquidity), the controls' bindings, and
+  the known-crypto list audit.
+
 Reads files only; changes nothing."""
 from __future__ import annotations
 
@@ -107,6 +113,7 @@ def report(snap, base_out=None, head_out=None):
     out["missing_volume_quant"] = sorted(t for t, r in recs["quant"].items() if r["c"] == "DEX_VOLUME_MISSING")
     out.update(phase3(snap, assets, by_id, counts))
     out["phase5"] = phase5(snap, assets, by_id, counts)
+    out["phase6"] = phase6(assets, by_id, counts)
     out["smart"] = smart_identity(snap, head_out)
     if base_out and head_out:
         out["production"] = production_diff(base_out, head_out, assets)
@@ -273,6 +280,34 @@ def phase5(snap, assets, by_id, counts):
                                                   for t in inv["extended_only"]}}
 
 
+def phase6(assets, by_id, counts):
+    """v8 Phase 6: the exposure-local binding of the known-crypto list in this snapshot - the counts (unaccounted 0),
+    every known-crypto ticker with several priced exposures (bindable count, result, selected), every unbound or
+    check-blocked one with its exposures, the controls' bindings, and the known-crypto list audit."""
+    ta = dict(counts.get("ticker_authority") or {})
+    ident = {t: (a.get("identity") or {}) for t, a in assets.items()}
+
+    def view(t):
+        i = ident.get(t) or {}
+        x = i.get("ticker_authority") or {}
+        vols = [by_id[c].get("vol") for c in (assets.get(t) or {}).get("contracts") or []
+                if c in by_id and by_id[c].get("vol") is not None]
+        return {"state": i.get("state"), "previous": (i.get("previous") or {}).get("state"),
+                "result": x.get("result"), "bindable": x.get("bindable_exposures"),
+                "selected": x.get("selected_exposure"), "excluded": x.get("excluded"),
+                "candidate_prices": x.get("candidate_prices"),
+                "exposures": [[e["id"], e["class"], e["reason"], e["anchor_price"], e["members"]]
+                              for e in i.get("exposures") or []],
+                "best_vol": max(vols) if vols else None, "liquid_1m": bool(vols) and max(vols) >= MIN_DEX_VOL}
+    unbound = sorted(ta.get("unbound") or {})
+    blocked = ta.get("ticker_crypto_blocked_by_exposure_check") or []
+    return {"ticker_authority": {k: v for k, v in ta.items() if k not in ("multi_exposure",)},
+            "multi_exposure": {t: view(t) for t in sorted(ta.get("multi_exposure") or {})},
+            "unbound": {t: view(t) for t in unbound}, "check_blocked": {t: view(t) for t in blocked},
+            "controls": {t: view(t) for t in P5_CONTROLS if ident.get(t)},
+            "known_crypto_list": counts.get("known_crypto_list")}
+
+
 def production_diff(base_out, head_out, assets):
     b, bok = _published(base_out)
     h, hok = _published(head_out)
@@ -354,6 +389,25 @@ def text(rep):
         L.append(f"      economic {m.get('economic')}  wrapper {m.get('wrapper')}")
     for t, c in (p5.get("controls") or {}).items():
         L.append(f"   control {t:<11} {c}")
+    p6 = rep.get("phase6") or {}
+    t6 = p6.get("ticker_authority") or {}
+    L.append("")
+    L.append(f"== known-crypto ticker binding (Phase 6): {t6.get('identity_version')}")
+    for k in ("known_crypto_assets", "ticker_crypto_bindings", "ticker_crypto_unbound_assets",
+              "ticker_crypto_unbound_exposures", "ticker_crypto_no_bindable_exposure",
+              "ticker_crypto_blocked_by_exposure_check", "ticker_crypto_with_tradfi_collision",
+              "ticker_crypto_with_direct_crypto_evidence", "by_result", "binding_candidates", "unaccounted"):
+        L.append(f"   {k}: {t6.get(k)}")
+    for name in ("multi_exposure", "unbound", "check_blocked", "controls"):
+        for t, v in (p6.get(name) or {}).items():
+            L.append(f"   {name:<14} {t:<11} {v['previous']} -> {v['state']}  {v['result']}  bindable {v['bindable']} "
+                     f"selected {v['selected']}  excluded {v['excluded']}  vol {v['best_vol']}")
+            L.append(f"      exposures {v['exposures']}")
+    kl = p6.get("known_crypto_list") or {}
+    L.append(f"   known-crypto list: {kl.get('entries')} entries, {kl.get('in_live_universe')} live, one priced exposure "
+             f"{kl.get('one_priced_exposure')}, several {kl.get('multiple_priced_exposures')}, unpriced only "
+             f"{kl.get('unpriced_only')}, all live exposures tradfi {kl.get('all_live_exposures_tradfi')}, no live "
+             f"market {len(kl.get('no_live_market') or [])}: {kl.get('no_live_market')}")
     if rep.get("production"):
         p = rep["production"]
         L.append("")
