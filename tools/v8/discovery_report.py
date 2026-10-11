@@ -56,6 +56,11 @@ def discovery(doc):
            "liquidity": count(r["execution_liquidity"]["state"] if r["execution_liquidity"]["observed_value"] is None
                               else bucket(r["execution_liquidity"]["observed_value"]) for r in rs),
            "flags": count(f for r in rs for f in r["anomaly_flags"]),
+           "shared_gates": count(("PASSES" if r["shared_execution_gates"]["passes"] else "BLOCKED:" +
+                                  "+".join(r["shared_execution_gates"]["reasons"])) for r in rs),
+           "model_eligibility": {e: count(r["model_eligibility"][e]["disposition"] for r in rs
+                                          if e in r["model_eligibility"])
+                                 for e in ("radar", "quant", "swing", "day", "smart")},
            "visibility": {"radar_table": sum(1 for r in rs if r["discovery_stage"] not in ("DISCOVERED", "LIGHT_ONLY")),
                           "discovery_only": count((r["identity"] or "NONE") for r in rs
                                                   if r["discovery_stage"] in ("DISCOVERED", "LIGHT_ONLY"))},
@@ -72,7 +77,8 @@ def print_discovery(o, name):
     p, a = o["provenance"], o["accounting"]
     print(f"== discovery {name}: {p['schema']} scan {p['scan_id']} git {str(p['git_sha'])[:12]} identity "
           f"{p['identity_version']} {str(p['identity_config_hash'])[:12]}")
-    print(f"   coverage {p['coverage_state']}  full_discovery_qualified {p['full_discovery_qualified']}  fallback "
+    print(f"   coverage {p['coverage_state']}  available_venue_discovery_qualified "
+          f"{p.get('available_venue_discovery_qualified')}  full_discovery_qualified {p['full_discovery_qualified']}  fallback "
           f"{p['fallback_universe']}  venues ok {p['venues_ok']}/{p['venues_expected']} failed {p['venues_failed_names']}")
     print(f"   contracts {a['registry_contracts']}  active perps {a['active_perps']}  in denominator "
           f"{a['active_perps_in_denominator']}  in discovery {a['active_perps_in_discovery']}  unsupported "
@@ -87,6 +93,9 @@ def print_discovery(o, name):
     print(f"   deep research {a['by_deep_reason']}")
     print(f"   lanes {a['by_lane']}")
     print(f"   final dispositions {a['by_final_disposition']}")
+    print(f"   shared execution gates {o['shared_gates']}")
+    for e, v in o["model_eligibility"].items():
+        print(f"   model eligibility {e} (engine ledger): {v}")
     print(f"   flags {o['flags']}")
     print(f"   visibility: radar table {o['visibility']['radar_table']}, discovery-only {o['visibility']['discovery_only']}")
     for k, v in o["emerging"].items():
