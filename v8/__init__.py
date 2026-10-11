@@ -4,7 +4,8 @@ identity evidence, kept apart from authoritative evidence (Phase 4); wrapper evi
 evidence, venue exposure checks and the before/after against the previous identity version (Phase 5); the known-crypto
 list bound to at most one price-coherent exposure per ticker, with its binding trace (Phase 6); full-universe discovery:
 every active perpetual of every healthy venue in one discovery record per asset, deep research still bounded, research
-flags and a shadow queue without trade authority (Phase 7).
+flags and a shadow queue without trade authority (Phase 7); an append-only point-in-time history of every scan and a
+research-only point-in-time view of it, with time-varying costs and a shadow experiment ledger (Phase 8).
 
 Two modules DECIDE (Phase 2): `identity` builds the coin universe the engines read (which markets are one coin,
 crypto or not) and `liquidity` is the shared execution-liquidity evaluation behind every $1M gate. Everything else
@@ -25,7 +26,13 @@ Modules
     audit_*     the end-of-run audit of each engine (reads the run's own values, recomputes nothing it decides)
     snapshot    assembles the versioned audit snapshot (data/v8/audit_latest.json) after all engines ran
     discovery   full-universe discovery (data/v8/discovery.json, v8.discovery/1): observes, never decides (Phase 7)
+    history     append-only point-in-time history on the v8-history branch (v8.history/1), written by the Scan
+                workflow after the snapshot; a failure is HISTORY_CAPTURE_DEGRADED and never stops a scan (Phase 8)
+    pit         research-only point-in-time queries over the history (universe_at, liquidity_at, intervals); no
+                live engine imports it (Phase 8)
+    shadow_ledger  the append-only shadow experiment ledger (research/shadow-ledger/, v8.shadow-ledger/1); no
+                record has trade authority (Phase 8)
 """
 
-SCHEMA = "v8.audit/5"
-ENGINE_VERSION = "v8-phase7.0"
+SCHEMA = "v8.audit/6"
+ENGINE_VERSION = "v8-phase8.0"

@@ -31,6 +31,7 @@ import urllib.request
 from . import ENGINE_VERSION, SCHEMA
 from .liquidity import VERSION as LIQUIDITY_VERSION
 from . import discovery as DS
+from . import history as HI
 from . import ledger as LG
 from . import parts as PT
 from . import provenance
@@ -414,8 +415,18 @@ class ArchiveDir:
         return p
 
 
-def write(out_dir, pages_url=None, first_seen_path=None, archive_dir=None, keep_parts=False, identity_path=None):
+def write(out_dir, pages_url=None, first_seen_path=None, archive_dir=None, keep_parts=False, identity_path=None,
+          history_branch=None, history_backfill=False, history_repo=None, history_store=None):
     snap, fs, id_map, disc = build(out_dir, pages_url, first_seen_path, identity_path)
+    # v8 Phase 8: append this scan's point-in-time observation to the history branch (only when the Scan workflow
+    # asks for it). capture() never raises; a failure is HISTORY_CAPTURE_DEGRADED here and never stops the files below.
+    if history_branch or history_store is not None:
+        snap["history"] = HI.capture(snap, repo=os.getcwd(), branch=history_branch or HI.BRANCH,
+                                     backfill=history_backfill, repo_slug=history_repo, store=history_store)
+    else:
+        snap["history"] = HI.status_template(snap, None)
+    if snap["history"].get("persistence_state") == HI.DEGRADED:
+        snap["data_health"].setdefault("audit_problems", {})["history"] = [snap["history"].get("reason")]
     raw = dumps({k: v for k, v in snap.items()})
     z = gz(raw)
     snap["storage"] = storage(len(raw), len(z), snap)
@@ -453,8 +464,15 @@ def main(argv=None):
                     help="previous identity_state.json (default: read from the site)")
     ap.add_argument("--archive-dir", default=None, help="append the gzip snapshot to this bounded archive folder")
     ap.add_argument("--keep-parts", action="store_true")
+    ap.add_argument("--history-branch", default=None,
+                    help="append this scan's point-in-time observation to this branch (v8 Phase 8; Scan workflow)")
+    ap.add_argument("--history-backfill", action="store_true",
+                    help="also append archived v8-audit-* scan artifacts not yet in the history (needs gh, GH_TOKEN)")
+    ap.add_argument("--history-repo", default=os.environ.get("GITHUB_REPOSITORY"),
+                    help="owner/name of the repository whose artifacts are backfilled")
     a = ap.parse_args(argv)
-    snap, n, z, arch = write(a.out, a.pages_url, a.first_seen, a.archive_dir, a.keep_parts, a.identity_state)
+    snap, n, z, arch = write(a.out, a.pages_url, a.first_seen, a.archive_dir, a.keep_parts, a.identity_state,
+                             a.history_branch, a.history_backfill, a.history_repo)
     s = snap["coverage"]["summary"]
     print(f"[v8] audit snapshot {snap['manifest']['scan_id']}: {s['raw_contracts']} contracts, "
           f"{s['canonical_assets']} assets, {snap['manifest']['dispositions']} dispositions, unaccounted "
@@ -466,6 +484,13 @@ def main(argv=None):
           f"({cov.get('active_perps_in_denominator')} active perps on {cov.get('venues_ok')} healthy venues, "
           f"{cov.get('venues_failed')} unavailable), stages {d.get('stages')}, unaccounted {d.get('unaccounted')}",
           flush=True)
+    h = snap.get("history") or {}
+    print(f"[v8] history {h.get('persistence_state')}: branch {h.get('branch')}, commit {h.get('history_branch_commit')}, "
+          f"integrity {h.get('append_integrity')}, observation {(h.get('observation') or {}).get('seq')}, "
+          f"storage {h.get('storage_size')}, backfill {h.get('backfill')}" + (f", reason {h.get('reason')}"
+                                                                              if h.get('reason') else ""), flush=True)
+    if h.get("persistence_state") == HI.DEGRADED:       # visible in the Actions run summary; the scan carries on
+        print(f"::warning title=v8 history::{HI.DEGRADED}: {h.get('reason')}", flush=True)
     return 0
 
 
