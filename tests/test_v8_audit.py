@@ -24,6 +24,8 @@ then the audit snapshot is assembled. Checks:
 * exposure-local ticker authority (Phase 6): the known-crypto list is bound to at most one price exposure per ticker
   (QNT, BB, PURR keep their one crypto exposure; FAKE07, a fixture known-crypto coin whose dYdX market sits 30% away
   from its other market, has two candidates and is UNVERIFIED), every binding is in the audit and accounted for;
+* full-universe discovery (Phase 7, audit-only): the snapshot carries the discovery section and data/v8/discovery.json is
+  deterministic; the legacy digests equal the Phase 6 golden (details in tests/test_v8_phase7.py);
 * coverage: no asset disappears silently (unaccounted is zero everywhere);
 * the snapshot is deterministic and compact.
 
@@ -47,12 +49,15 @@ import legacy_parity as LP  # noqa: E402
 from v8 import snapshot as SN  # noqa: E402
 from v8 import taxonomy as T  # noqa: E402
 
-# v8 Phase 6: this branch's golden; its base (main f7aa7f6 = the Phase 5 golden) and the Phase 6 manifest
-# (phase6_expected_deltas.json) are checked by tools/v8/delta_parity.py in CI. The Phase 3, closure, Phase 4 and Phase 5
+# v8 Phase 7: this branch's golden (legacy digests identical to the Phase 6 golden: Phase 7 is audit-only); its base
+# (main 61960d9 = the Phase 6 golden) and the Phase 7 manifest (phase7_expected_deltas.json, no delta at all) are checked
+# by tools/v8/delta_parity.py in CI. Phase 6: base main f7aa7f6 = the Phase 5 golden, manifest phase6_expected_deltas.json. The Phase 3, closure, Phase 4 and Phase 5
 # manifests and their goldens are kept for the record and still checked for consistency below: the Phase 3, closure
 # and Phase 4 identity states are the v8.identity/2 states (this run's contracts replayed under the /2 rules), the
 # Phase 5 states are the v8.identity/3 states, which this run's audit records per asset as `previous`.
-GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase6.json")
+GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase7.json")
+PHASE6_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase6.json")
+PHASE7_MANIFEST = os.path.join(HERE, "fixtures", "v8", "phase7_expected_deltas.json")
 PHASE5_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase5.json")
 PHASE6_MANIFEST = os.path.join(HERE, "fixtures", "v8", "phase6_expected_deltas.json")
 PHASE4_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase4.json")
@@ -197,6 +202,8 @@ class PipelineAudit(unittest.TestCase):
         self.assertEqual(man["base"]["golden"], "tests/fixtures/v8/legacy_parity_golden_phase5.json")
         self.assertEqual(man["head_golden"], "tests/fixtures/v8/legacy_parity_golden_phase6.json")
         self.assertNotEqual(base["combined"], self.summary["combined"])     # Phase 6 changes outputs on purpose
+        with open(PHASE6_GOLDEN) as fh:
+            self.assertEqual(json.load(fh)["combined"], self.summary["combined"])     # Phase 7 changes none
         self.assertEqual(man["identity_states"], self.states())
         prev, now = self.states(previous=True), self.states()
         moved = {t for t in now if prev[t] != now[t]}
@@ -206,10 +213,31 @@ class PipelineAudit(unittest.TestCase):
         self.assertEqual(set(es["changed_vs_previous"]), moved)
         self.assertEqual(es["transitions_vs_previous"], {"VERIFIED_CRYPTO->UNVERIFIED": list(UNBOUND)})
 
+    def test_phase7_manifest_is_the_phase_base_and_allows_no_delta(self):
+        """Phase 7 is measured from production main 61960d9 (Phase 6 merged), whose fixture golden is the Phase 6
+        golden; it is audit-only, so its manifest allows no legacy delta at all and pins every identity state."""
+        with open(PHASE7_MANIFEST) as fh:
+            man = json.load(fh)
+        self.assertEqual(man["base"]["sha"], "61960d97a0e27f1bec8c83aee0f2a90b5019fd02")
+        self.assertEqual(man["base"]["tree"], "5d3c62204d875fc63641362685498972aeafd0a1")
+        self.assertEqual(man["base"]["golden"], "tests/fixtures/v8/legacy_parity_golden_phase6.json")
+        self.assertEqual(man["head_golden"], "tests/fixtures/v8/legacy_parity_golden_phase7.json")
+        self.assertIsNone(man["counterfactual_projection"])
+        for k in ("universe", "dex_status", "code", "decisions", "files"):
+            self.assertEqual(man[k], [], k)
+        self.assertEqual(man["notes"], {"removed": [], "added": []})
+        self.assertEqual(man["identity_states"], self.states())
+        with open(PHASE6_GOLDEN) as fh:
+            base = json.load(fh)
+        with open(GOLDEN) as fh:
+            head = json.load(fh)
+        self.assertEqual((base["combined"], base["files"], base["decisions"]),
+                         (head["combined"], head["files"], head["decisions"]))
+
     def test_candidate_evidence_is_traced_never_authority(self):
         """v8 Phase 4: the snapshot carries every contract's observed candidate evidence apart from its authoritative
         evidence, and counts it; no candidate rule is qualified."""
-        self.assertEqual(self.snap["manifest"]["audit_version"], "v8-phase6.0")
+        self.assertEqual(self.snap["manifest"]["audit_version"], "v8-phase7.0")
         self.assertIn("candidate", SN.CONTRACT_FIELDS)
         self.assertTrue({"wrapper", "xcheck"} <= set(SN.CONTRACT_FIELDS))
         cc = self.snap["registry"]["counts"]["candidate_evidence"]
@@ -735,7 +763,7 @@ class PipelineAudit(unittest.TestCase):
                     self.assertIn(x, T.STEPS)
                 self.assertNotIn(r["c"], T.RETIRED, (e, a))
         self.assertNotIn("FILTERED", T.REASONS)
-        self.assertEqual(self.snap["schema"], "v8.audit/4")
+        self.assertEqual(self.snap["schema"], "v8.audit/5")
         self.assertEqual(self.snap["manifest"]["identity_version"], "v8.identity/4")
         self.assertEqual(len(self.snap["manifest"]["identity_config_hash"]), 64)
         self.assertEqual(self.snap["manifest"]["liquidity_version"], "v8.liquidity/1")
@@ -768,8 +796,12 @@ class PipelineAudit(unittest.TestCase):
             za, zb = fa.read(), fb.read()
         self.assertEqual(za, zb)
         self.assertEqual(json.loads(gzip.decompress(za)), self.snap)
-        for k in ("manifest", "registry", "data_health", "dispositions", "coverage", "legacy_output_refs", "storage"):
+        for k in ("manifest", "registry", "data_health", "dispositions", "coverage", "legacy_output_refs", "storage",
+                  "discovery"):
             self.assertIn(k, self.snap)
+        with open(os.path.join(self.out, "data", "v8", "discovery.json"), "rb") as fa, \
+                open(os.path.join(d, "data", "v8", "discovery.json"), "rb") as fb:
+            self.assertEqual(fa.read(), fb.read())                              # v8 Phase 7: deterministic too
         self.assertLess(self.n_gz, 200_000)
         # no candle arrays: every observed value is small
         for recs in self.recs.values():
