@@ -7,7 +7,7 @@ Runs on every pull request to main, every push to main and to `v8/*` branches, a
 
 | Job | Steps |
 |---|---|
-| Unit tests and legacy parity | all unit tests (`python -m unittest discover -s tests`); the v8 tests on their own (Phase 1 audit, Phase 2 identity, liquidity and delta validator, Phase 3 identity coverage, smart-money identity and journal provenance, Phase 3 closure quant and radar evidence, Phase 4 candidate identity evidence, Phase 5 economic exposure, Phase 6 exposure-local ticker authority, Phase 7 full-universe discovery); legacy parity against this branch's committed golden digests (`legacy_parity_golden_phase7.json`); differential parity against the phase base commit rebuilt on the same runner (`tools/v8/delta_parity.py`: only the deltas listed in `tests/fixtures/v8/phase7_expected_deltas.json`, all of them, nothing else - for Phase 7, none); every workflow file parses |
+| Unit tests and legacy parity | all unit tests (`python -m unittest discover -s tests`); the v8 tests on their own (Phase 1 audit, Phase 2 identity, liquidity and delta validator, Phase 3 identity coverage, smart-money identity and journal provenance, Phase 3 closure quant and radar evidence, Phase 4 candidate identity evidence, Phase 5 economic exposure, Phase 6 exposure-local ticker authority, Phase 7 full-universe discovery, Phase 8 point-in-time history and research); the shadow ledger guard (`tools/v8/ledger_guard.py`: ledger files only added, the ledger valid); legacy parity against this branch's committed golden digests (`legacy_parity_golden_phase8.json`); differential parity against the phase base commit rebuilt on the same runner (`tools/v8/delta_parity.py`: only the deltas listed in `tests/fixtures/v8/phase8_expected_deltas.json`, all of them, nothing else - for Phase 8, none); every workflow file parses |
 | Simulator and no-edge checks | installs numpy and numba; `tools/research/test_qsim.py`; `tools/no_edge_check.py` |
 
 Both jobs are required status checks of `main` (ruleset 24588029, strict). Their names are what the ruleset matches:
@@ -65,6 +65,13 @@ no counterfactual projection, and every identity state pinned unchanged. Its hea
 audit file, `data/v8/parts/discovery.json`, which is never part of the legacy digest). The Phase 6 manifest is kept for
 the record and no longer checked.
 
+Phase 8 moves the base to production main `1609e2c` (Phase 7 merged) with `phase8_expected_deltas.json`. Phase 8 is
+audit- and research-only, so the manifest again allows **no delta at all**, every identity state pinned unchanged. Its
+head golden `legacy_parity_golden_phase8.json` is byte-identical to `legacy_parity_golden_phase7.json`. The
+research-checks job also installs pandas and runs `tests.test_v8_phase8` with numpy and numba (time-varying slippage,
+funding states, per-trade qualification, the corrected research end to end with exact parity to qsim on full
+coverage). The Phase 7 manifest is kept for the record and no longer checked.
+
 Phase 1 required the legacy outputs to be identical to the base. Phase 2 changes them on purpose, so the base check
 became a differential one: the base commit named in the manifest must reproduce its own golden digests (also with
 its own universe injected, which proves injection changes nothing else); this branch must reproduce its own; the
@@ -88,7 +95,8 @@ acquire crypto, a current downgrade blocks actionability, a prior entry proof st
 `tests.test_v8_phase7.ScanGateInvariants`: every active perp of a healthy venue is discovery-visible, identity and
 liquidity never gate visibility, a failed venue is degraded and the fallback universe is never full discovery, research
 flags and the shadow queue have no authority, an open quant position below liquidity is surfaced for its lifecycle with
-no new entry; about 30 seconds) right after
+no new entry; since Phase 8 also `tests.test_v8_phase8.ScanGateInvariants`: the history capture never raises, unknown is
+never false, no live engine imports the point-in-time research view; about 30 seconds) right after
 Python is set up. If they fail, the job stops there: the scanner does not run and nothing is published. The
 downstream resilience of the scan is unchanged: smart money, quant desk and coin picks keep `continue-on-error`
 with their "keep the published files" fallbacks, and the v8 snapshot step is also `continue-on-error` because an
@@ -132,4 +140,10 @@ production snapshot (the pre-Phase-7 baseline), and the quant audit parts of the
 this branch and by the base (the consistency problem Phase 7 removes, and the positions recorded for their lifecycle
 only).
 
-The phase base it runs beside the head is the Phase 7 manifest's base (production main `61960d9`).
+Since Phase 8 it also verifies the production history (the `v8-history` branch, when it exists), dry-runs the
+history writer into a throwaway repository with this run's observation and every archived production scan artifact
+(`history_dryrun.tar.gz`, `research_history_dryrun*.json`), measures the storage projection
+(`research_history_projection.json`) and runs `tools/research/pit_research.py` on the market data
+(`research_pit.json`: legacy vs point-in-time corrected research, the qualified window, every trade's qualification).
+
+The phase base it runs beside the head is the Phase 8 manifest's base (production main `1609e2c`).

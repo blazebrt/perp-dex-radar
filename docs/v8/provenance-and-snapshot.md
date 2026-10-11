@@ -9,7 +9,7 @@ Every snapshot starts with a manifest:
 | `scan_id` | `gh-<run id>-<attempt>` in GitHub Actions (shared by every engine of one scan), `local-<time>` offline |
 | `ts` | the scanner's scan time |
 | `repo`, `ref`, `git_sha` | where the code came from |
-| `schema`, `audit_version` | `v8.audit/5`, `v8-phase7.0` (Phase 1 wrote `v8.audit/1`, Phase 2 `v8.audit/2`, Phases 3 and 4 `v8.audit/3`, Phase 5 `v8.audit/4` with `v8-phase5.0`, Phase 6 `v8.audit/4` with `v8-phase6.0`) |
+| `schema`, `audit_version` | `v8.audit/6`, `v8-phase8.0` (Phase 1 wrote `v8.audit/1`, Phase 2 `v8.audit/2`, Phases 3 and 4 `v8.audit/3`, Phase 5 `v8.audit/4` with `v8-phase5.0`, Phase 6 `v8.audit/4` with `v8-phase6.0`, Phase 7 `v8.audit/5` with `v8-phase7.0`) |
 | `identity_version`, `liquidity_version` | `v8.identity/4`, `v8.liquidity/1`: the universe identity and liquidity semantics that built this scan's universe (Phase 2 wrote `v8.identity/1`, Phases 3 and 4 `v8.identity/2`, Phase 5 `v8.identity/3`) |
 | `identity_config_hash` | Phase 3: sha256 of everything that decides an identity state (`v8.provenance.identity_config()`: version, tolerance, venue label sets, base-only-symbol venues and quote suffixes, the tradfi and known-crypto lists, FX codes, the tradfi name pattern), also in every engine part's header |
 | `engine_versions` | each legacy engine's own version string |
@@ -35,7 +35,7 @@ webhook URLs stay in the environment and are never read by the audit.
 
 ## Snapshot
 
-`data/v8/audit_latest.json` (and `.json.gz`) has schema `v8.audit/5`. What each phase added:
+`data/v8/audit_latest.json` (and `.json.gz`) has schema `v8.audit/6`. What each phase added:
 
 * **Phase 2:** the identity columns of every contract, `registry.assets[t].identity` and the identity counts.
 * **Phase 3:** the identity state, evidence, parsed symbols, links and raw venue fields, and `coverage.summary.identity`.
@@ -47,6 +47,12 @@ webhook URLs stay in the environment and are never read by the audit.
   stage 2, unaccounted 0) and the manifest's `discovery_version` / `discovery_file`; the full per-asset records are in
   `data/v8/discovery.json` (see [phase7-full-universe-discovery.md](phase7-full-universe-discovery.md)). No new contract
   column; a discovery problem appears in `data_health.audit_problems.discovery`.
+* **Phase 8:** the top-level `history` section: `version` (`v8.history/1`), `branch`, `observation_timestamp`,
+  `source_scan`, `source_main_sha`, `persistence_state` (`PERSISTED`, `IDEMPOTENT_REPLAY`, `HISTORY_CAPTURE_DEGRADED`,
+  or `NOT_CONFIGURED` outside the Scan workflow), `history_branch_commit`, `append_integrity` (`EMPTY` at genesis,
+  `VERIFIED_TAIL`, `BROKEN`), `storage_size` (observations, bytes), `observation` (seq, path, hashes, checkpoint or
+  delta, liquidity recorded), `backfill` and `reason`. A degraded capture also appears in
+  `data_health.audit_problems.history`. See [phase8-point-in-time-research.md](phase8-point-in-time-research.md).
 
 See [contract-identity.md](contract-identity.md), [phase3-identity-coverage.md](phase3-identity-coverage.md) and [phase5-economic-exposure.md](phase5-economic-exposure.md). Next to it, `data/v8/identity_state.json` (Phase 3:
 asset -> [identity state, since], read back from the site next scan to list identity transitions), and
