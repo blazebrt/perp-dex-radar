@@ -19,8 +19,9 @@ checked. Appending reads at most three observations (the last, the one before it
 cost does not grow with the history. Liquidity is recorded when the last liquidity observation is LIQUIDITY_EVERY_S
 or more away from this one (and in every backfilled observation).
 
-Integrity: every observation carries `seq` (append order), `prev_hash` (sha256 of the previous observation's
-canonical bytes) and `content_hash` (sha256 of its own scan content). Rewriting, removing or reordering any
+Integrity: every observation carries `seq` (append order), `record_hash` (sha256 of every persisted field except
+itself), `prev_hash` (the previous record hash) and `content_hash` (its full scan authority, including a digest of
+the complete liquidity state on every scan, even when its table is omitted). Rewriting, removing or reordering any
 observation breaks the chain and `verify()` reports it. This makes retroactive edits detectable; it does not make
 them impossible (the branch is ordinary git; a repository rule protecting it is recommended).
 
@@ -86,19 +87,46 @@ def gz(b):
 # live from the scan, or backfilled from an archived artifact) is provenance, also outside the content hash so that
 # the same scan recorded twice is recognised as the same observation
 CHAIN_KEYS = ("seq", "prev_hash", "appended_at", "stored_bytes_before", "content_hash", "state_mode", "base",
-              "last_liquidity", "contracts", "assets", "liquidity")
+              "last_liquidity", "contracts", "assets", "liquidity", "liquidity_content_hash", "record_hash")
 NOT_CONTENT = CHAIN_KEYS + ("source",)
 
 
 def content_hash(content, state):
-    """sha256 of what one scan observed: its header (without provenance) and its full contract and asset state."""
+    """Full scan authority, independent of provenance and checkpoint/liquidity storage cadence.
+
+    Appends/retries hash the full input liquidity; verification uses its persisted digest when rebuilding the
+    contract/asset state. A stored liquidity table is independently checked against that digest.
+    """
     head = {k: v for k, v in content.items() if k not in NOT_CONTENT}
+    head["liquidity_content_hash"] = (liquidity_hash(state["liquidity"]) if "liquidity" in state
+                                      else content.get("liquidity_content_hash"))
     return sha(canonical(dict(head, state={"contracts": state["contracts"], "assets": state["assets"]})))
 
 
 def obs_hash(obs):
-    """sha256 of an observation's canonical bytes (what the next observation's prev_hash must equal)."""
-    return sha(canonical(obs))
+    """Governed record hash: every persisted field except the self-verifying record_hash itself.
+
+    The same value is used for record integrity, chain links, checkpoint references and the reported head hash.
+    """
+    return sha(canonical({k: v for k, v in obs.items() if k != "record_hash"}))
+
+
+def liquidity_hash(rows):
+    """Deterministic digest of the complete liquidity authority from state_from_snapshot()."""
+    return sha(canonical(_table(LIQUIDITY_FIELDS, rows)))
+
+
+def record_problems(obs):
+    """Self-verification, including the head and any liquidity payload that is actually stored."""
+    problems = []
+    if obs.get("record_hash") != obs_hash(obs):
+        problems.append("record hash does not match the persisted observation")
+    digest = obs.get("liquidity_content_hash")
+    if not isinstance(digest, str) or len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
+        problems.append("missing or invalid liquidity content hash")
+    if obs.get("liquidity") is not None and sha(canonical(obs["liquidity"])) != digest:
+        problems.append("liquidity payload does not match its content hash")
+    return problems
 
 
 # --------------------------------------------------------------------------- what a scan observed
@@ -309,13 +337,15 @@ class Chain:
         raw = store.read_bytes(last_path)
         last = decode(raw)
         self.last = last
+        if record_problems(last):
+            return
         self.stored_bytes = (last.get("stored_bytes_before") or 0) + len(raw)
         n = last.get("seq")
         if n != _seq_of(last_path) or n != len(self.paths) or sorted(self.by_seq) != list(range(1, n + 1)):
             return
         if n > 1:
             prev = decode(store.read_bytes(self.by_seq[n - 1]))
-            if last.get("prev_hash") != obs_hash(prev):
+            if record_problems(prev) or last.get("prev_hash") != obs_hash(prev):
                 return
         elif last.get("prev_hash") is not None:
             return
@@ -326,7 +356,8 @@ class Chain:
             if b.get("seq") not in self.by_seq:
                 return
             base = decode(store.read_bytes(self.by_seq[b["seq"]]))
-            if base.get("state_mode") != CHECKPOINT or obs_hash(base) != b.get("hash"):
+            if (record_problems(base) or base.get("state_mode") != CHECKPOINT
+                    or obs_hash(base) != b.get("hash")):
                 return
         self.base, self.base_state = base, full_state(base)
         self.state = full_state(last, self.base_state)
@@ -370,7 +401,9 @@ def build_observation(chain, content, state, now, force_checkpoint=False):
         obs["contracts"] = dict(delta(chain.base_state["contracts"], state["contracts"]), fields=list(CONTRACT_FIELDS))
         obs["assets"] = dict(delta(chain.base_state["assets"], state["assets"]), fields=list(ASSET_FIELDS))
     obs["liquidity"] = _table(LIQUIDITY_FIELDS, state["liquidity"]) if due else None
+    obs["liquidity_content_hash"] = liquidity_hash(state["liquidity"])
     obs["content_hash"] = content_hash(content, state)
+    obs["record_hash"] = obs_hash(obs)
     return obs
 
 
@@ -400,6 +433,8 @@ def append(store, content, state, now=None, force_checkpoint=False, chain=None):
         return INVALID, None, None
     if safe_id(sid) in chain.scans:
         path = chain.scans[safe_id(sid)]
+        if record_problems(decode(store.read_bytes(path))):
+            return INTEGRITY_BROKEN, None, path
         return (REPLAY if same_scan(store, path, content, state) else CONFLICT), None, path
     obs = build_observation(chain, content, state, now, force_checkpoint)
     path = path_for(obs)
@@ -410,8 +445,10 @@ def append(store, content, state, now=None, force_checkpoint=False, chain=None):
 # --------------------------------------------------------------------------- verification
 def verify(store):
     """Walk the whole chain: seq contiguous from 1, every prev_hash links to the observation before it, every delta
-    names the newest checkpoint before it as its base (by seq and hash), every content hash matches the rebuilt
-    state, every scan id is unique, stored_bytes_before adds up. Returns a report (ok, problems, counts, observed
+    names the newest checkpoint before it as its base (by seq and hash), every record validates itself (including
+    the head and provenance), every stored liquidity table matches its digest, every content hash matches the
+    rebuilt state and full liquidity digest, every scan id is unique, stored_bytes_before adds up. Returns a report
+    (ok, problems, counts, observed
     window, head hash)."""
     problems, prev, base, base_state = [], None, None, None
     seen, n, ckpt, liq, total, backfilled = set(), 0, 0, 0, 0, 0
@@ -427,6 +464,7 @@ def verify(store):
             continue
         if o.get("schema") != VERSION:
             problems.append(f"{p}: schema {o.get('schema')!r}")
+        problems.extend(f"{p}: {problem}" for problem in record_problems(o))
         if o.get("seq") != n or _seq_of(p) != n:
             problems.append(f"{p}: seq {o.get('seq')} at position {n}")
         if o.get("prev_hash") != (obs_hash(prev) if prev is not None else None):

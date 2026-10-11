@@ -153,7 +153,7 @@ class HistoryStore(Tmp):
         append(st, snapshot(T0, "gh-1-1", base_contracts()))
         o = H.decode(st.read_bytes(st.paths()[0]))
         for k in ("scan_id", "observed_at", "git_sha", "source", "versions", "venues", "coverage", "seq", "prev_hash",
-                  "content_hash", "appended_at", "stored_bytes_before"):
+                  "content_hash", "liquidity_content_hash", "record_hash", "appended_at", "stored_bytes_before"):
             self.assertIn(k, o)
         self.assertEqual(o["versions"]["identity"], "v8.identity/4")
         self.assertEqual(o["versions"]["identity_config_hash"],
@@ -265,6 +265,188 @@ class HistoryStore(Tmp):
         self.assertEqual(liq["NOVOL"], ["NOVOL", "MISSING", None])            # missing is never 0
         self.assertEqual(liq["ZERO"], ["ZERO", "KNOWN", 0])                    # an observed 0 is 0
         self.assertNotIn("EDGEONLY", [a for a, r in liq.items() if r[1] == "KNOWN"])
+
+
+class HistoryIntegrity(Tmp):
+    """Full observed scan identity and self-verifying records, including the unlinked head."""
+
+    def btc(self, ts=T0, sid="gh-1-1", vol=5_000_000):
+        return snapshot(ts, sid, [contract("hyperliquid:BTC", "BTC", vol=vol)])
+
+    def rewrite(self, st, obs):
+        with open(os.path.join(st.root, st.paths()[-1]), "wb") as fh:
+            fh.write(H.gz(H.canonical(obs)))
+
+    def assert_broken(self, st):
+        rep = H.verify(st)
+        self.assertFalse(rep["ok"], rep)
+        self.assertEqual(H.Chain(st).integrity, "BROKEN")
+        hist = P.History(st)
+        self.assertFalse(hist.ok)
+        self.assertEqual(hist.status, P.HISTORY_INTEGRITY_FAILED)
+        self.assertEqual(append(st, self.btc(T0 + 10 * HOUR, "gh-next-1"))[0], H.INTEGRITY_BROKEN)
+
+    def test_same_scan_liquidity_conflict(self):
+        st = self.store()
+        original, changed = self.btc(), self.btc(vol=100_000)
+        before, after = H.state_from_snapshot(original), H.state_from_snapshot(changed)
+        self.assertEqual(H.scan_content(original), H.scan_content(changed))
+        self.assertEqual(before["contracts"], after["contracts"])
+        self.assertEqual(before["assets"], after["assets"])
+        self.assertEqual(append(st, original)[0], H.PERSISTED)
+        stored = st.read_bytes(st.paths()[0])
+        self.assertEqual(append(st, changed)[0], H.CONFLICT)
+        self.assertEqual(len(st.paths()), 1)
+        self.assertEqual(st.read_bytes(st.paths()[0]), stored)
+        self.assertTrue(H.verify(st)["ok"])
+
+    def test_omitted_liquidity_still_conflicts_and_exact_retry_replays(self):
+        st = self.store()
+        append(st, self.btc())
+        s = self.btc(T0 + 1200, "gh-2-1")
+        _, obs, path = append(st, s)
+        self.assertIsNone(obs["liquidity"])
+        self.assertEqual(obs["liquidity_content_hash"], H.liquidity_hash(H.state_from_snapshot(s)["liquidity"]))
+        stored = st.read_bytes(path)
+        self.assertEqual(append(st, copy.deepcopy(s), now=T0 + HOUR)[0], H.REPLAY)
+        self.assertEqual(append(st, self.btc(T0 + 1200, "gh-2-1", 100_000))[0], H.CONFLICT)
+        self.assertEqual(len(st.paths()), 2)
+        self.assertEqual(st.read_bytes(path), stored)
+        self.assertTrue(H.verify(st)["ok"])
+
+    def test_exact_retry_and_different_provenance_replay(self):
+        st = self.store()
+        s = self.btc()
+        _, obs, path = append(st, s)
+        stored = st.read_bytes(path)
+        self.assertEqual(append(st, copy.deepcopy(s), now=T0 + HOUR)[0], H.REPLAY)
+        source = {"type": H.ARTIFACT, "backfill": True, "artifact": {"id": 42, "digest": "other-source"}}
+        self.assertEqual(H.append(st, H.scan_content(s, source), H.state_from_snapshot(s), now=T0 + 2 * HOUR)[0],
+                         H.REPLAY)
+        self.assertEqual(len(st.paths()), 1)
+        self.assertEqual(st.read_bytes(path), stored)
+        self.assertEqual(obs["record_hash"], H.obs_hash(obs))
+
+    def test_liquidity_digest_is_order_independent_and_covers_every_row(self):
+        s = snapshot(T0, "gh-1-1", base_contracts())
+        state = H.state_from_snapshot(s)
+        reordered = {k: dict(reversed(list(v.items()))) for k, v in state.items()}
+        self.assertEqual(H.content_hash(H.scan_content(s), state), H.content_hash(H.scan_content(s), reordered))
+        for key in state["liquidity"]:
+            changed = copy.deepcopy(state)
+            changed["liquidity"][key][1] = "MISSING"
+            self.assertNotEqual(H.content_hash(H.scan_content(s), state), H.content_hash(H.scan_content(s), changed))
+
+    def test_other_observed_authority_changes_conflict(self):
+        for field in ("scan_id", "observed_at", "git_sha", "versions", "venues", "coverage", "trade_dexes",
+                      "contracts", "assets"):
+            with self.subTest(field=field):
+                st = self.store(field)
+                s = self.btc()
+                append(st, s)
+                content, state = H.scan_content(s), H.state_from_snapshot(s)
+                old_hash = H.content_hash(content, state)
+                if field == "contracts":
+                    state[field]["hyperliquid:BTC"][3] = 0
+                elif field == "assets":
+                    state[field]["BTC"][2] = "UNVERIFIED"
+                elif field == "versions":
+                    content[field]["identity_config_hash"] = "changed"
+                elif field == "venues":
+                    content[field]["hyperliquid"] = H.VENUE_UNAVAILABLE
+                elif field == "coverage":
+                    content[field]["fallback_universe"] = True
+                elif field == "trade_dexes":
+                    content[field] = []
+                else:
+                    content[field] = content[field] + 1 if field == "observed_at" else "changed"
+                self.assertNotEqual(old_hash, H.content_hash(content, state))
+                if field != "scan_id":
+                    self.assertEqual(H.append(st, content, state, now=T0)[0], H.CONFLICT)
+                    self.assertEqual(len(st.paths()), 1)
+
+    def test_head_liquidity_tamper_fails_closed(self):
+        for mode in (H.CHECKPOINT, H.DELTA):
+            for index, value in ((0, "ETH"), (1, "MISSING"), (2, 100_000)):
+                with self.subTest(mode=mode, index=index):
+                    st = self.store(f"{mode}-{index}")
+                    append(st, self.btc())
+                    _, obs, _ = append(st, self.btc(T0 + 4 * HOUR, "gh-2-1"),
+                                       force_checkpoint=mode == H.CHECKPOINT)
+                    self.assertEqual(obs["state_mode"], mode)
+                    self.assertIsNotNone(obs["liquidity"])
+                    earlier = st.read_bytes(st.paths()[0])
+                    obs["liquidity"]["rows"][0][index] = value
+                    self.rewrite(st, obs)
+                    self.assert_broken(st)
+                    self.assertEqual(st.read_bytes(st.paths()[0]), earlier)
+
+    def test_liquidity_payload_checked_independently_of_record_hash(self):
+        st = self.store()
+        _, obs, _ = append(st, self.btc())
+        obs["liquidity"]["rows"][0][2] = 100_000
+        obs["record_hash"] = H.obs_hash(obs)
+        self.rewrite(st, obs)
+        self.assert_broken(st)
+        self.assertTrue(any("liquidity payload" in p for p in H.verify(st)["problems"]))
+
+    def test_backfilled_head_source_tamper(self):
+        for field in ("id", "digest", "file_sha256", "run_id"):
+            with self.subTest(field=field):
+                st = self.store(field)
+                append(st, self.btc())
+                s = self.btc(T0 + HOUR, "gh-2-1")
+                buf = io.BytesIO()
+                with zipfile.ZipFile(buf, "w") as zf:
+                    zf.writestr("audit.json.gz", H.gz(H.canonical(s)))
+                content, state = H.artifact_observations(buf.getvalue(),
+                                                       {"id": 42, "digest": "sha256:original", "run_id": 2})[0]
+                _, obs, _ = H.append(st, content, state, now=T0 + HOUR, force_checkpoint=True)
+                self.assertTrue(H.verify(st)["ok"])
+                semantic = obs["content_hash"]
+                earlier = st.read_bytes(st.paths()[0])
+                obs["source"]["artifact"][field] = "tampered"
+                self.assertEqual(H.content_hash(obs, H.full_state(obs)), semantic)
+                self.rewrite(st, obs)
+                self.assert_broken(st)
+                self.assertEqual(st.read_bytes(st.paths()[0]), earlier)
+
+    def test_every_persisted_head_field_has_record_integrity(self):
+        changes = {"content_hash": "0" * 64, "liquidity_content_hash": "0" * 64,
+                   "source": {"type": H.ARTIFACT, "backfill": True}, "seq": 3, "prev_hash": "0" * 64,
+                   "state_mode": H.CHECKPOINT, "stored_bytes_before": 0,
+                   "base": {"seq": 1, "hash": "0" * 64},
+                   "last_liquidity": {"seq": 1, "observed_at": T0 + 1},
+                   "appended_at": T0 + HOUR + 1, "record_hash": "0" * 64}
+        for field, value in changes.items():
+            with self.subTest(field=field):
+                st = self.store(field)
+                append(st, self.btc())
+                _, obs, _ = append(st, self.btc(T0 + HOUR, "gh-2-1"))
+                self.assertIsNone(obs["liquidity"])
+                obs[field] = value
+                self.rewrite(st, obs)
+                # Self-integrity itself must reject these fields before any chain/state interpretation.
+                self.assertTrue(H.record_problems(obs))
+                self.assertEqual(H.Chain(st).integrity, "BROKEN")
+                self.assertFalse(H.verify(st)["ok"])
+
+    def test_chain_and_base_use_one_record_hash_authority(self):
+        st = self.store()
+        _, first, _ = append(st, self.btc())
+        _, second, _ = append(st, self.btc(T0 + HOUR, "gh-2-1"))
+        self.assertEqual(second["prev_hash"], first["record_hash"])
+        self.assertEqual(second["base"]["hash"], first["record_hash"])
+        self.assertEqual(H.verify(st)["head_hash"], second["record_hash"])
+        self.assertTrue(H.verify(st)["ok"])
+
+    def test_defective_dryrun_format_is_rejected(self):
+        st = self.store()
+        _, obs, _ = append(st, self.btc())
+        del obs["record_hash"]
+        del obs["liquidity_content_hash"]
+        self.rewrite(st, obs)
+        self.assert_broken(st)
 
 
 # --------------------------------------------------------------------------- the git branch writer

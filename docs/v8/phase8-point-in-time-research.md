@@ -42,8 +42,9 @@ What one observation holds - only what research needs, nothing that is not obser
 | header | `scan_id`, `observed_at` (the scan's time), `git_sha` (the exact commit that ran), `versions` (audit schema and version, identity version and config hash, discovery and liquidity versions, engine config hashes), `venues` (each venue's market-list state: `OK`, `VENUE_UNAVAILABLE`, `NO_MARKETS`, `ZERO_ACTIVE_MARKETS`), `coverage` (venues expected / ok / failed, fallback universe), `trade_dexes`, `source` (`SCAN`, or `ARCHIVED_SCAN_ARTIFACT` with the artifact's id, name, run, creation time, digest and the sha256 of the zip and of the snapshot file) |
 | `contracts` | every perpetual: `[id, venue, asset, active, state, exposure, exp_state]` (the venue's listing flag, the registry state - SELECTED, NOT_TRADING, DELISTED, ... - and the price-coherent exposure) |
 | `assets` | `[asset, universe, identity, decision, reason, authority]` as decided at that scan |
-| `liquidity` | about every 4 hours (`LIQUIDITY_EVERY_S`) and in every backfilled observation: `[asset, state, trade_vol]` - the largest 24h volume of the asset's selected markets on the trade DEXs (`KNOWN`, an observed 0 included), `MISSING` (none reported) or `NOT_ON_TRADE_DEX` (v8.liquidity semantics); `null` in the other observations (not observed then, never zero) |
-| chain | `seq`, `prev_hash` (sha256 of the previous observation's canonical bytes), `content_hash` (what the scan saw: header without provenance, full contract and asset state), `appended_at`, `stored_bytes_before`, `state_mode`, `base`, `last_liquidity` |
+| `liquidity` | about every 4 hours (`LIQUIDITY_EVERY_S`) and in every backfilled observation: `[asset, state, trade_vol]` - the largest 24h volume of the asset's selected markets on the trade DEXs (`KNOWN`, an observed 0 included), `MISSING` (none reported) or `NOT_ON_TRADE_DEX` (v8.liquidity semantics); `null` in the other observations (payload intentionally omitted; never zero) |
+| `liquidity_content_hash` | on **every** observation: sha256 of the deterministic full liquidity table from `state_from_snapshot()`, including every asset, liquidity state and trade volume, even when the table is omitted for storage |
+| chain | `seq`, `prev_hash` (the previous observation's governed `record_hash`), `content_hash` (header without provenance, full contract and asset state, full liquidity digest), `record_hash` (every persisted field except itself), `appended_at`, `stored_bytes_before`, `state_mode`, `base` (checkpoint seq and record hash), `last_liquidity` |
 
 **Checkpoints and deltas.** An observation is a `CHECKPOINT` (the full state) or a `DELTA` (the rows that differ from
 its base: the newest checkpoint before it, named by seq and hash; `removed` lists rows that disappeared). A checkpoint
@@ -55,14 +56,28 @@ fetch is depth-1 and blob-less, so a scan's cost does not grow with the history.
 absent from the next checkpoint) while its venue's state says whether the list loaded; nothing is pruned, ever (unlike
 `first_seen.json`, which forgets a market 400 days after it was last seen).
 
-**Serialization** is deterministic (sorted keys, no whitespace, ASCII, gzip with mtime 0). **Integrity:** rewriting,
-removing or reordering any observation breaks `prev_hash`, `seq`, the base hash or the content hash;
-`python -m v8.history verify --dir <export>` walks the whole chain. This makes a retroactive edit *detectable*; a
-repository rule protecting `v8-history` (deletion and non-fast-forward, like `main`) would make it *impossible* -
-recommended, and a repository setting only the owner can add.
+**Serialization** is deterministic (sorted keys, no whitespace, ASCII, gzip with mtime 0). **Integrity:**
+`python -m v8.history verify --dir <export>` walks the whole chain and recomputes **every** record hash, including
+the final/head observation. It covers provenance, semantic hashes, payloads, sequence, previous hash, checkpoint
+and delta metadata, byte accounting, base and last-liquidity references. Every stored liquidity table is also
+hashed and checked against `liquidity_content_hash`; `content_hash` is checked against the reconstructed full
+contract/asset state and that digest. One governed record hash supplies the self-check, chain link, checkpoint
+reference and reported history head. The bounded append check validates the records it reads, including the head.
+A changed head liquidity value or artifact provenance fails verification even without a later observation; PIT
+history fails closed. Rewriting, removing or reordering observations breaks record, sequence or link checks.
+
+Before Phase 8 merge/production qualification, **a dedicated branch ruleset for `v8-history` is required**: block
+deletion and non-fast-forward/force pushes, with no bypass actors unless explicitly approved. Do not copy main's
+CI status requirements onto the data branch without independent justification. Repository settings are not
+changed by this correction. Hashes detect edits relative to the recorded chain; they are not signatures, and an
+actor able to rewrite and rehash the whole branch is why branch protection is also required.
 
 **Duplicates and retries.** A scan id already recorded with identical content is `IDEMPOTENT_REPLAY` (nothing
-written); with different content `CONFLICTING_SCAN_ID` (nothing written, degraded). A retried workflow run is a new
+written); with different header, venue, contract, identity or liquidity authority `CONFLICTING_SCAN_ID` (nothing
+written, degraded). Full liquidity participates even when its payload is omitted: $5M -> $100k for the same scan
+id is a conflict. Source provenance is outside semantic equality, so a genuinely identical live scan arriving
+again from its archived artifact is a replay; provenance remains inside persisted-record integrity.
+A retried workflow run is a new
 scan id (`gh-<run>-<attempt>`) observed at a new time: a new observation. The Scan workflow's `pages` concurrency
 group means one writer at a time; a race is still handled (rejected push, refetch, retry).
 
@@ -79,6 +94,14 @@ scan's pages are published exactly as before. Research treats the missing time a
 from the environment and is never written.
 
 ### Storage gate (measured)
+
+The table below is the pre-integrity-correction baseline. The corrected format adds two fixed-size SHA-256
+digests per observation, retains the 4-hour liquidity-payload cadence, and reruns the measurement in exact-head
+Research (`research_history_projection.json`). No full liquidity table is added on intervening scans.
+
+The format is corrected in `v8.history/1` before merge: no production `v8-history` branch existed when the defect
+was found. Disposable Research history is regenerated from contemporaneous archived artifacts, not migrated or
+accepted by the corrected verifier without the new integrity fields.
 
 `python -m v8.history project <snapshot> --days N --scans-per-day K` writes N days of observations at production scale
 (2,421 perpetuals and 1,040 assets from a production snapshot; 0.2% of contract and asset rows changing per scan,
