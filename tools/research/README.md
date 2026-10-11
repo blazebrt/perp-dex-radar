@@ -18,6 +18,15 @@ Rules used everywhere: signals on closed bars only, entry at the next open, stop
 same bar, trailing stops moved at the close and applied from the next bar, gaps exit at the open, taker fee 0.045%
 each way, slippage by liquidity, MEXC funding while held (longs pay positive funding).
 
+**Point-in-time correction (v8 Phase 8).** The results above use today's coin list and today's trade-DEX volume for
+every past trade (survivorship), and assume 0.01% funding every 8 hours where none was recorded; they are labelled
+`LEGACY_SURVIVORSHIP_UNQUALIFIED`. `python pit_research.py --md md --history hist --cutoff <unix> --out
+research_pit.json` runs the same strategies and trade rules on the point-in-time universe of the `v8-history` branch
+(`git fetch origin v8-history && mkdir hist && git archive origin/v8-history | tar -x -C hist`), with slippage from the
+liquidity recorded at each trade's entry and exit (`pit_cost.py`), observed funding only, and every trade's
+qualification (`pit_sim.py`). Only fully qualified trades are authoritative; zero is a valid answer. It writes its own
+file and changes nothing here. See `docs/v8/phase8-point-in-time-research.md`.
+
 ## Coin picks (version 7)
 
 The code behind `picks_research.json` and the swing scores in `picks.py`:
