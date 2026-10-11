@@ -313,7 +313,10 @@ class Discovery(unittest.TestCase):
         w.coin("FUND", "CRYPTO", [("hyperliquid", {"fund": 0.0012, "vol": 5e6}), ("aster", {"fund": 0.0011})])
         w.coin("FDIS", "CRYPTO", [("hyperliquid", {"fund": 0.0004, "vol": 5e6}), ("aster", {"fund": -0.0002})])
         w.coin("PDIS", "CRYPTO", [("hyperliquid", {"price": 1.0, "vol": 5e6}), ("aster", {"price": 1.025})])
-        w.coin("OIHI", "CRYPTO", [("hyperliquid", {"vol": 2e6, "oi": 5e6})])
+        w.coin("OIHI", "CRYPTO", [("hyperliquid", {"vol": 2e6, "oi": 5e7})])
+        # matched venues only: OI 30x Hyperliquid's volume; Aster reports no OI and stays out of the ratio
+        w.coin("OIMIX", "CRYPTO", [("hyperliquid", {"vol": 1e6, "oi": 3e7}), ("aster", {"vol": 1e8})])
+        w.coin("OIMAJ", "CRYPTO", [("hyperliquid", {"vol": 5e8, "oi": 8e9})])            # 16x: a liquid major
         w.coin("MOVE", "CRYPTO", [("hyperliquid", {"vol": 5e6})], h1={"r24": -0.2})
         w.coin("CALM", "CRYPTO", [("hyperliquid", {"price": 1.0, "vol": 5e6, "oi": 1e6, "fund": 0.0009}),
                                   ("aster", {"price": 1.019, "fund": 0.0006})], h1={"r24": 0.149})
@@ -323,6 +326,10 @@ class Discovery(unittest.TestCase):
         self.assertEqual(r["FDIS"]["funding"]["spread_8h"], 0.0006)
         self.assertIn("PRICE_DISPERSION", r["PDIS"]["anomaly_flags"])
         self.assertIn("OI_HIGH_RELATIVE_TO_VOLUME", r["OIHI"]["anomaly_flags"])
+        self.assertEqual((r["OIMIX"]["open_interest"]["oi_to_volume"], r["OIMIX"]["open_interest"]["oi_to_volume_venues"],
+                          r["OIMIX"]["open_interest"]["basis"]), (30, 1, "PARTIAL_SUM"))
+        self.assertIn("OI_HIGH_RELATIVE_TO_VOLUME", r["OIMIX"]["anomaly_flags"])
+        self.assertNotIn("OI_HIGH_RELATIVE_TO_VOLUME", r["OIMAJ"]["anomaly_flags"])
         self.assertIn("STAGE1_EXTREME", r["MOVE"]["anomaly_flags"])
         self.assertEqual(r["CALM"]["anomaly_flags"], ["MULTI_VENUE"])           # every value just under its threshold
         self.assertEqual(r["OIHI"]["anomaly_flags"], ["SINGLE_VENUE", "OI_HIGH_RELATIVE_TO_VOLUME"])
