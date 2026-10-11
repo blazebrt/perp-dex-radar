@@ -58,6 +58,8 @@ def _active_code(p):
 
 
 def _crypto_code(r):
+    if r[2] is None:                 # no identity state recorded then (v8.audit/1 and /2): unknown, never 0
+        return -1
     return int(r[2] == PIT.VERIFIED_CRYPTO and r[1] == "CRYPTO")
 
 
