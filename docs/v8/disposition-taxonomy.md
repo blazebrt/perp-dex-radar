@@ -131,6 +131,7 @@ Noted on a record next to its final disposition (field `x`); never a final dispo
 | `QUANT_LEGACY_NO_IDENTITY_PROOF` | an open quant paper position on this coin carries no entry-time identity proof (opened before it existed): followed to its close, never counted in the quant live record (v8 Phase 3 closure) |
 | `RADAR_LEGACY_NO_IDENTITY_PROOF` | an open live radar paper trade on this coin carries no entry-time identity proof (opened before it existed): followed to its close, never counted as forward evidence - tournament, live edge against twins, lessons, tuning, live picks (v8 Phase 3 closure) |
 | `UNVERIFIED_EXPOSURE_KEPT_OUT` | the ticker also has a price-separated exposure without identity evidence; the verified crypto exposure was admitted and the unverified one kept out of the coin (it stays in the registry) (v8 Phase 3) |
+| `POSITION_LIFECYCLE_ONLY` | an open quant paper position is published and managed to its normal stop or time exit (HOLD / MANAGE EXISTING POSITION), but the coin does not pass a new-entry gate this scan (execution liquidity, or 4h candles): new_entry_executable is false and the observed execution_reason names the gate; no new entry is allowed (v8 Phase 7) |
 
 ## Identity states (v8 Phase 3)
 
