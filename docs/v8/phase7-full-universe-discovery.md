@@ -67,7 +67,7 @@ the discovery of the healthy venues; a degraded venue is always named next to it
 | `best_volume`, `trade_volume`, `total_volume` | 24h volumes as the coin record holds them; `null` when nothing was reported (never 0) |
 | `liquidity_state`, `liquidity_value` | `v8.liquidity`: `KNOWN` / `MISSING` / `NOT_ON_TRADE_DEX` and the value |
 | `execution_liquidity` | `{state, observed_value, threshold, passes}` - its own field; it never controls visibility |
-| `open_interest` | sum over the coin record's markets, venues reporting, basis `OBSERVED_SUM` / `PARTIAL_SUM` / `MISSING` |
+| `open_interest` | sum over the coin record's markets, venues reporting, basis `OBSERVED_SUM` / `PARTIAL_SUM` / `MISSING`; `oi_to_volume`: open interest over 24h volume on the same venues only (those reporting both), with their count |
 | `funding` | median, min, max, spread of the venues' 8h-equivalent funding as each venue reports it; venues reporting |
 | `first_seen`, `listing_age` | earliest first-seen of its active contracts; age `KNOWN` only when first seen after tracking started (`FIRST_SEEN_AFTER_TRACKING_START`), else `UNKNOWN` (`BEFORE_TRACKING_START`, `NO_HISTORY`) |
 | `wrapper_evidence`, `economic_evidence`, `exposure_check_state` | the identity's two evidence paths (Phase 5) and whether its exposure checks ran cleanly (`OK`, `DEGRADED`, `NOT_APPLICABLE`) |
@@ -107,7 +107,7 @@ and not an extra), `NO_COIN_RECORD`; deep-researched ones are `DEEP_COMPLETED` o
 | `FUNDING_DISAGREEMENT` | venues' funding >= 0.05% per 8h apart | 1 |
 | `PRICE_DISPERSION` | admitted markets >= 2% apart per coin | 2 |
 | `SINGLE_VENUE` / `MULTI_VENUE` | one / two or more venues in the coin record | 0 / 1 |
-| `OI_HIGH_RELATIVE_TO_VOLUME` | open interest >= 2x 24h volume | 1 |
+| `OI_HIGH_RELATIVE_TO_VOLUME` | open interest >= 20x 24h volume on the same venues | 1 |
 | `THIN_LIQUIDITY` | execution liquidity known and below $1M | 0 |
 | `LIQUIDITY_MISSING` | listed on your trade DEXs, no volume reported | 0 |
 | `IDENTITY_UNVERIFIED` | `UNVERIFIED` or `AMBIGUOUS` | 1 |
@@ -118,7 +118,11 @@ and not an extra), `NO_COIN_RECORD`; deep-researched ones are `DEEP_COMPLETED` o
 The points add up to `research_priority.points`. They order research attention (the shadow queue, the lanes' lists)
 and nothing else: they are not a forecast, not a quality score and carry no trade authority (`authority: NONE`).
 Funding is compared as the venues report it, 8h-equivalent; venues settle on different intervals, so a disagreement is
-an observation to check, not a finding.
+an observation to check, not a finding. Open interest against volume is venue-dependent (in the census scan the
+same-venue ratio has a median of about 3x, and 1-16x for the liquid majors), so the flag marks outliers only (20x); the
+first Research run of this branch used 2x on mismatched venues and flagged 317 of 853 assets, which is why the ratio
+now uses the same venues for both sides and the threshold was raised. A ratio relative to each asset's own history
+needs the point-in-time universe (Phase 8).
 
 Lanes: `NON_CRYPTO` (verified tradfi), `IDENTITY_RESEARCH` (unverified or ambiguous), and for verified crypto
 `EMERGING` (new, or below execution liquidity: thin, missing, not on a trade DEX), `STRUCTURAL_ANOMALY` (passes
