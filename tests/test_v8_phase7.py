@@ -7,7 +7,11 @@ Pinned here:
 * the denominator: every active perpetual of every venue whose market list loaded is in exactly one discovery record
   (tradfi, ambiguous, unverified and verified crypto alike); a failed venue is VENUE_UNAVAILABLE / DATA_DEGRADED /
   VENUE_MARKET_LIST_UNAVAILABLE and its markets are counted outside the denominator; NO_MARKETS and
-  ZERO_ACTIVE_MARKETS are told apart; the fallback universe says fallback_universe=true, full_discovery_qualified=false;
+  ZERO_ACTIVE_MARKETS are told apart; available_venue_discovery_qualified says every active perp of every loaded venue
+  is accounted for, full_discovery_qualified additionally needs every expected venue loaded (a DEGRADED scan is never
+  full), and the fallback universe is neither;
+* shared execution gates (identity, execution liquidity) are not model eligibility and not a trade: each engine's
+  eligibility is its own ledger record, and no record carries a global "executable" boolean;
 * visibility is never gated: identity, execution liquidity, 1h history and the stage-2 budget only decide the stage,
   the lane and the reason an asset was not deep-researched; execution liquidity is its own field and a missing value
   stays null;
@@ -186,7 +190,9 @@ class Discovery(unittest.TestCase):
         self.assertEqual(doc["registry_only"], [{"asset": "DEAD", "reason": "NO_ACTIVE_PERP_CONTRACT", "contracts": 1,
                                                  "venues": ["paradex"]}])
         self.assertEqual(doc["provenance"]["schema"], "v8.discovery/1")
-        self.assertTrue(doc["provenance"]["full_discovery_qualified"])
+        p = doc["provenance"]
+        self.assertEqual((p["coverage_state"], p["venues_failed"], p["available_venue_discovery_qualified"],
+                          p["full_discovery_qualified"]), ("FULL", 0, True, True))
         self.assertEqual(s["unaccounted"], 0)
 
     def test_02_failed_venue_is_degraded_and_outside_the_denominator(self):
@@ -208,6 +214,10 @@ class Discovery(unittest.TestCase):
         self.assertEqual((p["venues_failed"], p["venues_failed_names"], p["coverage_state"]), (1, ["edgex"], "DEGRADED"))
         self.assertEqual(doc["accounting"]["active_perps_on_unavailable_venues"], {"edgex": 1})
         self.assertEqual(doc["accounting"]["unaccounted"], 0)
+        a = doc["accounting"]
+        self.assertEqual((a["active_perps_in_denominator"], a["active_perps_in_discovery"]), (13, 13))
+        # every market of every loaded venue is accounted for; discovery is still not full with edgeX missing
+        self.assertEqual((p["available_venue_discovery_qualified"], p["full_discovery_qualified"]), (True, False))
 
     def test_03_unavailable_no_markets_and_zero_active_are_distinct(self):
         w = World()
@@ -235,12 +245,31 @@ class Discovery(unittest.TestCase):
         w.radar.append({"a": "SOL", "d": T.REJECTED, "c": "RADAR_STAGE2_NOT_SELECTED", "st": "stage2"})
         doc, s = w.build()
         p = doc["provenance"]
-        self.assertEqual((p["fallback_universe"], p["full_discovery_qualified"], p["coverage_state"]),
-                         (True, False, "FALLBACK"))
+        self.assertEqual((p["fallback_universe"], p["available_venue_discovery_qualified"],
+                          p["full_discovery_qualified"], p["coverage_state"]), (True, False, False, "FALLBACK"))
         r = recs(doc)["SOL"]
         self.assertEqual((r["price"], r["best_volume"], r["data_quality"]), (None, None, DS.DATA_DEGRADED))
         self.assertEqual(r["execution_liquidity"]["legacy_gate"], "BYPASSED_FALLBACK_UNIVERSE")
-        self.assertEqual(s["coverage"]["full_discovery_qualified"], False)
+        self.assertEqual((s["coverage"]["available_venue_discovery_qualified"],
+                          s["coverage"]["full_discovery_qualified"]), (False, False))
+
+    def test_04b_accounting_problem_disqualifies_both(self):
+        w = mixed()
+        w.coins["BUDGET"]["deep"] = {"selected": True, "via": "TOP_N", "completed": True}     # part vs ledger
+        p = w.build()[0]["provenance"]
+        self.assertEqual((p["coverage_state"], p["available_venue_discovery_qualified"], p["full_discovery_qualified"]),
+                         ("FULL", False, False))
+        w = mixed()
+        w.radar = [r for r in w.radar if r["a"] != "MYST"]          # an asset without its final ledger record
+        doc = w.build()[0]
+        self.assertEqual(doc["accounting"]["unaccounted_by_scope"]["final_disposition_missing"], 1)
+        self.assertEqual((doc["provenance"]["available_venue_discovery_qualified"],
+                          doc["provenance"]["full_discovery_qualified"]), (False, False))
+        w = mixed().down("edgex")
+        w.coins["BUDGET"]["deep"] = {"selected": True, "via": "TOP_N", "completed": True}
+        p = w.build()[0]["provenance"]
+        self.assertEqual((p["coverage_state"], p["available_venue_discovery_qualified"], p["full_discovery_qualified"]),
+                         ("DEGRADED", False, False))
 
     def test_05_identity_never_gates_visibility(self):
         r = recs(mixed().build()[0])
@@ -249,8 +278,14 @@ class Discovery(unittest.TestCase):
             self.assertEqual(r[t]["discovery_stage"], DS.LIGHT_ONLY)
             self.assertEqual(r[t]["deep_research_state"]["reason"], DS.IDENTITY_NOT_CRYPTO)
             self.assertIsNotNone(r[t]["price"])
-            self.assertFalse(r[t]["execution_state"]["new_entry_executable"])
-            self.assertIn(DS.IDENTITY_NOT_CRYPTO, r[t]["execution_state"]["reasons"])
+            self.assertTrue(r[t]["discovery_visible"])
+            g = r[t]["shared_execution_gates"]
+            self.assertEqual((g["identity_ok"], g["passes"]), (False, False))
+            self.assertIn(DS.IDENTITY_NOT_CRYPTO, g["reasons"])
+        self.assertEqual(r["AAPL"]["model_eligibility"]["radar"],
+                         {"disposition": T.MODEL_INELIGIBLE, "code": "TRADFI_CLASSIFIED", "stage": "universe"})
+        self.assertEqual(r["MYST"]["model_eligibility"]["radar"],
+                         {"disposition": T.INSUFFICIENT_DATA, "code": "IDENTITY_UNVERIFIED", "stage": "universe"})
         a = r["AAPL"]
         self.assertEqual((a["open_interest"]["value"], a["open_interest"]["basis"]), (1000000, "PARTIAL_SUM"))
         self.assertEqual(a["funding"]["venues_reporting"], 1)
@@ -270,17 +305,30 @@ class Discovery(unittest.TestCase):
         self.assertIn("LIQUIDITY_MISSING", n["anomaly_flags"])
         self.assertEqual(n["deep_research_state"]["reason"], DS.EXECUTION_LIQUIDITY_UNKNOWN)
         self.assertEqual(r["OFFDEX"]["deep_research_state"]["reason"], DS.NOT_ON_TRADE_DEX)
-        for t in ("ILLQ", "NOVOL", "OFFDEX"):
+        for t, why in (("ILLQ", DS.EXECUTION_LIQUIDITY_BELOW_MIN), ("NOVOL", DS.EXECUTION_LIQUIDITY_UNKNOWN),
+                       ("OFFDEX", DS.NOT_ON_TRADE_DEX)):
             self.assertEqual(r[t]["discovery_stage"], DS.CHARTED_1H)
             self.assertEqual(r[t]["priority_lane"], DS.EMERGING)
-            self.assertEqual(r[t]["execution_state"]["state"], "GATES_BLOCKED")
+            self.assertTrue(r[t]["discovery_visible"])
+            self.assertEqual(r[t]["shared_execution_gates"],
+                             {"identity_ok": True, "liquidity_ok": False, "passes": False, "reasons": [why]})
 
     def test_07_history_never_gates_visibility(self):
         r = recs(mixed().build()[0])["NOHIST"]
         self.assertEqual((r["discovery_stage"], r["deep_research_state"]["reason"]),
                          (DS.LIGHT_ONLY, DS.INSUFFICIENT_1H_DATA))
-        self.assertEqual(r["execution_state"]["state"], "GATES_PASSED")       # history is not a shared gate
         self.assertEqual(r["best_volume"], 5000000)
+        # history is not a shared gate: the shared gates pass, the radar model does not (its own ledger says why),
+        # and nothing calls the asset executable
+        self.assertTrue(r["discovery_visible"])
+        self.assertEqual(r["shared_execution_gates"],
+                         {"identity_ok": True, "liquidity_ok": True, "passes": True, "reasons": []})
+        self.assertEqual(r["model_eligibility"]["radar"],
+                         {"disposition": T.INSUFFICIENT_DATA, "code": "INSUFFICIENT_1H_HISTORY", "stage": "stage1"})
+        self.assertEqual(r["decision_trace"][7][3], "SHARED_GATES_PASSED")
+        self.assertIn("radar INSUFFICIENT_DATA/INSUFFICIENT_1H_HISTORY", r["decision_trace"][7][4])
+        self.assertNotIn("new_entry_executable", json.dumps(r))
+        self.assertNotIn("execution_state", r)
 
     def test_08_stage2_budget_never_gates_visibility(self):
         r = recs(mixed().build()[0])
@@ -353,8 +401,9 @@ class Discovery(unittest.TestCase):
             for step, inp, rule, result, effect in tr:
                 self.assertIn(rule, DS.TRACE_RULES)
                 self.assertTrue(inp and result and effect, (t, step))
-        self.assertEqual(r["ILLQ"]["decision_trace"][7][3:], ["GATES_BLOCKED",
-                                                              "no new entry: EXECUTION_LIQUIDITY_BELOW_MIN"])
+        self.assertEqual(r["ILLQ"]["decision_trace"][7][3:], [
+            "SHARED_GATES_BLOCKED",
+            "blocked by EXECUTION_LIQUIDITY_BELOW_MIN; engines: radar NOT_EXECUTABLE/DEX_VOLUME_BELOW_LEGACY_MIN"])
         self.assertEqual(r["BTC"]["decision_trace"][8][3], T.REJECTED)
 
     def test_13_accounting_is_complete(self):
@@ -400,6 +449,30 @@ class Discovery(unittest.TestCase):
         self.assertEqual(r["SHORT"]["deep_research_state"]["reason"], DS.DEEP_HISTORY_INSUFFICIENT)
         self.assertEqual(r["PICK"]["final_disposition"], {"engine": "radar", "code": "RADAR_PICK",
                                                           "disposition": T.SURFACED, "stage": "publish"})
+
+    def test_16_model_eligibility_is_each_engines_ledger_record(self):
+        def world(flagged):
+            w = World()
+            kw = {"vol": 5e6, "fund": 0.004, "first": TS - DAY} if flagged else {"vol": 5e6}
+            w.coin("ZED", "CRYPTO", [("hyperliquid", kw), ("aster", {})], stage="signal")
+            w.engines = {"quant": [{"a": "ZED", "d": T.INSUFFICIENT_DATA, "c": "INSUFFICIENT_30D_HISTORY",
+                                    "st": "eligibility"}],
+                         "swing": [{"a": "ZED", "d": T.REJECTED, "c": "LISTED_BELOW_WATCH", "st": "publish",
+                                    "x": ["NOT_IN_PUBLISHED_LIST"]}],
+                         "smart": [{"a": "ZED", "d": T.REJECTED, "c": "SMART_NOT_HELD", "st": "snapshot"}]}
+            return recs(w.build()[0])["ZED"]
+        hot, cold = world(True), world(False)
+        self.assertGreater(hot["research_priority"]["points"], cold["research_priority"]["points"])
+        want = {"radar": {"disposition": T.REJECTED, "code": "NO_STRATEGY_SIGNAL", "stage": "signal"},
+                "quant": {"disposition": T.INSUFFICIENT_DATA, "code": "INSUFFICIENT_30D_HISTORY", "stage": "eligibility"},
+                "swing": {"disposition": T.REJECTED, "code": "LISTED_BELOW_WATCH", "stage": "publish",
+                          "steps": ["NOT_IN_PUBLISHED_LIST"]},
+                "smart": {"disposition": T.REJECTED, "code": "SMART_NOT_HELD", "stage": "snapshot"}}
+        self.assertEqual(hot["model_eligibility"], want)
+        self.assertEqual(cold["model_eligibility"], want)                # priority never changes it
+        self.assertEqual(hot["final_disposition"], cold["final_disposition"])
+        self.assertEqual(hot["shared_execution_gates"], cold["shared_execution_gates"])
+        self.assertNotIn("day", hot["model_eligibility"])                 # no ledger record: nothing is invented
 
     def test_scan_part_and_ledger_must_agree(self):
         w = mixed()
@@ -465,8 +538,21 @@ class ShadowQueue(unittest.TestCase):
         r = recs(doc)["ZNEW"]
         self.assertEqual((r["final_disposition"]["code"], r["discovery_stage"], r["deep_research_state"]["selected"]),
                          ("DEX_VOLUME_BELOW_LEGACY_MIN", DS.CHARTED_1H, False))
-        self.assertFalse(r["execution_state"]["new_entry_executable"])
+        self.assertFalse(r["shared_execution_gates"]["passes"])
+        self.assertEqual(r["model_eligibility"]["radar"]["code"], "DEX_VOLUME_BELOW_LEGACY_MIN")
         self.assertEqual(r["research_priority"]["authority"], "NONE")
+        # the same asset without any research flag: identical engine results
+        w = shadow_world()
+        w.coins.pop("ZNEW")
+        w.radar = [x for x in w.radar if x["a"] != "ZNEW"]
+        w.contracts = [c for c in w.contracts if c["asset"] != "ZNEW"]
+        w.assets.pop("ZNEW")
+        w.coin("ZNEW", "CRYPTO", [("hyperliquid", {"vol": 3e5}), ("aster", {"vol": 1e5})],
+               code="DEX_VOLUME_BELOW_LEGACY_MIN")
+        q = recs(w.build()[0])["ZNEW"]
+        self.assertLess(q["research_priority"]["points"], r["research_priority"]["points"])
+        for k in ("model_eligibility", "final_disposition", "shared_execution_gates", "discovery_stage"):
+            self.assertEqual(q[k], r[k], k)
 
     def test_emerging_census(self):
         doc, s = mixed().build()
@@ -570,11 +656,22 @@ class ScanGateInvariants(unittest.TestCase):
     def test_failed_venue_is_degraded_and_fallback_is_not_full(self):
         w = World()
         w.coin("BTC", "CRYPTO", [("hyperliquid", {})], stage="signal")
+        self.assertTrue(w.build()[0]["provenance"]["full_discovery_qualified"])        # every venue loaded
         w.down("edgex")
         doc, _ = w.build()
         self.assertEqual(doc["venues"]["edgex"]["health"], DS.DATA_DEGRADED)
+        p = doc["provenance"]
+        self.assertEqual((p["coverage_state"], p["available_venue_discovery_qualified"], p["full_discovery_qualified"]),
+                         ("DEGRADED", True, False))
         w.fallback = True
-        self.assertFalse(w.build()[0]["provenance"]["full_discovery_qualified"])
+        p = w.build()[0]["provenance"]
+        self.assertEqual((p["available_venue_discovery_qualified"], p["full_discovery_qualified"]), (False, False))
+
+    def test_shared_gates_are_not_model_eligibility(self):
+        r = recs(mixed().build()[0])["NOHIST"]
+        self.assertTrue(r["shared_execution_gates"]["passes"])
+        self.assertEqual(r["model_eligibility"]["radar"]["disposition"], T.INSUFFICIENT_DATA)
+        self.assertNotIn("new_entry_executable", json.dumps(r))
 
     def test_research_flags_have_no_authority(self):
         doc, _ = shadow_world().build()
@@ -628,7 +725,9 @@ class PipelineDiscovery(unittest.TestCase):
         self.assertEqual(a["unaccounted"], 0)
         self.assertEqual(a["problems"], [])
         self.assertEqual(a["canonical_assets"], len(self.snap["registry"]["assets"]))
-        self.assertTrue(self.doc["provenance"]["full_discovery_qualified"])
+        p = self.doc["provenance"]
+        self.assertEqual((p["coverage_state"], p["available_venue_discovery_qualified"], p["full_discovery_qualified"]),
+                         ("FULL", True, True))
         self.assertEqual(self.snap["data_health"]["audit_problems"], {})
 
     def test_stages_follow_the_radar_ledger(self):
@@ -657,6 +756,21 @@ class PipelineDiscovery(unittest.TestCase):
                          ("v8.identity/4", m["scan_id"], m["identity_config_hash"]))
         self.assertEqual(s["requests"]["discovery_extra"], 0)
         self.assertEqual(self.snap["schema"], "v8.audit/5")
+
+    def test_model_eligibility_is_the_engines_ledgers(self):
+        led = {e: {x["a"]: x for x in self.snap["dispositions"].get(e) or []} for e in DS.ENGINES}
+        for t, x in self.r.items():
+            self.assertNotIn("execution_state", x)
+            self.assertNotIn("new_entry_executable", json.dumps(x))
+            self.assertEqual(x["shared_execution_gates"]["passes"],
+                             x["shared_execution_gates"]["identity_ok"] and x["shared_execution_gates"]["liquidity_ok"])
+            for e in DS.ENGINES:
+                if t in led[e]:
+                    r = led[e][t]
+                    self.assertEqual(x["model_eligibility"][e]["disposition"], r["d"], (t, e))
+                    self.assertEqual(x["model_eligibility"][e]["code"], r["c"], (t, e))
+                else:
+                    self.assertNotIn(e, x["model_eligibility"])
 
     def test_records_are_compact(self):
         for x in self.doc["assets"]:
