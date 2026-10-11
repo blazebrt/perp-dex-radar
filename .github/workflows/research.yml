@@ -108,7 +108,7 @@ jobs:
         run: |
           OBS="out_new/data/v8/audit_latest.json"
           if curl -fsS "https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/data/v8/audit_latest.json" -o production_audit_latest.json 2> research_candidate_census.txt; then OBS="$OBS production_audit_latest.json"; fi
-          if git fetch -q origin research 2>> research_candidate_census.txt && git show FETCH_HEAD:new_audit_latest.json.gz > previous_research_audit.json.gz 2>> research_candidate_census.txt; then OBS="$OBS previous_research_audit.json.gz"; fi
+          if git fetch -q origin research 2>> research_candidate_census.txt && git show FETCH_HEAD:new_audit_latest.json.gz > previous_research_audit.json.gz 2>> research_candidate_census.txt; then OBS="$OBS previous_research_audit.json.gz"; else rm -f previous_research_audit.json.gz; fi
           python tools/v8/candidate_census.py $OBS --json research_candidate_census.json >> research_candidate_census.txt 2>&1 || true
           head -120 research_candidate_census.txt
 
