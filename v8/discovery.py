@@ -82,7 +82,7 @@ REGISTRY_ONLY = {
 
 # ---- research flags: observational, zero trade authority. points order the shadow queue and the lanes' lists only
 THRESHOLDS = {"new_listing_days": 7, "funding_extreme_8h": 0.001, "funding_disagreement_8h": 0.0005,
-              "price_dispersion": 0.02, "oi_to_volume": 2.0, "stage1_extreme_r24": 0.15}
+              "price_dispersion": 0.02, "oi_to_volume": 20.0, "stage1_extreme_r24": 0.15}
 FLAGS = {
     "NEW_LISTING": (3, "first seen after tracking started, within the last 7 days (from the first-seen history only: a "
                        "market older than the history is never called new)"),
@@ -93,7 +93,9 @@ FLAGS = {
     "PRICE_DISPERSION": (2, "the markets of its admitted exposure are at least 2% apart in price per coin"),
     "SINGLE_VENUE": (0, "one venue lists it"),
     "MULTI_VENUE": (1, "two or more venues list it"),
-    "OI_HIGH_RELATIVE_TO_VOLUME": (1, "open interest at least 2x its 24h volume across its venues"),
+    "OI_HIGH_RELATIVE_TO_VOLUME": (1, "open interest at least 20x its 24h volume, both summed over the same venues (the "
+                                      "venues that report both); OI/volume is 1-16x for liquid majors, so only an "
+                                      "outlier is flagged"),
     "THIN_LIQUIDITY": (0, "execution liquidity is known and below the $1M legacy minimum"),
     "LIQUIDITY_MISSING": (0, "listed on your trade DEXs, none reported a 24h volume"),
     "IDENTITY_UNVERIFIED": (1, "no verified identity (UNVERIFIED or AMBIGUOUS): discovery yes, crypto execution no"),
@@ -254,8 +256,8 @@ def _flags(rec, coin, liq, min_vol, charted_r24):
         fl.append("SINGLE_VENUE")
     elif len(rec["record_venues"]) >= 2:
         fl.append("MULTI_VENUE")
-    oi, vol = rec["open_interest"]["value"], rec["total_volume"]
-    if oi is not None and vol and oi / vol >= th["oi_to_volume"]:
+    r = rec["open_interest"]["oi_to_volume"]
+    if r is not None and r >= th["oi_to_volume"]:
         fl.append("OI_HIGH_RELATIVE_TO_VOLUME")
     if liq["state"] == LQ.KNOWN and liq["observed_value"] is not None and liq["observed_value"] < min_vol:
         fl.append("THIN_LIQUIDITY")
@@ -428,6 +430,9 @@ def build(reg, scan, dispositions, header, tracking, ts):
         disp = _r((max(npx) - min(npx)) / _median(npx), 5) if len(npx) >= 2 and _median(npx) else None
         vols = [c["vol"] for c in sel if c.get("vol") is not None]
         oi = [c["oi"] for c in sel if c.get("oi") is not None]
+        # open interest against volume on the same venues only (a venue without an OI figure is left out of both)
+        mo = [c for c in sel if c.get("oi") is not None and c.get("vol")]
+        oi_vol = _r(sum(c["oi"] for c in mo) / sum(c["vol"] for c in mo), 4) if mo else None
         fd = [c["fund8h"] for c in sel if c.get("fund8h") is not None]
         first = min((c["first_seen"] for c in cs if c.get("first_seen") is not None), default=None)
         if first is None:
@@ -473,7 +478,8 @@ def build(reg, scan, dispositions, header, tracking, ts):
                                     **({"legacy_gate": "BYPASSED_FALLBACK_UNIVERSE"} if fallback else {})},
             "open_interest": {"value": LQ.stored(sum(oi)) if oi else None, "venues_reporting": len(oi),
                               "venues": len(sel), "basis": ("MISSING" if not oi else "OBSERVED_SUM" if len(oi) == len(sel)
-                                                            else "PARTIAL_SUM")},
+                                                            else "PARTIAL_SUM"),
+                              "oi_to_volume": oi_vol, "oi_to_volume_venues": len(mo)},
             "funding": {"median_8h": _r(_median(fd), 6), "min_8h": _r(min(fd), 6) if fd else None,
                         "max_8h": _r(max(fd), 6) if fd else None,
                         "spread_8h": _r(max(fd) - min(fd), 6) if len(fd) >= 2 else None, "venues_reporting": len(fd),
