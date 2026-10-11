@@ -110,7 +110,9 @@ answers for a time `t` only from observations with `observed_at <= t` at most `M
   `UNKNOWN` (stale, before the history, a venue it was seen on unavailable, the fallback universe) - with its identity
   and liquidity then and `research_eligible` (True / False / None). An asset first observed after `t` is absent: a
   future listing never leaks back. `UNKNOWN` is never False or zero.
-* `identity_at`, `crypto_identity_at`: the identity recorded then, with its version and config hash.
+* `identity_at`, `crypto_identity_at`: the identity recorded then, with its version and config hash. The oldest
+  archived snapshots (`v8.audit/1` and `/2`, before Phase 3) carry no identity state: there the identity is unknown,
+  so research eligibility is unknown, never "not crypto".
 * `liquidity_at`: the latest liquidity observation at or before `t`, at most `LIQUIDITY_MAX_STALENESS_S` (12 hours)
   old, else `LIQUIDITY_HISTORY_UNKNOWN`.
 * `intervals(asset)`: `eligible_from` = first observed active (`listing_known` when an earlier observation that covered
