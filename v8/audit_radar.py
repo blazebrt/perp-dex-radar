@@ -231,9 +231,15 @@ def journal_part(J, coins):
 
 def audit(out_dir, scan_t, coins, dex_status, dex_ok, crypto, res1, s1, ranked, cands, extras, res2, A, sigs, best,
           pick_sigs, watch_sigs, gate, journal=None):
-    """Called once at the end of scanner.run(). Writes data/v8/parts/universe.json and radar.json. Never raises."""
+    """Called once at the end of scanner.run(). Writes data/v8/parts/universe.json, radar.json and (v8 Phase 7)
+    discovery.json. Never raises."""
     parts.safe_audit("universe", out_dir, universe_part, ts=scan_t, coins=coins, dex_status=dex_status,
                      dex_ok=dex_ok, scan_t=scan_t)
     parts.safe_audit("radar", out_dir, radar_part, ts=scan_t, scan_t=scan_t, coins=coins, dex_ok=dex_ok,
                      crypto=crypto, res1=res1, s1=s1, ranked=ranked, cands=cands, extras=extras, res2=res2, A=A,
                      sigs=sigs, best=best, pick_sigs=pick_sigs, watch_sigs=watch_sigs, gate=gate, journal=journal)
+    # v8 Phase 7: the coin records and stage membership full-universe discovery needs (read only, no request)
+    from . import discovery as DS
+    parts.safe_audit("discovery", out_dir, DS.scan_part, ts=scan_t, scan_t=scan_t, coins=coins, dex_status=dex_status,
+                     dex_ok=dex_ok, crypto=crypto, res1=res1, s1=s1, ranked=ranked, cands=cands, extras=extras,
+                     res2=res2, A=A)

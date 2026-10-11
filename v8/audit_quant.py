@@ -8,6 +8,7 @@ from __future__ import annotations
 from . import common as C
 from . import identity as ID
 from . import ledger as LG
+from . import liquidity as LQ
 from . import parts
 from . import taxonomy as T
 from .trace import TRACE
@@ -34,6 +35,23 @@ def _why_not_tsmom(q, f, k):
     if d and q._stop(c, f["atr"][k], p["stop_k"]) is None and f["atr"][k] is not None:
         return p["stop_k"] * f["atr"][k] / c
     return None
+
+
+HOLD = "HOLD / MANAGE EXISTING POSITION"
+LIFECYCLE_STEP = "POSITION_LIFECYCLE_ONLY"
+
+
+def _lifecycle(L, t, coin, opens, min_vol, trade_dexes, k):
+    """v8 Phase 7: an open quant position on a coin that no longer passes execution liquidity. quant.py follows every
+    open paper position to its stop or time exit and publishes it (quant.json open) whatever the coin's liquidity now;
+    only new entries need the liquidity gate. The ledger records what was published - SURFACED, as an existing position
+    to hold and manage - and that a new entry is not executable, with the liquidity reason. Nothing else changes."""
+    e = LQ.evaluate(coin, trade_dexes)
+    why = {LQ.KNOWN: "DEX_VOLUME_BELOW_LEGACY_MIN", LQ.MISSING: "DEX_VOLUME_MISSING"}.get(e["state"], "NOT_ON_TRADE_DEX")
+    return L.final(t, "QUANT_POSITION_OPEN", "lifecycle",
+                   o={"open": opens, "action": HOLD, "new_entry_executable": False, "execution_reason": why,
+                      "liquidity": {"state": e["state"], "trade_vol": e["value"], "basis": e["basis"]}},
+                   th={"min": min_vol}, k=k, x=[LIFECYCLE_STEP])
 
 
 def journal_part(J, actionable, blocked):
@@ -103,15 +121,32 @@ def quant_part(now, universe, coins, got, data, daily, lastd, new, open_trades, 
             L.final(t, code, "universe", o=o, k=k, h=C.excluded_health(code), x=x)
             continue
         if t not in chosen:
+            if t in open_by and t not in new_by:      # v8 Phase 7: an existing position, no new entry
+                _lifecycle(L, t, c, open_by[t], cfg["min_dex_vol"], sc.CFG["trade_dexes"], k)
+                continue
+            if t in new_by:       # a new signal on a coin outside the liquid universe: never executable
+                L.problem(f"{t}: a new quant signal on a coin below execution liquidity")
             C.liquidity_final(L, t, c, "universe", cfg["min_dex_vol"], sc.CFG["trade_dexes"], k=k)
             continue
         g = got.get(t)
         if not g:
             code, h, o = C.candle_miss(TRACE.candles.get((t, "4h")), "INSUFFICIENT_4H_HISTORY")
+            if t in open_by and t not in new_by:      # v8 Phase 7: the position is published; no new entry here
+                L.final(t, "QUANT_POSITION_OPEN", "lifecycle",
+                        o={"open": open_by[t], "action": HOLD, "new_entry_executable": False,
+                           "execution_reason": code, "candles_4h": o}, th={"min_bars_4h": 60}, h=h, k=k,
+                        x=[LIFECYCLE_STEP])
+                continue
             L.final(t, code, "candles_4h", o=o, th={"min_bars_4h": 60}, h=h, k=k)
             continue
         if t not in data:
             n = sum(1 for x in g["candles"] if x["t"] + q.B4 <= now)
+            if t in open_by and t not in new_by:      # v8 Phase 7: the position is published; no new entry here
+                L.final(t, "QUANT_POSITION_OPEN", "lifecycle",
+                        o={"open": open_by[t], "action": HOLD, "new_entry_executable": False,
+                           "execution_reason": "INSUFFICIENT_4H_HISTORY", "closed_bars_4h": n},
+                        th={"min_bars_4h": 60}, h=T.MISSING, src=g["src"], k=k, x=[LIFECYCLE_STEP])
+                continue
             L.final(t, "INSUFFICIENT_4H_HISTORY", "candles_4h", o={"closed_bars": n, "src": g["src"]},
                     th={"min_bars_4h": 60}, h=T.MISSING, src=g["src"], k=k)
             continue

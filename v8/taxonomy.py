@@ -174,6 +174,10 @@ STEPS = {
     "UNVERIFIED_EXPOSURE_KEPT_OUT":"the ticker also has a price-separated exposure without identity evidence; the "
                                     "verified crypto exposure was admitted and the unverified one kept out of the coin "
                                     "(it stays in the registry) (v8 Phase 3)",
+    "POSITION_LIFECYCLE_ONLY": "an open quant paper position is published and managed to its normal stop or time exit "
+                               "(HOLD / MANAGE EXISTING POSITION), but the coin does not pass a new-entry gate this "
+                               "scan (execution liquidity, or 4h candles): new_entry_executable is false and the "
+                               "observed execution_reason names the gate; no new entry is allowed (v8 Phase 7)",
 }
 
 # asset identity states (v8 Phase 3, v8.identity): every asset with an active perp has exactly one
