@@ -503,6 +503,25 @@ class PointInTime(Tmp):
         self.assertFalse(u["assets"]["SMALL"]["research_eligible"])
         self.assertTrue(u["assets"]["BTC"]["research_eligible"])
 
+    def test_identity_not_recorded_then_is_unknown_not_false(self):
+        """Archived snapshots of v8.audit/1 and /2 carry no identity state: eligibility then is unknown."""
+        st = self.store("old")
+        old = snapshot(T0, "gh-1-1", base_contracts())
+        for a in old["registry"]["assets"].values():
+            a["identity"] = {}
+        append(st, old)
+        append(st, snapshot(T0 + 4 * HOUR, "gh-2-1", base_contracts()))
+        h = P.History(st)
+        self.assertIsNone(h.identity_at(T0 + 60, "BTC")["identity"])
+        self.assertIsNone(h.crypto_identity_at(T0 + 60, "BTC"))
+        self.assertIsNone(h.universe_at(T0 + 60, min_vol=1e6)["assets"]["BTC"]["research_eligible"])
+        self.assertTrue(h.universe_at(T0 + 4 * HOUR + 60, min_vol=1e6)["assets"]["BTC"]["research_eligible"])
+        if HAVE_NUMPY:
+            import pit_sim as PS
+            u = PS.universe_panel(h, [T0 + 60, T0 + 4 * HOUR + 60], ["BTC"], 1e6)
+            self.assertEqual(list(u["crypto"][:, 0]), [-1, 1])
+            self.assertEqual(list(u["code"][:, 0]), [-1, 1])
+
     def test_fallback_universe_is_unknown(self):
         st = self.store("fb")
         append(st, snapshot(T0, "gh-1-1", base_contracts()))
