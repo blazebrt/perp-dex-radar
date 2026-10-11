@@ -10,7 +10,8 @@ observed_at <= t that are at most MAX_STALENESS_S old:
                        no longer lists it as active) or UNKNOWN (no observation fresh enough, a venue it was seen on
                        was unavailable, the fallback universe, a broken chain). UNKNOWN is never False or zero.
                        An asset first observed after t is absent: a future listing never leaks back.
-    identity_at(t, a)  the identity state, decision, version and config hash recorded then (never today's)
+    identity_at(t, a)  the identity state, decision, version and config hash recorded then (never today's); an
+                       observation older than the identity states (v8.audit/1 and /2) leaves it unknown
     liquidity_at(t, a) the execution liquidity recorded then (KNOWN / MISSING / NOT_ON_TRADE_DEX with the trade-DEX
                        volume), or LIQUIDITY_HISTORY_UNKNOWN when no liquidity observation is fresh enough
     intervals(a)       listing intervals: eligible_from = first observed active; last observed active and first
@@ -233,9 +234,10 @@ class History:
                 "identity_config_hash": ob.versions.get("identity_config_hash"), "observed_at": ob.observed_at}
 
     def crypto_identity_at(self, t, asset):
-        """True / False when the identity recorded at t is / is not verified crypto; None when unknown."""
+        """True / False when the identity recorded at t is / is not verified crypto; None when unknown (no fresh
+        observation, or an observation made before the audit recorded identity states - v8.audit/1 and /2)."""
         r = self.identity_at(t, asset)
-        if r is None or r.get("state") == UNKNOWN:
+        if r is None or r.get("state") == UNKNOWN or r.get("identity") is None:
             return None
         return r["identity"] == VERIFIED_CRYPTO and r["universe"] == "CRYPTO"
 
@@ -356,8 +358,8 @@ def eligible(asset_point, ident, liq, min_vol=None):
         return None
     if asset_point["state"] == KNOWN_INACTIVE:
         return False
-    if ident is None or ident.get("state") == UNKNOWN:
-        return None
+    if ident is None or ident.get("state") == UNKNOWN or ident.get("identity") is None:
+        return None              # identity not recorded then (before v8.audit/3): unknown, never "not crypto"
     if not (ident.get("identity") == VERIFIED_CRYPTO and ident.get("universe") == "CRYPTO"):
         return False
     if min_vol is None:
