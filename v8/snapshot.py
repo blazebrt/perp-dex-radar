@@ -10,6 +10,8 @@ previous scan's first-seen map, and writes
     data/v8/first_seen.json        contract id -> [first seen, last seen], carried from scan to scan via the site
     data/v8/identity_state.json    asset -> [identity state, since] (v8 Phase 3), carried the same way; state changes
                                    since the previous scan are listed in the snapshot (coverage.summary.identity)
+    data/v8/discovery.json         v8 Phase 7: one discovery record per asset with an active perpetual on a healthy
+                                   venue (v8.discovery/1); its summary is the snapshot's `discovery` section
 With --archive-dir the gzip copy is also appended to a bounded archive (an Actions artifact with a retention
 period in the Scan workflow); nothing is stored permanently and no external service is used.
 
@@ -28,6 +30,7 @@ import urllib.request
 
 from . import ENGINE_VERSION, SCHEMA
 from .liquidity import VERSION as LIQUIDITY_VERSION
+from . import discovery as DS
 from . import ledger as LG
 from . import parts as PT
 from . import provenance
@@ -315,13 +318,44 @@ def build(out_dir, pages_url=None, first_seen_path=None, identity_path=None):
         "legacy_output_hashes": {r["path"]: r["sha256"] for r in refs},
         "strategy_authority": provenance.strategy_authority(),
     }
+    # v8 Phase 7: full-universe discovery (observational; data/v8/discovery.json, summary in the snapshot)
+    disc_bytes, disc_sum = _discovery(out_dir, reg, dispositions, hdr, fs, fs_src, ts)
+    manifest["discovery_version"] = DS.VERSION
+    manifest["discovery_file"] = ({"path": DS.FILE.replace(os.sep, "/"), "sha256": hashlib.sha256(disc_bytes).hexdigest(),
+                                   "bytes": len(disc_bytes)} if disc_bytes is not None else None)
+    manifest["parts"]["discovery"] = disc_sum.get("part")
+    if disc_sum.get("status") != "OK":
+        problems["discovery"] = [disc_sum.get("error") or disc_sum.get("status")]
+    elif disc_sum.get("problems"):
+        problems["discovery"] = disc_sum["problems"]
     snap = {"schema": SCHEMA, "manifest": manifest, "coverage": {"summary": summary, "engines": coverage},
             "registry": {"counts": rc, "contracts": columns((reg or {}).get("contracts") or []),
                          "assets": (reg or {}).get("assets") or {}, "events": (reg or {}).get("events") or []},
             "data_health": data_health, "dispositions": dispositions,
             "reasons": {k: {"disposition": v[0], "text": v[1]} for k, v in T.REASONS.items()},
-            "steps": T.STEPS, "legacy_output_refs": refs}
-    return snap, fs, id_map
+            "steps": T.STEPS, "legacy_output_refs": refs, "discovery": disc_sum}
+    return snap, fs, id_map, disc_bytes
+
+
+def _discovery(out_dir, reg, dispositions, hdr, fs, fs_src, ts):
+    """(discovery.json bytes or None, snapshot discovery section). Never raises: a failure is a named gap."""
+    part = PT.read(out_dir, "discovery")
+    pstate = "ok" if (part or {}).get("ok") else "failed" if part else "missing"
+    if not reg:
+        return None, {"schema": DS.VERSION, "status": "NO_REGISTRY", "part": pstate}
+    try:
+        since = min((v[0] for v in fs.values() if isinstance(v, list) and v and v[0] is not None), default=None)
+        doc, s = DS.build(reg, part if pstate == "ok" else None, dispositions, hdr,
+                          {"since": since, "source": fs_src}, ts)
+        doc["provenance"]["scan_part"] = pstate
+        s["part"] = pstate
+        if pstate != "ok":
+            s["problems"] = (s.get("problems") or []) + [f"discovery scan part {pstate}: light records without "
+                                                          f"the coin records' liquidity and stage-1 metrics"]
+        return dumps(doc), s
+    except Exception as e:  # noqa: BLE001 - discovery must never stop the snapshot
+        return None, {"schema": DS.VERSION, "status": "FAILED", "part": pstate,
+                      "error": f"{type(e).__name__}: {e}"[:500]}
 
 
 def columns(contracts):
@@ -381,7 +415,7 @@ class ArchiveDir:
 
 
 def write(out_dir, pages_url=None, first_seen_path=None, archive_dir=None, keep_parts=False, identity_path=None):
-    snap, fs, id_map = build(out_dir, pages_url, first_seen_path, identity_path)
+    snap, fs, id_map, disc = build(out_dir, pages_url, first_seen_path, identity_path)
     raw = dumps({k: v for k, v in snap.items()})
     z = gz(raw)
     snap["storage"] = storage(len(raw), len(z), snap)
@@ -397,6 +431,13 @@ def write(out_dir, pages_url=None, first_seen_path=None, archive_dir=None, keep_
         fh.write(dumps(fs))
     with open(os.path.join(d, IDENTITY_FILE), "wb") as fh:
         fh.write(dumps(id_map))
+    if disc is not None:      # v8 Phase 7: written whole or not at all
+        tmp = os.path.join(out_dir, DS.FILE) + ".tmp"
+        with open(tmp, "wb") as fh:
+            fh.write(disc)
+        os.replace(tmp, os.path.join(out_dir, DS.FILE))
+    elif os.path.exists(os.path.join(out_dir, DS.FILE)):       # never leave another scan's discovery beside this one
+        os.remove(os.path.join(out_dir, DS.FILE))
     arch = ArchiveDir(archive_dir).append(snap["manifest"]["scan_id"] or "unknown", z) if archive_dir else None
     if not keep_parts:
         shutil.rmtree(os.path.join(out_dir, PT.PART_DIR), ignore_errors=True)
@@ -418,6 +459,12 @@ def main(argv=None):
     print(f"[v8] audit snapshot {snap['manifest']['scan_id']}: {s['raw_contracts']} contracts, "
           f"{s['canonical_assets']} assets, {snap['manifest']['dispositions']} dispositions, unaccounted "
           f"{s['unaccounted']}, {n} bytes ({z} gzip)" + (f", archived {os.path.basename(arch)}" if arch else ""),
+          flush=True)
+    d = snap.get("discovery") or {}
+    cov = d.get("coverage") or {}
+    print(f"[v8] discovery {d.get('status')}: {cov.get('discovery_assets')} assets "
+          f"({cov.get('active_perps_in_denominator')} active perps on {cov.get('venues_ok')} healthy venues, "
+          f"{cov.get('venues_failed')} unavailable), stages {d.get('stages')}, unaccounted {d.get('unaccounted')}",
           flush=True)
     return 0
 

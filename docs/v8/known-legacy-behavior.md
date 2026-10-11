@@ -3,7 +3,11 @@
 Phase 1 observed; it did not correct. Each item below is visible in the registry, the ledger or the data health
 section of the snapshot. Fixing one changes what the engines decide, so it needs its own phase, evidence and the
 owner's approval. **Phase 2 fixed items 1 and 2** (see [phase2-universe-identity.md](phase2-universe-identity.md));
-everything else is still open. Items 25-29 were found in Phase 2.
+everything else is still open. Items 25-29 were found in Phase 2. **Phase 7 made items 3, 5 and 18 visible without changing
+them**: every coin they keep from deep research or execution now has a discovery record with its liquidity, history
+stage and the reason it was not deep-researched (`data/v8/discovery.json`; see
+[phase7-full-universe-discovery.md](phase7-full-universe-discovery.md)); the gates themselves still decide exactly as
+before.
 
 | # | Behaviour | Effect | Where it shows in the audit |
 |---|---|---|---|

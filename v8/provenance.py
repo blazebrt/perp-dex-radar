@@ -104,6 +104,10 @@ def engine_config(engine):
     elif engine == "smart":
         import smart as s
         base.update(cfg=s.CFG, version=s.VERSION)
+    elif engine == "discovery":      # v8 Phase 7: observational; its thresholds order research attention only
+        from . import discovery as ds
+        base.update(version=ds.VERSION, thresholds=ds.THRESHOLDS, flags={k: v[0] for k, v in ds.FLAGS.items()},
+                    stage2_n=sc.CFG.get("stage2_n"), stage2_extra=sc.CFG.get("stage2_extra"))
     for f in RESEARCH_FILES.get(engine, []):
         base["research:" + f] = file_sha(os.path.join(ROOT, f))
     return base
@@ -126,6 +130,8 @@ def engine_version(engine):
             import picks as m
         elif engine == "smart":
             import smart as m
+        elif engine == "discovery":
+            from . import discovery as m
         else:
             return None
         return m.VERSION

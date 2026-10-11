@@ -78,13 +78,13 @@ jobs:
           python -c "import json; s = json.load(open('out_new/data/v8/audit_latest.json')); json.dump({'manifest': s['manifest'], 'summary': s['coverage']['summary'], 'engines': s['coverage']['engines'], 'registry_counts': s['registry']['counts'], 'data_health': {k: v for k, v in s['data_health'].items() if k != 'registry_venues'}, 'venues': s['data_health'].get('registry_venues'), 'storage': s['storage']}, open('research_v8_summary.json', 'w'), indent=1)" >> research_v8.txt 2>&1 || true
 
       - name: Phase base engines on the same live data (comparison only, nothing published)
-        # The phase base (the base commit of the expected-delta manifest: since Phase 6, production main f7aa7f6) runs
+        # The phase base (the base commit of the expected-delta manifest: since Phase 7, production main 61960d9) runs
         # the scanner, the quant desk and the coin picks on live data right after this branch, so the reports can list
         # every production output the change removes or adds. The two runs are minutes apart; the reports say which
         # differences the change explains.
         continue-on-error: true
         run: |
-          BASE_SHA=$(python -c "import json; print(json.load(open('tests/fixtures/v8/phase6_expected_deltas.json'))['base']['sha'])")
+          BASE_SHA=$(python -c "import json; print(json.load(open('tests/fixtures/v8/phase7_expected_deltas.json'))['base']['sha'])")
           echo "phase base $BASE_SHA" > research_base.txt
           git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA" >> research_base.txt 2>&1 || true
           cd "$RUNNER_TEMP/base"
@@ -108,7 +108,7 @@ jobs:
         run: |
           OBS="out_new/data/v8/audit_latest.json"
           if curl -fsS "https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/data/v8/audit_latest.json" -o production_audit_latest.json 2> research_candidate_census.txt; then OBS="$OBS production_audit_latest.json"; fi
-          if git fetch -q origin research 2>> research_candidate_census.txt && git show FETCH_HEAD:new_audit_latest.json.gz > previous_research_audit.json.gz 2>> research_candidate_census.txt; then OBS="$OBS previous_research_audit.json.gz"; fi
+          if git fetch -q origin research 2>> research_candidate_census.txt && git show FETCH_HEAD:new_audit_latest.json.gz > previous_research_audit.json.gz 2>> research_candidate_census.txt; then OBS="$OBS previous_research_audit.json.gz"; else rm -f previous_research_audit.json.gz; fi
           python tools/v8/candidate_census.py $OBS --json research_candidate_census.json >> research_candidate_census.txt 2>&1 || true
           head -120 research_candidate_census.txt
 
@@ -180,6 +180,23 @@ jobs:
           python tools/v8/closure_evidence_report.py radar --journal published_radar_journal.json --base-root "$RUNNER_TEMP/base" --authority out_new/data/v8/identity_authority.json --head-latest out_pubr/data/latest.json --base-latest out_pubr_base/data/latest.json --json research_radar_evidence.json >> research_radar_evidence.txt 2>&1 || true
           tail -80 research_radar_evidence.txt
 
+      - name: Full-universe discovery (v8 Phase 7; read-only) - discovery report, production coverage census, quant lifecycle check
+        # This run's data/v8/discovery.json (the exact head on live data: every active perp of every healthy venue,
+        # stages, deep-research reasons, lanes, flags, the emerging census, the shadow queue against the legacy stage 2,
+        # unaccounted 0), the coverage census of the latest production snapshot (the pre-Phase-7 baseline), and the
+        # quant audit of the published quant journal replayed by this branch: its consistency problems (Phase 7 removes
+        # "published quant signals/positions differ from the ledger's SURFACED") and the positions recorded for their
+        # lifecycle only. Nothing here makes a request or decides anything.
+        continue-on-error: true
+        run: |
+          OBS="out_new/data/v8/discovery.json"
+          if [ -f production_audit_latest.json ]; then OBS="$OBS production_audit_latest.json"; fi
+          QP=""
+          if [ -f out_pubq/data/v8/parts/quant.json ]; then QP="--quant-part out_pubq/data/v8/parts/quant.json"; fi
+          if [ -f out_pubq_base/data/v8/parts/quant.json ]; then QP="$QP --quant-part out_pubq_base/data/v8/parts/quant.json"; fi
+          python tools/v8/discovery_report.py $OBS $QP --json research_discovery.json > research_discovery.txt 2>&1 || true
+          head -150 research_discovery.txt
+
       - name: Save the results for review
         if: always()
         env:
@@ -200,7 +217,8 @@ jobs:
           if [ -f research_v8_summary.json ]; then cp research_v8_summary.json R/; fi
           if [ -f research_identity.json ]; then cp research_identity.json R/; fi
           if [ -f research_smart_journal.json ]; then cp research_smart_journal.json R/; fi
-          for f in research_quant_evidence.json research_radar_evidence.json research_candidate_census.json research_exposure_safety.json research_ticker_binding.json; do
+          if [ -f out_new/data/v8/discovery.json ]; then gzip -9 -n -c out_new/data/v8/discovery.json > R/new_discovery.json.gz; fi
+          for f in research_quant_evidence.json research_radar_evidence.json research_candidate_census.json research_exposure_safety.json research_ticker_binding.json research_discovery.json; do
             if [ -f "$f" ]; then cp "$f" R/; fi
           done
           if [ -f out_pubq/data/quant.json ]; then cp out_pubq/data/quant.json R/pub_quant.json; fi
