@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: write
+  actions: read     # v8 Phase 8: list and download this repository's v8-audit-* scan artifacts (read only)
 
 concurrency:
   group: research
@@ -78,13 +79,13 @@ jobs:
           python -c "import json; s = json.load(open('out_new/data/v8/audit_latest.json')); json.dump({'manifest': s['manifest'], 'summary': s['coverage']['summary'], 'engines': s['coverage']['engines'], 'registry_counts': s['registry']['counts'], 'data_health': {k: v for k, v in s['data_health'].items() if k != 'registry_venues'}, 'venues': s['data_health'].get('registry_venues'), 'storage': s['storage']}, open('research_v8_summary.json', 'w'), indent=1)" >> research_v8.txt 2>&1 || true
 
       - name: Phase base engines on the same live data (comparison only, nothing published)
-        # The phase base (the base commit of the expected-delta manifest: since Phase 7, production main 61960d9) runs
+        # The phase base (the base commit of the expected-delta manifest: since Phase 8, production main 1609e2c) runs
         # the scanner, the quant desk and the coin picks on live data right after this branch, so the reports can list
         # every production output the change removes or adds. The two runs are minutes apart; the reports say which
         # differences the change explains.
         continue-on-error: true
         run: |
-          BASE_SHA=$(python -c "import json; print(json.load(open('tests/fixtures/v8/phase7_expected_deltas.json'))['base']['sha'])")
+          BASE_SHA=$(python -c "import json; print(json.load(open('tests/fixtures/v8/phase8_expected_deltas.json'))['base']['sha'])")
           echo "phase base $BASE_SHA" > research_base.txt
           git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA" >> research_base.txt 2>&1 || true
           cd "$RUNNER_TEMP/base"
@@ -197,6 +198,42 @@ jobs:
           python tools/v8/discovery_report.py $OBS $QP --json research_discovery.json > research_discovery.txt 2>&1 || true
           head -150 research_discovery.txt
 
+      - name: Point-in-time history and corrected research (v8 Phase 8; read-only, nothing published, nothing promoted)
+        # 1. The production history (the v8-history branch, when it exists) is exported and verified, read only.
+        # 2. Dry run of the history writer on this runner only: a throwaway bare repository receives this run's own
+        #    observation and every unexpired v8-audit-* production scan artifact (backfill, each citing its artifact),
+        #    through the same GitStore code the Scan workflow uses; the result is verified and kept as an artifact of
+        #    this review (history_dryrun.tar.gz). Nothing is pushed to this repository.
+        # 3. The measured storage projection at production scale (this run's snapshot, 72 scans a day, 3 days).
+        # 4. tools/research/pit_research.py on the market-data branch and the history (the production one when it
+        #    verifies, else the dry run): legacy results labelled LEGACY_SURVIVORSHIP_UNQUALIFIED next to the
+        #    point-in-time corrected ones, the qualified window and every trade's qualification. A separate file
+        #    (research_pit.json); quant_research.json and picks_research.json are not touched.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python -m pip install --disable-pip-version-check --quiet numpy numba pandas > research_pit.txt 2>&1 || true
+          HIST=""
+          if git fetch -q origin "+refs/heads/v8-history:refs/remotes/origin/v8-history" 2>> research_pit.txt; then
+            mkdir -p hist_prod && git archive origin/v8-history | tar -x -C hist_prod
+            if python -m v8.history verify --dir hist_prod > research_history_verify.json 2>> research_pit.txt; then HIST=hist_prod; fi
+            echo "production history: $(git rev-parse origin/v8-history)" >> research_pit.txt
+          else
+            echo "production history: the v8-history branch does not exist yet" >> research_pit.txt
+          fi
+          git init -q --bare "$RUNNER_TEMP/hist_dryrun.git"
+          python -m v8.history dryrun --snapshot out_new/data/v8/audit_latest.json --bare "$RUNNER_TEMP/hist_dryrun.git" --branch v8-history-dryrun --backfill-repo "$GITHUB_REPOSITORY" --json research_history_dryrun.json >> research_pit.txt 2>&1 || true
+          mkdir -p hist_dryrun && git --git-dir="$RUNNER_TEMP/hist_dryrun.git" archive v8-history-dryrun | tar -x -C hist_dryrun || true
+          python -m v8.history verify --dir hist_dryrun > research_history_dryrun_verify.json 2>> research_pit.txt || true
+          tar -czf history_dryrun.tar.gz -C hist_dryrun . 2>> research_pit.txt || true
+          if [ -z "$HIST" ]; then HIST=hist_dryrun; fi
+          echo "history used by the research: $HIST" >> research_pit.txt
+          python -m v8.history project out_new/data/v8/audit_latest.json --days 3 --scans-per-day 72 > research_history_projection.json 2>> research_pit.txt || true
+          mkdir -p md && git archive origin/market-data | tar -x -C md 2>> research_pit.txt || echo "market-data branch unavailable" >> research_pit.txt
+          python tools/research/pit_research.py --md md --history "$HIST" --cutoff "$(date -u +%s)" --out research_pit.json >> research_pit.txt 2>&1 || true
+          tail -60 research_pit.txt
+
       - name: Save the results for review
         if: always()
         env:
@@ -218,7 +255,7 @@ jobs:
           if [ -f research_identity.json ]; then cp research_identity.json R/; fi
           if [ -f research_smart_journal.json ]; then cp research_smart_journal.json R/; fi
           if [ -f out_new/data/v8/discovery.json ]; then gzip -9 -n -c out_new/data/v8/discovery.json > R/new_discovery.json.gz; fi
-          for f in research_quant_evidence.json research_radar_evidence.json research_candidate_census.json research_exposure_safety.json research_ticker_binding.json research_discovery.json; do
+          for f in research_quant_evidence.json research_radar_evidence.json research_candidate_census.json research_exposure_safety.json research_ticker_binding.json research_discovery.json research_pit.json research_history_dryrun.json research_history_dryrun_verify.json research_history_verify.json research_history_projection.json history_dryrun.tar.gz; do
             if [ -f "$f" ]; then cp "$f" R/; fi
           done
           if [ -f out_pubq/data/quant.json ]; then cp out_pubq/data/quant.json R/pub_quant.json; fi
