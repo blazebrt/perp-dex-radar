@@ -49,9 +49,17 @@ Registry assets without an active perpetual on a healthy venue are listed in `re
 
 Coverage: `coverage_state` is `FULL` (every venue loaded), `DEGRADED` (a venue is unavailable; its markets are named
 outside the denominator) or `FALLBACK` (no market list loaded; the built-in coin list was used).
-`full_discovery_qualified` is true when the scan is not the fallback universe and nothing is unaccounted - it qualifies
-the discovery of the healthy venues; a degraded venue is always named next to it. The fallback universe always says
-`fallback_universe: true`, `full_discovery_qualified: false`.
+Two qualifications, apart:
+
+| Field | True only when |
+|---|---|
+| `available_venue_discovery_qualified` | not the fallback universe, discovery `unaccounted` is 0 and the accounting has no problem: every active perpetual returned by every supported venue whose market list loaded is in discovery |
+| `full_discovery_qualified` | `available_venue_discovery_qualified` **and** `venues_failed` is 0: every expected supported venue's market list loaded |
+
+Complete accounting over the venues that answered does not prove full discovery while a supported venue is missing, so
+a `DEGRADED` scan is never `full_discovery_qualified` (with edgeX unavailable: `DEGRADED`, available `true`, full
+`false`); nothing is invented or carried over for the missing venue. The fallback universe is neither
+(`fallback_universe: true`, both `false`, `FALLBACK`).
 
 ## The record (`data/v8/discovery.json` -> `assets[]`)
 
@@ -75,9 +83,11 @@ the discovery of the healthy venues; a degraded venue is always named next to it
 | `anomaly_flags`, `research_priority`, `priority_lane` | research flags, their points (authority `NONE`) and the lane |
 | `discovery_stage`, `stage_path` | how far down the hierarchical scan the asset went |
 | `deep_research_state` | selected or not, via `TOP_N` / `EXTRA`, completed, and the reason |
-| `execution_state` | `GATES_PASSED` / `GATES_BLOCKED` on the shared gates (identity, execution liquidity), `new_entry_executable`, the reasons, every engine's disposition, which engines surfaced it |
+| `discovery_visible` | always `true`: every record is visible whatever its gates |
+| `shared_execution_gates` | `{identity_ok, liquidity_ok, passes, reasons}`: only whether the asset passes the common gates every crypto engine applies first (crypto execution identity, known trade-DEX volume >= the legacy minimum). Passing them is **not** model eligibility and **not** a trade |
+| `model_eligibility` | per engine (radar, quant, swing, day, smart), that engine's own final ledger record as written: `{disposition, code, stage, steps}`; an engine without a record for the asset is absent. Nothing is inferred; there is no global "executable" field |
 | `final_disposition` | the radar's (or the universe's) final ledger record: engine, code, disposition, stage - the existing vocabulary |
-| `decision_trace` | nine steps, each `[step, input, rule, result, effect]` (the rule texts are in `vocabulary.trace_rules`) |
+| `decision_trace` | nine steps, each `[step, input, rule, result, effect]` (the rule texts are in `vocabulary.trace_rules`); the execution-gate step's result is `SHARED_GATES_PASSED` / `SHARED_GATES_BLOCKED` and its effect names each engine's ledger result |
 
 Values are observed or `null`; a missing value is never written as 0. Floats are rounded deterministically; two builds
 from the same inputs are byte-identical.
@@ -149,7 +159,7 @@ unavailable venues; every denominator contract is in a discovery record; canonic
 every discovery asset has exactly one stage, one deep-research reason, one lane and one final disposition.
 `unaccounted_by_scope` lists each scope; `unaccounted` is their sum and must be 0. The snapshot's `discovery` section
 carries the same counts (`coverage`, `venues`, `stages`, `identity_breakdown`, `liquidity_breakdown`,
-`execution_gates`, `priority_lanes`, `anomaly_flags`, `deep_research`, `visibility`, `emerging`, `shadow_queue`,
+`shared_execution_gates`, `model_eligibility` (per engine, by ledger disposition), `priority_lanes`, `anomaly_flags`, `deep_research`, `visibility`, `emerging`, `shadow_queue`,
 `legacy_vs_shadow`, `scan_stages`, `requests`, `unaccounted`, `problems`).
 
 ## The bounded quant-audit fix
@@ -215,7 +225,10 @@ at production size).
   `legacy_parity_golden_phase7.json` = the Phase 6 legacy digests (it lists one more audit file).
 * `tests/test_v8_phase7.py`: the fifteen synthetic discovery tests (denominator, failed venue, venue states, fallback,
   identity / liquidity / history / Top-N never gating visibility, first-seen-only new listings, flag thresholds, lanes,
-  Decision Trace, accounting, determinism and no authority, stages from the ledger), the shadow-queue tests, the quant
+  Decision Trace, accounting, determinism and no authority, stages from the ledger), the qualification tests (FULL needs
+  every venue; DEGRADED is never full; fallback and accounting problems qualify nothing), the shared-gates vs
+  model-eligibility tests (eligibility is each engine's ledger record, unchanged by research priority), the shadow-queue
+  tests, the quant
   lifecycle tests (journal preserved, ledger SURFACED, no new entry, published == ledger, a new signal on an illiquid
   coin stays NOT_EXECUTABLE), versions, and the fixture pipeline end to end.
 * `ScanGateInvariants` runs in every scheduled scan's core-test gate.
