@@ -118,6 +118,21 @@ LANES = {
 }
 AUTHORITY = "NONE"      # what a flag, a lane, a priority or the shadow queue may decide
 
+# ---- shared execution gates vs model eligibility (never one "executable" boolean)
+SHARED_GATES = ("passes the common gates every crypto engine applies before it evaluates an asset: crypto execution "
+                "identity (VERIFIED_CRYPTO) and a known 24h trade-DEX volume >= the legacy minimum. It is not model "
+                "eligibility and not a trade: each engine's own history, data and strategy gates follow, and only its "
+                "ledger says what it evaluated or published")
+MODEL_ELIGIBILITY = ("each engine's final ledger record for the asset, as the engine wrote it (disposition, reason code, "
+                     "stage, steps); nothing here is inferred or recomputed")
+QUALIFICATION = {
+    "available_venue_discovery_qualified": "not the fallback universe, every active perpetual returned by every "
+                                           "supported venue whose market list loaded is in discovery (unaccounted 0) "
+                                           "and the accounting has no problem",
+    "full_discovery_qualified": "available_venue_discovery_qualified and every expected supported venue's market list "
+                                "loaded (venues_failed 0): only then is discovery full",
+}
+
 # ---- why an asset was or was not deep-researched (Level 2)
 DEEP_COMPLETED = "DEEP_COMPLETED"
 DEEP_HISTORY_INSUFFICIENT = "DEEP_HISTORY_INSUFFICIENT"
@@ -345,15 +360,26 @@ TRACE_RULES = {     # the rule of each Decision Trace step (each record names it
     "Research-priority flags": "observational flags (provenance.thresholds); points order research attention only",
     "Chart coverage": "the radar charts VERIFIED_CRYPTO on 1h candles (stage 1, unchanged)",
     "Deep-selection result": "stage 2: top 40 passing execution liquidity by stage-1 score, plus 16 extras (unchanged)",
-    "Execution gate": "a new entry needs crypto execution identity and a known 24h trade-DEX volume >= the legacy "
-                      "minimum (unchanged)",
+    "Execution gate": "shared gates only: crypto execution identity and a known 24h trade-DEX volume >= the legacy "
+                      "minimum (unchanged); passing them is not model eligibility or a trade - each engine's ledger "
+                      "decides that (model_eligibility)",
     "Final discovery disposition": "the radar's (or universe's) final ledger record, existing vocabulary",
 }
 
 
+def _ledger(r):
+    """An engine's final ledger record as the engine wrote it (the authority on the asset's model eligibility)."""
+    out = {"disposition": r["d"], "code": r["c"], "stage": r["st"]}
+    if r.get("x"):
+        out["steps"] = list(r["x"])
+    return out
+
+
 def _trace(rec, n_contracts, venues_down):
     """The asset's Decision Trace: [step, input, rule, result, effect] per step (rule texts in TRACE_RULES)."""
-    liq, ex, dp = rec["execution_liquidity"], rec["execution_state"], rec["deep_research_state"]
+    liq, ex, dp = rec["execution_liquidity"], rec["shared_execution_gates"], rec["deep_research_state"]
+    me = rec["model_eligibility"]
+    models = " ".join(f"{e} {v['disposition']}/{v['code']}" for e, v in me.items()) or "no engine record"
     lq = f"{liq['state']} {liq['observed_value']}" if liq["observed_value"] is not None else liq["state"]
     charted = rec["discovery_stage"] not in (DISCOVERED, LIGHT_ONLY)
     fin = rec["final_disposition"] or {}
@@ -374,8 +400,10 @@ def _trace(rec, n_contracts, venues_down):
          CHARTED_1H if charted else "NOT_CHARTED", "1h metrics" if charted else "light record only"],
         ["Deep-selection result", f"rank {dp.get('stage1_rank')}; liquidity {liq['state']}", dp["reason"],
          (f"deep-researched ({dp['via']})" if dp["selected"] else "not deep-researched")],
-        ["Execution gate", f"{rec['identity']}; {lq} vs {liq['threshold']}", ex["state"],
-         "new entry allowed" if ex["new_entry_executable"] else "no new entry: " + " ".join(ex["reasons"])],
+        ["Execution gate", f"{rec['identity']}; {lq} vs {liq['threshold']}",
+         "SHARED_GATES_PASSED" if ex["passes"] else "SHARED_GATES_BLOCKED",
+         ("shared gates pass; engines decide: " if ex["passes"] else "blocked by " + " ".join(ex["reasons"]) +
+          "; engines: ") + models],
         ["Final discovery disposition", f"{fin.get('engine')} {fin.get('code')}", fin.get("disposition") or "NONE",
          f"stage {rec['discovery_stage']}"],
     ]
@@ -506,11 +534,10 @@ def build(reg, scan, dispositions, header, tracking, ts):
             problems.append(f"{t}: deep selection in the scan part and the radar ledger disagree")
         if coin is not None and bool(h1c.get("charted")) != (stage not in (DISCOVERED, LIGHT_ONLY)):
             problems.append(f"{t}: 1h charting in the scan part and the radar ledger disagree")
-        eng = {e: [recs[e][t]["d"], recs[e][t]["c"]] for e in ENGINES if t in recs[e]}
-        rec["execution_state"] = {"state": "GATES_PASSED" if eligible and passes else "GATES_BLOCKED",
-                                  "identity_ok": eligible, "liquidity_ok": passes,
-                                  "new_entry_executable": bool(eligible and passes), "reasons": reasons,
-                                  "engines": eng, "surfaced_by": sorted(e for e, v in eng.items() if v[0] == T.SURFACED)}
+        rec["discovery_visible"] = True
+        rec["shared_execution_gates"] = {"identity_ok": eligible, "liquidity_ok": passes,
+                                         "passes": bool(eligible and passes), "reasons": reasons}
+        rec["model_eligibility"] = {e: _ledger(recs[e][t]) for e in ENGINES if t in recs[e]}
         rec["final_disposition"] = ({"engine": "radar" if rr is not None else "universe", "code": fin["c"],
                                      "disposition": fin["d"], "stage": fin["st"]} if fin is not None else None)
         if fin is None:
@@ -531,11 +558,15 @@ def build(reg, scan, dispositions, header, tracking, ts):
                           "flag_points": {k: v[0] for k, v in FLAGS.items()}, "lanes": LANES,
                           "deep_reasons": DEEP_REASONS, "registry_only": REGISTRY_ONLY,
                           "unsupported_contract_states": list(UNSUPPORTED_STATES), "trace_rules": TRACE_RULES,
-                          "trace_format": ["step", "input", "rule (key of trace_rules)", "result", "effect"]}}
+                          "trace_format": ["step", "input", "rule (key of trace_rules)", "result", "effect"],
+                          "shared_execution_gates": SHARED_GATES, "model_eligibility": MODEL_ELIGIBILITY,
+                          "qualification": QUALIFICATION}}
     doc["shadow_queue"], doc["legacy_vs_shadow"] = shadow(records, cfg, scan)
     doc["emerging"] = emerging(records)
     doc["accounting"] = accounting(reg, denom, records, reg_only, problems)
-    doc["provenance"]["full_discovery_qualified"] = (not fallback) and doc["accounting"]["unaccounted"] == 0
+    acc, pv = doc["accounting"], doc["provenance"]
+    pv["available_venue_discovery_qualified"] = (not fallback) and acc["unaccounted"] == 0 and not acc["problems"]
+    pv["full_discovery_qualified"] = pv["available_venue_discovery_qualified"] and pv["venues_failed"] == 0
     return doc, summary(doc, scan)
 
 
@@ -552,7 +583,8 @@ def _provenance(reg, header, ts, venues, records, fallback, tracking, denom, reg
             "venues_failed": len(down), "venues_failed_names": down,
             "venues_without_active_markets": sorted(v for v, x in venues.items()
                                                     if x["state"] in (NO_MARKETS, ZERO_ACTIVE_MARKETS)),
-            "fallback_universe": bool(fallback), "full_discovery_qualified": None,
+            "fallback_universe": bool(fallback), "available_venue_discovery_qualified": None,
+            "full_discovery_qualified": None,
             "coverage_state": "FALLBACK" if fallback else "DEGRADED" if down else "FULL",
             "tracking_since": (tracking or {}).get("since"), "first_seen_source": (tracking or {}).get("source"),
             "thresholds": dict(THRESHOLDS, execution_liquidity_min=cfg.get("min_dex_vol", 1_000_000),
@@ -566,7 +598,7 @@ def shadow(records, cfg, scan):
     crypto by research-priority points, then known execution liquidity, then ticker - regardless of the liquidity
     gate. No request is made for it and nothing it holds can be published or traded."""
     slots = (cfg.get("stage2_n") or 40) + (cfg.get("stage2_extra") or 16)
-    pool = [r for r in records if r["identity"] == ID.VERIFIED_CRYPTO and r["execution_state"]["identity_ok"]]
+    pool = [r for r in records if r["identity"] == ID.VERIFIED_CRYPTO and r["shared_execution_gates"]["identity_ok"]]
     pool.sort(key=lambda r: (-r["research_priority"]["points"], -(r["execution_liquidity"]["observed_value"] or 0.0),
                              r["asset"]))
     q = pool[:slots]
@@ -677,7 +709,8 @@ def summary(doc, scan):
     return {"schema": VERSION, "status": "OK",
             "coverage": {k: pv[k] for k in ("registry_contracts", "active_perps", "active_perps_in_denominator",
                                             "canonical_assets", "discovery_assets", "registry_only_assets",
-                                            "fallback_universe", "full_discovery_qualified", "coverage_state",
+                                            "fallback_universe", "available_venue_discovery_qualified",
+                                            "full_discovery_qualified", "coverage_state",
                                             "venues_expected", "venues_ok", "venues_failed", "venues_failed_names",
                                             "tracking_since", "first_seen_source")},
             "venues": {v: [x["state"], x["active_perps"]] for v, x in doc["venues"].items()},
@@ -685,7 +718,10 @@ def summary(doc, scan):
             "identity_breakdown": _count(r["identity"] or "NONE" for r in rs),
             "liquidity_breakdown": _count(_bucket(r["execution_liquidity"]["observed_value"],
                                                   r["execution_liquidity"]["state"]) for r in rs),
-            "execution_gates": _count(r["execution_state"]["state"] for r in rs),
+            "shared_execution_gates": _count("PASSES" if r["shared_execution_gates"]["passes"] else "BLOCKED"
+                                             for r in rs),
+            "model_eligibility": {e: _count(r["model_eligibility"][e]["disposition"] for r in rs
+                                            if e in r["model_eligibility"]) for e in ENGINES},
             "priority_lanes": doc["accounting"]["by_lane"],
             "anomaly_flags": _count(f for r in rs for f in r["anomaly_flags"]),
             "deep_research": doc["accounting"]["by_deep_reason"],
