@@ -237,7 +237,7 @@ class PipelineAudit(unittest.TestCase):
     def test_candidate_evidence_is_traced_never_authority(self):
         """v8 Phase 4: the snapshot carries every contract's observed candidate evidence apart from its authoritative
         evidence, and counts it; no candidate rule is qualified."""
-        self.assertEqual(self.snap["manifest"]["audit_version"], "v8-phase8.0")
+        self.assertEqual(self.snap["manifest"]["audit_version"], "v8-phase8.1")
         self.assertIn("candidate", SN.CONTRACT_FIELDS)
         self.assertTrue({"wrapper", "xcheck"} <= set(SN.CONTRACT_FIELDS))
         cc = self.snap["registry"]["counts"]["candidate_evidence"]
@@ -763,7 +763,7 @@ class PipelineAudit(unittest.TestCase):
                     self.assertIn(x, T.STEPS)
                 self.assertNotIn(r["c"], T.RETIRED, (e, a))
         self.assertNotIn("FILTERED", T.REASONS)
-        self.assertEqual(self.snap["schema"], "v8.audit/6")
+        self.assertEqual(self.snap["schema"], "v8.audit/7")
         self.assertEqual(self.snap["manifest"]["identity_version"], "v8.identity/4")
         self.assertEqual(len(self.snap["manifest"]["identity_config_hash"]), 64)
         self.assertEqual(self.snap["manifest"]["liquidity_version"], "v8.liquidity/1")
