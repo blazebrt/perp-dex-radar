@@ -104,6 +104,8 @@ def validate(folder):
             regs[eid] = r
         elif r.get("kind") == STATUS:
             eid = r.get("experiment_id")
+            if m.group(3) != eid:       # the append-only file name is the permanent attribution of the record
+                problems.append(f"{f}: file name id {m.group(3)} differs from the experiment id {eid}")
             if eid not in regs:
                 problems.append(f"{f}: status for unregistered experiment {eid}")
             if r.get("status") not in STATUSES or r.get("status") == "REGISTERED":
@@ -171,15 +173,23 @@ def append(folder, kind, **fields):
     return name, r
 
 
+def _attributed(f, r):
+    """Whether a record's experiment id is the one its permanent file name attributes it to."""
+    m = NAME_RE.match(f)
+    return bool(m) and m.group(3) == r.get("experiment_id")
+
+
 def summary(folder):
+    """Ledger state. A registration or status record whose file name attributes it to another experiment never
+    updates any experiment (it is also a validation problem)."""
     recs = load(folder)
     problems = validate(folder)
-    regs = [r for _, r, _ in recs if r.get("kind") == REGISTRATION]
+    regs = [r for f, r, _ in recs if r.get("kind") == REGISTRATION and _attributed(f, r)]
     status = {}
-    for _, r, _ in recs:
-        if r.get("kind") == REGISTRATION:
+    for f, r, _ in recs:
+        if r.get("kind") == REGISTRATION and _attributed(f, r):
             status[r["experiment_id"]] = r["status"]
-        elif r.get("kind") == STATUS:
+        elif r.get("kind") == STATUS and _attributed(f, r) and r.get("experiment_id") in status:
             status[r["experiment_id"]] = r["status"]
     return {"version": VERSION, "records": len(recs), "experiments": len(regs), "status": status,
             "valid": not problems, "problems": problems[:20],

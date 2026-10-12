@@ -58,15 +58,17 @@ jobs:
         # discovery, research flags and the shadow queue have no authority, an open quant position below liquidity is
         # surfaced for its lifecycle with no new entry) and the Phase 8 invariants
         # (tests.test_v8_phase8.ScanGateInvariants: the history capture never raises and never changes the scan's
-        # outputs, unknown is never false, no live engine imports the point-in-time research view). The full suite,
-        # the end-to-end legacy parity check and the research checks run in the CI workflow.
+        # outputs, unknown is never false, no live engine imports the point-in-time research view) and the Phase 8
+        # hotfix invariants (tests.test_v8_phase8_hotfix.ScanGateInvariants: the history writer is v8.history/2 and
+        # never rounds liquidity, a v8.history/1 value never decides a threshold, an empty view is not an error). The
+        # full suite, the end-to-end legacy parity check and the research checks run in the CI workflow.
         run: >-
           python -m unittest tests.test_v5 tests.test_quant tests.test_picks tests.test_smart
           tests.test_smart_backtest tests.test_dashboard tests.test_analyze tests.test_analyzer_call
           tests.test_v8_units tests.test_v8_identity tests.test_v8_phase3 tests.test_v8_phase3_smart
           tests.test_v8_phase3_journal tests.test_v8_phase3_closure tests.test_v8_phase4 tests.test_v8_phase5
           tests.test_v8_phase6.ScanGateInvariants tests.test_v8_phase7.ScanGateInvariants
-          tests.test_v8_phase8.ScanGateInvariants
+          tests.test_v8_phase8.ScanGateInvariants tests.test_v8_phase8_hotfix.ScanGateInvariants
 
       - id: pages
         uses: actions/configure-pages@v5

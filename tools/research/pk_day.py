@@ -13,8 +13,9 @@ DAY_W = {"swing": 25, "trend1d": 10, "trend4h": 10, "trend1h": 10, "near_edge": 
          "trend30": 5, "funding": 5, "volume": 5}
 
 
-def hourly(md):
-    p = Panel(md)
+def hourly(md, end=None):
+    """The hourly panel, its features and the day-pick inputs (`end`: no candle after it; None = all of them)."""
+    p = Panel(md, end=end)
     F = qstrat.Feat(p)
     h, l, c, v = p.h, p.l, p.c, p.v
     with np.errstate(all="ignore"):
@@ -41,9 +42,36 @@ def day_checks(x, sw_long, sw_short):
     return ({k: np.asarray(v, float) for k, v in L.items()}, {k: np.asarray(v, float) for k, v in S.items()})
 
 
-def run(md, swing_t, swing_coins, SL, SS):
-    """Day score bands and the Top 5 every 4 hours, long and short (swing scores mapped to each hour)."""
-    p, F, x = hourly(md)
+BANDS = ((0, 50), (50, 70), (70, 80), (80, 90), (90, 101))
+FIRST = 24 * 40          # the first sampled hour (40 days of history for the features)
+EVERY = 4                # a sample every 4 hours
+MIN_ROWS = 30            # a band or a Top-5 sample needs 30+ rows
+HOLD = 24                # a day trade is held 24 hours at most
+
+
+def simulate(p, F):
+    """Day-trade results for every coin and hour, long and short (1.5 ATR stop, 2.5 ATR trail, 24 hours, costs)."""
+    out = {}
+    for side, sgn in (("long", 1), ("short", -1)):
+        R, RET, _, BARS = sim(p.o, p.h, p.l, p.c, F.atr1, sgn, 1.5, 2.5, HOLD, 0.015, 0.06, COST)
+        out[side] = (R, RET, BARS)
+    return out
+
+
+def surfaces(p, F, x, swing_t, swing_coins, SL, SS, elig=None, sims=None, known=None):
+    """The day-pick selection authority: per side the day score (DAY_W over day_checks, swing scores mapped to each
+    hour), the 4-hour sample, the eligible base, the score bands (masks of 30+ rows) and the deterministic Top 5
+    every 4 hours (score order, ties broken by a 1e-3 jitter seeded by the hour). run() reports these surfaces; the
+    point-in-time research qualifies exactly these rows. `elig` defaults to the strategy's own eligibility (F.elig);
+    `sims` reuses simulate().
+
+    `known` (point-in-time research only; None = these legacy surfaces exactly): where x["funding"] is a known value
+    at that hour. A row whose funding is unknown never enters the base or a band. A 4-hour Top 5 is selected among
+    the same candidates and jitter as without it, from rows with known funding only, and only when no candidate with
+    unknown funding could reach it even with the funding check's full points; otherwise that sample is undetermined
+    (listed, never selected)."""
+    elig = F.elig if elig is None else elig
+    sims = simulate(p, F) if sims is None else sims
     th = p.t
     T, N = p.c.shape
     day_idx = np.searchsorted(np.asarray(swing_t) + 86400, th, side="right") - 1
@@ -58,27 +86,59 @@ def run(md, swing_t, swing_coins, SL, SS):
         return out
 
     L, S = day_checks(x, np.nan_to_num(to_h(SL)), np.nan_to_num(to_h(SS)))
-    out = {"period": [int(th[24 * 40]), int(th[-1])], "coins": N}
-    for side, sgn, C in (("long", 1, L), ("short", -1, S)):
-        R, RET, _, _ = sim(p.o, p.h, p.l, p.c, F.atr1, sgn, 1.5, 2.5, 24, 0.015, 0.06, COST)
+    out = {}
+    for side, C in (("long", L), ("short", S)):
+        R, RET, BARS = sims[side]
         sc = sum(DAY_W[k] * C[k] for k in DAY_W)
         sample = np.zeros((T, N), bool)
-        sample[24 * 40::4] = True
-        base = F.elig & np.isfinite(R) & sample
+        sample[FIRST::EVERY] = True
+        base = elig & np.isfinite(R) & sample
+        if known is not None:
+            base = base & known
         bands = []
-        for lo, hi in ((0, 50), (50, 70), (70, 80), (80, 90), (90, 101)):
+        for lo, hi in BANDS:
             m = base & (sc >= lo) & (sc < hi)
-            if m.sum() >= 30:
-                bands.append({"lo": lo, "hi": hi, "n": int(m.sum()), "R": float(np.nanmean(R[m])),
-                              "ret": float(np.nanmean(RET[m])), "win": float(np.mean(RET[m] > 0))})
-        top = []
-        for k in range(24 * 40, T - 24, 4):
-            m = F.elig[k] & np.isfinite(R[k])
-            if m.sum() < 30:
+            if m.sum() >= MIN_ROWS:
+                bands.append((lo, hi, m))
+        top, undetermined = [], []
+        for k in range(FIRST, T - HOLD, EVERY):
+            m = elig[k] & np.isfinite(R[k])
+            if m.sum() < MIN_ROWS:
                 continue
             idx = np.where(m)[0]
-            pk = idx[np.argsort(sc[k, idx] + 1e-3 * np.random.default_rng(k).random(len(idx)))][-5:]
-            top.append((R[k, pk].mean(), RET[k, pk].mean(), R[k, m].mean(), RET[k, m].mean()))
+            if known is None:
+                pk = idx[np.argsort(sc[k, idx] + 1e-3 * np.random.default_rng(k).random(len(idx)))][-5:]
+            else:
+                key = sc[k, idx] + 1e-3 * np.random.default_rng(k).random(len(idx))
+                kn = known[k, idx]
+                order = np.argsort(key[kn])
+                # the best case of a row with unknown funding: its score without the funding check plus its full points
+                best = key - DAY_W["funding"] * C["funding"][k, idx] + DAY_W["funding"]
+                if kn.sum() < 5 or ((~kn).any() and (best[~kn] >= key[kn][order[-5]]).any()):
+                    undetermined.append(k)
+                    continue
+                pk = idx[kn][order][-5:]
+            top.append((k, pk, m))
+        out[side] = {"R": R, "RET": RET, "BARS": BARS, "score": sc, "sample": sample, "base": base, "bands": bands,
+                     "top": top}
+        if known is not None:
+            out[side]["undetermined"] = undetermined
+    return out
+
+
+def run(md, swing_t, swing_coins, SL, SS):
+    """Day score bands and the Top 5 every 4 hours, long and short (swing scores mapped to each hour)."""
+    p, F, x = hourly(md)
+    th = p.t
+    T, N = p.c.shape
+    surf = surfaces(p, F, x, swing_t, swing_coins, SL, SS)
+    out = {"period": [int(th[FIRST]), int(th[-1])], "coins": N}
+    for side in ("long", "short"):
+        s = surf[side]
+        R, RET, base = s["R"], s["RET"], s["base"]
+        bands = [{"lo": lo, "hi": hi, "n": int(m.sum()), "R": float(np.nanmean(R[m])),
+                  "ret": float(np.nanmean(RET[m])), "win": float(np.mean(RET[m] > 0))} for lo, hi, m in s["bands"]]
+        top = [(R[k, pk].mean(), RET[k, pk].mean(), R[k, m].mean(), RET[k, m].mean()) for k, pk, m in s["top"]]
         a = np.array(top)
         out[side] = {"bands": bands, "base": {"R": float(np.nanmean(R[base])), "ret": float(np.nanmean(RET[base]))},
                      "top5": {"R": float(a[:, 0].mean()), "ret": float(a[:, 1].mean()), "R_all": float(a[:, 2].mean()),

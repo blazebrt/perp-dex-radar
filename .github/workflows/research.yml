@@ -79,13 +79,13 @@ jobs:
           python -c "import json; s = json.load(open('out_new/data/v8/audit_latest.json')); json.dump({'manifest': s['manifest'], 'summary': s['coverage']['summary'], 'engines': s['coverage']['engines'], 'registry_counts': s['registry']['counts'], 'data_health': {k: v for k, v in s['data_health'].items() if k != 'registry_venues'}, 'venues': s['data_health'].get('registry_venues'), 'storage': s['storage']}, open('research_v8_summary.json', 'w'), indent=1)" >> research_v8.txt 2>&1 || true
 
       - name: Phase base engines on the same live data (comparison only, nothing published)
-        # The phase base (the base commit of the expected-delta manifest: since Phase 8, production main 1609e2c) runs
+        # The phase base (the base commit of the expected-delta manifest: since the Phase 8 hotfix, production main f142bb1) runs
         # the scanner, the quant desk and the coin picks on live data right after this branch, so the reports can list
         # every production output the change removes or adds. The two runs are minutes apart; the reports say which
         # differences the change explains.
         continue-on-error: true
         run: |
-          BASE_SHA=$(python -c "import json; print(json.load(open('tests/fixtures/v8/phase8_expected_deltas.json'))['base']['sha'])")
+          BASE_SHA=$(python -c "import json; print(json.load(open('tests/fixtures/v8/phase8_1_expected_deltas.json'))['base']['sha'])")
           echo "phase base $BASE_SHA" > research_base.txt
           git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA" >> research_base.txt 2>&1 || true
           cd "$RUNNER_TEMP/base"
@@ -223,6 +223,9 @@ jobs:
             echo "production history: the v8-history branch does not exist yet" >> research_pit.txt
           fi
           git init -q --bare "$RUNNER_TEMP/hist_dryrun.git"
+          # the dry run appends to a copy of the production chain when there is one (v8.history/1 records, then this
+          # head's v8.history/2 writer), so the mixed chain is proven on the real records; nothing reaches the remote
+          if [ -n "$HIST" ]; then git push -q "$RUNNER_TEMP/hist_dryrun.git" "refs/remotes/origin/v8-history:refs/heads/v8-history-dryrun" 2>> research_pit.txt || true; fi
           python -m v8.history dryrun --snapshot out_new/data/v8/audit_latest.json --bare "$RUNNER_TEMP/hist_dryrun.git" --branch v8-history-dryrun --backfill-repo "$GITHUB_REPOSITORY" --json research_history_dryrun.json >> research_pit.txt 2>&1 || true
           mkdir -p hist_dryrun && git --git-dir="$RUNNER_TEMP/hist_dryrun.git" archive v8-history-dryrun | tar -x -C hist_dryrun || true
           python -m v8.history verify --dir hist_dryrun > research_history_dryrun_verify.json 2>> research_pit.txt || true
@@ -232,6 +235,20 @@ jobs:
           python -m v8.history project out_new/data/v8/audit_latest.json --days 3 --scans-per-day 72 > research_history_projection.json 2>> research_pit.txt || true
           mkdir -p md && git archive origin/market-data | tar -x -C md 2>> research_pit.txt || echo "market-data branch unavailable" >> research_pit.txt
           python tools/research/pit_research.py --md md --history "$HIST" --cutoff "$(date -u +%s)" --out research_pit.json >> research_pit.txt 2>&1 || true
+          # the same research with a cutoff one second before the first history observation: an empty view
+          # (HISTORY_EMPTY / BEFORE_PIT_HISTORY), zero qualified rows, never a crash
+          # (the first observation of the history actually used: its own verify report)
+          if [ "$HIST" = hist_prod ]; then HV=research_history_verify.json; else HV=research_history_dryrun_verify.json; fi
+          FIRST=$(python -c "import json,sys; print(int(json.load(open(sys.argv[1]))['first_observed_at']) - 1)" "$HV" 2>> research_pit.txt || echo "")
+          echo "cutoff before the history ($HIST, $HV): $FIRST" | tee -a research_pit.txt research_pit_cutoff.txt
+          rc=0
+          if [ -n "$FIRST" ]; then
+            python tools/research/pit_research.py --md md --history "$HIST" --cutoff "$FIRST" --out research_pit_cutoff_before_history.json >> research_pit_cutoff.txt 2>&1 || rc=$?
+          else
+            rc=2
+          fi
+          echo "exit $rc" >> research_pit_cutoff.txt
+          tail -30 research_pit_cutoff.txt
           tail -60 research_pit.txt
 
       - name: Save the results for review
@@ -255,7 +272,7 @@ jobs:
           if [ -f research_identity.json ]; then cp research_identity.json R/; fi
           if [ -f research_smart_journal.json ]; then cp research_smart_journal.json R/; fi
           if [ -f out_new/data/v8/discovery.json ]; then gzip -9 -n -c out_new/data/v8/discovery.json > R/new_discovery.json.gz; fi
-          for f in research_quant_evidence.json research_radar_evidence.json research_candidate_census.json research_exposure_safety.json research_ticker_binding.json research_discovery.json research_pit.json research_history_dryrun.json research_history_dryrun_verify.json research_history_verify.json research_history_projection.json history_dryrun.tar.gz; do
+          for f in research_quant_evidence.json research_radar_evidence.json research_candidate_census.json research_exposure_safety.json research_ticker_binding.json research_discovery.json research_pit.json research_history_dryrun.json research_history_dryrun_verify.json research_history_verify.json research_history_projection.json history_dryrun.tar.gz research_pit_cutoff_before_history.json; do
             if [ -f "$f" ]; then cp "$f" R/; fi
           done
           if [ -f out_pubq/data/quant.json ]; then cp out_pubq/data/quant.json R/pub_quant.json; fi

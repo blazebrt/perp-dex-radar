@@ -5,15 +5,20 @@
 Phase 8 makes the system *remember what it saw*, scan by scan, in an append-only history, and gives research a
 point-in-time view of that history with time-varying costs. It changes no live engine, no identity (`v8.identity/4`,
 config hash `96a10dc2...`), no discovery (`v8.discovery/1`), no strategy, gate, stop, target, sizing or Top-N, and it
-does not overwrite `quant_research.json` or `picks_research.json`. Versions: `v8.audit/6`, `v8-phase8.0`,
-`v8.history/1`, `v8.pit/1`, `v8.pit-cost/1`, `v8.pit-research/1`, `v8.shadow-ledger/1`.
+does not overwrite `quant_research.json` or `picks_research.json`. Versions at the Phase 8 merge: `v8.audit/6`,
+`v8-phase8.0`, `v8.history/1`, `v8.pit/1`, `v8.pit-cost/1`, `v8.pit-research/1`, `v8.shadow-ledger/1`. Since the
+post-merge hotfix (see [the last section](#post-merge-hotfix-v8-phase81)): `v8.audit/7`, `v8-phase8.1`,
+`v8.history/2` (writer; `v8.history/1` records stay readable and immutable), `v8.pit/2`, `v8.pit-cost/2`,
+`v8.pit-research/3` (`/2` in the hotfix; `/3` since the day score's funding input is observed-only, see
+[the funding-authority correction](#final-correction-the-day-scores-funding-input-v8pit-research3)),
+`v8.shadow-ledger/1`.
 
 ## Stage A: what history existed before Phase 8
 
 | Source | What it is | Classification |
 |---|---|---|
 | `market-data` branch (`universe.json`, `h1/`, `h4/`, `fund_mexc/`, `fund_hl/`) | One orphan commit (`df20b57`, 2026-10-04 08:48Z), replaced by every Market data run (`data.yml` force-pushes). `universe.json` is the coin list *at fetch time*: today's identity and today's trade-DEX volume, applied to three years of candles | Candles and funding settlements: contemporaneous exchange records. Coin list and `trade_vol`: **current-only** (survivorship: coins delisted before the fetch are absent; every past trade pays today's slippage tier) |
-| Legacy funding fill (`qdata.Panel._funding`) | 0.01% per 8 hours before a coin's first settlement and for coins without a series | **Assumed** (never observed) |
+| Legacy funding fill (`qdata.Panel._funding`) | 0.01% per 8 hours before a coin's first nonzero settlement and for coins without a series (or with only zero settlements); `pk_day.hourly` reads a settlement of 0 as none and carries the last nonzero rate through every gap into the day score's funding check | **Assumed** (never observed) |
 | `pk_trades.COST` | 0.19% per trade (fees and 0.05% slippage both ways), no funding | **Assumed** constant |
 | Production audit snapshots (`v8-audit-<run>-<attempt>` Actions artifacts, 14-day retention) | The whole `v8.audit` snapshot of each scan: every contract, asset identity, venue health, volumes, with scan id, commit, identity version and config hash; 34 from 2026-10-06 19:12Z on when Stage A ran (the oldest expire around 2026-10-20) | **Contemporaneous, immutable** (an artifact cannot be edited): the only allowed backfill source |
 | `data/v8/audit_latest.json` on the site | The latest snapshot only, overwritten every scan | Current-only |
@@ -49,8 +54,9 @@ What one observation holds - only what research needs, nothing that is not obser
 **Checkpoints and deltas.** An observation is a `CHECKPOINT` (the full state) or a `DELTA` (the rows that differ from
 its base: the newest checkpoint before it, named by seq and hash; `removed` lists rows that disappeared). A checkpoint
 is written at genesis, every 24 hours, for every backfilled observation and whenever the end of the chain cannot be
-checked. Appending reads at most three observations (the last one, the one before it, the base checkpoint), and the
-fetch is depth-1 and blob-less, so a scan's cost does not grow with the history.
+checked. Appending reads the records since the newest checkpoint (see [the newest-checkpoint
+correction](#newest-checkpoint-authority-of-the-capture-tail-v8-phase81)), and the fetch is depth-1 and blob-less, so a
+scan's cost is bounded by the checkpoint cadence and does not grow with the history.
 
 **Tombstones.** A contract that a later scan no longer returns is recorded as `removed` in that observation (or is
 absent from the next checkpoint) while its venue's state says whether the list loaded; nothing is pruned, ever (unlike
@@ -62,7 +68,8 @@ the final/head observation. It covers provenance, semantic hashes, payloads, seq
 and delta metadata, byte accounting, base and last-liquidity references. Every stored liquidity table is also
 hashed and checked against `liquidity_content_hash`; `content_hash` is checked against the reconstructed full
 contract/asset state and that digest. One governed record hash supplies the self-check, chain link, checkpoint
-reference and reported history head. The bounded append check validates the records it reads, including the head.
+reference and reported history head. The bounded append check validates the records it reads, including the head,
+and applies the same newest-checkpoint rule to every delta it reads.
 A changed head liquidity value or artifact provenance fails verification even without a later observation; PIT
 history fails closed. Rewriting, removing or reordering observations breaks record, sequence or link checks.
 
@@ -132,7 +139,8 @@ answers for a time `t` only from observations with `observed_at <= t` at most `M
   whose market list loaded), `KNOWN_INACTIVE` (every venue it was seen on loaded and none lists it as active) or
   `UNKNOWN` (stale, before the history, a venue it was seen on unavailable, the fallback universe) - with its identity
   and liquidity then and `research_eligible` (True / False / None). An asset first observed after `t` is absent: a
-  future listing never leaks back. `UNKNOWN` is never False or zero.
+  future listing never leaks back. `UNKNOWN` is never read as inactive or zero: `research_eligible` is then None
+  unless another input was known to fail at that time (not on a trade DEX, a missing volume).
 * `identity_at`, `crypto_identity_at`: the identity recorded then, with its version and config hash. The oldest
   archived snapshots (`v8.audit/1` and `/2`, before Phase 3) carry no identity state: there the identity is unknown,
   so research eligibility is unknown, never "not crypto".
@@ -164,7 +172,8 @@ Health states: `PIT_UNIVERSE_OK` / `PIT_UNIVERSE_GAP`, `LIQUIDITY_HISTORY_OK` / 
 * **Universe**: the same strategies, with the strategy's own eligibility AND point-in-time eligibility when the
   signal's bar closes (active, verified crypto identity, a KNOWN trade-DEX volume of at least $1M - the live quant and
   picks gate). A time whose eligible assets are not all in the candle panel (a coin delisted before the market data
-  was fetched) is `PIT_UNIVERSE_CANDLES_MISSING`: nothing traded then is authoritative.
+  was fetched), or with any asset the history had seen unknown then, is `PIT_UNIVERSE_INCOMPLETE`: nothing traded
+  then is authoritative.
 * **Trades** follow the unchanged qsim / pk_trades rules (exits depend on prices only); costs are recomputed per
   trade. With full coverage and the same inputs the re-costing reproduces qsim's legacy result exactly (tested).
 * **Qualification** per trade: `universe_ok`, `identity_ok`, `liquidity_ok`, `funding_ok`, `cost_ok`,
@@ -216,8 +225,8 @@ With `--cutoff`, no observation, candle or funding settlement after it is used (
 | Where | What |
 |---|---|
 | Scan (`scan.yml`) | `python -m v8.snapshot ... --history-branch v8-history --history-backfill`; `tests.test_v8_phase8.ScanGateInvariants` in the core tests |
-| CI (`ci.yml`) | `tests.test_v8_phase8` (stdlib parts), the ledger guard, legacy parity against `legacy_parity_golden_phase8.json` (identical digests to Phase 7), delta parity against `phase8_expected_deltas.json` (base `1609e2c`, no delta); the research-checks job runs `tests.test_v8_phase8` again with numpy, numba and pandas (cost, funding, qualification, end-to-end with qsim parity) |
-| Research (`research.yml`) | verifies the production history when it exists; a dry run of the writer into a throwaway repository (this run plus every archived scan artifact; `history_dryrun.tar.gz`); the storage projection; `pit_research.py` on the market data |
+| CI (`ci.yml`) | `tests.test_v8_phase8` and `tests.test_v8_phase8_hotfix` (stdlib parts), the ledger guard, legacy parity against `legacy_parity_golden_phase8_1.json` (identical digests to Phase 7 and 8), delta parity against `phase8_1_expected_deltas.json` (base `f142bb1`, no delta); the research-checks job runs both modules again with numpy, numba and pandas (cost, funding, qualification, end-to-end with qsim parity, the day-pick authority, cutoffs, precision) |
+| Research (`research.yml`) | verifies the production history when it exists; a dry run of the writer into a throwaway repository seeded with a copy of the production chain (so the v1 -> v2 transition is proven on the real records; `history_dryrun.tar.gz`); the storage projection; `pit_research.py` on the market data, and again with a cutoff before the first history observation (`research_pit_cutoff_before_history.json`) |
 
 ## Limitations
 
@@ -228,3 +237,169 @@ With `--cutoff`, no observation, candle or funding settlement after it is used (
 * Liquidity is recorded about every 4 hours, not every scan.
 * Candles for delisted coins are not fetched yet, so cross-sections that included them stay unqualified.
 * One fee schedule for every venue and date.
+
+## Post-merge hotfix (v8-phase8.1)
+
+A review that finished after PR #19 merged raised four findings; all four are fixed here without touching
+`v8-history` (no rewrite, no force push, ruleset `24892500` unchanged).
+
+**1. Day-pick research measured the wrong rows (P1).** The corrected day research qualified every eligible coin at
+every 4-hour sample, which is not the day-pick strategy. `tools/research/pk_day.py` now exposes its selection authority
+as `surfaces()` - DAY_W over `day_checks`, the swing score mapped to each hour, the 4-hour sample, the score bands (30+
+rows) and the deterministic Top 5 (score order, 1e-3 jitter seeded by the hour) - and `pk_day.run()` reports exactly
+those surfaces (its output is byte-identical to the merged version, tested against a frozen copy). The point-in-time
+day research selects the same surfaces on the strategy's eligibility AND point-in-time eligibility, then re-costs and
+qualifies every selected row: bands per band, the Top 5 per 4-hour sample (a sample is authoritative only when all five
+picks are fully qualified and closed). The all-eligible base is kept only as `DIAGNOSTIC / NOT DAY STRATEGY AUTHORITY`,
+with a diagnostic `aggregate` and never an `authoritative` one. Swing research uses `picks_export`'s own masks
+(`base_mask`, `band_mask`, extracted unchanged: the merged version had dropped its forward-window condition, `max30`
+finite), reports a corrected band only with 30+ point-in-time eligible rows (as `band_stats`), labels its base
+`DIAGNOSTIC / NOT SWING STRATEGY AUTHORITY`, and counts the "ready" band (80+, the 80-90 and 90+ rows again) once in
+the qualified window. Every selected row has a closed trade: `pk_trades.sim` leaves no result for a trade still open
+when the data ends, so no open trade can reach an aggregate (`open_at_data_end` is 0 by construction). On a synthetic
+full-authority dataset (160 days, costs equal the legacy assumptions, finite swing scores) the corrected selection
+equals `pk_day.py`'s and `picks_export`'s row for row on every sampled hour - scores, bands, Top-5 membership and
+ranking - and so does every net R. Funding is itself a day-score input (5 points), so a different observed funding can change the day selection;
+how the corrected path reads it is the [funding-authority correction](#final-correction-the-day-scores-funding-input-v8pit-research3).
+
+**2. A cutoff before the first history observation crashed (P1).** A verified chain whose observations all lie after the
+cutoff is now an empty view: `History.view_status` = `HISTORY_EMPTY` with reason `BEFORE_PIT_HISTORY`,
+`History.usable` = False, every answer unknown, zero qualified rows, promotion NONE. Every vectorised caller
+(`pit_sim.universe_panel`, `_obs_index`, `pit_cost.liquidity_panel`) checks `usable`. Full-chain verification is
+unchanged.
+
+**3. Liquidity was rounded to a whole dollar (P2).** `int(round(max(vols)))` turned 199,999.6 into 200,000 and 999,999.6
+into 1,000,000, across the slippage and execution thresholds. The writer is now `v8.history/2`: the finite value as
+the audit registry recorded it, never rounded, with `liquidity_precision` on every record. The existing production
+records are `v8.history/1` and stay byte-identical: the verifier reads both schemas in one chain (a v2 record links to
+the previous record's hash whatever its version, a delta's base is a checkpoint of its own schema, a v2 record after a
+record of another schema is a checkpoint with the full liquidity table). A v1 record after a v2 one - a re-run of a
+Scan run that started before the hotfix runs the f142bb1 writer - is accepted under its own schema and counted
+(`schema_regressions` in the verify report): the branch is append-only, so rejecting it would break the history for
+good, and its liquidity is precision-unqualified anyway; the next v2 record starts again from a full checkpoint
+(tested with the frozen f142bb1 writer, `tests/fixtures/v8/history_v1_chain/writer_f142bb1.py`). The KNOWN
+liquidity of every v1 record is `PRECISION_LOST_V1`: it never decides a threshold or a slippage tier (`LIQUIDITY_PRECISION_UNQUALIFIED`), while their contracts, assets,
+identity and venue health stay usable. Nothing was recovered from the archived artifacts (that would need a
+correction record with its own precedence rules; the point-in-time and market-data windows do not overlap yet, so
+nothing is lost by failing closed).
+
+One more truth, found while fixing this: the audit registry itself keeps 8 significant digits of every volume
+(`v8.registry._r`), while the live gate compares the venue's full value. So a v2 value is exact to the registry, and a
+value recorded exactly on a threshold (200,000.0 or 1,000,000.0) may stand for a scan value just below it (999,999.996 is
+recorded as 1,000,000.0). `v8.pit.decides()` therefore treats a threshold that lies inside a value's rounding interval
+as undecidable: in practice only values recorded exactly on a threshold. 199,999.4 and 199,999.6 decide (below $200k:
+0.2%), 999,999.4 and 999,999.6 decide (0.1%, below the $1M gate), 1,000,000.1 decides (0.05%), and 200,000.0 and
+1,000,000.0 are `LIQUIDITY_PRECISION_UNQUALIFIED`. The governed tiers are unchanged.
+
+Research eligibility is now a three-valued AND: False when any input was known to fail (inactive, another identity,
+known below the gate, MISSING - a missing volume never passes the live gate (`v8.liquidity.passes`); `f142bb1` left it
+unknown - or not on a trade DEX), True when every input was known to pass, else unknown (no fresh record, a precision
+that cannot decide); a cross-section is complete only when no asset the history had seen is unknown then and every
+eligible one has candles.
+
+**4. A STATUS file could speak for another experiment (P2).** `000003-STATUS-EXP_A.json` holding `experiment_id: EXP_B`
+was accepted. Every STATUS record's file-name id must now equal its experiment id (as registrations already did), and
+the ledger summary never applies a record whose file name attributes it to another experiment. The record format is
+unchanged (`v8.shadow-ledger/1`); the ledger guard rejects such a commit.
+
+Live behaviour: no engine, gate, strategy, stop, target, sizing or Top-N changed; delta parity against `f142bb1`
+(manifest `phase8_1_expected_deltas.json`) allows no delta and finds none; `legacy_parity_golden_phase8_1.json` is
+byte-identical to the Phase 8 golden.
+
+## Final correction: the day score's funding input (v8.pit-research/3)
+
+An independent review of the hotfix found one more research-correctness blocker: the corrected day-pick *selection*
+still read the legacy funding input. `pk_day.hourly()` takes funding from `qdata.Panel._funding()`, which assumes 0.01%
+per 8 hours before a coin's first nonzero settlement, and `pk_day.hourly` then reads a settlement of 0 as none and
+carries the last nonzero rate forward through every gap. That value feeds `day_checks()["funding"]` (`DAY_W` 5
+points: long `funding <= 0.0001`, short `funding >= 0.0`), so it moved corrected scores, bands and Top-5 picks. The
+trade *costs* were already observed-only (`pit_cost.funding_panel`); the selection was not.
+
+**Legacy, frozen.** `pk_day.run()`, `qdata.Panel._funding()` and the live strategy are unchanged; `pk_day.run()` is
+byte-identical to the frozen `f142bb1` copy (tested, also on a dataset with varied nonzero funding). The legacy day
+surfaces keep their input and their label `LEGACY_SURVIVORSHIP_UNQUALIFIED`.
+
+**Corrected funding signal** (`pit_research.funding_signal`, from `pit_cost.funding_panel` on the same funding files,
+nothing after the cutoff): an `OBSERVED` settlement sets the signal to the observed rate, `OBSERVED_ZERO` to exactly
+0.0 (zero is evidence), `NOT_DUE` keeps the last observed rate; before the first observation, from a missed due
+settlement through a gap, and after the last settlement's cycle the signal is UNKNOWN (NaN) until the next observed
+settlement - an earlier rate is never carried through a gap, a non-finite recorded rate is no evidence, and the
+assumed 0.01% per 8 hours never enters it.
+`ASSUMED_SCENARIO` funding exists only in scenario costs and never reaches the signal.
+
+**Unknown fails closed.** The corrected surfaces use the same candles, features, mapped swing score, `DAY_W`,
+`day_checks`, sample, bands and Top-5 machinery, with only the funding input replaced and a funding-known mask
+(`pk_day.surfaces(..., known=)`; without it the legacy surfaces are unchanged). A row with unknown funding enters no
+corrected base or band. A 4-hour Top 5 is selected from rows with known funding, with the same candidates and the same
+hour-seeded jitter as pk_day, and only when no candidate with unknown funding could reach it even with the funding
+check's full 5 points; otherwise the sample is `FUNDING_UNDETERMINED` and never selected. No weight, threshold, band,
+tie-break, sample interval, stop, target, hold or eligibility rule changed.
+
+**What the research output shows.** `research_pit.json` -> `picks.day.funding_signal` names the three readings - legacy
+(`LEGACY_SURVIVORSHIP_UNQUALIFIED`, the assumption described), corrected (`OBSERVED_SETTLEMENTS_ONLY`,
+`v8.pit-research/3`, its rule) and scenario (`SCENARIO / NOT AUTHORITY`, never selects) - and every side reports
+`funding_signal_rows` (corrected candidate rows on an observed settlement, carried through `NOT_DUE`, unknown and
+excluded; Top-5 samples undetermined). The text report prints both.
+
+**Tests** (`tests/test_v8_phase8_hotfix.py`): the signal states (before the first observation, observed nonzero,
+observed zero exactly 0.0, `NOT_DUE` carry, a missed settlement and a gap unknown at once, resumption, after the last
+cycle); the scenario never reaching the signal or the selection; a score-band boundary moved by the funding check's 5
+points (the legacy assumption moves the legacy row, an unknown corrected input yields no corrected row at all); a Top 5
+whose order is decided by the observed funding (and a candidate with unknown funding that could reach it making the
+sample undetermined); full observed authority reproducing the legacy selection exactly; funding recorded only after the
+first sample, a gap and zero settlements on a 160-day synthetic dataset. The old test claiming funding changes costs
+only was replaced: a cost-only change (scenario funding in the cost panel, the observed signal fixed) never changes
+the selection, while a different observed funding does change it.
+
+The honest window is unchanged: market data ends at 1791100800 (2026-10-04 08:00 UTC), the point-in-time history begins
+at 1791313657 (2026-10-06 19:07:37 UTC); qualified overlap 0, qualified quant trades 0, qualified day Top-5 samples 0,
+promotion NONE.
+
+## Newest-checkpoint authority of the capture tail (v8-phase8.1)
+
+A Codex review of the hotfix (thread 4251459021) found that the bounded tail check (`history.Chain`, which decides
+whether a scan may append) did not prove what full verification requires: **a DELTA's base is the newest CHECKPOINT
+before it**. The check confirmed only that the referenced base existed, was a checkpoint with a matching hash and
+the same schema, and that the records around it linked. A self-consistent forgery passed it:
+* seq 1, a v1 checkpoint A;
+* seq 2, a v2 checkpoint B;
+* seq 3, a v1 delta whose base points back to A, with a correct `prev_hash` to B and recomputed content and record
+  hashes.
+
+`verify()` rejected it, but `Chain` reported `VERIFIED_TAIL` and the next scan appended to it.
+
+**One rule, two walks.** `history.newest_checkpoint_problems(delta, newest)` is the only definition. The delta's base
+must name exactly `newest` (seq and record hash), where `newest` is the newest checkpoint with a lower seq. Newest means
+by sequence: not the newest of the delta's schema, nor any checkpoint whose hash happens to match. The two callers
+establish `newest` differently:
+* `verify()` tracks it walking the chain forward, as before, with the same message.
+* `Chain` finds it walking backward from the record before the tail, one record at a time, to the first CHECKPOINT,
+  and stops there. Every record it reads must be a valid record at its path's sequence.
+
+`Chain` then checks every record from that checkpoint to the tail: links, the shared schema-transition rules, and the
+newest-checkpoint rule for every delta. It also reads the checkpoint's own predecessor, only to check the checkpoint's
+link and schema transition. When the tail is itself a checkpoint, the walk starts from the previous record, so a
+delta just before a new checkpoint is still checked. The same-schema delta/base rule stays a separate, additional
+requirement.
+
+**Bounded by the cadence, not the history.** A valid chain is read back only to its newest checkpoint, and the writer
+starts one at least every 24 hours. The fixed seven-read bound of the first hotfix could not prove which checkpoint is
+newest, so it is replaced by this bound. On the production history (`v8-history` `8e03b2a`, 34 v8.history/1
+observations: checkpoints 1-30, deltas 31-34 on 30), the tail proof reads seqs 29-34. A bad delta deep in a run - A, B,
+then deltas 3, 4, 5, 6, ... all on A - is caught however far it is from the tail: the walk reaches B and rejects A.
+A legitimate old-writer re-run is unchanged: an f142bb1 v1 checkpoint becomes the newest checkpoint, its v1 deltas
+name it, and it stays a `schema_regression`, not corruption.
+
+**Tests** (`tests/test_v8_phase8_hotfix.py`, `NewestCheckpointAuthority` and
+`HistoryFailClosed.test_tail_reads_remain_bounded_on_a_long_valid_chain`):
+* the exact Codex reproduction: `verify()` not ok; `Chain` `BROKEN`; `append()` `INTEGRITY_BROKEN`; capture
+  `DEGRADED`; no file written; no byte changed;
+* a run of 4 and of 12 such deltas after B;
+* a v2 delta naming an older v2 checkpoint (same schema, so only the sequence rule catches it);
+* controls: v1 checkpoint, then v2 checkpoint, then v2 deltas; a checkpoint with several same-schema deltas; the
+  old-writer recovery with the frozen f142bb1 writer;
+* a long valid chain (66 records, a checkpoint every 10): the proof reads exactly the newest checkpoint's predecessor
+  through the tail.
+
+No record format, hash, cadence, schema or version changed (`v8.history/2`, `v8.pit-research/3`, `v8.audit/7`,
+`v8-phase8.1`, `v8.identity/4` unchanged), and `v8-history` was not touched.

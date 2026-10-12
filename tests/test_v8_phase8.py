@@ -660,8 +660,27 @@ class PointInTime(Tmp):
         self.assertEqual(len(iv), 1)                  # the outage neither closed nor reopened the interval
         self.assertIsNone(iv[0]["first_observed_inactive"])
         u = self.h.universe_at(self.at(4, 1), min_vol=1e6)
-        self.assertIsNone(u["assets"]["EDGEONLY"]["research_eligible"])          # unknown, never False
+        # v8.pit/2: eligibility is a three-valued AND. EDGEONLY trades only on edgex, which is not a trade DEX: it was
+        # known not to pass the execution gate (NOT_ON_TRADE_DEX), so it is False because of that - never because of
+        # the outage. The outage itself is still UNKNOWN (above), and test_trade_dex_outage_is_unknown_not_false shows
+        # an asset whose only venue is a trade DEX staying unknown, never False, through an outage.
+        self.assertEqual(u["assets"]["EDGEONLY"]["state"], P.UNKNOWN)
+        self.assertEqual(u["assets"]["EDGEONLY"]["liquidity"]["state"], "NOT_ON_TRADE_DEX")
+        self.assertFalse(u["assets"]["EDGEONLY"]["research_eligible"])
         self.assertEqual(self.h.exposure_at(self.at(4, 1), "edgex:EDGEONLY")["reason"], "ABSENT_THIS_OBSERVATION")
+
+    def test_trade_dex_outage_is_unknown_not_false(self):
+        st = self.store("ldown")
+        cs = [contract("hyperliquid:BTC", "BTC", vol=5e8), contract("lighter:LONLY", "LONLY", vol=4e6)]
+        append(st, snapshot(T0, "gh-1-1", cs))
+        down = copy.deepcopy(VENUES_OK)
+        down["lighter"] = {"ok": False, "raw": 0}
+        append(st, snapshot(T0 + HOUR, "gh-2-1", cs[:1], venues=down))
+        h = P.History(st)
+        u = h.universe_at(T0 + HOUR + 60, min_vol=1e6)
+        self.assertEqual((u["assets"]["LONLY"]["state"], u["assets"]["LONLY"]["reason"]), (P.UNKNOWN, P.VENUE_UNAVAILABLE))
+        self.assertIsNone(u["assets"]["LONLY"]["research_eligible"])          # unknown, never False
+        self.assertTrue(u["assets"]["BTC"]["research_eligible"])
 
     def test_relisting_opens_a_new_interval(self):
         iv = self.h.intervals("RELIST")
@@ -834,8 +853,9 @@ class ShadowLedger(Tmp):
 class VersionsAndIsolation(unittest.TestCase):
     def test_versions(self):
         from v8 import ENGINE_VERSION, SCHEMA, discovery as DS, identity as ID, provenance
-        self.assertEqual((SCHEMA, ENGINE_VERSION), ("v8.audit/6", "v8-phase8.0"))
-        self.assertEqual((H.VERSION, P.VERSION, SL.VERSION), ("v8.history/1", "v8.pit/1", "v8.shadow-ledger/1"))
+        self.assertEqual((SCHEMA, ENGINE_VERSION), ("v8.audit/7", "v8-phase8.1"))
+        self.assertEqual((H.VERSION, P.VERSION, SL.VERSION), ("v8.history/2", "v8.pit/2", "v8.shadow-ledger/1"))
+        self.assertEqual(H.SCHEMAS, ("v8.history/1", "v8.history/2"))
         self.assertEqual((ID.VERSION, DS.VERSION), ("v8.identity/4", "v8.discovery/1"))
         self.assertEqual(provenance.identity_config_hash(),
                          "96a10dc22e22d0bcf2c6ed1970ea1de72307426dfad2b53020a2b998c125d12c")
@@ -950,14 +970,14 @@ class ResearchCosts(Tmp):
             append(st, snapshot(T0 + k * 5 * HOUR, f"gh-{k}-1", [contract("hyperliquid:X", "X", vol=vol)]))
         h = P.History(st)
         times = [T0 + 60, T0 + 5 * HOUR + 60, T0 + 10 * HOUR + 60, T0 - 1, T0 + 10 * HOUR + 13 * HOUR]
-        vol, state, slip = PC.liquidity_panel(h, times, ["X", "Y"])
+        vol, state, slip, _ = PC.liquidity_panel(h, times, ["X", "Y"])
         self.assertEqual(list(slip[:3, 0]), [0.0005, 0.001, 0.002])
         self.assertTrue(np.isnan(slip[3, 0]) and np.isnan(slip[4, 0]))           # before / stale: unknown
         self.assertEqual(state[3, 0], PC.L_UNKNOWN)
         self.assertTrue(np.isnan(slip[:, 1]).all())                               # never observed: unknown
         # a new observation today does not change the cost of an old trade
         append(st, snapshot(T0 + 20 * HOUR, "gh-9-1", [contract("hyperliquid:X", "X", vol=9e9)]))
-        _, _, slip2 = PC.liquidity_panel(P.History(st), times[:3], ["X"])
+        _, _, slip2, _ = PC.liquidity_panel(P.History(st), times[:3], ["X"])
         self.assertEqual(list(slip2[:, 0]), [0.0005, 0.001, 0.002])
         self.assertEqual(list(PC.legacy_slip([5e6, 5e5, 1e5])), [0.0005, 0.001, 0.002])
 

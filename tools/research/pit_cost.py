@@ -9,7 +9,9 @@ Slippage  time-varying [time, coin]: the tier (same tiers as the scanner: $1M+ a
           $200k-$1M 0.1%, below $200k 0.2%) of the execution liquidity the v8 history recorded at or before that
           time and no older than v8.pit.LIQUIDITY_MAX_STALENESS_S. No such record, or a MISSING volume, is
           LIQUIDITY_HISTORY_UNKNOWN: NaN, never a tier. A trade's entry pays the slippage known at its entry and
-          its exit the slippage known at its exit; today's volume never changes a past trade's cost.
+          its exit the slippage known at its exit; today's volume never changes a past trade's cost. A value
+          whose precision cannot decide a tier threshold (every v8.history/1 KNOWN value, rounded to a whole dollar;
+          a v8.history/2 value recorded on a threshold) is LIQUIDITY_PRECISION_UNQUALIFIED: no tier (v8.pit.decides).
 Funding   per hour: OBSERVED (a settlement was recorded), OBSERVED_ZERO (recorded at 0), NOT_DUE (inside the
           recorded series, between settlements) or MISSING (before the first or after the last settlement, inside a
           gap longer than the venue's cycle allows, or no funding series at all). Only observed settlements count.
@@ -23,10 +25,14 @@ from __future__ import annotations
 import csv
 import gzip
 import os
+import sys
 
 import numpy as np
 
-VERSION = "v8.pit-cost/1"
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+from v8 import pit as PIT  # noqa: E402
+
+VERSION = "v8.pit-cost/2"
 FEE_SCHEDULE = {
     "version": "v8.fees/1", "taker": 0.00045, "maker": 0.00015,
     "basis": "Hyperliquid base tier (taker 0.045%, maker 0.015%), the schedule the research has always used "
@@ -38,8 +44,9 @@ SCENARIO_FUNDING_8H = 0.0001                                                 # A
 F_NOT_DUE, F_OBSERVED, F_OBSERVED_ZERO, F_MISSING = 0, 1, 2, 3
 FUNDING_STATES = {F_NOT_DUE: "NOT_DUE", F_OBSERVED: "OBSERVED", F_OBSERVED_ZERO: "OBSERVED_ZERO",
                   F_MISSING: "MISSING"}
-L_KNOWN, L_UNKNOWN, L_MISSING, L_NOT_ON_TRADE_DEX = 0, 1, 2, 3
+L_KNOWN, L_UNKNOWN, L_MISSING, L_NOT_ON_TRADE_DEX, L_PRECISION = 0, 1, 2, 3, 4
 LIQUIDITY_STATES = {L_KNOWN: "KNOWN", L_UNKNOWN: "LIQUIDITY_HISTORY_UNKNOWN", L_MISSING: "MISSING",
+                    L_PRECISION: "LIQUIDITY_PRECISION_UNQUALIFIED",
                     L_NOT_ON_TRADE_DEX: "NOT_ON_TRADE_DEX"}
 GAP_TOLERANCE = 1.5          # a settlement later than 1.5 cycles after the previous one leaves a gap
 
@@ -59,32 +66,60 @@ def tiers(vol):
 
 
 # --------------------------------------------------------------------------- liquidity / slippage [time, coin]
-def liquidity_panel(hist, times, coins):
-    """(vol [T,N] NaN unless KNOWN, state [T,N] int8, slip [T,N] NaN unless KNOWN) from a v8.pit.History for the
-    given unix times (each the moment a cost is paid) and coin tickers."""
+def _record_codes(vs, min_vol):
+    """Per liquidity record: (state code, value or NaN, slippage or NaN, gate 1 / 0 / -1). A KNOWN value whose
+    precision cannot decide every tier threshold is LIQUIDITY_PRECISION_UNQUALIFIED: no value, no slippage."""
+    n = len(vs)
+    st = np.full(n, L_UNKNOWN, dtype=np.int8)
+    val, slip = np.full(n, np.nan), np.full(n, np.nan)
+    gate = np.full(n, -1, dtype=np.int8)
+    for k, (s, v, prec) in enumerate(vs):
+        if s == "NOT_ON_TRADE_DEX":
+            st[k], gate[k] = L_NOT_ON_TRADE_DEX, 0
+        elif s == "MISSING":
+            st[k], gate[k] = L_MISSING, 0        # the live gate never passes a missing volume
+        elif s == "KNOWN" and v is not None:
+            d = [PIT.decides(v, prec, lo) for lo, _ in SLIP_TIERS[:-1]]
+            if all(x is not None for x in d):
+                st[k], val[k] = L_KNOWN, float(v)
+                slip[k] = next((sl for (lo, sl), x in zip(SLIP_TIERS[:-1], d) if x), SLIP_TIERS[-1][1])
+            else:
+                st[k] = L_PRECISION
+            if min_vol is not None:
+                g = PIT.decides(v, prec, min_vol)
+                gate[k] = -1 if g is None else int(g)
+    return st, val, slip, gate
+
+
+def liquidity_panel(hist, times, coins, min_vol=None):
+    """(vol, state, slip, gate) [T,N] from a v8.pit.History for the given unix times (each the moment a cost is
+    paid or a decision made) and coin tickers: vol and slip NaN unless KNOWN with a precision that decides every
+    tier; state a code of LIQUIDITY_STATES; gate (when min_vol is given) 1 / 0 / -1 for a decidable KNOWN volume of
+    at least min_vol / known below it, MISSING or not on a trade DEX / unknown (no fresh record, or a precision
+    that cannot decide it)."""
     times = np.asarray(times, dtype=np.int64)
     T, N = len(times), len(coins)
     vol = np.full((T, N), np.nan)
+    slip = np.full((T, N), np.nan)
     state = np.full((T, N), L_UNKNOWN, dtype=np.int8)
-    if hist is not None and hist.ok:
-        for j, c in enumerate(coins):
-            ts, vs = hist._liq.get(c, ((), ()))
-            if not ts:
-                continue
-            ts_a = np.asarray(ts, dtype=np.int64)
-            k = np.searchsorted(ts_a, times, side="right") - 1
-            ok = k >= 0
-            kk = np.where(ok, k, 0)
-            fresh = ok & (times - ts_a[kk] <= hist.liq_max_staleness_s)
-            st = np.array([s for s, _ in vs], dtype=object)
-            val = np.array([np.nan if v is None else float(v) for _, v in vs])
-            sel_st, sel_v = st[kk], val[kk]
-            known = fresh & (sel_st == "KNOWN") & np.isfinite(sel_v)
-            vol[known, j] = sel_v[known]
-            state[known, j] = L_KNOWN
-            state[fresh & (sel_st == "MISSING"), j] = L_MISSING
-            state[fresh & (sel_st == "NOT_ON_TRADE_DEX"), j] = L_NOT_ON_TRADE_DEX
-    return vol, state, tiers(vol)
+    gate = np.full((T, N), -1, dtype=np.int8)
+    if hist is None or not getattr(hist, "usable", False):
+        return vol, state, slip, gate
+    for j, c in enumerate(coins):
+        ts, vs = hist._liq.get(c, ((), ()))
+        if not ts:
+            continue
+        ts_a = np.asarray(ts, dtype=np.int64)
+        k = np.searchsorted(ts_a, times, side="right") - 1
+        ok = k >= 0
+        kk = np.where(ok, k, 0)
+        fresh = ok & (times - ts_a[kk] <= hist.liq_max_staleness_s)
+        st, val, sl, g = _record_codes(vs, min_vol)
+        state[fresh, j] = st[kk][fresh]
+        vol[fresh, j] = val[kk][fresh]
+        slip[fresh, j] = sl[kk][fresh]
+        gate[fresh, j] = g[kk][fresh]
+    return vol, state, slip, gate
 
 
 def legacy_slip(trade_vol):

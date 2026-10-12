@@ -27,13 +27,23 @@ import qsim
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from v8 import pit as PIT  # noqa: E402
 
-VERSION = "v8.pit-research/1"
+VERSION = "v8.pit-research/3"
 U_ELIGIBLE, U_NOT_ELIGIBLE, U_UNKNOWN = 1, 0, -1
 ST_ACTIVE, ST_INACTIVE, ST_UNKNOWN = 1, 0, -1
 
 
+def usable(hist):
+    """Whether a point-in-time view answers anything: a verified chain with at least one observation at the cutoff
+    (a verified chain whose observations all lie after the cutoff is HISTORY_EMPTY / BEFORE_PIT_HISTORY)."""
+    return hist is not None and bool(getattr(hist, "usable", False))
+
+
 def _obs_index(hist, times):
-    """Index of the latest observation at or before each time, and whether it is fresh enough."""
+    """Index of the latest observation at or before each time, and whether it is fresh enough (all -1 / False for a
+    view with no observation)."""
+    times = np.asarray(times)
+    if not usable(hist):
+        return np.full(len(times), -1, dtype=np.int64), np.zeros(len(times), dtype=bool)
     ht = np.asarray(hist.times, dtype=np.float64)
     i = np.searchsorted(ht, np.asarray(times, dtype=np.float64), side="right") - 1
     ii = np.where(i >= 0, i, 0)
@@ -67,39 +77,45 @@ def universe_panel(hist, times, coins, min_vol):
     """Point-in-time panels at the given decision times, for `coins` (columns):
         active    1 KNOWN_ACTIVE, 0 KNOWN_INACTIVE, -1 UNKNOWN
         crypto    1 verified crypto identity recorded then, 0 another identity, -1 unknown
-        liq_gate  1 KNOWN trade-DEX volume >= min_vol, 0 known below it or not on a trade DEX, -1 unknown
-        code      1 eligible (all three 1), 0 known not eligible, -1 unknown
-        complete  [T] every asset eligible then (in the whole history, not only `coins`) has a column
-        missing   [T] how many eligible assets have no column"""
+        liq_gate  1 a decidable KNOWN trade-DEX volume >= min_vol, 0 known to fail the live gate (below it, MISSING -
+                  a missing volume never passes - or not on a trade DEX), -1 unknown (stale, or a precision that
+                  cannot decide the gate: v8.history/1, LIQUIDITY_PRECISION_UNQUALIFIED)
+        code      a three-valued AND: 1 all three 1, 0 any of them 0, -1 otherwise
+        complete  [T] the cross-section is the universe of that time: no asset of the whole history is unknown then
+                  and every eligible one has a column
+        missing   [T] eligible assets without a column; unknown [T] assets whose eligibility is unknown
+    A view with no observation (no history, a broken chain, nothing at the cutoff) leaves everything unknown and
+    nothing complete."""
     times = np.asarray(times, dtype=np.int64)
     T, N = len(times), len(coins)
     out = {k: np.full((T, N), -1, dtype=np.int8) for k in ("active", "crypto", "liq_gate", "code")}
     out["complete"] = np.zeros(T, dtype=bool)
     out["missing"] = np.zeros(T, dtype=np.int64)
-    if hist is None or not hist.ok:
+    out["unknown"] = np.zeros(T, dtype=np.int64)
+    if not usable(hist):
         return out
     i, fresh = _obs_index(hist, times)
     col = {c: j for j, c in enumerate(coins)}
     assets = sorted(set(hist._asset) | set(coins))
-    vol, lst, _ = PC.liquidity_panel(hist, times, assets)
+    _, _, _, gates = PC.liquidity_panel(hist, times, assets, min_vol)
+    seen = set(hist._asset)
     for a_idx, a in enumerate(assets):
         st = _rl_codes(hist._asset, a, i, fresh, _active_code)
         crypto = _rl_codes(hist._ident, a, i, fresh, _crypto_code)
-        lv, ls = vol[:, a_idx], lst[:, a_idx]
-        gate = np.full(T, -1, dtype=np.int8)
-        known = ls == PC.L_KNOWN
-        gate[(ls == PC.L_NOT_ON_TRADE_DEX) | (known & (lv < min_vol))] = 0
-        gate[known & (lv >= min_vol)] = 1
+        gate = gates[:, a_idx]
         c = np.full(T, U_UNKNOWN, dtype=np.int8)
-        c[(st == 0) | ((st == 1) & (crypto == 0)) | ((st == 1) & (crypto == 1) & (gate == 0))] = U_NOT_ELIGIBLE
+        c[(st == 0) | (crypto == 0) | (gate == 0)] = U_NOT_ELIGIBLE
         yes = (st == 1) & (crypto == 1) & (gate == 1)
         c[yes] = U_ELIGIBLE
+        if a in seen:          # an asset the history had seen by then: unknown blocks completeness
+            seen_then = _rl_codes(hist._asset, a, i, i >= 0, lambda p: 1) == 1
+            out["unknown"] += (c == U_UNKNOWN) & seen_then
         if a in col:
             j = col[a]
             out["active"][:, j], out["crypto"][:, j], out["liq_gate"][:, j], out["code"][:, j] = st, crypto, gate, c
         else:
             out["missing"] += yes
-    out["complete"] = fresh & (out["missing"] == 0)
+    out["complete"] = fresh & (out["missing"] == 0) & (out["unknown"] == 0)
     return out
 
 
@@ -129,8 +145,19 @@ def simulate(p, sig):
     return {k: v[taken] for k, v in s.items()}, res[taken]
 
 
-def qualify(p, s, res, uni, slip_pt, frate, fstate, scen=None):
-    """Per-trade point-in-time costs and qualification for qsim trades. Returns a dict of arrays."""
+def liquidity_reason(gate, st_entry, st_exit):
+    """The liquidity reason of one trade that is not liquidity-qualified (gate at the decision, states at entry and
+    exit from pit_cost.liquidity_panel)."""
+    if PC.L_PRECISION in (st_entry, st_exit):
+        return PIT.LIQUIDITY_PRECISION_UNQUALIFIED
+    if gate == 0:
+        return "BELOW_GATE_MISSING_OR_NOT_ON_TRADE_DEX_THEN"
+    return PIT.LIQUIDITY_HISTORY_UNKNOWN
+
+
+def qualify(p, s, res, uni, slip_pt, frate, fstate, scen=None, liq_state=None):
+    """Per-trade point-in-time costs and qualification for qsim trades (liq_state: the liquidity state panel the
+    slippage came from, to name precision-unqualified liquidity). Returns a dict of arrays."""
     n = len(res)
     if n == 0:
         return {"n": 0}
@@ -152,6 +179,11 @@ def qualify(p, s, res, uni, slip_pt, frate, fstate, scen=None):
          "liquidity_ok": (uni["liq_gate"][si, j] == 1) & c["liquidity_known"],
          "funding_ok": c["funding_known"]}
     q["cost_ok"] = c["liquidity_known"] & q["funding_ok"]
+    if liq_state is not None:
+        g = uni["liq_gate"][si, j]
+        q["liq_reason"] = [None if ok else liquidity_reason(int(g[k]), int(liq_state[i0[k], j[k]]),
+                                                            int(liq_state[ex[k], j[k]]))
+                           for k, ok in enumerate(q["liquidity_ok"])]
     q["closed"] = res[:, qsim.R_REASON].astype(int) != qsim.REASONS.index("end")     # still open when data ends
     q["fully_qualified"] = q["universe_ok"] & q["identity_ok"] & q["liquidity_ok"] & q["cost_ok"]
     q.update({k: c[k] for k in ("fee", "slip_entry", "slip_exit", "slippage", "funding", "cost",
@@ -162,27 +194,41 @@ def qualify(p, s, res, uni, slip_pt, frate, fstate, scen=None):
     return q
 
 
+def view_reason(hist):
+    """Why a point-in-time view answers nothing, or None: NO_HISTORY, HISTORY_INTEGRITY_FAILED, HISTORY_EMPTY (an
+    empty store) or BEFORE_PIT_HISTORY (a verified chain with no observation at the cutoff)."""
+    if hist is None:
+        return "NO_HISTORY"
+    if not hist.ok:
+        return hist.status
+    if not hist.times:
+        return PIT.BEFORE_PIT_HISTORY
+    return None
+
+
 def reasons(q, hist):
     """Why trades are not fully qualified: {component: {reason: count}}."""
     out = {"universe": {}, "identity": {}, "liquidity": {}, "funding": {}}
     if not q.get("n"):
         return out
-    start = hist.times[0] if hist is not None and hist.ok and hist.times else None
+    vr = view_reason(hist)
+    start = hist.times[0] if vr is None else None
 
     def add(comp, r):
         out[comp][r] = out[comp].get(r, 0) + 1
 
     for k in range(q["n"]):
         t = q["t_entry"][k]
-        before = start is None or t < start
-        why_hist = "NO_VERIFIED_HISTORY" if start is None else "BEFORE_PIT_HISTORY"
+        before = vr is not None or t < start
+        why_hist = vr or PIT.BEFORE_PIT_HISTORY
         if not q["universe_ok"][k]:
-            add("universe", why_hist if before else ("PIT_UNIVERSE_CANDLES_MISSING" if not q["universe_complete"][k]
+            add("universe", why_hist if before else ("PIT_UNIVERSE_INCOMPLETE" if not q["universe_complete"][k]
                                                      else "NOT_ACTIVE_OR_UNKNOWN_THEN"))
         if not q["identity_ok"][k]:
             add("identity", why_hist if before else "IDENTITY_NOT_VERIFIED_CRYPTO_OR_UNKNOWN_THEN")
         if not q["liquidity_ok"][k]:
-            add("liquidity", why_hist if before else "LIQUIDITY_HISTORY_UNKNOWN_OR_BELOW_GATE")
+            lr = (q.get("liq_reason") or [None] * q["n"])[k]
+            add("liquidity", why_hist if before else (lr or "LIQUIDITY_HISTORY_UNKNOWN_OR_BELOW_GATE"))
         if not q["funding_ok"][k]:
             add("funding", "FUNDING_HISTORY_GAP")
     return out
