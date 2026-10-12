@@ -251,9 +251,8 @@ with a diagnostic `aggregate` and never an `authoritative` one. Swing research u
 (`base_mask`, `band_mask`, extracted unchanged: the merged version had dropped its forward-window condition, `max30`
 finite), reports a corrected band only with 30+ point-in-time eligible rows (as `band_stats`), labels its base
 `DIAGNOSTIC / NOT SWING STRATEGY AUTHORITY`, and counts the "ready" band (80+, the 80-90 and 90+ rows again) once in
-the qualified window. `pk_trades.sim` closes a trade still open at the last bar at that close; such a row (its exit on
-the last bar before its holding limit: 24 hours for day trades, 30 days for swing) stays in the selection and its
-counts (`open_at_data_end`) but never in an authoritative aggregate, as quant's open trades. On a synthetic
+the qualified window. Every selected row has a closed trade: `pk_trades.sim` leaves no result for a trade still open
+when the data ends, so no open trade can reach an aggregate (`open_at_data_end` is 0 by construction). On a synthetic
 full-authority dataset (160 days, costs equal the legacy assumptions, finite swing scores) the corrected selection
 equals `pk_day.py`'s and `picks_export`'s row for row - scores, bands, Top-5 membership and ranking - and so does every
 net R; observed funding then changes costs only, never the selection.
@@ -268,9 +267,13 @@ unchanged.
 into 1,000,000, across the slippage and execution thresholds. The writer is now `v8.history/2`: the finite value as
 the audit registry recorded it, never rounded, with `liquidity_precision` on every record. The existing production
 records are `v8.history/1` and stay byte-identical: the verifier reads both schemas in one chain (a v2 record links to
-the previous record's hash whatever its version, the first v2 record is a checkpoint with a full liquidity table, a v2
-delta's base is a v2 checkpoint, no v1 record may follow a v2 record). Their KNOWN liquidity is `PRECISION_LOST_V1`:
-it never decides a threshold or a slippage tier (`LIQUIDITY_PRECISION_UNQUALIFIED`), while their contracts, assets,
+the previous record's hash whatever its version, a delta's base is a checkpoint of its own schema, a v2 record after a
+record of another schema is a checkpoint with the full liquidity table). A v1 record after a v2 one - a re-run of a
+Scan run that started before the hotfix runs the f142bb1 writer - is accepted under its own schema and counted
+(`schema_regressions` in the verify report): the branch is append-only, so rejecting it would break the history for
+good, and its liquidity is precision-unqualified anyway; the next v2 record starts again from a full checkpoint
+(tested with the frozen f142bb1 writer, `tests/fixtures/v8/history_v1_chain/writer_f142bb1.py`). The KNOWN
+liquidity of every v1 record is `PRECISION_LOST_V1`: it never decides a threshold or a slippage tier (`LIQUIDITY_PRECISION_UNQUALIFIED`), while their contracts, assets,
 identity and venue health stay usable. Nothing was recovered from the archived artifacts (that would need a
 correction record with its own precedence rules; the point-in-time and market-data windows do not overlap yet, so
 nothing is lost by failing closed).
