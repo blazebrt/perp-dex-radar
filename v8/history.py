@@ -15,8 +15,8 @@ written with git plumbing and pushed without --force. A file is never modified o
 An observation is a CHECKPOINT (the full contract and asset state) or a DELTA (the rows that differ from its base: the
 newest checkpoint before it, named by seq and hash). A checkpoint is written at genesis, for every backfilled
 observation, when the newest checkpoint is older than CHECKPOINT_EVERY_S and whenever the chain end cannot be
-checked. Appending reads at most three observations (the last, the one before it, the base checkpoint), so a scan's
-cost does not grow with the history. Liquidity is recorded when the last liquidity observation is LIQUIDITY_EVERY_S
+checked. Appending reads the records since the newest checkpoint (Chain; v8 Phase 8.1), so a scan's cost is bounded
+by the checkpoint cadence and does not grow with the history. Liquidity is recorded when the last liquidity observation is LIQUIDITY_EVERY_S
 or more away from this one (and in every backfilled observation).
 
 Integrity: every observation carries `seq` (append order), `record_hash` (sha256 of every persisted field except
@@ -56,6 +56,7 @@ import sys
 import tempfile
 import time
 import zipfile
+import zlib
 
 V1, V2 = "v8.history/1", "v8.history/2"
 VERSION = V2                       # what this writer appends
@@ -244,6 +245,20 @@ def schema_transition_problems(obs, previous, base=None):
     if obs.get("state_mode") == DELTA and base is not None and base.get("schema") != sch:
         problems.append(f"{sch} delta on a {base.get('schema')} checkpoint")
     return problems
+
+
+def newest_checkpoint_problems(delta_obs, newest):
+    """The single base-authority rule for a DELTA, shared by verify() and Chain (v8 Phase 8.1).
+
+    `newest` is the newest CHECKPOINT with a seq below the delta's, as the caller established it: verify() tracks it
+    walking the chain forward; Chain finds it walking backward from the delta to the first checkpoint. It is the
+    newest by sequence - never the newest of the delta's schema, nor any checkpoint whose hash happens to match - and
+    None when none could be established. The delta's base must name exactly that checkpoint (seq and record hash); the
+    same-schema delta/base rule (schema_transition_problems) is a separate, additional requirement."""
+    ref = delta_obs.get("base") if isinstance(delta_obs.get("base"), dict) else {}
+    if newest is None or ref.get("seq") != newest.get("seq") or ref.get("hash") != obs_hash(newest):
+        return ["delta base is not the newest checkpoint before it"]
+    return []
 
 
 def schema_report_key(schema):
@@ -442,10 +457,20 @@ class DirStore:
 
 
 class Chain:
-    """The end of an observation chain: the last two records and their base checkpoints, with predecessor context
-    for schema transitions (at most seven observations, cached). Gives what the next append needs - seq,
-    prev_hash, the base checkpoint and its state, when liquidity was last recorded, the bytes held - and checks the
-    links it read (VERIFIED_TAIL) or reports BROKEN. The whole chain is checked by verify()."""
+    """The end of an observation chain, checked back to its newest checkpoint (v8 Phase 8.1). Gives what the next
+    append needs - seq, prev_hash, the base checkpoint and its state, when liquidity was last recorded, the bytes
+    held - and checks the records it read (VERIFIED_TAIL) or reports BROKEN. The whole chain is checked by verify().
+
+    The window it checks: every record from the newest CHECKPOINT at or before the previous record up to the last
+    record (the last record's own newest checkpoint when it is a DELTA; the previous record's when the last record is
+    a CHECKPOINT), plus that checkpoint's predecessor, read only for the checkpoint's own link and schema transition.
+    The checkpoint is found by walking backward one record at a time from the record before the tail to the first
+    CHECKPOINT - each record read must be a valid record at its path's sequence - and the walk never goes further, so a
+    valid chain reads only the records since its newest checkpoint (the writer starts a new checkpoint at least every
+    CHECKPOINT_EVERY_S) and never the whole history. Inside the window every link must hold, every record must pass
+    the shared schema transition rules, and every DELTA must name the newest checkpoint before it
+    (newest_checkpoint_problems: the rule verify() applies), so a delta that points past a newer checkpoint is caught
+    however far it is from the tail."""
 
     def __init__(self, store):
         self.store = store
@@ -469,62 +494,43 @@ class Chain:
         n = last.get("seq")
         if n != _seq_of(last_path) or n != len(self.paths) or sorted(self.by_seq) != list(range(1, n + 1)):
             return
-        prev = None
-        if n > 1:
-            prev = decode(store.read_bytes(self.by_seq[n - 1]))
-            if record_problems(prev) or last.get("prev_hash") != obs_hash(prev):
-                return
-        elif last.get("prev_hash") is not None:
-            return
-        if last.get("state_mode") == CHECKPOINT:
-            base = last
-        else:
-            b = last.get("base") or {}
-            if b.get("seq") not in self.by_seq:
-                return
-            base = decode(store.read_bytes(self.by_seq[b["seq"]]))
-            if (record_problems(base) or base.get("seq") != b["seq"] or base.get("state_mode") != CHECKPOINT
-                    or obs_hash(base) != b.get("hash")):
-                return
-        # Validate the records that authorize this tail, including the previous
-        # record and base checkpoint. Their predecessor context is read only as
-        # needed; this never walks the full chain. Shared transition rules prevent
-        # a self-consistent v2 delta on a v1 base from authorizing another append.
-        cache = {n: last, base["seq"]: base}
-        if prev is not None:
-            cache[n - 1] = prev
+        cache = {n: last}
 
         def read_context(seq):
-            if not valid_seq(seq):
+            # one record of the window, valid by itself and at its path's sequence (fails closed otherwise)
+            if not valid_seq(seq) or seq not in self.by_seq:
                 raise ValueError("invalid context sequence")
             if seq not in cache:
                 cache[seq] = decode(store.read_bytes(self.by_seq[seq]))
             record = cache[seq]
-            if record.get("seq") != seq or record_problems(record):
+            if not isinstance(record, dict) or record.get("seq") != seq or record_problems(record):
                 raise ValueError("invalid tail context")
             return record
 
-        primary = [last] + ([prev] if prev is not None else []) + [base]
-        checked = set()
+        def newest_checkpoint_at(seq):
+            # walk backward from seq to the first CHECKPOINT: by definition the newest one at or before seq; a run
+            # of deltas reaching seq 1 has none (read_context(0) fails)
+            while read_context(seq).get("state_mode") != CHECKPOINT:
+                seq -= 1
+            return cache[seq]
+
+        base = None
         try:
-            for record in primary:
-                seq = record["seq"]
-                if seq in checked:
-                    continue
-                checked.add(seq)
+            start = newest_checkpoint_at(n - 1 if n > 1 else n)["seq"]
+            for seq in range(start, n + 1):
+                record = read_context(seq)
                 before = read_context(seq - 1) if seq > 1 else None
-                record_base = record
-                if record.get("state_mode") == DELTA:
-                    ref = record.get("base") or {}
-                    record_base = read_context(ref["seq"])
-                    if record_base.get("state_mode") != CHECKPOINT or obs_hash(record_base) != ref.get("hash"):
-                        return
-                    primary.append(record_base)
-                if schema_transition_problems(record, before, record_base):
-                    return
                 if record.get("prev_hash") != (obs_hash(before) if before is not None else None):
                     return
-        except (ValueError, KeyError, TypeError):
+                if record.get("state_mode") == CHECKPOINT:
+                    base = record_base = record           # the newest checkpoint from here on
+                elif newest_checkpoint_problems(record, base):
+                    return
+                else:
+                    record_base = base
+                if schema_transition_problems(record, before, record_base):
+                    return
+        except (ValueError, KeyError, TypeError, OSError, EOFError, zlib.error):
             return
         self.base, self.base_state = base, full_state(base)
         self.state = full_state(last, self.base_state)
@@ -672,9 +678,9 @@ def verify(store):
                 state = base_state
                 ckpt += 1
             else:
-                b = o.get("base") or {}
-                if base is None or b.get("seq") != base.get("seq") or b.get("hash") != obs_hash(base):
-                    problems.append(f"{p}: delta base is not the newest checkpoint before it")
+                base_problems = newest_checkpoint_problems(o, base)     # base: the newest checkpoint so far
+                if base_problems:
+                    problems.extend(f"{p}: {problem}" for problem in base_problems)
                     continue
                 if transition_problems:
                     continue

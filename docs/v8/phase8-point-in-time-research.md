@@ -54,8 +54,9 @@ What one observation holds - only what research needs, nothing that is not obser
 **Checkpoints and deltas.** An observation is a `CHECKPOINT` (the full state) or a `DELTA` (the rows that differ from
 its base: the newest checkpoint before it, named by seq and hash; `removed` lists rows that disappeared). A checkpoint
 is written at genesis, every 24 hours, for every backfilled observation and whenever the end of the chain cannot be
-checked. Appending reads at most three observations (the last one, the one before it, the base checkpoint), and the
-fetch is depth-1 and blob-less, so a scan's cost does not grow with the history.
+checked. Appending reads the records since the newest checkpoint (see [the newest-checkpoint
+correction](#newest-checkpoint-authority-of-the-capture-tail-v8-phase81)), and the fetch is depth-1 and blob-less, so a
+scan's cost is bounded by the checkpoint cadence and does not grow with the history.
 
 **Tombstones.** A contract that a later scan no longer returns is recorded as `removed` in that observation (or is
 absent from the next checkpoint) while its venue's state says whether the list loaded; nothing is pruned, ever (unlike
@@ -67,7 +68,8 @@ the final/head observation. It covers provenance, semantic hashes, payloads, seq
 and delta metadata, byte accounting, base and last-liquidity references. Every stored liquidity table is also
 hashed and checked against `liquidity_content_hash`; `content_hash` is checked against the reconstructed full
 contract/asset state and that digest. One governed record hash supplies the self-check, chain link, checkpoint
-reference and reported history head. The bounded append check validates the records it reads, including the head.
+reference and reported history head. The bounded append check validates the records it reads, including the head,
+and applies the same newest-checkpoint rule to every delta it reads.
 A changed head liquidity value or artifact provenance fails verification even without a later observation; PIT
 history fails closed. Rewriting, removing or reordering observations breaks record, sequence or link checks.
 
@@ -352,3 +354,52 @@ the selection, while a different observed funding does change it.
 The honest window is unchanged: market data ends at 1791100800 (2026-10-04 08:00 UTC), the point-in-time history begins
 at 1791313657 (2026-10-06 19:07:37 UTC); qualified overlap 0, qualified quant trades 0, qualified day Top-5 samples 0,
 promotion NONE.
+
+## Newest-checkpoint authority of the capture tail (v8-phase8.1)
+
+A Codex review of the hotfix (thread 4251459021) found that the bounded tail check (`history.Chain`, which decides
+whether a scan may append) did not prove what full verification requires: **a DELTA's base is the newest CHECKPOINT
+before it**. The check confirmed only that the referenced base existed, was a checkpoint with a matching hash and
+the same schema, and that the records around it linked. A self-consistent forgery passed it:
+* seq 1, a v1 checkpoint A;
+* seq 2, a v2 checkpoint B;
+* seq 3, a v1 delta whose base points back to A, with a correct `prev_hash` to B and recomputed content and record
+  hashes.
+
+`verify()` rejected it, but `Chain` reported `VERIFIED_TAIL` and the next scan appended to it.
+
+**One rule, two walks.** `history.newest_checkpoint_problems(delta, newest)` is the only definition. The delta's base
+must name exactly `newest` (seq and record hash), where `newest` is the newest checkpoint with a lower seq. Newest means
+by sequence: not the newest of the delta's schema, nor any checkpoint whose hash happens to match. The two callers
+establish `newest` differently:
+* `verify()` tracks it walking the chain forward, as before, with the same message.
+* `Chain` finds it walking backward from the record before the tail, one record at a time, to the first CHECKPOINT,
+  and stops there. Every record it reads must be a valid record at its path's sequence.
+
+`Chain` then checks every record from that checkpoint to the tail: links, the shared schema-transition rules, and the
+newest-checkpoint rule for every delta. It also reads the checkpoint's own predecessor, only to check the checkpoint's
+link and schema transition. When the tail is itself a checkpoint, the walk starts from the previous record, so a
+delta just before a new checkpoint is still checked. The same-schema delta/base rule stays a separate, additional
+requirement.
+
+**Bounded by the cadence, not the history.** A valid chain is read back only to its newest checkpoint, and the writer
+starts one at least every 24 hours. The fixed seven-read bound of the first hotfix could not prove which checkpoint is
+newest, so it is replaced by this bound. On the production history (`v8-history` `8e03b2a`, 34 v8.history/1
+observations: checkpoints 1-30, deltas 31-34 on 30), the tail proof reads seqs 29-34. A bad delta deep in a run - A, B,
+then deltas 3, 4, 5, 6, ... all on A - is caught however far it is from the tail: the walk reaches B and rejects A.
+A legitimate old-writer re-run is unchanged: an f142bb1 v1 checkpoint becomes the newest checkpoint, its v1 deltas
+name it, and it stays a `schema_regression`, not corruption.
+
+**Tests** (`tests/test_v8_phase8_hotfix.py`, `NewestCheckpointAuthority` and
+`HistoryFailClosed.test_tail_reads_remain_bounded_on_a_long_valid_chain`):
+* the exact Codex reproduction: `verify()` not ok; `Chain` `BROKEN`; `append()` `INTEGRITY_BROKEN`; capture
+  `DEGRADED`; no file written; no byte changed;
+* a run of 4 and of 12 such deltas after B;
+* a v2 delta naming an older v2 checkpoint (same schema, so only the sequence rule catches it);
+* controls: v1 checkpoint, then v2 checkpoint, then v2 deltas; a checkpoint with several same-schema deltas; the
+  old-writer recovery with the frozen f142bb1 writer;
+* a long valid chain (66 records, a checkpoint every 10): the proof reads exactly the newest checkpoint's predecessor
+  through the tail.
+
+No record format, hash, cadence, schema or version changed (`v8.history/2`, `v8.pit-research/3`, `v8.audit/7`,
+`v8-phase8.1`, `v8.identity/4` unchanged), and `v8-history` was not touched.

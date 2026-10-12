@@ -263,9 +263,17 @@ class HistoryFailClosed(Tmp):
                 self.assert_broken_no_write(st)
 
     def test_tail_reads_remain_bounded_on_a_long_valid_chain(self):
+        """v8 Phase 8.1: the tail proof reads the records since the newest checkpoint (and that checkpoint's
+        predecessor, for its own link and schema transition), never the long prefix before it. The fixed seven-read
+        bound of the first hotfix could not prove which checkpoint is the newest, so it is replaced by this bound."""
         st = self.store()
-        for k in range(40):
-            B.append(st, B.snapshot(T0 + k * 600, f"gh-bounded-{k}", B.base_contracts()))
+        for k in range(60):                                       # a long valid prefix with a checkpoint every 10
+            B.append(st, B.snapshot(T0 + k * 600, f"gh-bounded-{k}", B.base_contracts()), force_checkpoint=k % 10 == 0)
+        _, ck, _ = B.append(st, B.snapshot(T0 + 60 * 600, "gh-bounded-60", B.base_contracts()), force_checkpoint=True)
+        for k in range(61, 66):                                   # several deltas on the recent checkpoint
+            _, o, _ = B.append(st, B.snapshot(T0 + k * 600, f"gh-bounded-{k}", B.base_contracts()))
+            self.assertEqual((o["state_mode"], o["base"]["seq"]), (H.DELTA, ck["seq"]))
+        self.assertEqual(ck["seq"], 61)
         reads = []
         original_read = st.read_bytes
 
@@ -275,8 +283,188 @@ class HistoryFailClosed(Tmp):
 
         st.read_bytes = read
         self.assertEqual(H.Chain(st).integrity, "VERIFIED_TAIL")
-        self.assertLessEqual(len(reads), 7)
+        self.assertEqual(sorted(H._seq_of(p) for p in reads), list(range(60, 67)))   # 60: the checkpoint's predecessor
         self.assertEqual(len(reads), len(set(reads)))
+        # a checkpoint at the tail: its predecessor's run back to that run's checkpoint, nothing older
+        st.read_bytes = original_read
+        B.append(st, B.snapshot(T0 + 66 * 600, "gh-bounded-66", B.base_contracts()), force_checkpoint=True)
+        reads.clear()
+        st.read_bytes = read
+        self.assertEqual(H.Chain(st).integrity, "VERIFIED_TAIL")
+        self.assertEqual(sorted(H._seq_of(p) for p in reads), list(range(60, 68)))
+
+
+class NewestCheckpointAuthority(Tmp):
+    """v8 Phase 8.1 (Codex thread 4251459021): a DELTA's base must be the newest CHECKPOINT before it - by sequence,
+    not by schema or by a matching hash - in verify() and in the bounded capture-tail proof (Chain) alike."""
+
+    def v1_checkpoint_genesis(self, st):
+        """A valid v8.history/1 checkpoint A at seq 1 (a disposable test store only)."""
+        _, obs, path = B.append(st, B.snapshot(T0, "gh-a-1", B.base_contracts()))
+        obs.update(schema=H.V1, versions=dict(obs["versions"], history=H.V1))
+        obs.pop("liquidity_precision")
+        obs["content_hash"] = H.content_hash(obs, H.full_state(obs))
+        obs["record_hash"] = H.obs_hash(obs)
+        with open(os.path.join(st.root, path), "wb") as fh:
+            fh.write(H.gz(H.canonical(obs)))
+        self.assertEqual((H.record_problems(obs), obs["state_mode"]), ([], H.CHECKPOINT))
+        return obs
+
+    def forge_v1_delta(self, st, base, ts, scan):
+        """A v1 DELTA after the current tail whose base is `base`, with prev_hash, stored bytes, content and record
+        hashes recomputed: integrity, link, base existence, base kind, base hash and same-schema all hold."""
+        snap = B.snapshot(ts, scan, B.base_contracts() + [B.contract("hyperliquid:NEW", "NEW", vol=4e6)])
+        full = H.state_from_snapshot(snap)
+        obs = H.build_observation(H.Chain(st), H.scan_content(snap), full, ts)
+        base_state = H.full_state(base)
+        obs.update(schema=H.V1, versions=dict(obs["versions"], history=H.V1), state_mode=H.DELTA, liquidity=None,
+                   base={"seq": base["seq"], "hash": H.obs_hash(base)})
+        obs.pop("liquidity_precision")
+        for key, fields in (("contracts", H.CONTRACT_FIELDS), ("assets", H.ASSET_FIELDS)):
+            obs[key] = dict(H.delta(base_state[key], full[key]), fields=list(fields))
+        obs["content_hash"] = H.content_hash(obs, H.full_state(obs, base_state))
+        obs["record_hash"] = H.obs_hash(obs)
+        st.write(H.path_for(obs), H.gz(H.canonical(obs)))
+        return obs
+
+    def a_then_b(self, name):
+        st = self.store(name)
+        a = self.v1_checkpoint_genesis(st)
+        r, b, _ = B.append(st, B.snapshot(T0 + HOUR, "gh-b-1", B.base_contracts()))
+        self.assertEqual((r, b["seq"], b["schema"], b["state_mode"], b["liquidity"] is not None),
+                         (H.PERSISTED, 2, H.VERSION, H.CHECKPOINT, True))
+        self.assertTrue(H.verify(st)["ok"])
+        self.assertEqual(H.Chain(st).integrity, "VERIFIED_TAIL")
+        return st, a, b
+
+    def assert_closed(self, st):
+        files = {p: st.read_bytes(p) for p in st.paths()}
+        size = sum(len(v) for v in files.values())
+        rep = H.verify(st)
+        self.assertFalse(rep["ok"])
+        self.assertTrue(any("delta base is not the newest checkpoint before it" in p for p in rep["problems"]),
+                        rep["problems"])
+        self.assertEqual(H.Chain(st).integrity, "BROKEN")
+        snap = B.snapshot(T0 + 20 * HOUR, "gh-after-forgery-1", B.base_contracts())
+        self.assertEqual(B.append(st, snap), (H.INTEGRITY_BROKEN, None, None))     # no observation appended
+        self.assertEqual(H.capture(snap, store=st, now=T0 + 20 * HOUR)["persistence_state"], H.DEGRADED)
+        self.assertEqual(sorted(st.paths()), sorted(files))                        # no file created
+        self.assertEqual({p: st.read_bytes(p) for p in st.paths()}, files)         # nothing rewritten
+        self.assertEqual(sum(len(st.read_bytes(p)) for p in st.paths()), size)     # byte count unchanged
+        return rep
+
+    def test_exact_codex_repro_delta_naming_an_older_checkpoint(self):
+        """seq 1 v1 CHECKPOINT A, seq 2 v2 CHECKPOINT B, seq 3 a v1 DELTA whose base points back to A."""
+        st, a, b = self.a_then_b("codex")
+        d = self.forge_v1_delta(st, a, T0 + 2 * HOUR, "gh-forged-3")
+        # every check the bounded tail made before Phase 8.1 holds for the forgery ...
+        self.assertEqual(H.record_problems(d), [])
+        self.assertEqual((d["seq"], d["prev_hash"], d["stored_bytes_before"]),
+                         (3, H.obs_hash(b), sum(len(st.read_bytes(p)) for p in st.paths()[:2])))
+        self.assertEqual((d["base"]["seq"], d["base"]["hash"], a["state_mode"], a["schema"]),
+                         (1, H.obs_hash(a), H.CHECKPOINT, d["schema"]))
+        self.assertEqual(H.schema_transition_problems(d, b, a), [])
+        self.assertEqual(d["content_hash"], H.content_hash(d, H.full_state(d, H.full_state(a))))
+        # ... it names A exactly, but A is not the newest checkpoint before it: B is
+        self.assertEqual(H.newest_checkpoint_problems(d, a), [])
+        self.assertEqual(H.newest_checkpoint_problems(d, b), ["delta base is not the newest checkpoint before it"])
+        self.assert_closed(st)
+
+    def test_deep_tail_run_of_deltas_naming_an_older_checkpoint(self):
+        """A, B, then bad deltas 3-6 all on A: the tail is four records past B, beyond any fixed last-two-record
+        window; the bounded proof walks back to B and rejects A. Also a longer run (3-14)."""
+        for name, count in (("deep4", 4), ("deep12", 12)):
+            with self.subTest(run=count):
+                st, a, b = self.a_then_b(name)
+                for k in range(count):
+                    d = self.forge_v1_delta(st, a, T0 + 2 * HOUR + k * 600, f"gh-forged-{k + 3}")
+                    self.assertEqual((d["seq"], d["base"]["seq"]), (k + 3, 1))
+                rep = self.assert_closed(st)
+                self.assertEqual(sum("delta base is not the newest checkpoint before it" in p
+                                     for p in rep["problems"]), count)
+                reads = []
+                original_read = st.read_bytes
+
+                def read(path, original_read=original_read, reads=reads):
+                    reads.append(H._seq_of(path))
+                    return original_read(path)
+
+                st.read_bytes = read
+                self.assertEqual(H.Chain(st).integrity, "BROKEN")
+                self.assertIn(2, reads)                    # it reached B, the newest checkpoint ...
+                self.assertEqual(min(reads), 1)            # ... and read only B's predecessor below it (its link)
+
+    def test_newest_is_by_sequence_never_by_schema_or_hash(self):
+        """A v1 delta after a newer v2 checkpoint may not reach back to the newest v1 checkpoint, and a v2 delta
+        naming a v2 checkpoint that is not the newest is rejected the same way."""
+        st, a, b = self.a_then_b("bysequence")
+        r, c, _ = B.append(st, B.snapshot(T0 + 2 * HOUR, "gh-c-1", B.base_contracts()), force_checkpoint=True)
+        self.assertEqual((c["seq"], c["schema"], c["state_mode"]), (3, H.VERSION, H.CHECKPOINT))
+        snap = B.snapshot(T0 + 3 * HOUR, "gh-forged-v2-1", B.base_contracts())
+        full = H.state_from_snapshot(snap)
+        obs = H.build_observation(H.Chain(st), H.scan_content(snap), full, T0 + 3 * HOUR)
+        self.assertEqual(obs["base"]["seq"], 3)                       # the writer names the newest, C
+        bstate = H.full_state(b)
+        obs.update(base={"seq": 2, "hash": H.obs_hash(b)})            # forged: B, an older v2 checkpoint
+        for key, fields in (("contracts", H.CONTRACT_FIELDS), ("assets", H.ASSET_FIELDS)):
+            obs[key] = dict(H.delta(bstate[key], full[key]), fields=list(fields))
+        obs["content_hash"] = H.content_hash(obs, H.full_state(obs, bstate))
+        obs["record_hash"] = H.obs_hash(obs)
+        self.assertEqual(H.schema_transition_problems(obs, c, b), [])  # same schema: only the sequence rule catches it
+        st.write(H.path_for(obs), H.gz(H.canonical(obs)))
+        self.assert_closed(st)
+
+    def test_valid_v1_then_v2_checkpoint_then_v2_deltas(self):
+        st, a, b = self.a_then_b("valid12")
+        for k in range(4):
+            r, o, _ = B.append(st, B.snapshot(T0 + 2 * HOUR + k * 600, f"gh-v2d-{k}", B.base_contracts()))
+            self.assertEqual((r, o["schema"], o["state_mode"], o["base"]["seq"]), (H.PERSISTED, H.VERSION, H.DELTA, 2))
+            self.assertEqual(H.Chain(st).integrity, "VERIFIED_TAIL")
+        self.assertTrue(H.verify(st)["ok"])
+
+    def test_valid_checkpoint_then_several_same_schema_deltas(self):
+        st = self.store("ordinary")
+        for k in range(9):
+            B.append(st, B.snapshot(T0 + k * 600, f"gh-o-{k}", B.base_contracts()))
+        _, ck, _ = B.append(st, B.snapshot(T0 + 9 * 600, "gh-o-9", B.base_contracts()), force_checkpoint=True)
+        self.assertEqual(ck["seq"], 10)
+        for k in range(10, 13):                                  # deltas 11, 12, 13 -> base 10
+            _, o, _ = B.append(st, B.snapshot(T0 + k * 600, f"gh-o-{k}", B.base_contracts()))
+            self.assertEqual((o["seq"], o["state_mode"], o["base"]["seq"]), (k + 1, H.DELTA, 10))
+            chain = H.Chain(st)
+            self.assertEqual((chain.integrity, chain.base["seq"]), ("VERIFIED_TAIL", 10))
+        self.assertTrue(H.verify(st)["ok"])
+
+    def test_old_writer_recovery_stays_valid(self):
+        """v2 checkpoint -> old-writer (f142bb1) v1 checkpoint -> v1 delta on that v1 checkpoint -> v2 checkpoint
+        with full liquidity -> v2 delta. The old writer's v1 checkpoint is then the newest checkpoint, so its v1
+        delta names it correctly: a schema regression, never corruption, at every tail."""
+        old = _load("history_writer_f142bb1_p81", os.path.join(V1_FIXTURE, "writer_f142bb1.py"))
+        st = self.store("oldwriter")
+        cs = boundary_contracts([199999.6, 999999.6])
+        r, g, _ = B.append(st, B.snapshot(T0, "gh-200-1", cs))
+        self.assertEqual((g["schema"], g["state_mode"]), (H.VERSION, H.CHECKPOINT))
+        ostore = old.DirStore(st.root)
+
+        def old_run(ts, scan):
+            snap = B.snapshot(ts, scan, cs)
+            return old.append(ostore, old.scan_content(snap), old.state_from_snapshot(snap), now=ts)
+
+        r1, o1, _ = old_run(T0 + 600, "gh-80-2")
+        self.assertEqual((r1, o1["schema"], o1["state_mode"]), (H.PERSISTED, H.V1, H.CHECKPOINT))
+        self.assertEqual(H.Chain(st).integrity, "VERIFIED_TAIL")
+        r2, o2, _ = old_run(T0 + 1200, "gh-81-2")
+        self.assertEqual((r2, o2["schema"], o2["state_mode"], o2["base"]["seq"]), (H.PERSISTED, H.V1, H.DELTA, 2))
+        chain = H.Chain(st)
+        self.assertEqual((chain.integrity, chain.base["seq"]), ("VERIFIED_TAIL", 2))   # the v1 checkpoint is newest
+        _, o3, _ = B.append(st, B.snapshot(T0 + 1800, "gh-201-1", cs))
+        self.assertEqual((o3["schema"], o3["state_mode"], o3["liquidity"] is not None), (H.VERSION, H.CHECKPOINT, True))
+        _, o4, _ = B.append(st, B.snapshot(T0 + 2400, "gh-202-1", cs))
+        self.assertEqual((o4["schema"], o4["state_mode"], o4["base"]["seq"]), (H.VERSION, H.DELTA, 4))
+        self.assertEqual(H.Chain(st).integrity, "VERIFIED_TAIL")
+        rep = H.verify(st)
+        self.assertTrue(rep["ok"], rep["problems"])
+        self.assertEqual((rep["schemas"], rep["schema_regressions"]), ({"v8.history/1": 2, "v8.history/2": 3}, 1))
 
 
 class StructuralHistory(Tmp):
