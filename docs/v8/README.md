@@ -64,8 +64,9 @@ or refused, so two runs of the same code produce identical files.
   the derived `execution_identity`, every identity state) and, with a counterfactual run (the base's code fed this
   branch's universe, coins without execution identity excluded the base code's own way), the engines' outputs.
   Every difference must be listed in the phase's manifest, and every listed difference must occur. Since Phase 8 the
-  manifest is `tests/fixtures/v8/phase8_expected_deltas.json` (base: production main 1609e2c, Phase 7 merged; head
-  golden `legacy_parity_golden_phase8.json`), which lists no delta at all: Phase 8 is audit- and research-only.
+  manifest is `tests/fixtures/v8/phase8_1_expected_deltas.json` (base: production main f142bb1, Phase 8 merged;
+  head golden `legacy_parity_golden_phase8_1.json`), which lists no delta at all: the Phase 8 post-merge hotfix is
+  history- and research-only. Phase 8's manifest (`phase8_expected_deltas.json`, base 1609e2c) lists no delta either.
   Phase 7's manifest (`phase7_expected_deltas.json`, base 61960d9, no delta either) is kept for the record. Phase 6's manifest
   (`phase6_expected_deltas.json`, base f7aa7f6: FAKE07's known-crypto authority can no longer be bound to a single
   exposure) and the earlier manifests (`phase3_expected_deltas.json`, `phase3_closure_expected_deltas.json`,
@@ -77,9 +78,9 @@ or refused, so two runs of the same code produce identical files.
 
 ```
 python -m unittest discover -s tests                     # everything, about 40 seconds
-python tools/v8/legacy_parity.py --out /tmp/parity --check tests/fixtures/v8/legacy_parity_golden_phase8.json
-git worktree add --detach /tmp/base 1609e2cf7c95abe9f1c0d7d4df92a5dfcef40280
-python tools/v8/delta_parity.py --base-root /tmp/base --manifest tests/fixtures/v8/phase8_expected_deltas.json --work /tmp/delta
+python tools/v8/legacy_parity.py --out /tmp/parity --check tests/fixtures/v8/legacy_parity_golden_phase8_1.json
+git worktree add --detach /tmp/base f142bb11959d7f4714c33945258c326434e7c8c6
+python tools/v8/delta_parity.py --base-root /tmp/base --manifest tests/fixtures/v8/phase8_1_expected_deltas.json --work /tmp/delta
 python tools/v8/ledger_guard.py                          # the shadow ledger is append-only and valid (Phase 8)
 python -m v8.history verify --dir <export of v8-history> # the history chain (Phase 8)
 python -m v8.history project audit_latest.json.gz --days 3   # measured storage projection (Phase 8)

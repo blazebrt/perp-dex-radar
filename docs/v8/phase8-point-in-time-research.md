@@ -5,8 +5,11 @@
 Phase 8 makes the system *remember what it saw*, scan by scan, in an append-only history, and gives research a
 point-in-time view of that history with time-varying costs. It changes no live engine, no identity (`v8.identity/4`,
 config hash `96a10dc2...`), no discovery (`v8.discovery/1`), no strategy, gate, stop, target, sizing or Top-N, and it
-does not overwrite `quant_research.json` or `picks_research.json`. Versions: `v8.audit/6`, `v8-phase8.0`,
-`v8.history/1`, `v8.pit/1`, `v8.pit-cost/1`, `v8.pit-research/1`, `v8.shadow-ledger/1`.
+does not overwrite `quant_research.json` or `picks_research.json`. Versions at the Phase 8 merge: `v8.audit/6`,
+`v8-phase8.0`, `v8.history/1`, `v8.pit/1`, `v8.pit-cost/1`, `v8.pit-research/1`, `v8.shadow-ledger/1`. Since the
+post-merge hotfix (see [the last section](#post-merge-hotfix-v8-phase81)): `v8.audit/7`, `v8-phase8.1`,
+`v8.history/2` (writer; `v8.history/1` records stay readable and immutable), `v8.pit/2`, `v8.pit-cost/2`,
+`v8.pit-research/2`, `v8.shadow-ledger/1`.
 
 ## Stage A: what history existed before Phase 8
 
@@ -216,8 +219,8 @@ With `--cutoff`, no observation, candle or funding settlement after it is used (
 | Where | What |
 |---|---|
 | Scan (`scan.yml`) | `python -m v8.snapshot ... --history-branch v8-history --history-backfill`; `tests.test_v8_phase8.ScanGateInvariants` in the core tests |
-| CI (`ci.yml`) | `tests.test_v8_phase8` (stdlib parts), the ledger guard, legacy parity against `legacy_parity_golden_phase8.json` (identical digests to Phase 7), delta parity against `phase8_expected_deltas.json` (base `1609e2c`, no delta); the research-checks job runs `tests.test_v8_phase8` again with numpy, numba and pandas (cost, funding, qualification, end-to-end with qsim parity) |
-| Research (`research.yml`) | verifies the production history when it exists; a dry run of the writer into a throwaway repository (this run plus every archived scan artifact; `history_dryrun.tar.gz`); the storage projection; `pit_research.py` on the market data |
+| CI (`ci.yml`) | `tests.test_v8_phase8` and `tests.test_v8_phase8_hotfix` (stdlib parts), the ledger guard, legacy parity against `legacy_parity_golden_phase8_1.json` (identical digests to Phase 7 and 8), delta parity against `phase8_1_expected_deltas.json` (base `f142bb1`, no delta); the research-checks job runs both modules again with numpy, numba and pandas (cost, funding, qualification, end-to-end with qsim parity, the day-pick authority, cutoffs, precision) |
+| Research (`research.yml`) | verifies the production history when it exists; a dry run of the writer into a throwaway repository seeded with a copy of the production chain (so the v1 -> v2 transition is proven on the real records; `history_dryrun.tar.gz`); the storage projection; `pit_research.py` on the market data, and again with a cutoff before the first history observation (`research_pit_cutoff_before_history.json`) |
 
 ## Limitations
 
@@ -228,3 +231,61 @@ With `--cutoff`, no observation, candle or funding settlement after it is used (
 * Liquidity is recorded about every 4 hours, not every scan.
 * Candles for delisted coins are not fetched yet, so cross-sections that included them stay unqualified.
 * One fee schedule for every venue and date.
+
+## Post-merge hotfix (v8-phase8.1)
+
+A review that finished after PR #19 merged raised four findings; all four are fixed here without touching
+`v8-history` (no rewrite, no force push, ruleset `24892500` unchanged).
+
+**1. Day-pick research measured the wrong rows (P1).** The corrected day research qualified every eligible coin at
+every 4-hour sample, which is not the day-pick strategy. `tools/research/pk_day.py` now exposes its selection authority
+as `surfaces()` - DAY_W over `day_checks`, the swing score mapped to each hour, the 4-hour sample, the score bands (30+
+rows) and the deterministic Top 5 (score order, 1e-3 jitter seeded by the hour) - and `pk_day.run()` reports exactly
+those surfaces (its output is byte-identical to the merged version, tested against a frozen copy). The point-in-time
+day research selects the same surfaces on the strategy's eligibility AND point-in-time eligibility, then re-costs and
+qualifies every selected row: bands per band, the Top 5 per 4-hour sample (a sample is authoritative only when all five
+picks are fully qualified). The all-eligible base is kept only as `DIAGNOSTIC / NOT DAY STRATEGY AUTHORITY`. Swing
+research uses `picks_export`'s own masks (`base_mask`, `band_mask`, extracted unchanged: the merged version had
+dropped its 30-days-ahead condition) and labels its base `DIAGNOSTIC / NOT SWING STRATEGY AUTHORITY`. On a synthetic
+full-authority dataset (costs equal the legacy assumptions) the corrected selection equals `pk_day.py`'s row for row -
+scores, bands, Top-5 membership and ranking - and so does every net R; observed funding then changes costs only, never
+the selection.
+
+**2. A cutoff before the first history observation crashed (P1).** A verified chain whose observations all lie after the
+cutoff is now an empty view: `History.view_status` = `HISTORY_EMPTY` with reason `BEFORE_PIT_HISTORY`,
+`History.usable` = False, every answer unknown, zero qualified rows, promotion NONE. Every vectorised caller
+(`pit_sim.universe_panel`, `_obs_index`, `pit_cost.liquidity_panel`) checks `usable`. Full-chain verification is
+unchanged.
+
+**3. Liquidity was rounded to a whole dollar (P2).** `int(round(max(vols)))` turned 199,999.6 into 200,000 and 999,999.6
+into 1,000,000, across the slippage and execution thresholds. The writer is now `v8.history/2`: the finite value as
+the audit registry recorded it, never rounded, with `liquidity_precision` on every record. The existing production
+records are `v8.history/1` and stay byte-identical: the verifier reads both schemas in one chain (a v2 record links to
+the previous record's hash whatever its version, the first v2 record is a checkpoint with a full liquidity table, a v2
+delta's base is a v2 checkpoint, no v1 record may follow a v2 record). Their KNOWN liquidity is `PRECISION_LOST_V1`:
+it never decides a threshold or a slippage tier (`LIQUIDITY_PRECISION_UNQUALIFIED`), while their contracts, assets,
+identity and venue health stay usable. Nothing was recovered from the archived artifacts (that would need a
+correction record with its own precedence rules; the point-in-time and market-data windows do not overlap yet, so
+nothing is lost by failing closed).
+
+One more truth, found while fixing this: the audit registry itself keeps 8 significant digits of every volume
+(`v8.registry._r`), while the live gate compares the venue's full value. So a v2 value is exact to the registry, and a
+value recorded exactly on a threshold (200,000.0 or 1,000,000.0) may stand for a scan value just below it (999,999.996 is
+recorded as 1,000,000.0). `v8.pit.decides()` therefore treats a threshold that lies inside a value's rounding interval
+as undecidable: in practice only values recorded exactly on a threshold. 199,999.4 and 199,999.6 decide (below $200k:
+0.2%), 999,999.4 and 999,999.6 decide (0.1%, below the $1M gate), 1,000,000.1 decides (0.05%), and 200,000.0 and
+1,000,000.0 are `LIQUIDITY_PRECISION_UNQUALIFIED`. The governed tiers are unchanged.
+
+Research eligibility is now a three-valued AND: False when any input was known to fail (inactive, another identity,
+known below the gate, MISSING - a missing volume never passes the live gate - or not on a trade DEX), True when every
+input was known to pass, else unknown; a cross-section is complete only when no asset the history had seen is unknown
+then and every eligible one has candles.
+
+**4. A STATUS file could speak for another experiment (P2).** `000003-STATUS-EXP_A.json` holding `experiment_id: EXP_B`
+was accepted. Every STATUS record's file-name id must now equal its experiment id (as registrations already did), and
+the ledger summary never applies a record whose file name attributes it to another experiment. The record format is
+unchanged (`v8.shadow-ledger/1`); the ledger guard rejects such a commit.
+
+Live behaviour: no engine, gate, strategy, stop, target, sizing or Top-N changed; delta parity against `f142bb1`
+(manifest `phase8_1_expected_deltas.json`) allows no delta and finds none; `legacy_parity_golden_phase8_1.json` is
+byte-identical to the Phase 8 golden.
