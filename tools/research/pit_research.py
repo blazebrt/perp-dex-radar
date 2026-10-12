@@ -155,12 +155,11 @@ def _stop_dist(atr, c, k_stop, min_sd, max_sd):
 
 
 def _pk_qualify(uni, slip, R_legacy, RET_legacy, BARS, side, cost_legacy, sd_all, t_bar, frate_d, fmiss_d, mask,
-                horizon, liq_state=None):
+                liq_state=None):
     """Point-in-time re-costing of pk_trades rows (k, j): entry at bar k+1 open, exit in bar k+BARS. The rows are
-    exactly `mask` (a governed selection surface); costs and qualification change, the selection never does. A row
-    is closed when its exit is known: its holding limit (`horizon` bars) ends inside the data, or it exited before the
-    last bar. pk_trades.sim closes a trade still open at the last bar at that close: such a row (an exit on the last
-    bar before its limit) is open at the data end and never in an authoritative aggregate."""
+    exactly `mask` (a governed selection surface); costs and qualification change, the selection never does. Every
+    row with a result is a closed trade: pk_trades.sim leaves no result for a trade still open when the data ends (or
+    whose candles stop)."""
     K, N = R_legacy.shape
     kk, jj = np.where(mask & np.isfinite(R_legacy) & np.isfinite(BARS))
     if len(kk) == 0:
@@ -187,8 +186,7 @@ def _pk_qualify(uni, slip, R_legacy, RET_legacy, BARS, side, cost_legacy, sd_all
     with np.errstate(invalid="ignore", divide="ignore"):
         q["net_ret"] = gross - cost
         q["net_R"] = q["net_ret"] / sd
-    closed = (kk + horizon <= K - 1) | (i_ex < K - 1)
-    q.update(cost=cost, slippage=se + sx, funding=side * fsum, closed=closed, k=kk, j=jj)
+    q.update(cost=cost, slippage=se + sx, funding=side * fsum, closed=np.ones(len(kk), dtype=bool), k=kk, j=jj)
     if liq_state is not None:
         g = uni["liq_gate"][kk, jj]
         q["liq_reason"] = [None if ok else PS.liquidity_reason(int(g[n]), int(liq_state[kk[n] + 1, jj[n]]),
@@ -240,7 +238,8 @@ def _corrected(q, hist):
 
 
 def _diagnostic(q, hist):
-    """A diagnostic surface (not the strategy's selection): the same qualification, its aggregate never authoritative."""
+    """A diagnostic surface (not the strategy's selection): the same qualification; its aggregate is never
+    authoritative."""
     return {"components": _counts(q), "why_not_qualified": PS.reasons(q, hist), "aggregate": PS.aggregate(q)}
 
 
@@ -295,8 +294,7 @@ def day_research(md, hist, cutoff, swing_t, swing_coins, SL, SS):
         R, RET, BARS = L["R"], L["RET"], L["BARS"]
 
         def qual(mask):
-            return _pk_qualify(uni, slip, R, RET, BARS, sgn, COST, sd, t_bar, frh, fsh == PC.F_MISSING, mask,
-                               pk_day.HOLD, lst)
+            return _pk_qualify(uni, slip, R, RET, BARS, sgn, COST, sd, t_bar, frh, fsh == PC.F_MISSING, mask, lst)
 
         q_base, q_top = qual(P_["base"]), qual(_rows_mask(R.shape, P_["top"]))
         lb = {(lo, hi): m for lo, hi, m in L["bands"]}
@@ -361,8 +359,7 @@ def picks(md, hist, cutoff):
         R, RET, _, BARS = sim(d["o"], d["h"], d["l"], d["c"], atr, sgn, 2.0, 3.0, SWING_HOLD, 0.05, 0.25, COST)
 
         def qual(mask):
-            return _pk_qualify(uni_sw, slip_sw, R, RET, BARS, sgn, COST, sd_sw, t_bar, fr_d, fm_d, mask, SWING_HOLD,
-                               lst_sw)
+            return _pk_qualify(uni_sw, slip_sw, R, RET, BARS, sgn, COST, sd_sw, t_bar, fr_d, fm_d, mask, lst_sw)
 
         o = {"base": {"label": SWING_DIAGNOSTIC,
                       "legacy": {"label": LEGACY, **_legacy_rows(R, RET, base_mask(R, fw, elig_l))},
@@ -398,7 +395,9 @@ def run(md, hist_dir, cutoff=None, skip_market=False):
                           "market_data": {"folder_sha256": md_hash, "files": md_files,
                                           "commit": _git("rev-parse", "origin/market-data")},
                           "history": {"writer_version": VH.VERSION, "readable_schemas": list(VH.SCHEMAS),
-                                      "schemas": hrep.get("schemas"), "head_hash": hrep.get("head_hash"),
+                                      "schemas": hrep.get("schemas"),
+                                      "schema_regressions": hrep.get("schema_regressions"),
+                                      "head_hash": hrep.get("head_hash"),
                                       "observations": hrep.get("observations"), "verified": hrep.get("ok"),
                                       "problems": hrep.get("problems", [])[:10]},
                           "pit_version": PIT.VERSION, "cost_model": PC.VERSION, "fee_schedule": PC.FEE_SCHEDULE,
@@ -510,7 +509,8 @@ def text(out):
                  f"{b['corrected']['aggregate']}")
         for x in o["bands"]:
             L.append(f"picks swing {side} {x['lo']}-{x['hi']}: legacy n={x['legacy'].get('n')} R={x['legacy'].get('R')}"
-                     f" | corrected {x['corrected'].get('components')} authoritative {x['corrected']['authoritative']}")
+                     f" | corrected {x['corrected'].get('components') or x['corrected'].get('note')} "
+                     f"authoritative {x['corrected']['authoritative']}")
     for side, o in (pk.get("day") or {}).items():
         if not (isinstance(o, dict) and "bands" in o):
             continue
