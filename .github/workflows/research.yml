@@ -237,9 +237,17 @@ jobs:
           python tools/research/pit_research.py --md md --history "$HIST" --cutoff "$(date -u +%s)" --out research_pit.json >> research_pit.txt 2>&1 || true
           # the same research with a cutoff one second before the first history observation: an empty view
           # (HISTORY_EMPTY / BEFORE_PIT_HISTORY), zero qualified rows, never a crash
-          FIRST=$(python -c "import json,sys; print(int(json.load(open(sys.argv[1]))['first_observed_at']) - 1)" research_history_verify.json 2>/dev/null || python -c "import json,sys; print(int(json.load(open(sys.argv[1]))['first_observed_at']) - 1)" research_history_dryrun_verify.json)
-          echo "cutoff before the history: $FIRST" >> research_pit.txt
-          python tools/research/pit_research.py --md md --history "$HIST" --cutoff "$FIRST" --out research_pit_cutoff_before_history.json > research_pit_cutoff.txt 2>&1; echo "exit $?" >> research_pit_cutoff.txt
+          # (the first observation of the history actually used: its own verify report)
+          if [ "$HIST" = hist_prod ]; then HV=research_history_verify.json; else HV=research_history_dryrun_verify.json; fi
+          FIRST=$(python -c "import json,sys; print(int(json.load(open(sys.argv[1]))['first_observed_at']) - 1)" "$HV" 2>> research_pit.txt || echo "")
+          echo "cutoff before the history ($HIST, $HV): $FIRST" | tee -a research_pit.txt research_pit_cutoff.txt
+          rc=0
+          if [ -n "$FIRST" ]; then
+            python tools/research/pit_research.py --md md --history "$HIST" --cutoff "$FIRST" --out research_pit_cutoff_before_history.json >> research_pit_cutoff.txt 2>&1 || rc=$?
+          else
+            rc=2
+          fi
+          echo "exit $rc" >> research_pit_cutoff.txt
           tail -30 research_pit_cutoff.txt
           tail -60 research_pit.txt
 
