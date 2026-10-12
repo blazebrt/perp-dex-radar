@@ -279,6 +279,156 @@ class HistoryFailClosed(Tmp):
         self.assertEqual(len(reads), len(set(reads)))
 
 
+class StructuralHistory(Tmp):
+    """Rehashed corruptions must be rejected structurally, before any index or PIT lookup."""
+
+    def rewrite(self, st, mutate):
+        paths = st.paths()
+        records = [H.decode(st.read_bytes(p)) for p in paths]
+        states, base = [], None
+        for o in records:
+            state = H.full_state(o, base)
+            if o["state_mode"] == H.CHECKPOINT:
+                base = state
+            states.append(state)
+        mutate(records)
+        prev, size = None, 0
+        for index, (path, o, state) in enumerate(zip(paths, records, states)):
+            o["prev_hash"] = H.obs_hash(prev) if prev is not None else None
+            o["stored_bytes_before"] = size
+            ref = o.get("base")
+            if (isinstance(ref, dict) and isinstance(ref.get("seq"), int) and not isinstance(ref["seq"], bool)
+                    and isinstance(ref.get("hash"), str)):
+                k = ref["seq"] - 1
+                if 0 <= k < len(records):
+                    ref["hash"] = H.obs_hash(records[k])
+            if o.get("liquidity") is not None:
+                o["liquidity_content_hash"] = H.sha(H.canonical(o["liquidity"]))
+            o["content_hash"] = H.content_hash(o, state)
+            o["record_hash"] = H.obs_hash(o)
+            raw = H.gz(H.canonical(o))
+            with open(os.path.join(st.root, path), "wb") as fh:
+                fh.write(raw)
+            size += len(raw)
+            prev = o
+
+    def check_closed(self, st):
+        before = {p: st.read_bytes(p) for p in st.paths()}
+        rep = H.verify(st)
+        self.assertFalse(rep["ok"], rep)
+        self.assertGreater(rep["problem_count"], 0)
+        view = P.History(st)
+        self.assertFalse(view.ok)
+        self.assertEqual(view.view_status, (P.HISTORY_INTEGRITY_FAILED, P.HISTORY_INTEGRITY_FAILED))
+        self.assertEqual(view.universe_at(T0)["assets"], {})
+        self.assertEqual(H.Chain(st).integrity, "BROKEN")
+        snap = B.snapshot(T0 + 20 * HOUR, "gh-next-structural", B.base_contracts())
+        self.assertEqual(B.append(st, snap), (H.INTEGRITY_BROKEN, None, None))
+        self.assertEqual(H.capture(snap, store=st, now=T0+20*HOUR)["persistence_state"], H.DEGRADED)
+        self.assertEqual({p: st.read_bytes(p) for p in st.paths()}, before)
+
+    def one(self, schema, name):
+        st = self.store(name)
+        B.append(st, B.snapshot(T0, "gh-one-1", B.base_contracts()))
+        if schema == H.V1:
+            def v1(rows):
+                rows[0]["schema"] = H.V1
+                rows[0]["versions"]["history"] = H.V1
+                rows[0].pop("liquidity_precision")
+            self.rewrite(st, v1)
+        return st
+
+    def test_base_record_sequence_matrix(self):
+        for i, value in enumerate((None, [], {}, True, 3.0, "1", 0, -1)):
+            with self.subTest(value=value):
+                st = self.v1_copy(f"base_{i}")
+                def mutate(rows):
+                    if value is None:
+                        rows[0].pop("seq")
+                    else:
+                        rows[0]["seq"] = value
+                self.rewrite(st, mutate)
+                self.check_closed(st)
+
+    def test_final_and_predecessor_sequence_matrix(self):
+        for position in (1, 2):
+            for i, value in enumerate((None, [], {}, True, 3.0, "3", 0)):
+                with self.subTest(position=position, value=value):
+                    st = self.v1_copy(f"seq_{position}_{i}")
+                    def mutate(rows):
+                        if value is None:
+                            rows[position].pop("seq")
+                        else:
+                            rows[position]["seq"] = value
+                    self.rewrite(st, mutate)
+                    self.check_closed(st)
+
+    def test_genesis_boolean_and_float_sequence_are_not_integers(self):
+        for i, value in enumerate((True, 1.0)):
+            st = self.one(H.VERSION, f"genesis_{i}")
+            self.rewrite(st, lambda rows: rows[0].update(seq=value))
+            self.check_closed(st)
+
+    def test_delta_base_reference_structure_matrix(self):
+        bad = (None, [], "", {}, {"seq": []}, {"seq": {}}, {"seq": True}, {"seq": 1.0},
+               {"seq": "1"}, {"seq": 99, "hash": "a"*64}, {"seq": 1, "hash": []})
+        for i, value in enumerate(bad):
+            with self.subTest(value=value):
+                st = self.v1_copy(f"ref_{i}")
+                self.rewrite(st, lambda rows: rows[-1].update(base=value))
+                self.check_closed(st)
+
+    def test_liquidity_container_and_row_matrix_for_both_schemas(self):
+        bad = ([], "", ["x"], {}, {"rows": []}, {"fields": [], "rows": "x"},
+               {"fields": [], "rows": None}, {"fields": [], "rows": [1]}, 0, False,
+               {"fields": list(H.LIQUIDITY_FIELDS), "rows": [1]},
+               {"fields": list(H.LIQUIDITY_FIELDS), "rows": [["BTC"]]},
+               {"fields": list(H.LIQUIDITY_FIELDS), "rows": [[[], "KNOWN", 1]]},
+               {"fields": list(H.LIQUIDITY_FIELDS), "rows": [["", "KNOWN", 1]]},
+               {"fields": list(H.LIQUIDITY_FIELDS), "rows": [["BTC", [], 1]]})
+        for schema in (H.V1, H.VERSION):
+            for i, value in enumerate(bad):
+                with self.subTest(schema=schema, value=value):
+                    st = self.one(schema, f"liq_{schema[-1]}_{i}")
+                    self.rewrite(st, lambda rows: rows[0].update(liquidity=value))
+                    self.check_closed(st)
+
+    def test_legitimate_empty_liquidity_table_and_omitted_payload_stay_valid(self):
+        for schema in (H.V1, H.VERSION):
+            st = self.one(schema, f"empty_{schema[-1]}")
+            self.rewrite(st, lambda rows: rows[0].update(liquidity={"fields": list(H.LIQUIDITY_FIELDS), "rows": []}))
+            self.assertTrue(H.verify(st)["ok"])
+            self.assertEqual(H.Chain(st).integrity, "VERIFIED_TAIL")
+            self.assertTrue(P.History(st).ok)
+        st = self.store("omitted")
+        B.append(st, B.snapshot(T0, "gh-omitted-1", B.base_contracts()))
+        _, o, _ = B.append(st, B.snapshot(T0+600, "gh-omitted-2", B.base_contracts()))
+        self.assertIsNone(o["liquidity"])
+        self.assertTrue(H.verify(st)["ok"])
+        self.assertEqual(H.Chain(st).integrity, "VERIFIED_TAIL")
+
+    def test_schema_versions_matrix(self):
+        cases = ((H.V1, {"history": H.VERSION}), (H.VERSION, {"history": H.V1}),
+                 (H.V1, None), (H.VERSION, {}), (H.VERSION, {"history": []}),
+                 (H.VERSION, []), (H.VERSION, {"history": 2}), (H.VERSION, {"history": "v8.history/9"}))
+        for i, (schema, versions) in enumerate(cases):
+            with self.subTest(schema=schema, versions=versions):
+                st = self.one(schema, f"version_{i}")
+                def mutate(rows):
+                    if versions is None:
+                        rows[0].pop("versions")
+                    else:
+                        rows[0]["versions"] = versions
+                self.rewrite(st, mutate)
+                self.check_closed(st)
+
+    def test_frozen_v1_version_invariant(self):
+        st = H.DirStore(V1_FIXTURE)
+        for p in st.paths():
+            o = H.decode(st.read_bytes(p))
+            self.assertEqual((o["schema"], o["versions"]["history"]), (H.V1, H.V1))
+
+
 class MixedChain(Tmp):
     def test_frozen_v1_fixture_is_byte_identical_and_verifies(self):
         with open(os.path.join(V1_FIXTURE, "MANIFEST.json")) as fh:

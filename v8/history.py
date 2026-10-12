@@ -133,9 +133,69 @@ def liquidity_hash(rows):
     return sha(canonical(_table(LIQUIDITY_FIELDS, rows)))
 
 
+def valid_seq(value):
+    """History sequences are positive integers; booleans, floats and strings are never coerced."""
+    return isinstance(value, int) and not isinstance(value, bool) and value >= 1
+
+
+def _valid_hash(value):
+    return isinstance(value, str) and len(value) == 64 and all(c in "0123456789abcdef" for c in value)
+
+
+def generic_record_problems(obs):
+    """Only structure needed for safe history indexes, append authority and liquidity/PIT parsing.
+
+    Shared by full verification and Chain; historical v1 values retain their own
+    semantics. No malformed table or metadata is repaired or coerced.
+    """
+    if not isinstance(obs, dict):
+        return ["history observation is not a mapping"]
+    problems = []
+    sch = obs.get("schema")
+    if not isinstance(sch, str) or sch not in SCHEMAS:
+        problems.append(f"unknown history schema {sch!r}")
+    versions = obs.get("versions")
+    if not isinstance(versions, dict):
+        problems.append("versions must be a mapping carrying history")
+    else:
+        history = versions.get("history")
+        if not isinstance(history, str) or history not in SCHEMAS:
+            problems.append("versions.history must be a supported string history version")
+        elif history != sch:
+            problems.append("schema and versions.history disagree")
+    if not valid_seq(obs.get("seq")):
+        problems.append("seq must be an integer (not bool) >= 1")
+    mode = obs.get("state_mode")
+    if mode not in (CHECKPOINT, DELTA):
+        problems.append("state_mode must be CHECKPOINT or DELTA")
+    elif mode == DELTA:
+        base = obs.get("base")
+        if not isinstance(base, dict):
+            problems.append("delta base must be a mapping")
+        elif not valid_seq(base.get("seq")) or not _valid_hash(base.get("hash")):
+            problems.append("delta base needs a valid integer seq and checkpoint hash")
+    elif obs.get("base") is not None:
+        problems.append("checkpoint base must be null")
+    liq = obs.get("liquidity")
+    if liq is not None:
+        if (not isinstance(liq, dict) or not isinstance(liq.get("fields"), list)
+                or liq["fields"] != list(LIQUIDITY_FIELDS) or not isinstance(liq.get("rows"), list)):
+            problems.append("liquidity must be a table with expected fields and a rows list")
+        else:
+            for row in liq["rows"]:
+                if (not isinstance(row, (list, tuple)) or len(row) != 3
+                        or not isinstance(row[0], str) or not row[0]
+                        or not isinstance(row[1], str) or row[1] not in ("KNOWN", "MISSING", "NOT_ON_TRADE_DEX")):
+                    problems.append("liquidity row must contain a nonempty asset, state and value")
+                    break
+    return problems
+
+
 def record_problems(obs):
     """Self-verification, including the head and any liquidity payload that is actually stored."""
-    problems = []
+    problems = generic_record_problems(obs)
+    if problems:
+        return problems
     if obs.get("record_hash") != obs_hash(obs):
         problems.append("record hash does not match the persisted observation")
     digest = obs.get("liquidity_content_hash")
@@ -156,7 +216,7 @@ def schema_problems(obs):
     problems = []
     if obs.get("liquidity_precision") != LIQUIDITY_PRECISION:
         problems.append("v8.history/2 record without its liquidity precision")
-    for row in (obs.get("liquidity") or {}).get("rows") or []:
+    for row in obs["liquidity"]["rows"] if obs.get("liquidity") is not None else []:
         ok = len(row) == 3 and ((row[1] == "KNOWN" and _finite(row[2])) or
                                 (row[1] in ("MISSING", "NOT_ON_TRADE_DEX") and row[2] is None))
         if not ok:
@@ -423,7 +483,7 @@ class Chain:
             if b.get("seq") not in self.by_seq:
                 return
             base = decode(store.read_bytes(self.by_seq[b["seq"]]))
-            if (record_problems(base) or base.get("state_mode") != CHECKPOINT
+            if (record_problems(base) or base.get("seq") != b["seq"] or base.get("state_mode") != CHECKPOINT
                     or obs_hash(base) != b.get("hash")):
                 return
         # Validate the records that authorize this tail, including the previous
@@ -435,6 +495,8 @@ class Chain:
             cache[n - 1] = prev
 
         def read_context(seq):
+            if not valid_seq(seq):
+                raise ValueError("invalid context sequence")
             if seq not in cache:
                 cache[seq] = decode(store.read_bytes(self.by_seq[seq]))
             record = cache[seq]
@@ -484,7 +546,7 @@ def build_observation(chain, content, state, now, force_checkpoint=False):
     mode = CHECKPOINT
     if (not force_checkpoint and chain.integrity == "VERIFIED_TAIL" and chain.base is not None
             and chain.last_checkpoint_at is not None and now - chain.last_checkpoint_at < CHECKPOINT_EVERY_S
-            and (chain.base.get("versions") or {}).get("history") == VERSION):
+            and chain.base.get("schema") == VERSION):
         mode = DELTA
     observed = content.get("observed_at") or 0
     # liquidity is also due when the last recorded table was written by another schema, or the last record is of
@@ -577,9 +639,15 @@ def verify(store):
             problems.append(f"{p}: unreadable ({type(e).__name__})")
             prev, prev_sch = None, None
             continue
-        sch = o.get("schema")
+        structural = generic_record_problems(o)
+        sch = o.get("schema") if isinstance(o, dict) else None
         key = schema_report_key(sch)
         schemas[key] = schemas.get(key, 0) + 1
+        if structural:
+            problems.extend(f"{p}: {problem}" for problem in structural)
+            total += len(raw)
+            prev, prev_sch = None, None
+            continue                    # never index or reconstruct malformed metadata
         if isinstance(sch, str) and sch in SCHEMAS:
             if prev_sch in SCHEMAS and SCHEMAS.index(sch) < SCHEMAS.index(prev_sch):
                 regressions += 1
