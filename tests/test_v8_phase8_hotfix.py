@@ -176,6 +176,109 @@ class LiquidityPrecisionCosts(Tmp):
                          "BELOW_GATE_MISSING_OR_NOT_ON_TRADE_DEX_THEN")
 
 
+class HistoryFailClosed(Tmp):
+    """Self-consistent records can still violate schema transitions; capture must never extend them."""
+
+    def forged(self, store, obs):
+        obs["record_hash"] = H.obs_hash(obs)
+        self.assertEqual(H.record_problems(obs), [])
+        store.write(H.path_for(obs), H.gz(H.canonical(obs)))
+
+    def assert_broken_no_write(self, store):
+        before = {p: store.read_bytes(p) for p in store.paths()}
+        self.assertFalse(H.verify(store)["ok"])
+        self.assertEqual(H.Chain(store).integrity, "BROKEN")
+        snap = B.snapshot(T0 + 20 * HOUR, "gh-next-1", B.base_contracts())
+        status, obs, path = B.append(store, snap)
+        self.assertEqual((status, obs, path), (H.INTEGRITY_BROKEN, None, None))
+        self.assertEqual({p: store.read_bytes(p) for p in store.paths()}, before)
+        cap = H.capture(snap, store=store, now=T0 + 20 * HOUR)
+        self.assertEqual(cap["persistence_state"], H.DEGRADED)
+        self.assertEqual({p: store.read_bytes(p) for p in store.paths()}, before)
+
+    def test_exact_codex_v2_delta_on_v1_base_rejected_without_write(self):
+        st = self.v1_copy()
+        chain = H.Chain(st)
+        snap = B.snapshot(T0 + 6 * HOUR, "gh-forged-1", B.base_contracts())
+        full = H.state_from_snapshot(snap)
+        obs = H.build_observation(chain, H.scan_content(snap), full, T0 + 6 * HOUR)
+        obs.update(state_mode=H.DELTA, base={"seq": chain.base["seq"], "hash": H.obs_hash(chain.base)})
+        for key, fields in (("contracts", H.CONTRACT_FIELDS), ("assets", H.ASSET_FIELDS)):
+            obs[key] = dict(H.delta(chain.base_state[key], full[key]), fields=list(fields))
+        self.assertEqual(obs["content_hash"], H.content_hash(obs, H.full_state(obs, chain.base_state)))
+        self.forged(st, obs)
+        self.assert_broken_no_write(st)
+
+    def test_transition_checkpoint_without_liquidity_rejected_without_write(self):
+        st = self.v1_copy()
+        snap = B.snapshot(T0 + 6 * HOUR, "gh-noliq-1", B.base_contracts())
+        obs = H.build_observation(H.Chain(st), H.scan_content(snap), H.state_from_snapshot(snap), T0 + 6 * HOUR)
+        self.assertEqual(obs["state_mode"], H.CHECKPOINT)
+        obs["liquidity"] = None
+        self.forged(st, obs)
+        self.assert_broken_no_write(st)
+
+    def test_v2_genesis_requires_checkpoint_with_liquidity(self):
+        st = self.store()
+        snap = B.snapshot(T0, "gh-genesis-1", B.base_contracts())
+        obs = H.build_observation(H.Chain(st), H.scan_content(snap), H.state_from_snapshot(snap), T0)
+        obs["liquidity"] = None
+        self.forged(st, obs)
+        self.assert_broken_no_write(st)
+
+    def test_analogous_v1_delta_on_v2_checkpoint_rejected(self):
+        st = self.store()
+        _, base, _ = B.append(st, B.snapshot(T0, "gh-base-1", B.base_contracts()))
+        snap = B.snapshot(T0 + HOUR, "gh-mismatch-1", B.base_contracts())
+        obs = H.build_observation(H.Chain(st), H.scan_content(snap), H.state_from_snapshot(snap), T0 + HOUR)
+        self.assertEqual(obs["state_mode"], H.DELTA)
+        obs["schema"] = H.V1
+        obs["versions"]["history"] = H.V1
+        obs.pop("liquidity_precision")
+        obs["content_hash"] = H.content_hash(obs, H.full_state(obs, H.full_state(base)))
+        self.forged(st, obs)
+        self.assert_broken_no_write(st)
+
+    def test_malformed_schema_matrix_verify_pit_chain_and_capture(self):
+        for schema in ([], {}, 123, True, None):
+            with self.subTest(schema=schema):
+                st = self.store("invalid_" + type(schema).__name__)
+                _, obs, path = B.append(st, B.snapshot(T0, "gh-invalid-1", B.base_contracts()))
+                obs["schema"] = schema
+                obs["content_hash"] = H.content_hash(obs, H.full_state(obs))
+                obs["record_hash"] = H.obs_hash(obs)
+                # Corrupt a disposable test copy only, never the production branch.
+                with open(os.path.join(st.root, path), "wb") as fh:
+                    fh.write(H.gz(H.canonical(obs)))
+                report = H.verify(st)
+                self.assertFalse(report["ok"])
+                self.assertGreater(report["problem_count"], 0)
+                self.assertTrue(any("schema" in p for p in report["problems"]))
+                self.assertEqual(report, H.verify(st))
+                self.assertEqual(report["schemas"], {f"<invalid:{type(schema).__name__}>": 1})
+                view = P.History(st)
+                self.assertFalse(view.ok)
+                self.assertEqual(view.view_status, (P.HISTORY_INTEGRITY_FAILED, P.HISTORY_INTEGRITY_FAILED))
+                self.assertEqual(view.universe_at(T0)["assets"], {})
+                self.assert_broken_no_write(st)
+
+    def test_tail_reads_remain_bounded_on_a_long_valid_chain(self):
+        st = self.store()
+        for k in range(40):
+            B.append(st, B.snapshot(T0 + k * 600, f"gh-bounded-{k}", B.base_contracts()))
+        reads = []
+        original_read = st.read_bytes
+
+        def read(path):
+            reads.append(path)
+            return original_read(path)
+
+        st.read_bytes = read
+        self.assertEqual(H.Chain(st).integrity, "VERIFIED_TAIL")
+        self.assertLessEqual(len(reads), 7)
+        self.assertEqual(len(reads), len(set(reads)))
+
+
 class MixedChain(Tmp):
     def test_frozen_v1_fixture_is_byte_identical_and_verifies(self):
         with open(os.path.join(V1_FIXTURE, "MANIFEST.json")) as fh:

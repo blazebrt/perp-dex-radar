@@ -149,7 +149,7 @@ def record_problems(obs):
 def schema_problems(obs):
     """What each history schema requires of its own record (a v1 record is judged by v1 rules, never migrated)."""
     sch = obs.get("schema")
-    if sch not in SCHEMAS:
+    if not isinstance(sch, str) or sch not in SCHEMAS:
         return [f"unknown history schema {sch!r}"]
     if sch == V1:
         return []
@@ -163,6 +163,32 @@ def schema_problems(obs):
             problems.append(f"v8.history/2 liquidity row {row!r} is not a finite KNOWN value or a stateful None")
             break
     return problems
+
+
+def schema_transition_problems(obs, previous, base=None):
+    """Cross-record rules shared by full verification and bounded capture-tail inspection.
+
+    A newer-format record starting the chain or following another schema must
+    reset to a checkpoint with full liquidity. Any delta needs a same-schema base.
+    Structurally valid v1 reruns after v2 remain allowed under v1's own rules.
+    """
+    sch = obs.get("schema")
+    if not isinstance(sch, str) or sch not in SCHEMAS:
+        return []                    # schema_problems reports invalid metadata
+    prev_sch = previous.get("schema") if previous is not None else None
+    problems = []
+    if sch != V1 and (previous is None or prev_sch != sch) and not (
+            obs.get("state_mode") == CHECKPOINT and obs.get("liquidity") is not None):
+        after = f"after a {prev_sch} record" if previous is not None else "starting the chain"
+        problems.append(f"a {sch} record {after} must be a checkpoint carrying the full liquidity table")
+    if obs.get("state_mode") == DELTA and base is not None and base.get("schema") != sch:
+        problems.append(f"{sch} delta on a {base.get('schema')} checkpoint")
+    return problems
+
+
+def schema_report_key(schema):
+    """An untrusted JSON object is never a reporting dictionary key or a valid schema."""
+    return schema if isinstance(schema, str) else f"<invalid:{type(schema).__name__}>"
 
 
 # --------------------------------------------------------------------------- what a scan observed
@@ -356,8 +382,8 @@ class DirStore:
 
 
 class Chain:
-    """The end of an observation chain, read from a store with at most three observations: the last one, the one
-    before it (its prev_hash link) and the base checkpoint of the last one. Gives what the next append needs - seq,
+    """The end of an observation chain: the last two records and their base checkpoints, with predecessor context
+    for schema transitions (at most seven observations, cached). Gives what the next append needs - seq,
     prev_hash, the base checkpoint and its state, when liquidity was last recorded, the bytes held - and checks the
     links it read (VERIFIED_TAIL) or reports BROKEN. The whole chain is checked by verify()."""
 
@@ -383,6 +409,7 @@ class Chain:
         n = last.get("seq")
         if n != _seq_of(last_path) or n != len(self.paths) or sorted(self.by_seq) != list(range(1, n + 1)):
             return
+        prev = None
         if n > 1:
             prev = decode(store.read_bytes(self.by_seq[n - 1]))
             if record_problems(prev) or last.get("prev_hash") != obs_hash(prev):
@@ -399,6 +426,44 @@ class Chain:
             if (record_problems(base) or base.get("state_mode") != CHECKPOINT
                     or obs_hash(base) != b.get("hash")):
                 return
+        # Validate the records that authorize this tail, including the previous
+        # record and base checkpoint. Their predecessor context is read only as
+        # needed; this never walks the full chain. Shared transition rules prevent
+        # a self-consistent v2 delta on a v1 base from authorizing another append.
+        cache = {n: last, base["seq"]: base}
+        if prev is not None:
+            cache[n - 1] = prev
+
+        def read_context(seq):
+            if seq not in cache:
+                cache[seq] = decode(store.read_bytes(self.by_seq[seq]))
+            record = cache[seq]
+            if record.get("seq") != seq or record_problems(record):
+                raise ValueError("invalid tail context")
+            return record
+
+        primary = [last] + ([prev] if prev is not None else []) + [base]
+        checked = set()
+        try:
+            for record in primary:
+                seq = record["seq"]
+                if seq in checked:
+                    continue
+                checked.add(seq)
+                before = read_context(seq - 1) if seq > 1 else None
+                record_base = record
+                if record.get("state_mode") == DELTA:
+                    ref = record.get("base") or {}
+                    record_base = read_context(ref["seq"])
+                    if record_base.get("state_mode") != CHECKPOINT or obs_hash(record_base) != ref.get("hash"):
+                        return
+                    primary.append(record_base)
+                if schema_transition_problems(record, before, record_base):
+                    return
+                if record.get("prev_hash") != (obs_hash(before) if before is not None else None):
+                    return
+        except (ValueError, KeyError, TypeError):
+            return
         self.base, self.base_state = base, full_state(base)
         self.state = full_state(last, self.base_state)
         if last.get("content_hash") != content_hash(last, self.state):
@@ -513,14 +578,13 @@ def verify(store):
             prev, prev_sch = None, None
             continue
         sch = o.get("schema")
-        schemas[sch] = schemas.get(sch, 0) + 1
-        if sch in SCHEMAS:
+        key = schema_report_key(sch)
+        schemas[key] = schemas.get(key, 0) + 1
+        if isinstance(sch, str) and sch in SCHEMAS:
             if prev_sch in SCHEMAS and SCHEMAS.index(sch) < SCHEMAS.index(prev_sch):
                 regressions += 1
-            if sch != SCHEMAS[0] and (n == 1 or (prev_sch in SCHEMAS and prev_sch != sch)) and not (
-                    o.get("state_mode") == CHECKPOINT and o.get("liquidity") is not None):
-                after = f"after a {prev_sch} record" if n > 1 else "starting the chain"
-                problems.append(f"{p}: a {sch} record {after} must be a checkpoint carrying the full liquidity table")
+        transition_problems = schema_transition_problems(o, prev, base)
+        problems.extend(f"{p}: {problem}" for problem in transition_problems)
         prev_sch = sch
         problems.extend(f"{p}: {problem}" for problem in record_problems(o))
         if o.get("seq") != n or _seq_of(p) != n:
@@ -544,8 +608,7 @@ def verify(store):
                 if base is None or b.get("seq") != base.get("seq") or b.get("hash") != obs_hash(base):
                     problems.append(f"{p}: delta base is not the newest checkpoint before it")
                     continue
-                if base.get("schema") != sch:
-                    problems.append(f"{p}: {sch} delta on a {base.get('schema')} checkpoint")
+                if transition_problems:
                     continue
                 state = full_state(o, base_state)
         except (ValueError, KeyError, TypeError) as e:
