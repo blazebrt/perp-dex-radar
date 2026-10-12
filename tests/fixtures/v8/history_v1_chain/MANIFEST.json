@@ -1,0 +1,15 @@
+{
+ "files": {
+  "obs/2026/10/03/00000001-gh-101-1.json.gz": "f3013d58d8d0d8d2b91669edc6a279d6f42acc52e1192fa330c82f79c9789369",
+  "obs/2026/10/03/00000002-gh-102-1.json.gz": "4e4f035b40af0be167920948a9aff30e302a5bd89894a4dd1c5c8193105acd3c",
+  "obs/2026/10/03/00000003-gh-103-1.json.gz": "09ca127d21a0940564655f755f61804df6b35a5e42a666d69174c0705646de52"
+ },
+ "head_hash": "d90d093e347a8331f482f28ca30de048c113a505c585bdff5f65d4b82e86bea5",
+ "liquidity_written": {
+  "EDGE1M": "observed 999999.6 -> stored 1000000",
+  "EDGE200": "observed 199999.6 -> stored 200000 (v1 whole-dollar rounding)"
+ },
+ "what": "Frozen v8.history/1 observations written by the production v1 writer (main f142bb1, v8/history.py) on synthetic snapshots: the immutable-v1 side of the mixed-chain tests. Never regenerate; never edit.",
+ "writer_blob_sha1": "9000d3ac1037e5d608c87e2118784ab385acdef8",
+ "writer_commit": "f142bb11959d7f4714c33945258c326434e7c8c6"
+}
