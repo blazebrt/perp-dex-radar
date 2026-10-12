@@ -9,14 +9,16 @@ does not overwrite `quant_research.json` or `picks_research.json`. Versions at t
 `v8-phase8.0`, `v8.history/1`, `v8.pit/1`, `v8.pit-cost/1`, `v8.pit-research/1`, `v8.shadow-ledger/1`. Since the
 post-merge hotfix (see [the last section](#post-merge-hotfix-v8-phase81)): `v8.audit/7`, `v8-phase8.1`,
 `v8.history/2` (writer; `v8.history/1` records stay readable and immutable), `v8.pit/2`, `v8.pit-cost/2`,
-`v8.pit-research/2`, `v8.shadow-ledger/1`.
+`v8.pit-research/3` (`/2` in the hotfix; `/3` since the day score's funding input is observed-only, see
+[the funding-authority correction](#final-correction-the-day-scores-funding-input-v8pit-research3)),
+`v8.shadow-ledger/1`.
 
 ## Stage A: what history existed before Phase 8
 
 | Source | What it is | Classification |
 |---|---|---|
 | `market-data` branch (`universe.json`, `h1/`, `h4/`, `fund_mexc/`, `fund_hl/`) | One orphan commit (`df20b57`, 2026-10-04 08:48Z), replaced by every Market data run (`data.yml` force-pushes). `universe.json` is the coin list *at fetch time*: today's identity and today's trade-DEX volume, applied to three years of candles | Candles and funding settlements: contemporaneous exchange records. Coin list and `trade_vol`: **current-only** (survivorship: coins delisted before the fetch are absent; every past trade pays today's slippage tier) |
-| Legacy funding fill (`qdata.Panel._funding`) | 0.01% per 8 hours before a coin's first settlement and for coins without a series | **Assumed** (never observed) |
+| Legacy funding fill (`qdata.Panel._funding`) | 0.01% per 8 hours before a coin's first nonzero settlement and for coins without a series (or with only zero settlements); `pk_day.hourly` reads a settlement of 0 as none and carries the last nonzero rate through every gap into the day score's funding check | **Assumed** (never observed) |
 | `pk_trades.COST` | 0.19% per trade (fees and 0.05% slippage both ways), no funding | **Assumed** constant |
 | Production audit snapshots (`v8-audit-<run>-<attempt>` Actions artifacts, 14-day retention) | The whole `v8.audit` snapshot of each scan: every contract, asset identity, venue health, volumes, with scan id, commit, identity version and config hash; 34 from 2026-10-06 19:12Z on when Stage A ran (the oldest expire around 2026-10-20) | **Contemporaneous, immutable** (an artifact cannot be edited): the only allowed backfill source |
 | `data/v8/audit_latest.json` on the site | The latest snapshot only, overwritten every scan | Current-only |
@@ -254,8 +256,9 @@ finite), reports a corrected band only with 30+ point-in-time eligible rows (as 
 the qualified window. Every selected row has a closed trade: `pk_trades.sim` leaves no result for a trade still open
 when the data ends, so no open trade can reach an aggregate (`open_at_data_end` is 0 by construction). On a synthetic
 full-authority dataset (160 days, costs equal the legacy assumptions, finite swing scores) the corrected selection
-equals `pk_day.py`'s and `picks_export`'s row for row - scores, bands, Top-5 membership and ranking - and so does every
-net R; observed funding then changes costs only, never the selection.
+equals `pk_day.py`'s and `picks_export`'s row for row on every sampled hour - scores, bands, Top-5 membership and
+ranking - and so does every net R. Funding is itself a day-score input (5 points), so a different observed funding can change the day selection;
+how the corrected path reads it is the [funding-authority correction](#final-correction-the-day-scores-funding-input-v8pit-research3).
 
 **2. A cutoff before the first history observation crashed (P1).** A verified chain whose observations all lie after the
 cutoff is now an empty view: `History.view_status` = `HISTORY_EMPTY` with reason `BEFORE_PIT_HISTORY`,
@@ -300,3 +303,52 @@ unchanged (`v8.shadow-ledger/1`); the ledger guard rejects such a commit.
 Live behaviour: no engine, gate, strategy, stop, target, sizing or Top-N changed; delta parity against `f142bb1`
 (manifest `phase8_1_expected_deltas.json`) allows no delta and finds none; `legacy_parity_golden_phase8_1.json` is
 byte-identical to the Phase 8 golden.
+
+## Final correction: the day score's funding input (v8.pit-research/3)
+
+An independent review of the hotfix found one more research-correctness blocker: the corrected day-pick *selection*
+still read the legacy funding input. `pk_day.hourly()` takes funding from `qdata.Panel._funding()`, which assumes 0.01%
+per 8 hours before a coin's first nonzero settlement, and `pk_day.hourly` then reads a settlement of 0 as none and
+carries the last nonzero rate forward through every gap. That value feeds `day_checks()["funding"]` (`DAY_W` 5
+points: long `funding <= 0.0001`, short `funding >= 0.0`), so it moved corrected scores, bands and Top-5 picks. The
+trade *costs* were already observed-only (`pit_cost.funding_panel`); the selection was not.
+
+**Legacy, frozen.** `pk_day.run()`, `qdata.Panel._funding()` and the live strategy are unchanged; `pk_day.run()` is
+byte-identical to the frozen `f142bb1` copy (tested, also on a dataset with varied nonzero funding). The legacy day
+surfaces keep their input and their label `LEGACY_SURVIVORSHIP_UNQUALIFIED`.
+
+**Corrected funding signal** (`pit_research.funding_signal`, from `pit_cost.funding_panel` on the same funding files,
+nothing after the cutoff): an `OBSERVED` settlement sets the signal to the observed rate, `OBSERVED_ZERO` to exactly
+0.0 (zero is evidence), `NOT_DUE` keeps the last observed rate; before the first observation, from a missed due
+settlement through a gap, and after the last settlement's cycle the signal is UNKNOWN (NaN) until the next observed
+settlement - an earlier rate is never carried through a gap, a non-finite recorded rate is no evidence, and the
+assumed 0.01% per 8 hours never enters it.
+`ASSUMED_SCENARIO` funding exists only in scenario costs and never reaches the signal.
+
+**Unknown fails closed.** The corrected surfaces use the same candles, features, mapped swing score, `DAY_W`,
+`day_checks`, sample, bands and Top-5 machinery, with only the funding input replaced and a funding-known mask
+(`pk_day.surfaces(..., known=)`; without it the legacy surfaces are unchanged). A row with unknown funding enters no
+corrected base or band. A 4-hour Top 5 is selected from rows with known funding, with the same candidates and the same
+hour-seeded jitter as pk_day, and only when no candidate with unknown funding could reach it even with the funding
+check's full 5 points; otherwise the sample is `FUNDING_UNDETERMINED` and never selected. No weight, threshold, band,
+tie-break, sample interval, stop, target, hold or eligibility rule changed.
+
+**What the research output shows.** `research_pit.json` -> `picks.day.funding_signal` names the three readings - legacy
+(`LEGACY_SURVIVORSHIP_UNQUALIFIED`, the assumption described), corrected (`OBSERVED_SETTLEMENTS_ONLY`,
+`v8.pit-research/3`, its rule) and scenario (`SCENARIO / NOT AUTHORITY`, never selects) - and every side reports
+`funding_signal_rows` (corrected candidate rows on an observed settlement, carried through `NOT_DUE`, unknown and
+excluded; Top-5 samples undetermined). The text report prints both.
+
+**Tests** (`tests/test_v8_phase8_hotfix.py`): the signal states (before the first observation, observed nonzero,
+observed zero exactly 0.0, `NOT_DUE` carry, a missed settlement and a gap unknown at once, resumption, after the last
+cycle); the scenario never reaching the signal or the selection; a score-band boundary moved by the funding check's 5
+points (the legacy assumption moves the legacy row, an unknown corrected input yields no corrected row at all); a Top 5
+whose order is decided by the observed funding (and a candidate with unknown funding that could reach it making the
+sample undetermined); full observed authority reproducing the legacy selection exactly; funding recorded only after the
+first sample, a gap and zero settlements on a 160-day synthetic dataset. The old test claiming funding changes costs
+only was replaced: a cost-only change (scenario funding in the cost panel, the observed signal fixed) never changes
+the selection, while a different observed funding does change it.
+
+The honest window is unchanged: market data ends at 1791100800 (2026-10-04 08:00 UTC), the point-in-time history begins
+at 1791313657 (2026-10-06 19:07:37 UTC); qualified overlap 0, qualified quant trades 0, qualified day Top-5 samples 0,
+promotion NONE.
