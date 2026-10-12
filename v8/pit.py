@@ -2,7 +2,7 @@
 
     Historical research may use only information that was actually knowable at that historical time.
 
-`History` reads a verified v8.history/1 chain (v8.history) and answers, for any time t, only from observations with
+`History` reads a verified v8.history chain (v8.history/1 records, then v8.history/2) and answers, for any time t, only from observations with
 observed_at <= t that are at most MAX_STALENESS_S old:
 
     universe_at(t)     every asset the history had seen by t: KNOWN_ACTIVE (an active perpetual on a venue whose
@@ -13,7 +13,11 @@ observed_at <= t that are at most MAX_STALENESS_S old:
     identity_at(t, a)  the identity state, decision, version and config hash recorded then (never today's); an
                        observation older than the identity states (v8.audit/1 and /2) leaves it unknown
     liquidity_at(t, a) the execution liquidity recorded then (KNOWN / MISSING / NOT_ON_TRADE_DEX with the trade-DEX
-                       volume), or LIQUIDITY_HISTORY_UNKNOWN when no liquidity observation is fresh enough
+                       volume and its precision), or LIQUIDITY_HISTORY_UNKNOWN when no liquidity observation is fresh
+                       enough. A v8.history/1 value was rounded to a whole dollar (PRECISION_LOST_V1): it never decides
+                       a threshold (LIQUIDITY_PRECISION_UNQUALIFIED). A v8.history/2 value is the audit registry's own
+                       (8 significant digits): it decides a threshold unless the threshold lies inside its rounding
+                       interval (decides())
     intervals(a)       listing intervals: eligible_from = first observed active; last observed active and first
                        observed inactive; a gap or an outage ends an interval as UNKNOWN, never as a delisting;
                        a re-listing opens a new interval
@@ -23,15 +27,21 @@ Staleness: production scans have been observed up to ~7.3 hours apart (GitHub sc
 MAX_STALENESS_S is 12 hours: an observation older than that answers nothing (PIT_UNIVERSE_GAP). The same bound applies
 to liquidity, recorded about every 4 hours (v8.history.LIQUIDITY_EVERY_S).
 
-A chain that fails verification answers nothing (HISTORY_INTEGRITY_FAILED): research fails closed."""
+A chain that fails verification answers nothing (HISTORY_INTEGRITY_FAILED): research fails closed. A verified chain
+with no observation at or before the research cutoff is a valid but empty view (`view_status` HISTORY_EMPTY, reason
+BEFORE_PIT_HISTORY): every answer is unknown, never an error.
+
+research_eligible is a three-valued AND: False when any input was known to fail then (inactive, another identity,
+known below the gate or not on a trade DEX), True when every input was known to pass, else None (unknown)."""
 from __future__ import annotations
 
 import bisect
+import math
 from collections import OrderedDict
 
 from . import history as H
 
-VERSION = "v8.pit/1"
+VERSION = "v8.pit/2"
 MAX_STALENESS_S = 12 * 3600
 LIQUIDITY_MAX_STALENESS_S = 12 * 3600
 KNOWN_ACTIVE, KNOWN_INACTIVE, UNKNOWN = "KNOWN_ACTIVE", "KNOWN_INACTIVE", "UNKNOWN"
@@ -44,6 +54,34 @@ BEFORE_HISTORY, STALE, VENUE_UNAVAILABLE, FALLBACK = "BEFORE_HISTORY", "STALE", 
 OBSERVED_ACTIVE, OBSERVED_NOT_TRADING, OBSERVED_ABSENT = "OBSERVED_ACTIVE", "OBSERVED_NOT_TRADING", \
     "OBSERVED_ABSENT"
 VERIFIED_CRYPTO = "VERIFIED_CRYPTO"
+BEFORE_PIT_HISTORY = "BEFORE_PIT_HISTORY"            # a verified chain with no observation at the cutoff
+PRECISION_REGISTRY_8SIG, PRECISION_LOST_V1 = "REGISTRY_8_SIGNIFICANT_DIGITS", "PRECISION_LOST_V1"
+LIQUIDITY_PRECISION_UNQUALIFIED = "LIQUIDITY_PRECISION_UNQUALIFIED"
+REGISTRY_SIGNIFICANT_DIGITS = 8
+
+
+def liquidity_precision(schema):
+    """How exact a KNOWN liquidity value of a record of this history schema is."""
+    return PRECISION_LOST_V1 if schema == H.V1 else PRECISION_REGISTRY_8SIG
+
+
+def decides(value, precision, threshold):
+    """Whether a recorded liquidity value decides `value >= threshold` the way the scan's own value did: True or
+    False when it does, None (LIQUIDITY_PRECISION_UNQUALIFIED) when it cannot. A v8.history/1 value was rounded to a
+    whole dollar and never decides. A v8.history/2 value carries the audit registry's 8 significant digits: the
+    scan's value lay within half a unit of its last digit, so a threshold inside that interval is undecidable (in
+    practice only a value recorded exactly on a threshold)."""
+    if precision != PRECISION_REGISTRY_8SIG or value is None:
+        return None
+    v = float(value)
+    if v == 0:
+        return threshold <= 0
+    h = 0.5 * 10 ** (math.floor(math.log10(abs(v))) - (REGISTRY_SIGNIFICANT_DIGITS - 1))
+    if v - h >= threshold:
+        return True
+    if v + h <= threshold:
+        return False
+    return None
 
 
 def _loaded(ob, venue):
@@ -80,7 +118,7 @@ class History:
         self.times = []
         self._asset = {}                 # asset -> ([obs index], [point]) run-length, observation-time order
         self._ident = {}                 # asset -> ([obs index], [identity row]) run-length
-        self._liq = {}                   # asset -> ([observed_at], [(state, value)]) every liquidity observation
+        self._liq = {}                   # asset -> ([observed_at], [(state, value, precision)]) every liquidity record
         self._contract = {}              # contract -> ([obs index], [row or None]) run-length
         self.status = (PIT_UNIVERSE_OK if self.ok else
                        HISTORY_EMPTY if self.report["observations"] == 0 else HISTORY_INTEGRITY_FAILED)
@@ -143,12 +181,13 @@ class History:
                     self._rl(self._ident, a, i, r)
                     prev_ident[a] = r
             if o.get("liquidity") is not None:
+                prec = liquidity_precision(o.get("schema"))
                 for row in o["liquidity"]["rows"]:
                     if self.keep is not None and row[0] not in self.keep:
                         continue
                     ts, vs = self._liq.setdefault(row[0], ([], []))
                     ts.append(t)
-                    vs.append((row[1], row[2]))
+                    vs.append((row[1], row[2], prec if row[1] == "KNOWN" else None))
         for ts, vs in self._liq.values():           # observation-time order (a backfill may arrive late)
             order = sorted(range(len(ts)), key=lambda k: ts[k])
             ts[:], vs[:] = [ts[k] for k in order], [vs[k] for k in order]
@@ -174,13 +213,30 @@ class History:
             return (UNKNOWN, VENUE_UNAVAILABLE, (), ())
         return (KNOWN_INACTIVE, OBSERVED_NOT_TRADING if rows else OBSERVED_ABSENT, (), ())
 
+    # ------------------------------------------------------------------ view status
+    @property
+    def usable(self):
+        """Whether this view answers anything: a verified chain with at least one observation at the cutoff."""
+        return self.ok and bool(self.times)
+
+    @property
+    def view_status(self):
+        """(status, reason) of this research view: PIT_UNIVERSE_OK; HISTORY_EMPTY with BEFORE_PIT_HISTORY when the
+        verified chain holds no observation at or before the cutoff; HISTORY_EMPTY for an empty store;
+        HISTORY_INTEGRITY_FAILED for a chain that does not verify."""
+        if not self.ok:
+            return self.status, self.status
+        if not self.times:
+            return HISTORY_EMPTY, BEFORE_PIT_HISTORY
+        return PIT_UNIVERSE_OK, None
+
     # ------------------------------------------------------------------ lookups
     def _at(self, t):
         """(index of the latest observation with observed_at <= t, why not usable or None)."""
         if not self.ok:
             return None, self.status
         if not self.times:
-            return None, HISTORY_EMPTY
+            return None, BEFORE_HISTORY          # nothing observed by the cutoff: the past is unknown
         i = bisect.bisect_right(self.times, t) - 1
         if i < 0:
             return None, BEFORE_HISTORY
@@ -242,7 +298,8 @@ class History:
         return r["identity"] == VERIFIED_CRYPTO and r["universe"] == "CRYPTO"
 
     def liquidity_at(self, t, asset):
-        """{state, value, observed_at, age_s, health} of the latest liquidity observation at or before t."""
+        """{state, value, precision, observed_at, age_s, health} of the latest liquidity observation at or before t
+        (precision: REGISTRY_8_SIGNIFICANT_DIGITS for v8.history/2, PRECISION_LOST_V1 for v8.history/1)."""
         if not self.ok:
             return {"state": LIQUIDITY_HISTORY_UNKNOWN, "value": None, "health": LIQUIDITY_HISTORY_GAP,
                     "reason": self.status}
@@ -254,9 +311,9 @@ class History:
         if t - ts[k] > self.liq_max_staleness_s:
             return {"state": LIQUIDITY_HISTORY_UNKNOWN, "value": None, "health": LIQUIDITY_HISTORY_GAP,
                     "reason": STALE, "observed_at": ts[k], "age_s": t - ts[k]}
-        st, v = vs[k]
-        return {"state": st, "value": v, "observed_at": ts[k], "age_s": t - ts[k], "health": LIQUIDITY_HISTORY_OK,
-                "reason": None}
+        st, v, prec = vs[k]
+        return {"state": st, "value": v, "precision": prec, "observed_at": ts[k], "age_s": t - ts[k],
+                "health": LIQUIDITY_HISTORY_OK, "reason": None}
 
     def exposure_at(self, t, contract_id):
         i, why = self._at(t)
@@ -286,7 +343,8 @@ class History:
             liq = self.liquidity_at(t, a)
             out[a] = {"state": ast["state"], "reason": ast["reason"], "venues": ast.get("venues"),
                       "identity": None if ident is None else ident.get("identity"),
-                      "liquidity": {"state": liq["state"], "value": liq["value"], "health": liq["health"]},
+                      "liquidity": {"state": liq["state"], "value": liq["value"], "precision": liq.get("precision"),
+                                    "health": liq["health"]},
                       "research_eligible": eligible(ast, ident, liq, min_vol)}
         return {"t": t, "header": head, "assets": out}
 
@@ -342,7 +400,8 @@ class History:
     def window(self):
         """The point-in-time window this history supports (observation time)."""
         if self.ok and not self.obs:
-            return {"status": HISTORY_EMPTY, "start": None, "end": None, "observations": 0, "cutoff": self.cutoff}
+            return {"status": HISTORY_EMPTY, "reason": BEFORE_PIT_HISTORY, "start": None, "end": None,
+                    "observations": 0, "observations_in_store": self.report["observations"], "cutoff": self.cutoff}
         if not self.ok:
             return {"status": self.status, "start": None, "end": None, "observations": self.report["observations"]}
         return {"status": PIT_UNIVERSE_OK, "start": self.times[0], "end": self.times[-1] + self.max_staleness_s,
@@ -353,19 +412,29 @@ class History:
 
 
 def eligible(asset_point, ident, liq, min_vol=None):
-    """research_eligible at one time: True / False when every input was known then, None when any was unknown."""
+    """research_eligible at one time, a three-valued AND: False when any input was known to fail then, True when
+    every input was known to pass, None (unknown) otherwise. A liquidity value whose precision cannot decide the
+    gate (v8.history/1, or a threshold inside its rounding interval) is unknown, never a pass or a fail."""
+    parts = []
     if asset_point is None or asset_point.get("state") == UNKNOWN:
-        return None
-    if asset_point["state"] == KNOWN_INACTIVE:
-        return False
+        parts.append(None)
+    else:
+        parts.append(asset_point["state"] == KNOWN_ACTIVE)
     if ident is None or ident.get("state") == UNKNOWN or ident.get("identity") is None:
-        return None              # identity not recorded then (before v8.audit/3): unknown, never "not crypto"
-    if not (ident.get("identity") == VERIFIED_CRYPTO and ident.get("universe") == "CRYPTO"):
+        parts.append(None)       # identity not recorded then (before v8.audit/3): unknown, never "not crypto"
+    else:
+        parts.append(ident.get("identity") == VERIFIED_CRYPTO and ident.get("universe") == "CRYPTO")
+    if min_vol is not None:
+        if liq is None or liq.get("state") in (LIQUIDITY_HISTORY_UNKNOWN, "MISSING"):
+            parts.append(None)
+        elif liq["state"] == "NOT_ON_TRADE_DEX":
+            parts.append(False)
+        elif liq["state"] == "KNOWN":
+            parts.append(decides(liq["value"], liq.get("precision"), min_vol))
+        else:
+            parts.append(None)
+    if any(x is False for x in parts):
         return False
-    if min_vol is None:
+    if all(x is True for x in parts):
         return True
-    if liq is None or liq.get("state") == LIQUIDITY_HISTORY_UNKNOWN:
-        return None
-    if liq["state"] != "KNOWN":
-        return False if liq["state"] == "NOT_ON_TRADE_DEX" else None
-    return liq["value"] >= min_vol
+    return None

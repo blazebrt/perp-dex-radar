@@ -25,6 +25,15 @@ the complete liquidity state on every scan, even when its table is omitted). Rew
 observation breaks the chain and `verify()` reports it. This makes retroactive edits detectable; it does not make
 them impossible (the branch is ordinary git; a repository rule protecting it is recommended).
 
+Versions (one append-only chain, never migrated): `v8.history/1` observations (the first production records, up to
+the Phase 8 post-merge hotfix) stored each liquidity value rounded to a whole dollar, which can cross the $200k and
+$1M thresholds (199,999.6 became 200,000): their KNOWN liquidity is PRECISION_LOST for cost authority (v8.pit), while
+their contracts, assets, identity and venue health stay usable. `v8.history/2` (the writer since the hotfix) stores
+the finite value exactly as the audit registry recorded it (8 significant digits, `liquidity_precision`). Records
+are verified under their own schema; a v2 record links to the previous record's hash whatever its version, a v2
+delta's base is a v2 checkpoint (the first v2 observation is a checkpoint with liquidity), and no v1 record may
+follow a v2 record.
+
 Backfill: only from a genuinely contemporaneous record - an archived production audit snapshot (the 14-day
 `v8-audit-*` Actions artifacts) whose manifest names its own scan id and commit. Each backfilled observation cites
 the artifact (id, name, run, created_at, digest) and is a checkpoint. Nothing is reconstructed from today's state.
@@ -38,6 +47,7 @@ import gzip
 import hashlib
 import io
 import json
+import math
 import os
 import subprocess
 import sys
@@ -45,7 +55,12 @@ import tempfile
 import time
 import zipfile
 
-VERSION = "v8.history/1"
+V1, V2 = "v8.history/1", "v8.history/2"
+VERSION = V2                       # what this writer appends
+SCHEMAS = (V1, V2)                 # what the verifier accepts, in this order only (never v1 after v2)
+# the precision of a v2 liquidity value: the audit registry stores every contract's volume with 8 significant
+# digits (v8.registry._r); v2 keeps exactly that value (no further rounding). v1 rounded it to a whole dollar.
+LIQUIDITY_PRECISION = {"source": "audit registry contract volume", "significant_digits": 8, "rounding": "NONE"}
 BRANCH = "v8-history"
 CHECKPOINT_EVERY_S = 24 * 3600
 LIQUIDITY_EVERY_S = 4 * 3600
@@ -58,7 +73,7 @@ CONTRACT_FIELDS = ("id", "venue", "asset", "active", "state", "exposure", "exp_s
 ASSET_FIELDS = ("asset", "universe", "identity", "decision", "reason", "authority")
 LIQUIDITY_FIELDS = ("asset", "state", "trade_vol")
 TRADE_DEXES = ("hyperliquid", "lighter", "aster", "variational")     # scanner CFG["trade_dexes"] (unchanged)
-README = """# v8-history (v8.history/1)
+README = """# v8-history (v8.history/1, then v8.history/2)
 
 Append-only point-in-time history written by the production Scan workflow (`python -m v8.snapshot
 --history-branch v8-history`). One gzip JSON observation per scan under `obs/<YYYY>/<MM>/<DD>/`, chained by
@@ -126,6 +141,25 @@ def record_problems(obs):
         problems.append("missing or invalid liquidity content hash")
     if obs.get("liquidity") is not None and sha(canonical(obs["liquidity"])) != digest:
         problems.append("liquidity payload does not match its content hash")
+    return problems + schema_problems(obs)
+
+
+def schema_problems(obs):
+    """What each history schema requires of its own record (a v1 record is judged by v1 rules, never migrated)."""
+    sch = obs.get("schema")
+    if sch not in SCHEMAS:
+        return [f"unknown history schema {sch!r}"]
+    if sch == V1:
+        return []
+    problems = []
+    if obs.get("liquidity_precision") != LIQUIDITY_PRECISION:
+        problems.append("v8.history/2 record without its liquidity precision")
+    for row in (obs.get("liquidity") or {}).get("rows") or []:
+        ok = len(row) == 3 and ((row[1] == "KNOWN" and _finite(row[2])) or
+                                (row[1] in ("MISSING", "NOT_ON_TRADE_DEX") and row[2] is None))
+        if not ok:
+            problems.append(f"v8.history/2 liquidity row {row!r} is not a finite KNOWN value or a stateful None")
+            break
     return problems
 
 
@@ -201,14 +235,18 @@ def state_from_snapshot(snap):
     liquidity = {}
     for t, rows in sorted(by.items()):
         mine = [r for r in rows if r.get("venue") in TRADE_DEXES]
-        vols = [r["vol"] for r in mine if isinstance(r.get("vol"), (int, float))]
+        vols = [float(r["vol"]) for r in mine if _finite(r.get("vol"))]
         if vols:
-            liquidity[t] = [t, "KNOWN", int(round(max(vols)))]
+            liquidity[t] = [t, "KNOWN", max(vols)]            # v8.history/2: the recorded value, never rounded
         elif mine:
             liquidity[t] = [t, "MISSING", None]
         else:
             liquidity[t] = [t, "NOT_ON_TRADE_DEX", None]
     return {"contracts": contracts, "assets": assets, "liquidity": liquidity}
+
+
+def _finite(x):
+    return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x)
 
 
 def scan_content(snap, source=None):
@@ -228,7 +266,7 @@ def scan_content(snap, source=None):
             "venues": dict(sorted(venues.items())),
             "coverage": {"venues_expected": len(venues), "venues_ok": sum(1 for s in venues.values() if s == "OK"),
                          "venues_failed": len(failed), "venues_failed_names": failed, "fallback_universe": fallback},
-            "trade_dexes": list(TRADE_DEXES),
+            "trade_dexes": list(TRADE_DEXES), "liquidity_precision": dict(LIQUIDITY_PRECISION),
             "source": source or {"type": SCAN, "backfill": False}}
 
 
@@ -327,7 +365,7 @@ class Chain:
         self.by_seq = {_seq_of(p): p for p in self.paths}
         self.scans = {_scan_of(p): p for p in self.paths}
         self.last = self.base = self.state = self.base_state = None
-        self.last_checkpoint_at = self.last_liquidity_at = None
+        self.last_checkpoint_at = self.last_liquidity_at = self.last_liquidity_schema = None
         self.stored_bytes = 0
         self.integrity = "EMPTY"
         if not self.paths:
@@ -365,9 +403,10 @@ class Chain:
             return
         self.last_checkpoint_at = base.get("appended_at")
         if last.get("liquidity") is not None:
-            self.last_liquidity_at = last.get("observed_at")
+            self.last_liquidity_at, self.last_liquidity_schema = last.get("observed_at"), last.get("schema")
         else:
-            self.last_liquidity_at = (last.get("last_liquidity") or {}).get("observed_at")
+            ll = last.get("last_liquidity") or {}
+            self.last_liquidity_at, self.last_liquidity_schema = ll.get("observed_at"), ll.get("schema")
         self.integrity = "VERIFIED_TAIL"
 
 
@@ -381,12 +420,15 @@ def build_observation(chain, content, state, now, force_checkpoint=False):
             and (chain.base.get("versions") or {}).get("history") == VERSION):
         mode = DELTA
     observed = content.get("observed_at") or 0
+    # liquidity is also due when the last recorded table was written by another schema (the first v2 observation
+    # after v1 records the precise table at once)
     due = (bool(content["source"].get("backfill")) or chain.last_liquidity_at is None
+           or chain.last_liquidity_schema != VERSION
            or abs(observed - chain.last_liquidity_at) >= LIQUIDITY_EVERY_S)
     if last is None:
         last_liq = None
     elif last.get("liquidity") is not None:
-        last_liq = {"seq": last["seq"], "observed_at": last.get("observed_at")}
+        last_liq = {"seq": last["seq"], "observed_at": last.get("observed_at"), "schema": last.get("schema")}
     else:
         last_liq = last.get("last_liquidity")
     obs = dict(content)
@@ -447,12 +489,13 @@ def verify(store):
     """Walk the whole chain: seq contiguous from 1, every prev_hash links to the observation before it, every delta
     names the newest checkpoint before it as its base (by seq and hash), every record validates itself (including
     the head and provenance), every stored liquidity table matches its digest, every content hash matches the
-    rebuilt state and full liquidity digest, every scan id is unique, stored_bytes_before adds up. Returns a report
-    (ok, problems, counts, observed
-    window, head hash)."""
+    rebuilt state and full liquidity digest, every scan id is unique, stored_bytes_before adds up; each record by its
+    own schema (v8.history/1 or /2, never a v1 after a v2, a delta on a checkpoint of its own schema). Returns a
+    report (ok, problems, counts per schema, observed window, head hash)."""
     problems, prev, base, base_state = [], None, None, None
     seen, n, ckpt, liq, total, backfilled = set(), 0, 0, 0, 0, 0
     first_obs = last_obs = None
+    schemas, rank = {}, 0
     for p in store.paths():
         n += 1
         try:
@@ -462,8 +505,12 @@ def verify(store):
             problems.append(f"{p}: unreadable ({type(e).__name__})")
             prev = None
             continue
-        if o.get("schema") != VERSION:
-            problems.append(f"{p}: schema {o.get('schema')!r}")
+        sch = o.get("schema")
+        schemas[sch] = schemas.get(sch, 0) + 1
+        if sch in SCHEMAS:
+            if SCHEMAS.index(sch) < rank:
+                problems.append(f"{p}: {sch} after a later history schema")
+            rank = max(rank, SCHEMAS.index(sch))
         problems.extend(f"{p}: {problem}" for problem in record_problems(o))
         if o.get("seq") != n or _seq_of(p) != n:
             problems.append(f"{p}: seq {o.get('seq')} at position {n}")
@@ -486,6 +533,9 @@ def verify(store):
                 if base is None or b.get("seq") != base.get("seq") or b.get("hash") != obs_hash(base):
                     problems.append(f"{p}: delta base is not the newest checkpoint before it")
                     continue
+                if base.get("schema") != sch:
+                    problems.append(f"{p}: {sch} delta on a {base.get('schema')} checkpoint")
+                    continue
                 state = full_state(o, base_state)
         except (ValueError, KeyError, TypeError) as e:
             problems.append(f"{p}: {type(e).__name__}: {e}")
@@ -497,7 +547,8 @@ def verify(store):
         ts = o.get("observed_at")
         first_obs = ts if first_obs is None else min(first_obs, ts)
         last_obs = ts if last_obs is None else max(last_obs, ts)
-    return {"ok": not problems, "observations": n, "checkpoints": ckpt, "liquidity_observations": liq,
+    return {"ok": not problems, "observations": n, "schemas": dict(sorted((str(k), v) for k, v in schemas.items())),
+            "checkpoints": ckpt, "liquidity_observations": liq,
             "backfilled": backfilled, "bytes": total, "first_observed_at": first_obs, "last_observed_at": last_obs,
             "problems": problems[:50], "problem_count": len(problems),
             "head_hash": obs_hash(prev) if prev is not None else None}
@@ -697,7 +748,8 @@ def backfill_items(chain, current_scan, repo_slug, lister=list_scan_artifacts, d
 # --------------------------------------------------------------------------- capture (called by v8.snapshot)
 def status_template(snap, branch):
     m = snap.get("manifest") or {}
-    return {"version": VERSION, "branch": branch, "observation_timestamp": m.get("ts"),
+    return {"version": VERSION, "readable_schemas": list(SCHEMAS), "liquidity_precision": dict(LIQUIDITY_PRECISION),
+            "branch": branch, "observation_timestamp": m.get("ts"),
             "source_scan": m.get("scan_id"), "source_main_sha": m.get("git_sha"), "persistence_state": NOT_CONFIGURED,
             "history_branch_commit": None, "append_integrity": None, "storage_size": None, "observation": None,
             "backfill": None, "reason": None}
@@ -750,7 +802,7 @@ def capture(snap, repo=None, branch=BRANCH, backfill=False, repo_slug=None, now=
                 st.update(persistence_state=DEGRADED, reason=res)
             elif res == PERSISTED:
                 msgs.append(f"observation {obs['seq']} of scan {content['scan_id']} ({obs['state_mode']})")
-                st["observation"] = {"seq": obs["seq"], "path": path, "obs_hash": obs_hash(obs),
+                st["observation"] = {"seq": obs["seq"], "schema": obs["schema"], "path": path, "obs_hash": obs_hash(obs),
                                      "state_mode": obs["state_mode"], "liquidity": obs["liquidity"] is not None,
                                      "content_hash": obs["content_hash"]}
             try:
@@ -864,7 +916,7 @@ def _load(path):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="v8 point-in-time history (v8.history/1)")
+    ap = argparse.ArgumentParser(description="v8 point-in-time history (writes v8.history/2; reads /1 and /2)")
     sub = ap.add_subparsers(dest="cmd", required=True)
     v = sub.add_parser("verify", help="verify an export of the history branch (a folder holding obs/)")
     v.add_argument("--dir", required=True)

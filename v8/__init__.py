@@ -26,7 +26,7 @@ Modules
     audit_*     the end-of-run audit of each engine (reads the run's own values, recomputes nothing it decides)
     snapshot    assembles the versioned audit snapshot (data/v8/audit_latest.json) after all engines ran
     discovery   full-universe discovery (data/v8/discovery.json, v8.discovery/1): observes, never decides (Phase 7)
-    history     append-only point-in-time history on the v8-history branch (v8.history/1), written by the Scan
+    history     append-only point-in-time history on the v8-history branch (v8.history/2 after /1), written by Scan
                 workflow after the snapshot; a failure is HISTORY_CAPTURE_DEGRADED and never stops a scan (Phase 8)
     pit         research-only point-in-time queries over the history (universe_at, liquidity_at, intervals); no
                 live engine imports it (Phase 8)
@@ -34,5 +34,5 @@ Modules
                 record has trade authority (Phase 8)
 """
 
-SCHEMA = "v8.audit/6"
-ENGINE_VERSION = "v8-phase8.0"
+SCHEMA = "v8.audit/7"
+ENGINE_VERSION = "v8-phase8.1"
