@@ -10,7 +10,7 @@
  "head_golden": "tests/fixtures/v8/legacy_parity_golden_phase8_1.json",
  "counterfactual_projection": null,
  "rules": {
-  "NO_LEGACY_DELTA": "The hotfix changes the history writer (v8.history/2), the research-only point-in-time view and cost model (v8.pit/2, v8.pit-cost/2, v8.pit-research/2), the shadow-ledger validator and the audit snapshot's history section (v8.audit/7). pk_day.py and picks_export.py are refactored so their selection masks are shared with the point-in-time research; their outputs are byte-identical (tests/test_v8_phase8_hotfix.py against frozen copies). No engine imports any of it. The universe, every identity state (v8.identity/4, config hash unchanged), discovery (v8.discovery/1), every strategy, threshold, gate, stop, target, sizing, ranking, Top-N and every published legacy file are byte-identical to the base."
+  "NO_LEGACY_DELTA": "The hotfix changes the history writer (v8.history/2), the research-only point-in-time view and cost model (v8.pit/2, v8.pit-cost/2, v8.pit-research/3 - its corrected day selection reads funding from observed settlements only), the shadow-ledger validator and the audit snapshot's history section (v8.audit/7). pk_day.py and picks_export.py are refactored so their selection masks are shared with the point-in-time research; their outputs are byte-identical (tests/test_v8_phase8_hotfix.py against frozen copies). No engine imports any of it. The universe, every identity state (v8.identity/4, config hash unchanged), discovery (v8.discovery/1), every strategy, threshold, gate, stop, target, sizing, ranking, Top-N and every published legacy file are byte-identical to the base."
  },
  "universe": [],
  "dex_status": [],
