@@ -31,7 +31,8 @@ ACCOUNTS = (
 
 
 def base_mask(R, fw, elig):
-    """The rows the swing "base" reports: every eligible coin-day with a trade result and 30 days after it."""
+    """The rows the swing "base" reports: every eligible coin-day with a trade result and a forward window (max30:
+    the highest high of up to 30 later days, so at least one later day)."""
     return elig & np.isfinite(R) & np.isfinite(fw["max30"])
 
 

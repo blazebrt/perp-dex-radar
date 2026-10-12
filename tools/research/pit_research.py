@@ -155,9 +155,12 @@ def _stop_dist(atr, c, k_stop, min_sd, max_sd):
 
 
 def _pk_qualify(uni, slip, R_legacy, RET_legacy, BARS, side, cost_legacy, sd_all, t_bar, frate_d, fmiss_d, mask,
-                liq_state=None):
+                horizon, liq_state=None):
     """Point-in-time re-costing of pk_trades rows (k, j): entry at bar k+1 open, exit in bar k+BARS. The rows are
-    exactly `mask` (a governed selection surface); costs and qualification change, the selection never does."""
+    exactly `mask` (a governed selection surface); costs and qualification change, the selection never does. A row
+    is closed when its exit is known: its holding limit (`horizon` bars) ends inside the data, or it exited before the
+    last bar. pk_trades.sim closes a trade still open at the last bar at that close: such a row (an exit on the last
+    bar before its limit) is open at the data end and never in an authoritative aggregate."""
     K, N = R_legacy.shape
     kk, jj = np.where(mask & np.isfinite(R_legacy) & np.isfinite(BARS))
     if len(kk) == 0:
@@ -184,7 +187,8 @@ def _pk_qualify(uni, slip, R_legacy, RET_legacy, BARS, side, cost_legacy, sd_all
     with np.errstate(invalid="ignore", divide="ignore"):
         q["net_ret"] = gross - cost
         q["net_R"] = q["net_ret"] / sd
-    q.update(cost=cost, slippage=se + sx, funding=side * fsum, closed=np.ones(len(kk), dtype=bool), k=kk, j=jj)
+    closed = (kk + horizon <= K - 1) | (i_ex < K - 1)
+    q.update(cost=cost, slippage=se + sx, funding=side * fsum, closed=closed, k=kk, j=jj)
     if liq_state is not None:
         g = uni["liq_gate"][kk, jj]
         q["liq_reason"] = [None if ok else PS.liquidity_reason(int(g[n]), int(liq_state[kk[n] + 1, jj[n]]),
@@ -218,6 +222,9 @@ def _daily_panel(md, cutoff):
 
 DIAGNOSTIC = "DIAGNOSTIC / NOT DAY STRATEGY AUTHORITY"
 SWING_DIAGNOSTIC = "DIAGNOSTIC / NOT SWING STRATEGY AUTHORITY"
+MIN_BAND_ROWS = 30           # picks_export.band_stats and pk_day report a band of 30+ rows only
+READY_BAND = (80, 101)       # the swing "ready" band: the 80-90 and 90+ rows together, reported on its own
+SWING_HOLD = 30              # the swing trade's holding limit in days (picks_export / pk_trades.sim)
 
 
 def _legacy_rows(R, RET, m):
@@ -232,8 +239,13 @@ def _corrected(q, hist):
     return {"components": _counts(q), "why_not_qualified": PS.reasons(q, hist), "authoritative": PS.aggregate(q)}
 
 
+def _diagnostic(q, hist):
+    """A diagnostic surface (not the strategy's selection): the same qualification, its aggregate never authoritative."""
+    return {"components": _counts(q), "why_not_qualified": PS.reasons(q, hist), "aggregate": PS.aggregate(q)}
+
+
 def _top5_corrected(q, top):
-    """The corrected Top 5: a 4-hour sample is authoritative only when all five picks are fully qualified."""
+    """The corrected Top 5: a 4-hour sample is authoritative only when all five picks are fully qualified and closed."""
     if not top:
         return {"samples": 0, "qualified_samples": 0, "authoritative": {"n": 0}}
     by = {}
@@ -243,7 +255,7 @@ def _top5_corrected(q, top):
     per = []
     for k, pk, _ in top:
         rows = [by.get((int(k), int(j))) for j in pk]
-        if all(r is not None and q["fully_qualified"][r] for r in rows):
+        if all(r is not None and q["fully_qualified"][r] and q["closed"][r] for r in rows):
             per.append(float(np.mean([q["net_R"][r] for r in rows])))
     agg = {"n": len(per), "avg_R": _r(float(np.mean(per)))} if per else {"n": 0}
     return {"samples": len(top), "qualified_samples": len(per), "pick_rows": 5 * len(top), "authoritative": agg}
@@ -265,7 +277,7 @@ def day_research(md, hist, cutoff, swing_t, swing_coins, SL, SS):
     import pk_day
     from pk_trades import COST
     ph, Fh, xh = pk_day.hourly(md, end=cutoff)
-    if ph.T <= pk_day.FIRST + 24:
+    if ph.T <= pk_day.FIRST + pk_day.HOLD:
         return {"status": "INSUFFICIENT_MARKET_DATA", "hours": int(ph.T)}, {}, {}, {}
     sims = pk_day.simulate(ph, Fh)
     surf_l = pk_day.surfaces(ph, Fh, xh, swing_t, swing_coins, SL, SS, sims=sims)
@@ -283,7 +295,8 @@ def day_research(md, hist, cutoff, swing_t, swing_coins, SL, SS):
         R, RET, BARS = L["R"], L["RET"], L["BARS"]
 
         def qual(mask):
-            return _pk_qualify(uni, slip, R, RET, BARS, sgn, COST, sd, t_bar, frh, fsh == PC.F_MISSING, mask, lst)
+            return _pk_qualify(uni, slip, R, RET, BARS, sgn, COST, sd, t_bar, frh, fsh == PC.F_MISSING, mask,
+                               pk_day.HOLD, lst)
 
         q_base, q_top = qual(P_["base"]), qual(_rows_mask(R.shape, P_["top"]))
         lb = {(lo, hi): m for lo, hi, m in L["bands"]}
@@ -300,7 +313,7 @@ def day_research(md, hist, cutoff, swing_t, swing_coins, SL, SS):
         a = np.array([(R[k, pk].mean(), RET[k, pk].mean(), R[k, m].mean(), RET[k, m].mean()) for k, pk, m in L["top"]])
         rep[side] = {
             "base": {"label": DIAGNOSTIC, "legacy": {"label": LEGACY, **_legacy_rows(R, RET, L["base"])},
-                     "corrected": _corrected(q_base, hist)},
+                     "corrected": _diagnostic(q_base, hist)},
             "bands": bands,
             "top5": {"label": "DAY STRATEGY SURFACE",
                      "legacy": {"label": LEGACY, "n": len(a), "R": _r(a[:, 0].mean()) if len(a) else None,
@@ -345,22 +358,25 @@ def picks(md, hist, cutoff):
     # swing: picks_export's own selection masks (base_mask / band_mask), legacy on its eligibility, corrected on the
     # strategy's eligibility AND point-in-time eligibility when the day closes
     for side, sgn, sc in (("long", 1, SL_), ("short", -1, SS_)):
-        R, RET, _, BARS = sim(d["o"], d["h"], d["l"], d["c"], atr, sgn, 2.0, 3.0, 30, 0.05, 0.25, COST)
+        R, RET, _, BARS = sim(d["o"], d["h"], d["l"], d["c"], atr, sgn, 2.0, 3.0, SWING_HOLD, 0.05, 0.25, COST)
 
         def qual(mask):
-            return _pk_qualify(uni_sw, slip_sw, R, RET, BARS, sgn, COST, sd_sw, t_bar, fr_d, fm_d, mask, lst_sw)
+            return _pk_qualify(uni_sw, slip_sw, R, RET, BARS, sgn, COST, sd_sw, t_bar, fr_d, fm_d, mask, SWING_HOLD,
+                               lst_sw)
 
         o = {"base": {"label": SWING_DIAGNOSTIC,
                       "legacy": {"label": LEGACY, **_legacy_rows(R, RET, base_mask(R, fw, elig_l))},
-                      "corrected": _corrected(qual(base_mask(R, fw, elig_p)), hist)},
+                      "corrected": _diagnostic(qual(base_mask(R, fw, elig_p)), hist)},
              "bands": []}
-        for lo, hi in SWING_BANDS + ((80, 101),):
+        for lo, hi in SWING_BANDS + (READY_BAND,):
             ml, mp = band_mask(sc, R, fw, elig_l, lo, hi), band_mask(sc, R, fw, elig_p, lo, hi)
             o["bands"].append({"lo": lo, "hi": hi, "label": "SWING STRATEGY SURFACE" + (" (ready: 80+)" if (lo, hi)
-                                                                                      == (80, 101) else ""),
+                                                                                      == READY_BAND else ""),
                                "legacy": {"label": LEGACY, **_legacy_rows(R, RET, ml),
-                                          "reported_by_picks_export": bool(ml.sum() >= 30)},
-                               "corrected": _corrected(qual(mp), hist)})
+                                          "reported_by_picks_export": bool(ml.sum() >= MIN_BAND_ROWS)},
+                               "corrected": _corrected(qual(mp), hist) if mp.sum() >= MIN_BAND_ROWS
+                               else {"note": "fewer than 30 point-in-time eligible rows: picks_export would not "
+                                             "report this band", "authoritative": {"n": 0}}})
         out["swing"][side] = o
     # day picks: the day-pick selection authority itself (pk_day.surfaces)
     out["day"], _, _, _ = day_research(md, hist, cutoff, d["t"], d["coins"], SL_, SS_)
@@ -442,7 +458,8 @@ def qualified_window(out, win):
     picks_rows, day_samples = 0, 0
     pk = out.get("picks") or {}
     for side, o in (pk.get("swing") or {}).items():
-        picks_rows += sum((b["corrected"]["authoritative"] or {}).get("n", 0) for b in o["bands"])
+        picks_rows += sum((b["corrected"]["authoritative"] or {}).get("n", 0) for b in o["bands"]
+                          if (b["lo"], b["hi"]) != READY_BAND)        # the ready band repeats the 80-90 and 90+ rows
     for side, o in (pk.get("day") or {}).items():
         if isinstance(o, dict) and "bands" in o:
             picks_rows += sum((b["corrected"]["authoritative"] or {}).get("n", 0) for b in o["bands"])
@@ -490,15 +507,15 @@ def text(out):
     for side, o in (pk.get("swing") or {}).items():
         b = o["base"]
         L.append(f"picks swing {side} base [{b['label']}]: legacy {b['legacy']} | corrected "
-                 f"{b['corrected']['authoritative']}")
+                 f"{b['corrected']['aggregate']}")
         for x in o["bands"]:
             L.append(f"picks swing {side} {x['lo']}-{x['hi']}: legacy n={x['legacy'].get('n')} R={x['legacy'].get('R')}"
-                     f" | corrected {x['corrected']['components']} authoritative {x['corrected']['authoritative']}")
+                     f" | corrected {x['corrected'].get('components')} authoritative {x['corrected']['authoritative']}")
     for side, o in (pk.get("day") or {}).items():
         if not (isinstance(o, dict) and "bands" in o):
             continue
         L.append(f"picks day {side} base [{o['base']['label']}]: legacy {o['base']['legacy']} | corrected "
-                 f"{o['base']['corrected']['authoritative']}")
+                 f"{o['base']['corrected']['aggregate']}")
         for x in o["bands"]:
             L.append(f"picks day {side} band {x['lo']}-{x['hi']}: legacy n={x['legacy'].get('n')} "
                      f"R={x['legacy'].get('R')} | corrected {x['corrected'].get('authoritative')}")

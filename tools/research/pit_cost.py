@@ -77,7 +77,7 @@ def _record_codes(vs, min_vol):
         if s == "NOT_ON_TRADE_DEX":
             st[k], gate[k] = L_NOT_ON_TRADE_DEX, 0
         elif s == "MISSING":
-            st[k] = L_MISSING
+            st[k], gate[k] = L_MISSING, 0        # the live gate never passes a missing volume
         elif s == "KNOWN" and v is not None:
             d = [PIT.decides(v, prec, lo) for lo, _ in SLIP_TIERS[:-1]]
             if all(x is not None for x in d):
@@ -95,7 +95,8 @@ def liquidity_panel(hist, times, coins, min_vol=None):
     """(vol, state, slip, gate) [T,N] from a v8.pit.History for the given unix times (each the moment a cost is
     paid or a decision made) and coin tickers: vol and slip NaN unless KNOWN with a precision that decides every
     tier; state a code of LIQUIDITY_STATES; gate (when min_vol is given) 1 / 0 / -1 for a decidable KNOWN volume of
-    at least min_vol / known below it or not on a trade DEX / unknown (missing, stale, precision-unqualified)."""
+    at least min_vol / known below it, MISSING or not on a trade DEX / unknown (no fresh record, or a precision
+    that cannot decide it)."""
     times = np.asarray(times, dtype=np.int64)
     T, N = len(times), len(coins)
     vol = np.full((T, N), np.nan)

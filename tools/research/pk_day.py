@@ -46,13 +46,14 @@ BANDS = ((0, 50), (50, 70), (70, 80), (80, 90), (90, 101))
 FIRST = 24 * 40          # the first sampled hour (40 days of history for the features)
 EVERY = 4                # a sample every 4 hours
 MIN_ROWS = 30            # a band or a Top-5 sample needs 30+ rows
+HOLD = 24                # a day trade is held 24 hours at most
 
 
 def simulate(p, F):
     """Day-trade results for every coin and hour, long and short (1.5 ATR stop, 2.5 ATR trail, 24 hours, costs)."""
     out = {}
     for side, sgn in (("long", 1), ("short", -1)):
-        R, RET, _, BARS = sim(p.o, p.h, p.l, p.c, F.atr1, sgn, 1.5, 2.5, 24, 0.015, 0.06, COST)
+        R, RET, _, BARS = sim(p.o, p.h, p.l, p.c, F.atr1, sgn, 1.5, 2.5, HOLD, 0.015, 0.06, COST)
         out[side] = (R, RET, BARS)
     return out
 
@@ -92,7 +93,7 @@ def surfaces(p, F, x, swing_t, swing_coins, SL, SS, elig=None, sims=None):
             if m.sum() >= MIN_ROWS:
                 bands.append((lo, hi, m))
         top = []
-        for k in range(FIRST, T - 24, EVERY):
+        for k in range(FIRST, T - HOLD, EVERY):
             m = elig[k] & np.isfinite(R[k])
             if m.sum() < MIN_ROWS:
                 continue
