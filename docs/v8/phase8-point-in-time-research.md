@@ -135,7 +135,8 @@ answers for a time `t` only from observations with `observed_at <= t` at most `M
   whose market list loaded), `KNOWN_INACTIVE` (every venue it was seen on loaded and none lists it as active) or
   `UNKNOWN` (stale, before the history, a venue it was seen on unavailable, the fallback universe) - with its identity
   and liquidity then and `research_eligible` (True / False / None). An asset first observed after `t` is absent: a
-  future listing never leaks back. `UNKNOWN` is never False or zero.
+  future listing never leaks back. `UNKNOWN` is never read as inactive or zero: `research_eligible` is then None
+  unless another input was known to fail at that time (not on a trade DEX, a missing volume).
 * `identity_at`, `crypto_identity_at`: the identity recorded then, with its version and config hash. The oldest
   archived snapshots (`v8.audit/1` and `/2`, before Phase 3) carry no identity state: there the identity is unknown,
   so research eligibility is unknown, never "not crypto".
@@ -167,7 +168,8 @@ Health states: `PIT_UNIVERSE_OK` / `PIT_UNIVERSE_GAP`, `LIQUIDITY_HISTORY_OK` / 
 * **Universe**: the same strategies, with the strategy's own eligibility AND point-in-time eligibility when the
   signal's bar closes (active, verified crypto identity, a KNOWN trade-DEX volume of at least $1M - the live quant and
   picks gate). A time whose eligible assets are not all in the candle panel (a coin delisted before the market data
-  was fetched) is `PIT_UNIVERSE_CANDLES_MISSING`: nothing traded then is authoritative.
+  was fetched), or with any asset the history had seen unknown then, is `PIT_UNIVERSE_INCOMPLETE`: nothing traded
+  then is authoritative.
 * **Trades** follow the unchanged qsim / pk_trades rules (exits depend on prices only); costs are recomputed per
   trade. With full coverage and the same inputs the re-costing reproduces qsim's legacy result exactly (tested).
 * **Qualification** per trade: `universe_ok`, `identity_ok`, `liquidity_ok`, `funding_ok`, `cost_ok`,
@@ -244,12 +246,17 @@ rows) and the deterministic Top 5 (score order, 1e-3 jitter seeded by the hour) 
 those surfaces (its output is byte-identical to the merged version, tested against a frozen copy). The point-in-time
 day research selects the same surfaces on the strategy's eligibility AND point-in-time eligibility, then re-costs and
 qualifies every selected row: bands per band, the Top 5 per 4-hour sample (a sample is authoritative only when all five
-picks are fully qualified). The all-eligible base is kept only as `DIAGNOSTIC / NOT DAY STRATEGY AUTHORITY`. Swing
-research uses `picks_export`'s own masks (`base_mask`, `band_mask`, extracted unchanged: the merged version had
-dropped its 30-days-ahead condition) and labels its base `DIAGNOSTIC / NOT SWING STRATEGY AUTHORITY`. On a synthetic
-full-authority dataset (costs equal the legacy assumptions) the corrected selection equals `pk_day.py`'s row for row -
-scores, bands, Top-5 membership and ranking - and so does every net R; observed funding then changes costs only, never
-the selection.
+picks are fully qualified and closed). The all-eligible base is kept only as `DIAGNOSTIC / NOT DAY STRATEGY AUTHORITY`,
+with a diagnostic `aggregate` and never an `authoritative` one. Swing research uses `picks_export`'s own masks
+(`base_mask`, `band_mask`, extracted unchanged: the merged version had dropped its forward-window condition, `max30`
+finite), reports a corrected band only with 30+ point-in-time eligible rows (as `band_stats`), labels its base
+`DIAGNOSTIC / NOT SWING STRATEGY AUTHORITY`, and counts the "ready" band (80+, the 80-90 and 90+ rows again) once in
+the qualified window. `pk_trades.sim` closes a trade still open at the last bar at that close; such a row (its exit on
+the last bar before its holding limit: 24 hours for day trades, 30 days for swing) stays in the selection and its
+counts (`open_at_data_end`) but never in an authoritative aggregate, as quant's open trades. On a synthetic
+full-authority dataset (160 days, costs equal the legacy assumptions, finite swing scores) the corrected selection
+equals `pk_day.py`'s and `picks_export`'s row for row - scores, bands, Top-5 membership and ranking - and so does every
+net R; observed funding then changes costs only, never the selection.
 
 **2. A cutoff before the first history observation crashed (P1).** A verified chain whose observations all lie after the
 cutoff is now an empty view: `History.view_status` = `HISTORY_EMPTY` with reason `BEFORE_PIT_HISTORY`,
@@ -277,9 +284,10 @@ as undecidable: in practice only values recorded exactly on a threshold. 199,999
 1,000,000.0 are `LIQUIDITY_PRECISION_UNQUALIFIED`. The governed tiers are unchanged.
 
 Research eligibility is now a three-valued AND: False when any input was known to fail (inactive, another identity,
-known below the gate, MISSING - a missing volume never passes the live gate - or not on a trade DEX), True when every
-input was known to pass, else unknown; a cross-section is complete only when no asset the history had seen is unknown
-then and every eligible one has candles.
+known below the gate, MISSING - a missing volume never passes the live gate (`v8.liquidity.passes`); `f142bb1` left it
+unknown - or not on a trade DEX), True when every input was known to pass, else unknown (no fresh record, a precision
+that cannot decide); a cross-section is complete only when no asset the history had seen is unknown then and every
+eligible one has candles.
 
 **4. A STATUS file could speak for another experiment (P2).** `000003-STATUS-EXP_A.json` holding `experiment_id: EXP_B`
 was accepted. Every STATUS record's file-name id must now equal its experiment id (as registrations already did), and
