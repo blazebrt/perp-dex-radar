@@ -42,25 +42,23 @@ jobs:
       - name: All unit tests
         run: python -m unittest discover -s tests -v
 
-      - name: v8 tests (Phase 1 audit; Phase 2 identity, liquidity and the delta validator; Phase 3 identity coverage, smart-money identity and journal provenance; Phase 3 closure quant and radar evidence; Phase 4 candidate identity evidence; Phase 5 economic exposure; Phase 6 exposure-local ticker authority; Phase 7 full-universe discovery; Phase 8 point-in-time history and research)
-        run: python -m unittest tests.test_v8_units tests.test_v8_audit tests.test_v8_identity tests.test_v8_delta tests.test_v8_phase3 tests.test_v8_phase3_smart tests.test_v8_phase3_journal tests.test_v8_phase3_closure tests.test_v8_phase4 tests.test_v8_phase5 tests.test_v8_phase6 tests.test_v8_phase7 tests.test_v8_phase8 -v
+      - name: v8 tests (Phase 1 audit; Phase 2 identity, liquidity and the delta validator; Phase 3 identity coverage, smart-money identity and journal provenance; Phase 3 closure quant and radar evidence; Phase 4 candidate identity evidence; Phase 5 economic exposure; Phase 6 exposure-local ticker authority; Phase 7 full-universe discovery; Phase 8 point-in-time history and research; Phase 8 post-merge hotfix)
+        run: python -m unittest tests.test_v8_units tests.test_v8_audit tests.test_v8_identity tests.test_v8_delta tests.test_v8_phase3 tests.test_v8_phase3_smart tests.test_v8_phase3_journal tests.test_v8_phase3_closure tests.test_v8_phase4 tests.test_v8_phase5 tests.test_v8_phase6 tests.test_v8_phase7 tests.test_v8_phase8 tests.test_v8_phase8_hotfix -v
 
       - name: Shadow experiment ledger is append-only and valid (v8 Phase 8)
         run: python tools/v8/ledger_guard.py
 
       - name: Legacy parity against this branch's committed golden digests
-        run: python tools/v8/legacy_parity.py --out "$RUNNER_TEMP/parity_head" --check tests/fixtures/v8/legacy_parity_golden_phase8.json
+        run: python tools/v8/legacy_parity.py --out "$RUNNER_TEMP/parity_head" --check tests/fixtures/v8/legacy_parity_golden_phase8_1.json
 
       - name: Differential parity against the phase base (approved deltas only)
-        # Phase 8 (point-in-time history and research) is audit- and research-only: its manifest allows no legacy
-        # delta at all. Its base, production main 1609e2c (Phase 7 merged), named in the Phase 8 manifest, is rebuilt
-        # on this runner; it must reproduce its own golden digests, and every difference between it and this checkout
-        # must be one the manifest lists (none), and every listed one must occur (tools/v8/delta_parity.py). The Phase 7
-        # manifest (pinned to 61960d9), the Phase 6 manifest (f7aa7f6), the Phase 5 manifest (3288b15), the Phase 4
-        # manifest (d011bcb), the closure manifest (f8648fe), the Phase 3 manifest (82f8d35) and the Phase 2 manifest
-        # (15a3794) are kept for the record and no longer checked.
+        # The Phase 8 post-merge hotfix (v8-phase8.1) is history- and research-only: its manifest allows no legacy
+        # delta at all. Its base, production main f142bb1 (Phase 8 merged), named in the manifest, is rebuilt on this
+        # runner; it must reproduce its own golden digests, and every difference between it and this checkout must be
+        # one the manifest lists (none), and every listed one must occur (tools/v8/delta_parity.py). The Phase 8
+        # manifest (pinned to 1609e2c) and the earlier manifests are kept for the record and no longer checked.
         run: |
-          MANIFEST=tests/fixtures/v8/phase8_expected_deltas.json
+          MANIFEST=tests/fixtures/v8/phase8_1_expected_deltas.json
           BASE_SHA=$(python -c "import json; print(json.load(open('$MANIFEST'))['base']['sha'])")
           git merge-base --is-ancestor "$BASE_SHA" HEAD
           git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA"
@@ -88,8 +86,8 @@ jobs:
       - name: Simulator tests
         run: python tools/research/test_qsim.py
 
-      - name: Point-in-time research tests (v8 Phase 8; time-varying slippage, observed funding, qualification, parity with qsim)
-        run: python -m unittest tests.test_v8_phase8 -v
+      - name: Point-in-time research tests (v8 Phase 8 and its post-merge hotfix; time-varying slippage, observed funding, qualification, parity with qsim, the day-pick selection authority, cutoffs before the history, liquidity precision)
+        run: python -m unittest tests.test_v8_phase8 tests.test_v8_phase8_hotfix -v
 
       - name: No-edge check (no strategy may make money on a random market)
         run: python tools/no_edge_check.py
