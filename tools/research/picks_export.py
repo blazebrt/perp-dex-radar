@@ -30,11 +30,21 @@ ACCOUNTS = (
 )
 
 
+def base_mask(R, fw, elig):
+    """The rows the swing "base" reports: every eligible coin-day with a trade result and 30 days after it."""
+    return elig & np.isfinite(R) & np.isfinite(fw["max30"])
+
+
+def band_mask(sc, R, fw, elig, lo, hi):
+    """The rows one swing score band reports (also the selection the point-in-time research qualifies)."""
+    return base_mask(R, fw, elig) & np.isfinite(sc) & (sc >= lo) & (sc < hi)
+
+
 def band_stats(sc, R, RET, fw, elig, years, bands=BANDS):
     out = []
     Yg = np.repeat(years[:, None], sc.shape[1], 1)
     for lo, hi in bands:
-        m = elig & np.isfinite(R) & np.isfinite(sc) & (sc >= lo) & (sc < hi) & np.isfinite(fw["max30"])
+        m = band_mask(sc, R, fw, elig, lo, hi)
         if m.sum() < 30:
             continue
         ys = {}
@@ -143,7 +153,7 @@ def main():
     for side, sgn, sc in (("long", 1, SL), ("short", -1, SS)):
         R, RET, MFE, BARS = sim(d["o"], d["h"], d["l"], d["c"], atr, sgn, 2.0, 3.0, 30, 0.05, 0.25, COST)
         labs[side] = (R, BARS)
-        base = elig & np.isfinite(R) & np.isfinite(fw["max30"])
+        base = base_mask(R, fw, elig)
         res["swing"][side] = {
             "bands": band_stats(sc, R, RET, fw, elig, years),
             "ready": band_stats(sc, R, RET, fw, elig, years, ((80, 101),))[0],
