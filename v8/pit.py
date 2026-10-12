@@ -2,8 +2,8 @@
 
     Historical research may use only information that was actually knowable at that historical time.
 
-`History` reads a verified v8.history chain (v8.history/1 records, then v8.history/2) and answers, for any time t, only from observations with
-observed_at <= t that are at most MAX_STALENESS_S old:
+`History` reads a verified v8.history chain (v8.history/1 records, then v8.history/2) and answers, for any time t,
+only from observations with observed_at <= t that are at most MAX_STALENESS_S old:
 
     universe_at(t)     every asset the history had seen by t: KNOWN_ACTIVE (an active perpetual on a venue whose
                        market list loaded), KNOWN_INACTIVE (seen before, and every venue it was seen on loaded and
@@ -414,7 +414,8 @@ class History:
 def eligible(asset_point, ident, liq, min_vol=None):
     """research_eligible at one time, a three-valued AND: False when any input was known to fail then, True when
     every input was known to pass, None (unknown) otherwise. A liquidity value whose precision cannot decide the
-    gate (v8.history/1, or a threshold inside its rounding interval) is unknown, never a pass or a fail."""
+    gate (v8.history/1, or a threshold inside its rounding interval) is unknown, never a pass or a fail; a recorded
+    MISSING volume or NOT_ON_TRADE_DEX is a known fail, as in the live gate."""
     parts = []
     if asset_point is None or asset_point.get("state") == UNKNOWN:
         parts.append(None)
@@ -425,10 +426,10 @@ def eligible(asset_point, ident, liq, min_vol=None):
     else:
         parts.append(ident.get("identity") == VERIFIED_CRYPTO and ident.get("universe") == "CRYPTO")
     if min_vol is not None:
-        if liq is None or liq.get("state") in (LIQUIDITY_HISTORY_UNKNOWN, "MISSING"):
+        if liq is None or liq.get("state") == LIQUIDITY_HISTORY_UNKNOWN:
             parts.append(None)
-        elif liq["state"] == "NOT_ON_TRADE_DEX":
-            parts.append(False)
+        elif liq["state"] in ("MISSING", "NOT_ON_TRADE_DEX"):
+            parts.append(False)  # the live gate (v8.liquidity.passes) never passes a missing volume or no trade DEX
         elif liq["state"] == "KNOWN":
             parts.append(decides(liq["value"], liq.get("precision"), min_vol))
         else:

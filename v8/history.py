@@ -490,8 +490,9 @@ def verify(store):
     names the newest checkpoint before it as its base (by seq and hash), every record validates itself (including
     the head and provenance), every stored liquidity table matches its digest, every content hash matches the
     rebuilt state and full liquidity digest, every scan id is unique, stored_bytes_before adds up; each record by its
-    own schema (v8.history/1 or /2, never a v1 after a v2, a delta on a checkpoint of its own schema). Returns a
-    report (ok, problems, counts per schema, observed window, head hash)."""
+    own schema (v8.history/1 or /2, never a v1 after a v2, the first v2 record a checkpoint with the full liquidity
+    table, a delta on a checkpoint of its own schema). Returns a report (ok, problems, counts per schema, observed
+    window, head hash)."""
     problems, prev, base, base_state = [], None, None, None
     seen, n, ckpt, liq, total, backfilled = set(), 0, 0, 0, 0, 0
     first_obs = last_obs = None
@@ -510,6 +511,9 @@ def verify(store):
         if sch in SCHEMAS:
             if SCHEMAS.index(sch) < rank:
                 problems.append(f"{p}: {sch} after a later history schema")
+            if sch != SCHEMAS[0] and (prev or {}).get("schema") != sch and not (
+                    o.get("state_mode") == CHECKPOINT and o.get("liquidity") is not None):
+                problems.append(f"{p}: the first {sch} record must be a checkpoint carrying the full liquidity table")
             rank = max(rank, SCHEMAS.index(sch))
         problems.extend(f"{p}: {problem}" for problem in record_problems(o))
         if o.get("seq") != n or _seq_of(p) != n:
