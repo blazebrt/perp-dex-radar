@@ -218,7 +218,7 @@ class MixedChain(Tmp):
         self.assertTrue(h.crypto_identity_at(T0 + 60, "BTC"))
         self.assertEqual(h.asset_at(T0 + HOUR + 60, "OLD")["state"], P.KNOWN_INACTIVE)
 
-    def test_no_v1_after_v2_and_no_v2_delta_on_a_v1_checkpoint(self):
+    def test_no_v2_delta_on_a_v1_checkpoint_and_v2_after_v1_starts_with_liquidity(self):
         # a v2 delta forged onto the v1 checkpoint (hashes otherwise valid) is rejected
         st = self.v1_copy("forged")
         cs = boundary_contracts([199999.6, 999999.6])
@@ -235,17 +235,6 @@ class MixedChain(Tmp):
         rep = H.verify(st)
         self.assertFalse(rep["ok"])
         self.assertTrue(any("delta on a v8.history/1 checkpoint" in p for p in rep["problems"]), rep["problems"])
-        # a v1 record after a v2 record is rejected
-        st2 = self.store("order")
-        B.append(st2, B.snapshot(T0, "gh-1-1", cs))
-        o = H.decode(st2.read_bytes(st2.paths()[0]))
-        o2 = dict(o, seq=2, scan_id="gh-2-1", schema="v8.history/1", prev_hash=H.obs_hash(o), appended_at=T0 + 9,
-                  stored_bytes_before=len(st2.read_bytes(st2.paths()[0])))
-        o2.pop("liquidity_precision")
-        o2["record_hash"] = H.obs_hash(o2)
-        st2.write(H.path_for(o2), H.gz(H.canonical(o2)))
-        rep2 = H.verify(st2)
-        self.assertTrue(any("after a later history schema" in p for p in rep2["problems"]), rep2["problems"])
         # the first v2 record must be a checkpoint carrying the full liquidity table (the writer guarantees it)
         st3 = self.v1_copy("noliq")
         snap3 = B.snapshot(T0 + 6 * HOUR, "gh-104-1", cs)
@@ -256,8 +245,72 @@ class MixedChain(Tmp):
         st3.write(H.path_for(obs3), H.gz(H.canonical(obs3)))
         rep3 = H.verify(st3)
         self.assertFalse(rep3["ok"])
-        self.assertTrue(any("first v8.history/2 record must be a checkpoint" in p for p in rep3["problems"]),
-                        rep3["problems"])
+        self.assertTrue(any("v8.history/2 record after a v8.history/1 record must be a checkpoint carrying the full "
+                            "liquidity table" in p for p in rep3["problems"]), rep3["problems"])
+
+    def test_an_old_v1_writer_rerun_after_v2_never_breaks_the_history(self):
+        """A re-run of a Scan run that started before the hotfix runs the f142bb1 (v8.history/1) writer and appends a
+        v1 record after the v2 ones. The branch is append-only: the record is checked by its own schema and counted,
+        its liquidity is precision-unqualified, and the next v2 record starts again from a full checkpoint."""
+        with open(os.path.join(V1_FIXTURE, "MANIFEST.json")) as fh:
+            man = json.load(fh)
+        path = os.path.join(V1_FIXTURE, "writer_f142bb1.py")
+        with open(path, "rb") as fh:
+            data = fh.read()
+        self.assertEqual(hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest(), man["writer_blob_sha1"])
+        old = _load("history_writer_f142bb1", path)
+        st = self.v1_copy("rerun")
+        cs = boundary_contracts([199999.6, 999999.6])
+        B.append(st, B.snapshot(T0 + 6 * HOUR, "gh-104-1", cs))                        # the hotfix writer: v2
+        ostore = old.DirStore(st.root)
+
+        def old_run(ts, scan):
+            snap = B.snapshot(ts, scan, cs)
+            return old.append(ostore, old.scan_content(snap), old.state_from_snapshot(snap), now=ts)
+
+        # an old run re-run 10 minutes after the v2 record: no liquidity due by its clock, so the exact v2 table stands
+        t = T0 + 6 * HOUR + 600
+        r, obs, _ = old_run(t, "gh-90-2")
+        self.assertEqual((r, obs["schema"], obs["state_mode"], obs["liquidity"]),
+                         (H.PERSISTED, "v8.history/1", H.CHECKPOINT, None))
+        rep = H.verify(st)
+        self.assertTrue(rep["ok"], rep["problems"])
+        self.assertEqual((rep["schemas"], rep["schema_regressions"]), ({"v8.history/1": 4, "v8.history/2": 1}, 1))
+        h = P.History(st)
+        self.assertTrue(h.usable)
+        self.assertEqual(h.liquidity_at(t + 60, "L0")["precision"], P.PRECISION_REGISTRY_8SIG)
+        # another old run hours later writes its rounded table: from then on that liquidity is unknown, not decided
+        t2 = t + H.LIQUIDITY_EVERY_S + 600
+        r, obs, _ = old_run(t2, "gh-91-2")
+        self.assertEqual((r, obs["schema"]), (H.PERSISTED, "v8.history/1"))
+        self.assertIsNotNone(obs["liquidity"])
+        self.assertTrue(H.verify(st)["ok"])
+        h = P.History(st)
+        self.assertEqual(h.liquidity_at(t2 + 60, "L0")["precision"], P.PRECISION_LOST_V1)
+        self.assertIsNone(h.universe_at(t2 + 60, min_vol=200_000)["assets"]["L0"]["research_eligible"])
+        # the hotfix writer recovers at once: a v2 checkpoint with the full table, then v2 deltas again
+        _, o5, _ = B.append(st, B.snapshot(t2 + 600, "gh-105-1", cs))
+        self.assertEqual((o5["schema"], o5["state_mode"], o5["liquidity"] is not None),
+                         ("v8.history/2", H.CHECKPOINT, True))
+        _, o6, _ = B.append(st, B.snapshot(t2 + 1200, "gh-106-1", cs))
+        self.assertEqual((o6["schema"], o6["state_mode"]), ("v8.history/2", H.DELTA))
+        rep = H.verify(st)
+        self.assertTrue(rep["ok"], rep["problems"])
+        self.assertEqual((rep["schemas"], rep["schema_regressions"]), ({"v8.history/1": 5, "v8.history/2": 3}, 1))
+        liq = P.History(st).liquidity_at(t2 + 660, "L0")
+        self.assertEqual((liq["value"], liq["precision"]), (199999.6, P.PRECISION_REGISTRY_8SIG))
+        # the common case: an old run re-run right after a v2 DELTA (no table) copies that delta's v2 liquidity
+        # pointer into its v1 record; the hotfix writer must still write the full table after it
+        t3 = t2 + 1800
+        r, obs, _ = old_run(t3, "gh-92-2")
+        self.assertEqual((r, obs["schema"], obs["liquidity"]), (H.PERSISTED, "v8.history/1", None))
+        self.assertEqual((obs["last_liquidity"] or {}).get("schema"), "v8.history/2")
+        _, o8, _ = B.append(st, B.snapshot(t3 + 600, "gh-107-1", cs))
+        self.assertEqual((o8["schema"], o8["state_mode"], o8["liquidity"] is not None),
+                         ("v8.history/2", H.CHECKPOINT, True))
+        rep = H.verify(st)
+        self.assertTrue(rep["ok"], rep["problems"])
+        self.assertEqual((rep["schemas"], rep["schema_regressions"]), ({"v8.history/1": 6, "v8.history/2": 4}, 2))
 
     def test_v2_record_rules(self):
         st = self.store()
@@ -463,36 +516,33 @@ class DayPickAuthority(unittest.TestCase):
                              [(k, list(pk)) for k, pk, _ in Pp["top"]])                  # Top 5 and its ranking
             r = rep[side]
             self.assertEqual(r["base"]["label"], PR.DIAGNOSTIC)
-            K = L["R"].shape[0]
+            self.assertNotIn("authoritative", r["base"]["corrected"])                  # a diagnostic aggregate only
             for b in r["bands"]:
                 if b["legacy"].get("n", 0) >= 30:
                     q = quals[(side, "band", b["lo"], b["hi"])]
                     comp, auth = b["corrected"]["components"], b["corrected"]["authoritative"]
-                    self.assertEqual(comp["n"], b["legacy"]["n"])                        # the same rows, re-costed
                     self.assertTrue(q["fully_qualified"].all())
-                    # a row still open at the data end (pk_trades.sim marks it at the last close) is never authoritative
-                    opn = ~q["closed"]
-                    self.assertTrue((q["k"][opn] + pk_day.HOLD > K - 1).all())
-                    self.assertEqual(auth["n"], b["legacy"]["n"] - int(opn.sum()))
-                    self.assertEqual(comp["open_at_data_end"], int(opn.sum()))
-                    closed_legacy = L["R"][q["k"][~opn], q["j"][~opn]]
-                    self.assertAlmostEqual(auth["avg_R"], float(np.mean(closed_legacy)), places=3)
+                    # the same rows, re-costed; pk_trades.sim leaves no result for a trade still open at the data end,
+                    # so every row is a closed trade and the authoritative aggregate is pk_day's own
+                    self.assertEqual((comp["n"], auth["n"], comp["open_at_data_end"]), (b["legacy"]["n"],) * 2 + (0,))
+                    self.assertAlmostEqual(auth["avg_R"], b["legacy"]["R"], places=3)
                     np.testing.assert_allclose(q["net_R"], L["R"][q["k"], q["j"]], rtol=0, atol=1e-9)
             t5 = r["top5"]
             self.assertEqual(t5["corrected"]["qualified_samples"], t5["legacy"]["n"])
             self.assertAlmostEqual(t5["corrected"]["authoritative"]["avg_R"], t5["legacy"]["R"], places=3)
             # every selected row: corrected net R equals pk_day's own R (costs equal the legacy assumptions)
             q = quals[(side, "top5")]
-            self.assertTrue(q["fully_qualified"].all() and q["closed"].all())          # sampled 24h+ before the end
+            self.assertTrue(q["fully_qualified"].all() and q["closed"].all())
             np.testing.assert_allclose(q["net_R"], L["R"][q["k"], q["j"]], rtol=0, atol=1e-9)
-        # the dataset does reach the data end inside a band: the open-row rule is exercised
-        self.assertGreater(sum(int((~q["closed"]).sum()) for key, q in quals.items() if key[1] == "band" and q.get("n")),
-                           0)
+        # rows sampled in the last day of data are in the bands (a trade that hit its stop on the last bar is closed)
+        K = surf_l["long"]["R"].shape[0]
+        self.assertTrue(any((q["k"] + pk_day.HOLD > K - 1).any() for key, q in quals.items()
+                            if key[1] == "band" and q.get("n")))
 
     def test_swing_bands_are_the_picks_export_surfaces(self):
         import pit_research as PR
         out = PR.picks(self.md, self.hist, self.cutoff)
-        reported = closed_only = 0
+        reported = 0
         for side in ("long", "short"):
             o = out["swing"][side]
             self.assertEqual(o["base"]["label"], PR.SWING_DIAGNOSTIC)
@@ -501,19 +551,16 @@ class DayPickAuthority(unittest.TestCase):
             for b in o["bands"]:
                 lg, co = b["legacy"], b["corrected"]
                 self.assertEqual(lg["reported_by_picks_export"], lg.get("n", 0) >= 30)
-                if lg.get("n", 0) >= 30:                    # full authority: the same rows, re-costed
+                if lg.get("n", 0) >= 30:                    # full authority: the same rows, re-costed, all closed
                     reported += 1
                     comp = co["components"]
-                    self.assertEqual((comp["n"], comp["fully_qualified"]), (lg["n"], lg["n"]))
-                    # a trade still open at the data end (max30 needs only one later day) is never authoritative
-                    self.assertEqual(co["authoritative"]["n"], lg["n"] - comp["open_at_data_end"])
-                    if comp["open_at_data_end"] == 0:
-                        closed_only += 1
-                        self.assertAlmostEqual(co["authoritative"]["avg_R"], lg["R"], places=3)
+                    self.assertEqual((comp["n"], comp["fully_qualified"], comp["open_at_data_end"]),
+                                     (lg["n"], lg["n"], 0))
+                    self.assertEqual(co["authoritative"]["n"], lg["n"])
+                    self.assertAlmostEqual(co["authoritative"]["avg_R"], lg["R"], places=3)
                 else:                                       # picks_export would not report it: never authoritative
                     self.assertEqual(co["authoritative"], {"n": 0})
         self.assertGreater(reported, 1)
-        self.assertGreater(closed_only, 1)
         # the ready band repeats the 80-90 and 90+ rows: it is never counted twice in the qualified window
         win = PR.qualified_window({"picks": out, "market_data_1h": {"start": 1, "end": 2}}, {"start": 1, "end": 2})
         expect = sum(b["corrected"]["authoritative"].get("n", 0) for side in ("long", "short")
