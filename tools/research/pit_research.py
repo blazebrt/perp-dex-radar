@@ -10,7 +10,8 @@ assumed funding, a fixed 0.19% for the coin picks) are reported as LEGACY_SURVIV
 path runs the same strategies and trade rules on the point-in-time universe (v8.pit) with point-in-time costs
 (pit_cost) and qualifies every trade (pit_sim). Only fully qualified trades are authoritative; zero is a valid
 answer. A scenario (unknown liquidity at the worst tier, missing funding at 0.01% per 8 hours) is labelled
-SCENARIO / NOT AUTHORITY and never enters an authoritative number."""
+SCENARIO / NOT AUTHORITY and never enters an authoritative number. The corrected day-pick selection reads the day
+score's funding input from observed settlements only (funding_signal, FUNDING_SIGNAL); unknown funding never selects."""
 from __future__ import annotations
 
 import argparse
@@ -34,7 +35,7 @@ from v8 import history as VH  # noqa: E402
 from v8 import pit as PIT  # noqa: E402
 from v8 import shadow_ledger as SL  # noqa: E402
 
-VERSION = "v8.pit-research/2"
+VERSION = "v8.pit-research/3"
 LEGACY = "LEGACY_SURVIVORSHIP_UNQUALIFIED"
 SCENARIO = "SCENARIO / NOT AUTHORITY"
 MIN_VOL = 1_000_000          # the live quant and coin-picks execution gate (CFG min_dex_vol), applied at each time
@@ -224,6 +225,47 @@ MIN_BAND_ROWS = 30           # picks_export.band_stats and pk_day report a band 
 READY_BAND = (80, 101)       # the swing "ready" band: the 80-90 and 90+ rows together, reported on its own
 SWING_HOLD = 30              # the swing trade's holding limit in days (picks_export / pk_trades.sim)
 
+# The funding input of the day score (pk_day.day_checks "funding", DAY_W 5 points: long funding <= 0.0001, short
+# funding >= 0), as each research path reads it.
+SIG_OBSERVED, SIG_CARRIED, SIG_UNKNOWN = 0, 1, 2
+FUNDING_SIGNAL = {
+    "legacy": {"label": LEGACY,
+               "source": "qdata.Panel funding as pk_day.hourly reads it: 0.01% per 8 hours assumed before a coin's "
+                         "first nonzero settlement (and for a coin with no series or only zero settlements); a "
+                         "settlement of 0 read as none; the last nonzero rate carried forward through every gap"},
+    "corrected": {"authority": "OBSERVED_SETTLEMENTS_ONLY", "version": VERSION,
+                  "source": "pit_cost.funding_panel (the same funding files, none after the cutoff)",
+                  "rule": "OBSERVED and OBSERVED_ZERO set the signal to the observed rate (0 is evidence); NOT_DUE "
+                          "keeps the last observed rate; before the first observation, at a missed due settlement "
+                          "and through a gap the signal is UNKNOWN until the next observed settlement; never the "
+                          "assumed 0.01% per 8 hours",
+                  "unknown": "a row with unknown funding is excluded from the corrected base and bands; a Top-5 "
+                             "sample is selected only when no candidate with unknown funding could reach it with the "
+                             "funding check's 5 points (else FUNDING_UNDETERMINED, never selected)"},
+    "scenario": {"label": SCENARIO, "note": "ASSUMED_SCENARIO funding (0.01% per 8 hours where MISSING) exists only "
+                                            "in scenario costs; it never feeds a selection"},
+}
+
+
+def funding_signal(rate, state):
+    """The observed-only funding signal of the corrected day score, from pit_cost.funding_panel's (rate [T,N],
+    state [T,N]): (signal [T,N], known [T,N], code [T,N] SIG_OBSERVED / SIG_CARRIED / SIG_UNKNOWN). At each bar the
+    signal is the rate of the latest OBSERVED or OBSERVED_ZERO settlement (exactly 0.0 for a zero) unless a MISSING
+    bar came after it (a missed due settlement, a gap, before the first or after the last settlement): then NaN and
+    unknown until the next observed settlement. NOT_DUE bars carry the last observed rate. A non-finite recorded rate
+    is no evidence (unknown)."""
+    rate, state = np.asarray(rate, dtype=float), np.asarray(state)
+    T, N = state.shape
+    obs = (state == PC.F_OBSERVED) | (state == PC.F_OBSERVED_ZERO)
+    event = obs | (state == PC.F_MISSING)
+    last = np.maximum.accumulate(np.where(event, np.arange(T)[:, None], -1), axis=0)
+    at = np.where(last >= 0, last, 0)
+    cols = np.arange(N)[None, :]
+    known = (last >= 0) & obs[at, cols] & np.isfinite(rate[at, cols])     # a non-finite rate is no evidence
+    signal = np.where(known, rate[at, cols], np.nan)
+    code = np.where(~known, SIG_UNKNOWN, np.where(obs, SIG_OBSERVED, SIG_CARRIED)).astype(np.int8)
+    return signal, known, code
+
 
 def _legacy_rows(R, RET, m):
     """picks_export / pk_day row statistics of one selection surface (net of the legacy fixed cost)."""
@@ -270,9 +312,11 @@ def _rows_mask(shape, top):
 def day_research(md, hist, cutoff, swing_t, swing_coins, SL, SS):
     """Corrected day-pick research on the day-pick selection authority itself (pk_day.surfaces: DAY_W over
     day_checks, the swing score mapped to each hour, the 4-hour sample, the score bands, the deterministic Top 5).
-    Legacy: pk_day's own surfaces (its eligibility, the fixed cost). Corrected: the same surfaces selected on the
-    strategy's eligibility AND point-in-time eligibility when each hour closes, every selected row re-costed and
-    qualified. Returns (report, legacy surfaces, corrected surfaces, qualifications)."""
+    Legacy: pk_day's own surfaces (its eligibility, its funding input with the assumed 0.01% per 8 hours, the fixed
+    cost). Corrected: the same candles, features, swing score, weights, checks, sample and Top-5 machinery, with only
+    the funding input replaced by the observed-only signal (funding_signal) and selected on the strategy's
+    eligibility AND point-in-time eligibility when each hour closes AND known funding; every selected row re-costed
+    and qualified. Returns (report, legacy surfaces, corrected surfaces, qualifications)."""
     import pk_day
     from pk_trades import COST
     ph, Fh, xh = pk_day.hourly(md, end=cutoff)
@@ -282,15 +326,24 @@ def day_research(md, hist, cutoff, swing_t, swing_coins, SL, SS):
     surf_l = pk_day.surfaces(ph, Fh, xh, swing_t, swing_coins, SL, SS, sims=sims)
     uni = PS.universe_panel(hist, ph.t + 3600, ph.coins, MIN_VOL)          # decided when the hour closes
     elig_pit = Fh.elig & (uni["code"] == PS.U_ELIGIBLE) & uni["complete"][:, None]
-    surf_p = pk_day.surfaces(ph, Fh, xh, swing_t, swing_coins, SL, SS, elig=elig_pit, sims=sims)
     frh, fsh, _ = PC.funding_panel(md, ph.t, ph.coins, cutoff=cutoff)
+    fsig, fknown, fcode = funding_signal(frh, fsh)
+    xp = dict(xh)                     # the legacy features stay untouched; only the corrected funding input differs
+    xp["funding"] = fsig
+    surf_p = pk_day.surfaces(ph, Fh, xp, swing_t, swing_coins, SL, SS, elig=elig_pit, sims=sims, known=fknown)
     _, lst, slip, _ = PC.liquidity_panel(hist, ph.t, ph.coins)              # known at each hour's open
     sd = _stop_dist(Fh.atr1, ph.c, 1.5, 0.015, 0.06)
     t_bar = ph.t.astype(np.int64)
     rep, quals = {"period": [int(ph.t[pk_day.FIRST]), int(ph.t[-1])], "coins": ph.N,
-                  "selection_authority": "tools/research/pk_day.py surfaces() (shared with pk_day.run)"}, {}
+                  "selection_authority": "tools/research/pk_day.py surfaces() (shared with pk_day.run)",
+                  "funding_signal": FUNDING_SIGNAL}, {}
     for side, sgn in (("long", 1), ("short", -1)):
         L, P_ = surf_l[side], surf_p[side]
+        cand = elig_pit & np.isfinite(L["R"]) & L["sample"]          # corrected candidates before the funding check
+        funding_rows = {"observed_settlement": int((cand & (fcode == SIG_OBSERVED)).sum()),
+                        "carried_not_due": int((cand & (fcode == SIG_CARRIED)).sum()),
+                        "unknown_excluded": int((cand & (fcode == SIG_UNKNOWN)).sum()),
+                        "top5_samples_undetermined": len(P_["undetermined"])}
         R, RET, BARS = L["R"], L["RET"], L["BARS"]
 
         def qual(mask):
@@ -307,9 +360,11 @@ def day_research(md, hist, cutoff, swing_t, swing_coins, SL, SS):
                           "legacy": {"label": LEGACY, **_legacy_rows(R, RET, lb[(lo, hi)])} if (lo, hi) in lb
                           else {"label": LEGACY, "n": 0, "note": "fewer than 30 rows: not reported by pk_day"},
                           "corrected": _corrected(qb, hist) if (lo, hi) in pb
-                          else {"note": "fewer than 30 point-in-time eligible rows", "authoritative": {"n": 0}}})
+                          else {"note": "fewer than 30 point-in-time eligible rows with known funding",
+                                "authoritative": {"n": 0}}})
         a = np.array([(R[k, pk].mean(), RET[k, pk].mean(), R[k, m].mean(), RET[k, m].mean()) for k, pk, m in L["top"]])
         rep[side] = {
+            "funding_signal_rows": funding_rows,
             "base": {"label": DIAGNOSTIC, "legacy": {"label": LEGACY, **_legacy_rows(R, RET, L["base"])},
                      "corrected": _diagnostic(q_base, hist)},
             "bands": bands,
@@ -318,6 +373,7 @@ def day_research(md, hist, cutoff, swing_t, swing_coins, SL, SS):
                                 "ret": _r(a[:, 1].mean()) if len(a) else None,
                                 "R_all": _r(a[:, 2].mean()) if len(a) else None},
                      "corrected": {**_top5_corrected(q_top, P_["top"]), "components": _counts(q_top),
+                                   "funding_undetermined_samples": len(P_["undetermined"]),
                                    "why_not_qualified": PS.reasons(q_top, hist)}}}
         quals[(side, "base")], quals[(side, "top5")] = q_base, q_top
     return rep, surf_l, surf_p, quals
@@ -511,9 +567,16 @@ def text(out):
             L.append(f"picks swing {side} {x['lo']}-{x['hi']}: legacy n={x['legacy'].get('n')} R={x['legacy'].get('R')}"
                      f" | corrected {x['corrected'].get('components') or x['corrected'].get('note')} "
                      f"authoritative {x['corrected']['authoritative']}")
+    fs = (pk.get("day") or {}).get("funding_signal")
+    if fs:
+        L.append(f"picks day funding signal: legacy [{fs['legacy']['label']}] assumed 0.01%/8h before the first "
+                 f"nonzero settlement, zero read as none, carried through gaps | corrected "
+                 f"[{fs['corrected']['authority']} {fs['corrected']['version']}] observed settlements only, unknown "
+                 f"excluded | scenario [{fs['scenario']['label']}] never selects")
     for side, o in (pk.get("day") or {}).items():
         if not (isinstance(o, dict) and "bands" in o):
             continue
+        L.append(f"picks day {side} funding signal rows: {json.dumps(o.get('funding_signal_rows'))}")
         L.append(f"picks day {side} base [{o['base']['label']}]: legacy {o['base']['legacy']} | corrected "
                  f"{o['base']['corrected']['aggregate']}")
         for x in o["bands"]:

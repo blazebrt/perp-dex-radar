@@ -27,7 +27,7 @@ import qsim
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from v8 import pit as PIT  # noqa: E402
 
-VERSION = "v8.pit-research/2"
+VERSION = "v8.pit-research/3"
 U_ELIGIBLE, U_NOT_ELIGIBLE, U_UNKNOWN = 1, 0, -1
 ST_ACTIVE, ST_INACTIVE, ST_UNKNOWN = 1, 0, -1
 

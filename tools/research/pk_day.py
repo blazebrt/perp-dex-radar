@@ -58,12 +58,18 @@ def simulate(p, F):
     return out
 
 
-def surfaces(p, F, x, swing_t, swing_coins, SL, SS, elig=None, sims=None):
+def surfaces(p, F, x, swing_t, swing_coins, SL, SS, elig=None, sims=None, known=None):
     """The day-pick selection authority: per side the day score (DAY_W over day_checks, swing scores mapped to each
     hour), the 4-hour sample, the eligible base, the score bands (masks of 30+ rows) and the deterministic Top 5
     every 4 hours (score order, ties broken by a 1e-3 jitter seeded by the hour). run() reports these surfaces; the
     point-in-time research qualifies exactly these rows. `elig` defaults to the strategy's own eligibility (F.elig);
-    `sims` reuses simulate()."""
+    `sims` reuses simulate().
+
+    `known` (point-in-time research only; None = these legacy surfaces exactly): where x["funding"] is a known value
+    at that hour. A row whose funding is unknown never enters the base or a band. A 4-hour Top 5 is selected among
+    the same candidates and jitter as without it, from rows with known funding only, and only when no candidate with
+    unknown funding could reach it even with the funding check's full points; otherwise that sample is undetermined
+    (listed, never selected)."""
     elig = F.elig if elig is None else elig
     sims = simulate(p, F) if sims is None else sims
     th = p.t
@@ -87,21 +93,36 @@ def surfaces(p, F, x, swing_t, swing_coins, SL, SS, elig=None, sims=None):
         sample = np.zeros((T, N), bool)
         sample[FIRST::EVERY] = True
         base = elig & np.isfinite(R) & sample
+        if known is not None:
+            base = base & known
         bands = []
         for lo, hi in BANDS:
             m = base & (sc >= lo) & (sc < hi)
             if m.sum() >= MIN_ROWS:
                 bands.append((lo, hi, m))
-        top = []
+        top, undetermined = [], []
         for k in range(FIRST, T - HOLD, EVERY):
             m = elig[k] & np.isfinite(R[k])
             if m.sum() < MIN_ROWS:
                 continue
             idx = np.where(m)[0]
-            pk = idx[np.argsort(sc[k, idx] + 1e-3 * np.random.default_rng(k).random(len(idx)))][-5:]
+            if known is None:
+                pk = idx[np.argsort(sc[k, idx] + 1e-3 * np.random.default_rng(k).random(len(idx)))][-5:]
+            else:
+                key = sc[k, idx] + 1e-3 * np.random.default_rng(k).random(len(idx))
+                kn = known[k, idx]
+                order = np.argsort(key[kn])
+                # the best case of a row with unknown funding: its score without the funding check plus its full points
+                best = key - DAY_W["funding"] * C["funding"][k, idx] + DAY_W["funding"]
+                if kn.sum() < 5 or ((~kn).any() and (best[~kn] >= key[kn][order[-5]]).any()):
+                    undetermined.append(k)
+                    continue
+                pk = idx[kn][order][-5:]
             top.append((k, pk, m))
         out[side] = {"R": R, "RET": RET, "BARS": BARS, "score": sc, "sample": sample, "base": base, "bands": bands,
                      "top": top}
+        if known is not None:
+            out[side]["undetermined"] = undetermined
     return out
 
 
