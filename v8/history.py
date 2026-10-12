@@ -30,9 +30,11 @@ the Phase 8 post-merge hotfix) stored each liquidity value rounded to a whole do
 $1M thresholds (199,999.6 became 200,000): their KNOWN liquidity is PRECISION_LOST for cost authority (v8.pit), while
 their contracts, assets, identity and venue health stay usable. `v8.history/2` (the writer since the hotfix) stores
 the finite value exactly as the audit registry recorded it (8 significant digits, `liquidity_precision`). Records
-are verified under their own schema; a v2 record links to the previous record's hash whatever its version, a v2
-delta's base is a v2 checkpoint (the first v2 observation is a checkpoint with liquidity), and no v1 record may
-follow a v2 record.
+are verified under their own schema; a v2 record links to the previous record's hash whatever its version, a
+delta's base is a checkpoint of its own schema, and a v2 record after a record of another schema is a checkpoint with
+the full liquidity table. A v1 record after a v2 one (a re-run of a Scan run that started on the older code) is
+accepted under its own schema and counted (`schema_regressions`): the branch is append-only, and its liquidity is
+precision-unqualified anyway.
 
 Backfill: only from a genuinely contemporaneous record - an archived production audit snapshot (the 14-day
 `v8-audit-*` Actions artifacts) whose manifest names its own scan id and commit. Each backfilled observation cites
@@ -57,7 +59,7 @@ import zipfile
 
 V1, V2 = "v8.history/1", "v8.history/2"
 VERSION = V2                       # what this writer appends
-SCHEMAS = (V1, V2)                 # what the verifier accepts, in this order only (never v1 after v2)
+SCHEMAS = (V1, V2)                 # what the verifier accepts, oldest first
 # the precision of a v2 liquidity value: the audit registry stores every contract's volume with 8 significant
 # digits (v8.registry._r); v2 keeps exactly that value (no further rounding). v1 rounded it to a whole dollar.
 LIQUIDITY_PRECISION = {"source": "audit registry contract volume", "significant_digits": 8, "rounding": "NONE"}
@@ -420,10 +422,11 @@ def build_observation(chain, content, state, now, force_checkpoint=False):
             and (chain.base.get("versions") or {}).get("history") == VERSION):
         mode = DELTA
     observed = content.get("observed_at") or 0
-    # liquidity is also due when the last recorded table was written by another schema (the first v2 observation
-    # after v1 records the precise table at once)
+    # liquidity is also due when the last recorded table was written by another schema, or the last record is of
+    # another schema (an older writer copies a newer record's pointer as it stands): a v2 observation after any v1
+    # record carries the precise table at once, as verify() requires
     due = (bool(content["source"].get("backfill")) or chain.last_liquidity_at is None
-           or chain.last_liquidity_schema != VERSION
+           or chain.last_liquidity_schema != VERSION or (last or {}).get("schema") != VERSION
            or abs(observed - chain.last_liquidity_at) >= LIQUIDITY_EVERY_S)
     if last is None:
         last_liq = None
@@ -490,13 +493,16 @@ def verify(store):
     names the newest checkpoint before it as its base (by seq and hash), every record validates itself (including
     the head and provenance), every stored liquidity table matches its digest, every content hash matches the
     rebuilt state and full liquidity digest, every scan id is unique, stored_bytes_before adds up; each record by its
-    own schema (v8.history/1 or /2, never a v1 after a v2, the first v2 record a checkpoint with the full liquidity
-    table, a delta on a checkpoint of its own schema). Returns a report (ok, problems, counts per schema, observed
-    window, head hash)."""
+    own schema (v8.history/1 or /2): a delta only on a checkpoint of its own schema, and a v2 record that follows a
+    record of another schema (or starts the chain) a checkpoint carrying the full liquidity table. An older-schema
+    record after a newer one (a re-run of a Scan run that started on older code) is checked by its own schema and
+    counted (`schema_regressions`), never by itself a problem: the branch is append-only, so rejecting it would break
+    the history for good, and its liquidity is precision-unqualified anyway. Returns a report (ok, problems, counts per
+    schema, schema regressions, observed window, head hash)."""
     problems, prev, base, base_state = [], None, None, None
     seen, n, ckpt, liq, total, backfilled = set(), 0, 0, 0, 0, 0
     first_obs = last_obs = None
-    schemas, rank = {}, 0
+    schemas, prev_sch, regressions = {}, None, 0
     for p in store.paths():
         n += 1
         try:
@@ -504,17 +510,18 @@ def verify(store):
             o = decode(raw)
         except Exception as e:  # noqa: BLE001
             problems.append(f"{p}: unreadable ({type(e).__name__})")
-            prev = None
+            prev, prev_sch = None, None
             continue
         sch = o.get("schema")
         schemas[sch] = schemas.get(sch, 0) + 1
         if sch in SCHEMAS:
-            if SCHEMAS.index(sch) < rank:
-                problems.append(f"{p}: {sch} after a later history schema")
-            if sch != SCHEMAS[0] and (prev or {}).get("schema") != sch and not (
+            if prev_sch in SCHEMAS and SCHEMAS.index(sch) < SCHEMAS.index(prev_sch):
+                regressions += 1
+            if sch != SCHEMAS[0] and (n == 1 or (prev_sch in SCHEMAS and prev_sch != sch)) and not (
                     o.get("state_mode") == CHECKPOINT and o.get("liquidity") is not None):
-                problems.append(f"{p}: the first {sch} record must be a checkpoint carrying the full liquidity table")
-            rank = max(rank, SCHEMAS.index(sch))
+                after = f"after a {prev_sch} record" if n > 1 else "starting the chain"
+                problems.append(f"{p}: a {sch} record {after} must be a checkpoint carrying the full liquidity table")
+        prev_sch = sch
         problems.extend(f"{p}: {problem}" for problem in record_problems(o))
         if o.get("seq") != n or _seq_of(p) != n:
             problems.append(f"{p}: seq {o.get('seq')} at position {n}")
@@ -552,6 +559,7 @@ def verify(store):
         first_obs = ts if first_obs is None else min(first_obs, ts)
         last_obs = ts if last_obs is None else max(last_obs, ts)
     return {"ok": not problems, "observations": n, "schemas": dict(sorted((str(k), v) for k, v in schemas.items())),
+            "schema_regressions": regressions,
             "checkpoints": ckpt, "liquidity_observations": liq,
             "backfilled": backfilled, "bytes": total, "first_observed_at": first_obs, "last_observed_at": last_obs,
             "problems": problems[:50], "problem_count": len(problems),
