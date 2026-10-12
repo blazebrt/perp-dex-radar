@@ -112,6 +112,19 @@ class LiquidityPrecision(Tmp):
                          {199999.4: False, 199999.6: False, 200000.0: None, 999999.4: True, 999999.6: True,
                           1000000.0: True})
 
+    def test_missing_volume_is_a_known_fail_like_the_live_gate(self):
+        st = self.store()
+        cs = [B.contract("hyperliquid:BTC", "BTC", vol=5e8), B.contract("hyperliquid:NOVOL", "NOVOL", vol=None)]
+        B.append(st, B.snapshot(T0, "gh-1-1", cs))
+        h = P.History(st)
+        self.assertEqual(h.liquidity_at(T0 + 60, "NOVOL")["state"], "MISSING")
+        u = h.universe_at(T0 + 60, min_vol=200_000)["assets"]
+        self.assertIs(u["NOVOL"]["research_eligible"], False)  # v8.liquidity.passes never passes a missing volume
+        self.assertIs(u["BTC"]["research_eligible"], True)
+        late = T0 + P.LIQUIDITY_MAX_STALENESS_S + 120          # no fresh record any more: unknown, not a fail
+        self.assertIsNone(P.eligible({"state": P.KNOWN_ACTIVE}, h.identity_at(T0 + 60, "NOVOL"),
+                                     h.liquidity_at(late, "NOVOL"), 200_000))
+
     def test_today_never_alters_an_old_exact_observation(self):
         st = self.store()
         B.append(st, B.snapshot(T0, "gh-1-1", boundary_contracts(BOUNDARY)))
@@ -145,6 +158,22 @@ class LiquidityPrecisionCosts(Tmp):
         self.assertEqual(list(gate[0]), [0, 0, 0, 0, 0, -1, 1])
         # the governed tiers themselves are unchanged
         self.assertEqual([PC.tier(v) for v in (1_000_000, 200_000, 199_999.99)], [0.0005, 0.001, 0.002])
+
+    def test_missing_volume_gate_is_zero_in_the_vectorised_panels(self):
+        import numpy as np
+        import pit_cost as PC
+        import pit_sim as PS
+        st = self.store()
+        cs = [B.contract("hyperliquid:BTC", "BTC", vol=5e8), B.contract("hyperliquid:NOVOL", "NOVOL", vol=None)]
+        B.append(st, B.snapshot(T0, "gh-1-1", cs))
+        h = P.History(st)
+        vol, state, slip, gate = PC.liquidity_panel(h, [T0 + 60], ["BTC", "NOVOL"], 200_000)
+        self.assertEqual((int(state[0, 1]), int(gate[0, 1])), (PC.L_MISSING, 0))
+        self.assertTrue(np.isnan(slip[0, 1]) and np.isnan(vol[0, 1]))       # no cost is ever taken from it
+        uni = PS.universe_panel(h, [T0 + 60], ["BTC", "NOVOL"], 200_000)
+        self.assertEqual((int(uni["code"][0, 0]), int(uni["code"][0, 1])), (1, 0))
+        self.assertEqual(PS.liquidity_reason(0, PC.L_MISSING, PC.L_MISSING),
+                         "BELOW_GATE_MISSING_OR_NOT_ON_TRADE_DEX_THEN")
 
 
 class MixedChain(Tmp):
@@ -217,6 +246,18 @@ class MixedChain(Tmp):
         st2.write(H.path_for(o2), H.gz(H.canonical(o2)))
         rep2 = H.verify(st2)
         self.assertTrue(any("after a later history schema" in p for p in rep2["problems"]), rep2["problems"])
+        # the first v2 record must be a checkpoint carrying the full liquidity table (the writer guarantees it)
+        st3 = self.v1_copy("noliq")
+        snap3 = B.snapshot(T0 + 6 * HOUR, "gh-104-1", cs)
+        obs3 = H.build_observation(H.Chain(st3), H.scan_content(snap3), H.state_from_snapshot(snap3), T0 + 6 * HOUR)
+        self.assertEqual((obs3["state_mode"], obs3["liquidity"] is not None), (H.CHECKPOINT, True))
+        obs3["liquidity"] = None
+        obs3["record_hash"] = H.obs_hash(obs3)
+        st3.write(H.path_for(obs3), H.gz(H.canonical(obs3)))
+        rep3 = H.verify(st3)
+        self.assertFalse(rep3["ok"])
+        self.assertTrue(any("first v8.history/2 record must be a checkpoint" in p for p in rep3["problems"]),
+                        rep3["problems"])
 
     def test_v2_record_rules(self):
         st = self.store()
@@ -334,7 +375,9 @@ def _load(name, path):
 
 @unittest.skipUnless(HAVE_NUMPY and HAVE_PANDAS, "numpy, numba and pandas (the CI research-checks job runs these)")
 class DayPickAuthority(unittest.TestCase):
-    """A synthetic full-authority dataset: 34 coins, 90 days, every coin active, verified crypto and $5M a day in the
+    """A synthetic full-authority dataset: 34 coins, 160 days (long enough for finite swing scores, so the swing
+    score's 25 day-score points, the day 80+ bands and the swing bands are exercised), every coin active, verified
+    crypto and $5M a day in the
     point-in-time history every 4 hours (v8.history/2), funding observed at 0 every 8 hours: the historical costs
     equal the legacy assumptions (0.045% taker and 0.05% slippage each way, no funding)."""
 
@@ -342,8 +385,8 @@ class DayPickAuthority(unittest.TestCase):
     def setUpClass(cls):
         cls.tmp = tempfile.mkdtemp(prefix="v8p81_day_")
         cls.coins = ["BTC"] + [f"C{k:02d}" for k in range(33)]
-        cls.hours = 24 * 90
-        cls.t0 = T0 - 100 * 24 * HOUR
+        cls.hours = 24 * 160
+        cls.t0 = T0 - 170 * 24 * HOUR
         cls.md = os.path.join(cls.tmp, "md")
         zero = {c: [(cls.t0 + k * 8 * HOUR, 0.0, 8) for k in range(cls.hours // 8 + 2)] for c in cls.coins}
         B.synthetic_md(cls.md, cls.coins, cls.t0, cls.hours, funding=zero, seed=11)
@@ -381,6 +424,10 @@ class DayPickAuthority(unittest.TestCase):
         self.assertEqual(json.dumps(new, sort_keys=True), json.dumps(old, sort_keys=True))
         self.assertGreater(new["long"]["top5"]["n"], 50)
         self.assertTrue(new["long"]["bands"] and new["short"]["bands"])
+        # the swing score reaches the day score (its 25 points: the other checks add up to 75 at most)
+        p, F, x = pk_day.hourly(self.md)
+        surf = pk_day.surfaces(p, F, x, d["t"], d["coins"], SL_, SS_)
+        self.assertTrue(any((surf[side]["score"][surf[side]["base"]] > 75).any() for side in ("long", "short")))
         # picks_export's band masks were extracted, not changed
         pe_old = _load("picks_export_oracle_f142bb1", os.path.join(ORACLE, "picks_export_f142bb1.py"))
         import picks_export as pe_new
@@ -402,6 +449,7 @@ class DayPickAuthority(unittest.TestCase):
     def test_corrected_day_selection_is_exactly_pk_day_and_costs_match_legacy(self):
         import numpy as np
         import pit_research as PR
+        import pk_day
         d, SL_, SS_ = self.swing_inputs(self.md)
         rep, surf_l, surf_p, quals = PR.day_research(self.md, self.hist, self.cutoff, d["t"], d["coins"], SL_, SS_)
         for side in ("long", "short"):
@@ -415,17 +463,64 @@ class DayPickAuthority(unittest.TestCase):
                              [(k, list(pk)) for k, pk, _ in Pp["top"]])                  # Top 5 and its ranking
             r = rep[side]
             self.assertEqual(r["base"]["label"], PR.DIAGNOSTIC)
+            K = L["R"].shape[0]
             for b in r["bands"]:
                 if b["legacy"].get("n", 0) >= 30:
-                    self.assertEqual(b["corrected"]["authoritative"]["n"], b["legacy"]["n"])
-                    self.assertAlmostEqual(b["corrected"]["authoritative"]["avg_R"], b["legacy"]["R"], places=3)
+                    q = quals[(side, "band", b["lo"], b["hi"])]
+                    comp, auth = b["corrected"]["components"], b["corrected"]["authoritative"]
+                    self.assertEqual(comp["n"], b["legacy"]["n"])                        # the same rows, re-costed
+                    self.assertTrue(q["fully_qualified"].all())
+                    # a row still open at the data end (pk_trades.sim marks it at the last close) is never authoritative
+                    opn = ~q["closed"]
+                    self.assertTrue((q["k"][opn] + pk_day.HOLD > K - 1).all())
+                    self.assertEqual(auth["n"], b["legacy"]["n"] - int(opn.sum()))
+                    self.assertEqual(comp["open_at_data_end"], int(opn.sum()))
+                    closed_legacy = L["R"][q["k"][~opn], q["j"][~opn]]
+                    self.assertAlmostEqual(auth["avg_R"], float(np.mean(closed_legacy)), places=3)
+                    np.testing.assert_allclose(q["net_R"], L["R"][q["k"], q["j"]], rtol=0, atol=1e-9)
             t5 = r["top5"]
             self.assertEqual(t5["corrected"]["qualified_samples"], t5["legacy"]["n"])
             self.assertAlmostEqual(t5["corrected"]["authoritative"]["avg_R"], t5["legacy"]["R"], places=3)
             # every selected row: corrected net R equals pk_day's own R (costs equal the legacy assumptions)
             q = quals[(side, "top5")]
-            self.assertTrue(q["fully_qualified"].all())
+            self.assertTrue(q["fully_qualified"].all() and q["closed"].all())          # sampled 24h+ before the end
             np.testing.assert_allclose(q["net_R"], L["R"][q["k"], q["j"]], rtol=0, atol=1e-9)
+        # the dataset does reach the data end inside a band: the open-row rule is exercised
+        self.assertGreater(sum(int((~q["closed"]).sum()) for key, q in quals.items() if key[1] == "band" and q.get("n")),
+                           0)
+
+    def test_swing_bands_are_the_picks_export_surfaces(self):
+        import pit_research as PR
+        out = PR.picks(self.md, self.hist, self.cutoff)
+        reported = closed_only = 0
+        for side in ("long", "short"):
+            o = out["swing"][side]
+            self.assertEqual(o["base"]["label"], PR.SWING_DIAGNOSTIC)
+            self.assertNotIn("authoritative", o["base"]["corrected"])               # a diagnostic aggregate only
+            self.assertEqual([(b["lo"], b["hi"]) for b in o["bands"]][-1], PR.READY_BAND)
+            for b in o["bands"]:
+                lg, co = b["legacy"], b["corrected"]
+                self.assertEqual(lg["reported_by_picks_export"], lg.get("n", 0) >= 30)
+                if lg.get("n", 0) >= 30:                    # full authority: the same rows, re-costed
+                    reported += 1
+                    comp = co["components"]
+                    self.assertEqual((comp["n"], comp["fully_qualified"]), (lg["n"], lg["n"]))
+                    # a trade still open at the data end (max30 needs only one later day) is never authoritative
+                    self.assertEqual(co["authoritative"]["n"], lg["n"] - comp["open_at_data_end"])
+                    if comp["open_at_data_end"] == 0:
+                        closed_only += 1
+                        self.assertAlmostEqual(co["authoritative"]["avg_R"], lg["R"], places=3)
+                else:                                       # picks_export would not report it: never authoritative
+                    self.assertEqual(co["authoritative"], {"n": 0})
+        self.assertGreater(reported, 1)
+        self.assertGreater(closed_only, 1)
+        # the ready band repeats the 80-90 and 90+ rows: it is never counted twice in the qualified window
+        win = PR.qualified_window({"picks": out, "market_data_1h": {"start": 1, "end": 2}}, {"start": 1, "end": 2})
+        expect = sum(b["corrected"]["authoritative"].get("n", 0) for side in ("long", "short")
+                     for b in out["swing"][side]["bands"] if (b["lo"], b["hi"]) != PR.READY_BAND)
+        expect += sum(b["corrected"]["authoritative"].get("n", 0) for side in ("long", "short")
+                      for b in out["day"][side]["bands"])
+        self.assertEqual(win["qualified_pick_band_rows"], expect)
 
     def test_cost_requalification_changes_costs_never_the_selection(self):
         import numpy as np
