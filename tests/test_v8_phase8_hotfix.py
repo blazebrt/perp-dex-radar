@@ -505,9 +505,20 @@ class DayPickAuthority(unittest.TestCase):
         import pk_day
         d, SL_, SS_ = self.swing_inputs(self.md)
         rep, surf_l, surf_p, quals = PR.day_research(self.md, self.hist, self.cutoff, d["t"], d["coins"], SL_, SS_)
+        # this dataset's funding is observed at exactly 0 every 8 hours: the corrected signal is 0.0 (evidence) while
+        # the legacy panel reads an all-zero series as none and assumes 0.01% per 8 hours; both pass both funding
+        # rules (long <= 0.0001, short >= 0), so the selection coincides on every sampled hour (before the first
+        # sample the legacy input is still NaN for a few hours - never sampled)
+        F0 = pk_day.FIRST
+        _, _, xh = pk_day.hourly(self.md, end=self.cutoff)
+        self.assertTrue(np.allclose(xh["funding"][F0:], 0.0001))
+        for side in ("long", "short"):
+            rows = rep[side]["funding_signal_rows"]
+            self.assertEqual((rows["unknown_excluded"], rows["top5_samples_undetermined"]), (0, 0))
+            self.assertGreater(rows["observed_settlement"], 0)
         for side in ("long", "short"):
             L, Pp = surf_l[side], surf_p[side]
-            np.testing.assert_array_equal(L["score"], Pp["score"])                     # scoring
+            np.testing.assert_array_equal(L["score"][F0:], Pp["score"][F0:])           # scoring
             np.testing.assert_array_equal(L["base"], Pp["base"])                       # 4-hour sample, eligibility
             self.assertEqual([(lo, hi) for lo, hi, _ in L["bands"]], [(lo, hi) for lo, hi, _ in Pp["bands"]])
             for (_, _, ml), (_, _, mp) in zip(L["bands"], Pp["bands"]):
@@ -569,34 +580,226 @@ class DayPickAuthority(unittest.TestCase):
                       for b in out["day"][side]["bands"])
         self.assertEqual(win["qualified_pick_band_rows"], expect)
 
-    def test_cost_requalification_changes_costs_never_the_selection(self):
-        import numpy as np
-        import pit_research as PR
-        md2 = os.path.join(self.tmp, "md_funded")
-        if not os.path.isdir(md2):
-            shutil.copytree(self.md, md2)
-            for c in self.coins:              # observed funding of 0.03% every 8 hours instead of 0
-                with gzip.open(os.path.join(md2, "fund_mexc", f"{c}.csv.gz"), "wt") as fh:
+    # ------------------------------------------------------------------ the corrected day score's funding input
+    RATES = (-0.0002, -0.00005, 0.00005, 0.00015, 0.0003)   # nonzero, on both sides of both funding rules
+
+    def md_variant(self, name, rate_of):
+        """This dataset with other funding files: rate_of(j, k) is coin j's k-th 8-hour settlement (None: none
+        recorded). Candles and the point-in-time history are unchanged."""
+        path = os.path.join(self.tmp, name)
+        if not os.path.isdir(path):
+            shutil.copytree(self.md, path, ignore=shutil.ignore_patterns("fund_mexc"))
+            os.makedirs(os.path.join(path, "fund_mexc"))
+            for j, c in enumerate(self.coins):
+                with gzip.open(os.path.join(path, "fund_mexc", f"{c}.csv.gz"), "wt") as fh:
                     fh.write("t,rate,cycle_h\n")
                     for k in range(self.hours // 8 + 2):
-                        fh.write(f"{self.t0 + k * 8 * HOUR},0.0003,8\n")
-        d, SL_, SS_ = self.swing_inputs(self.md)
-        _, sl0, sp0, q0 = PR.day_research(self.md, self.hist, self.cutoff, d["t"], d["coins"], SL_, SS_)
-        _, sl1, sp1, q1 = PR.day_research(md2, self.hist, self.cutoff, d["t"], d["coins"], SL_, SS_)
-        for side, sgn in (("long", 1), ("short", -1)):
-            self.assertEqual([(k, list(pk)) for k, pk, _ in sp0[side]["top"]],
-                             [(k, list(pk)) for k, pk, _ in sp1[side]["top"]])
-            np.testing.assert_array_equal(sp0[side]["base"], sp1[side]["base"])
-            a, b = q0[(side, "top5")], q1[(side, "top5")]
-            np.testing.assert_array_equal(a["k"], b["k"])
-            np.testing.assert_array_equal(a["j"], b["j"])
-            self.assertTrue((sgn * (b["funding"] - a["funding"]) >= 0).all())            # longs pay, shorts receive
-            self.assertTrue((np.abs(b["net_R"] - a["net_R"]) > 0).any())
+                        r = rate_of(j, k)
+                        if r is not None:
+                            fh.write(f"{self.t0 + k * 8 * HOUR},{r!r},8\n")
+        return path
+
+    def rate(self, j, k):
+        return self.RATES[(7 * j + 3 * k) % 5]
+
+    def signals(self, md):
+        """(legacy funding input, corrected signal, known, code) on the research's hourly grid."""
+        import pit_cost as PC
+        import pit_research as PR
+        import pk_day
+        ph, _, xh = pk_day.hourly(md, end=self.cutoff)
+        self.assertEqual(int(ph.t[0]), self.t0)
+        frh, fsh, _ = PC.funding_panel(md, ph.t, ph.coins, cutoff=self.cutoff)
+        return (xh["funding"],) + PR.funding_signal(frh, fsh)
+
+    def research(self, md):
+        import pit_research as PR
+        d, SL_, SS_ = self.swing_inputs(md)
+        return PR.day_research(md, self.hist, self.cutoff, d["t"], d["coins"], SL_, SS_)
+
+    def same_selection(self, a, b):
+        import numpy as np
+        np.testing.assert_array_equal(a["score"], b["score"])
+        np.testing.assert_array_equal(a["base"], b["base"])
+        self.assertEqual([(lo, hi) for lo, hi, _ in a["bands"]], [(lo, hi) for lo, hi, _ in b["bands"]])
+        for (_, _, ma), (_, _, mb) in zip(a["bands"], b["bands"]):
+            np.testing.assert_array_equal(ma, mb)
+        self.assertEqual([(k, list(pk)) for k, pk, _ in a["top"]], [(k, list(pk)) for k, pk, _ in b["top"]])
+
+    def test_observed_funding_full_authority_reproduces_legacy_selection(self):
+        """Every settlement observed, nonzero, from the first hour to the end: the corrected input equals the legacy
+        input exactly, so the corrected score, bands and Top 5 are pk_day's own; the costs differ by exactly the
+        observed funding."""
+        import numpy as np
+        import pk_day
+        from pk_trades import COST
+        md = self.md_variant("md_obs", self.rate)
+        legacy, sig, known, _ = self.signals(md)
+        self.assertTrue(known.all())
+        np.testing.assert_array_equal(sig, legacy)
+        self.assertTrue((sig <= 0.0001).any() and (sig > 0.0001).any() and (sig < 0).any())
+        rep, surf_l, surf_p, quals = self.research(md)
+        _, _, xh = pk_day.hourly(md, end=self.cutoff)
+        for side in ("long", "short"):
+            self.same_selection(surf_l[side], surf_p[side])
+            self.assertEqual(surf_p[side]["undetermined"], [])
+            self.assertEqual(rep[side]["funding_signal_rows"]["unknown_excluded"], 0)
+            q = quals[(side, "top5")]
+            L = surf_l[side]
+            np.testing.assert_allclose(q["cost"] - q["funding"], COST, atol=1e-12)           # fees + slippage
+            np.testing.assert_allclose(q["net_ret"], L["RET"][q["k"], q["j"]] - q["funding"], atol=1e-12)
+            self.assertTrue((q["funding"] != 0).any())
+        # the legacy oracle on this dataset is unchanged too
+        oracle = _load("pk_day_oracle_obs", os.path.join(ORACLE, "pk_day_f142bb1.py"))
+        from pk_data import daily_panel, factors, regimes
+        from pk_score import scores
+        _, d = daily_panel(md)
+        SL_, SS_, _, _ = scores(factors(d), regimes(d)[0])
+        self.assertEqual(json.dumps(pk_day.run(md, d["t"], d["coins"], SL_, SS_), sort_keys=True),
+                         json.dumps(oracle.run(md, d["t"], d["coins"], SL_, SS_), sort_keys=True))
+
+    def test_funding_before_the_first_observation_is_unknown_and_never_selected(self):
+        """Funding recorded only from some hour after the first sample: the legacy input carries the assumed 0.01%
+        per 8 hours before it; the corrected input is unknown there, so no corrected base, band or Top-5 row."""
+        import numpy as np
+        import pk_day
+        start_k = (pk_day.FIRST + 240) // 8
+        first = start_k * 8                                          # the first observed hour
+        md = self.md_variant("md_late", lambda j, k: self.rate(j, k) if k >= start_k else None)
+        legacy, sig, known, code = self.signals(md)
+        F0 = pk_day.FIRST
+        self.assertTrue(np.allclose(legacy[F0:first], 0.0001))                 # LEGACY: the assumption
+        self.assertTrue(np.isnan(sig[:first]).all() and not known[:first].any())
+        self.assertTrue(known[first:].all())
+        np.testing.assert_array_equal(sig[first:], legacy[first:])
+        rep, surf_l, surf_p, _ = self.research(md)
+        for side in ("long", "short"):
+            L, Pp = surf_l[side], surf_p[side]
+            self.assertTrue(L["base"][F0:first].any())                         # legacy selects on the assumption
+            self.assertFalse(Pp["base"][:first].any())                         # corrected never does
+            for _, _, m in Pp["bands"]:
+                self.assertFalse(m[:first].any())
+            self.assertTrue(all(k >= first for k, _, _ in Pp["top"]))
+            before = sorted(k for k, _, _ in L["top"] if k < first)
+            self.assertTrue(before)
+            self.assertEqual(sorted(k for k in Pp["undetermined"] if k < first), before)
+            rows = rep[side]["funding_signal_rows"]
+            self.assertGreater(rows["unknown_excluded"], 0)
+            self.assertEqual(rows["top5_samples_undetermined"], len(Pp["undetermined"]))
+            # after the first observation the corrected selection is pk_day's own again
+            np.testing.assert_array_equal(L["base"][first:], Pp["base"][first:])
+
+    def gap_md(self):
+        """Coins 0-9: 9 settlements never recorded (a gap); coins 10-14: 6 settlements recorded at exactly 0."""
+        import pk_day
+        g0 = (pk_day.FIRST + 400) // 8
+        g1, z0 = g0 + 9, (pk_day.FIRST + 800) // 8
+        z1 = z0 + 6
+
+        def rate_of(j, k):
+            if j < 10 and g0 <= k < g1:
+                return None
+            if 10 <= j < 15 and z0 <= k < z1:
+                return 0.0
+            return self.rate(j, k)
+
+        return self.md_variant("md_gap", rate_of), (g0, g1, z0, z1)
+
+    def test_funding_gap_is_unknown_until_the_next_settlement_and_zero_is_evidence(self):
+        import numpy as np
+        md, (g0, g1, z0, z1) = self.gap_md()
+        legacy, sig, known, code = self.signals(md)
+        a, b = g0 * 8, g1 * 8                                        # the first missed due hour, the next settlement
+        for j in range(10):
+            self.assertTrue(known[a - 1, j])                         # NOT_DUE before the missed settlement: carried
+            self.assertEqual(sig[a - 1, j], self.rate(j, g0 - 1))
+            self.assertFalse(known[a:b, j].any())                    # unknown from the missed due time
+            self.assertTrue(np.isnan(sig[a:b, j]).all())
+            self.assertTrue(np.allclose(legacy[a:b, j], self.rate(j, g0 - 1)))   # LEGACY carries it through the gap
+            self.assertTrue(known[b, j])                             # authority resumes at the next settlement
+            self.assertEqual(sig[b, j], self.rate(j, g1))
+        za, zb = z0 * 8, z1 * 8
+        for j in range(10, 15):
+            self.assertTrue(known[za:zb, j].all())
+            self.assertTrue((sig[za:zb, j] == 0.0).all())            # exactly 0.0, never NaN or the older rate
+            self.assertTrue(np.allclose(legacy[za:zb, j], self.rate(j, z0 - 1)))  # LEGACY reads 0 as none
+            self.assertEqual(sig[zb, j], self.rate(j, z1))
+        rep, surf_l, surf_p, _ = self.research(md)
+        for side in ("long", "short"):
+            Pp = surf_p[side]
+            self.assertFalse(Pp["base"][a:b, :10].any())             # nothing selected on an unknown input
+            self.assertTrue(Pp["base"][b:, :10].any())               # selected again after the gap
+            self.assertTrue(Pp["base"][za:zb, 10:15].any())          # an observed 0 is a known input
+            for k, pk, _ in Pp["top"]:
+                if a <= k < b:
+                    self.assertFalse(set(int(j) for j in pk) & set(range(10)))
+            self.assertGreater(rep[side]["funding_signal_rows"]["unknown_excluded"], 0)
+
+    def test_funding_is_a_selection_input(self):
+        """Funding is a day-score input (DAY_W 5 points): observed funding of 0.03% instead of 0 fails the long rule
+        (funding <= 0.0001) and moves long rows across score bands; the short rule (funding >= 0) passes both."""
+        import numpy as np
+        import pk_day
+        md2 = self.md_variant("md_funded", lambda j, k: 0.0003)
+        _, sp0 = self.research(self.md)[1:3]
+        _, sp1 = self.research(md2)[1:3]
+        F0 = pk_day.FIRST
+        d_long = sp0["long"]["score"][F0:] - sp1["long"]["score"][F0:]
+        self.assertTrue(np.allclose(d_long, 5.0))
+        np.testing.assert_array_equal(sp0["short"]["score"], sp1["short"]["score"])
+        moved = any((m0 != m1).any() for (_, _, m0), (_, _, m1) in zip(sp0["long"]["bands"], sp1["long"]["bands"]))
+        self.assertTrue(moved or [x[:2] for x in sp0["long"]["bands"]] != [x[:2] for x in sp1["long"]["bands"]])
+
+    def test_cost_only_change_and_scenario_funding_never_change_the_selection(self):
+        """The same observed funding signal, a different cost interpretation (the scenario's assumed 0.01% per 8
+        hours where MISSING, added to the cost panel): the corrected score, bands and Top 5 are unchanged; only
+        costs differ. Filling the signal itself with the assumption would change the selection."""
+        import numpy as np
+        from unittest import mock
+        import pit_cost as PC
+        import pit_research as PR
+        import pk_day
+        md, _ = self.gap_md()
+        real = PC.funding_panel
+
+        def with_scenario(md_, t, coins, bar=3600, cutoff=None):
+            rate, state, src = real(md_, t, coins, bar=bar, cutoff=cutoff)
+            return rate + PC.scenario_funding(t, state, bar), state, src
+
+        rep0, sl0, sp0, q0 = self.research(md)
+        with mock.patch.object(PC, "funding_panel", with_scenario):
+            rep1, sl1, sp1, q1 = self.research(md)
+        changed = 0
+        for side in ("long", "short"):
+            self.same_selection(sp0[side], sp1[side])
+            self.assertEqual(sp0[side]["undetermined"], sp1[side]["undetermined"])
+            for key in q0:
+                if key[0] == side and q0[key].get("n"):
+                    np.testing.assert_array_equal(q0[key]["k"], q1[key]["k"])
+                    np.testing.assert_array_equal(q0[key]["j"], q1[key]["j"])
+                    changed += int((q0[key]["funding"] != q1[key]["funding"]).sum())
+        self.assertGreater(changed, 0)                                         # the costs did change
+        # the counterfactual: an assumption injected into the corrected signal WOULD move the score
+        ph, Fh, xh = pk_day.hourly(md, end=self.cutoff)
+        rate, state, _ = real(md, ph.t, ph.coins, cutoff=self.cutoff)
+        sig, known, _ = PR.funding_signal(rate + PC.scenario_funding(ph.t, state), state)
+        sig0, known0, _ = PR.funding_signal(rate, state)
+        np.testing.assert_array_equal(sig, sig0)
+        np.testing.assert_array_equal(known, known0)
+        filled = dict(xh, funding=np.where(known0, sig0, 0.0001))
+        d, SL_, SS_ = self.swing_inputs(md)
+        naive = pk_day.surfaces(ph, Fh, filled, d["t"], d["coins"], SL_, SS_)
+        self.assertTrue((naive["long"]["score"] != sp0["long"]["score"]).any())
 
     def test_research_end_to_end_reports_the_governed_surfaces(self):
         import pit_research as PR
         out = PR.run(self.md, self.hist_dir, cutoff=self.cutoff)
-        self.assertEqual(out["schema"], "v8.pit-research/2")
+        self.assertEqual(out["schema"], "v8.pit-research/3")
+        fs = out["picks"]["day"]["funding_signal"]
+        self.assertEqual((fs["legacy"]["label"], fs["corrected"]["authority"], fs["corrected"]["version"],
+                          fs["scenario"]["label"]),
+                         (PR.LEGACY, "OBSERVED_SETTLEMENTS_ONLY", "v8.pit-research/3", PR.SCENARIO))
+        self.assertIn("picks day funding signal", PR.text(out))
         for side in ("long", "short"):
             r = out["picks"]["day"][side]
             self.assertEqual(r["base"]["label"], PR.DIAGNOSTIC)
@@ -625,6 +828,166 @@ class DayPickAuthority(unittest.TestCase):
         for r in out["quant"].values():
             self.assertEqual(r["corrected"]["fully_qualified"], 0)
             self.assertIn(P.BEFORE_PIT_HISTORY, r["legacy"]["why_not_qualified"]["universe"])
+
+
+# --------------------------------------------------------------------------- the corrected day score's funding input
+def fake_day(T, N, funding):
+    """Constructed day-pick inputs for pk_day.surfaces: every row eligible with a result; by default each long row
+    passes trend1d, trend4h, trend1h, near_edge, no_chase, calm (10 each) and trend30 (5) = 65 points, fails volume,
+    no swing score, and its funding check decides 5 more points (long funding <= 0.0001)."""
+    import types
+    import numpy as np
+    full = (lambda v: np.full((T, N), v, dtype=float))
+    p = types.SimpleNamespace(t=1_790_006_400 + np.arange(T, dtype=np.int64) * HOUR, c=full(1.0),
+                              coins=[f"C{j:02d}" for j in range(N)])
+    F = types.SimpleNamespace(elig=np.ones((T, N), dtype=bool))
+    x = {"trend1d": full(0.1), "trend4h": full(0.1), "ema9_21": full(0.1), "brk24": full(0.0), "r4h": full(0.0),
+         "atrp": full(0.01), "dd30d": full(0.0), "vol24_7d": full(0.5), "dist_low24": full(0.5),
+         "funding": np.broadcast_to(np.asarray(funding, dtype=float), (T, N)).copy()}
+    R = full(0.1)
+    sims = {"long": (R, R / 20, full(1.0)), "short": (R, R / 20, full(1.0))}
+    return p, F, x, sims
+
+
+@unittest.skipUnless(HAVE_NUMPY, "numpy and numba (the CI research-checks job runs these)")
+class FundingSignalAuthority(unittest.TestCase):
+    """The observed-only funding signal of the corrected day score (pit_research.funding_signal) and the corrected
+    selection built on it (pk_day.surfaces with `known`), on constructed inputs."""
+
+    def surfaces(self, p, F, x, sims, known=None, elig=None):
+        import numpy as np
+        import pk_day
+        return pk_day.surfaces(p, F, x, np.array([0]), [], np.zeros((1, 0)), np.zeros((1, 0)), elig=elig,
+                               sims=sims, known=known)
+
+    def test_signal_states(self):
+        import numpy as np
+        import pit_cost as PC
+        import pit_research as PR
+        t0 = 1_790_006_400                                          # an 8-hour boundary
+        t = t0 + np.arange(90) * HOUR
+        ser = [(t0 + 16 * HOUR, 0.0002, 8.0), (t0 + 24 * HOUR, 0.0, 8.0), (t0 + 32 * HOUR, -0.0001, 8.0),
+               (t0 + 64 * HOUR, 0.00005, 8.0), (t0 + 72 * HOUR, 0.00015, 8.0)]     # 40, 48, 56 never recorded
+        rate, state = PC.funding_panel_from_series(t, ser)
+        sig, known, code = PR.funding_signal(rate[:, None], state[:, None])
+        sig, known, code = sig[:, 0], known[:, 0], code[:, 0]
+        expect = {h: np.nan for h in range(90)}
+        expect.update({h: 0.0002 for h in range(16, 24)})
+        expect.update({h: 0.0 for h in range(24, 32)})
+        expect.update({h: -0.0001 for h in range(32, 40)})
+        expect.update({h: 0.00005 for h in range(64, 72)})
+        expect.update({h: 0.00015 for h in range(72, 80)})
+        np.testing.assert_array_equal(sig, np.array([expect[h] for h in range(90)]))
+        np.testing.assert_array_equal(known, ~np.isnan(sig))
+        self.assertFalse(known[:16].any())                          # before the first observation: unknown
+        self.assertTrue(known[24] and sig[24] == 0.0)               # an observed 0 is exactly 0.0 and known
+        self.assertFalse(known[40:64].any())                        # from the first missed due hour to the next one
+        self.assertFalse(known[80:].any())                          # after the last settlement's cycle
+        self.assertEqual([int(h) for h in np.where(code == PR.SIG_OBSERVED)[0]], [16, 24, 32, 64, 72])
+        self.assertTrue((code[[17, 23, 25, 39, 65, 79]] == PR.SIG_CARRIED).all())
+        # the scenario's assumed 0.01% per 8 hours (only where MISSING) never reaches the signal
+        scen = PC.scenario_funding(t, state[:, None])[:, 0]
+        self.assertGreater(np.count_nonzero(scen), 0)
+        s2, k2, _ = PR.funding_signal((rate + scen)[:, None], state[:, None])
+        np.testing.assert_array_equal(s2[:, 0], sig)
+        np.testing.assert_array_equal(k2[:, 0], known)
+
+    def test_score_boundary_unknown_funding_never_authoritative(self):
+        """The funding check's 5 points move a 65-point long row across the 70 band boundary. LEGACY: the assumed
+        0.0001 passes, so every row sits in 70-80. Corrected: an unknown row enters no base or band at all; an
+        observed 0.0002 fails (50-70); an observed 0.0 passes (70-80)."""
+        import numpy as np
+        import pk_day
+        T, N = pk_day.FIRST + pk_day.HOLD + 40, 39
+        p, F, x, sims = fake_day(T, N, 0.0001)                       # the legacy input: the assumption
+        legacy = self.surfaces(p, F, x, sims)["long"]
+        self.assertEqual([(lo, hi) for lo, hi, _ in legacy["bands"]], [(70, 80)])
+        self.assertTrue(legacy["bands"][0][2][:, :13].any())        # the unknown coins, in 70-80 on the assumption
+        sig = np.full((T, N), np.nan)
+        sig[:, 13:26], sig[:, 26:] = 0.0002, 0.0                    # coins 0-12 unknown
+        known = ~np.isnan(sig)
+        corrected = self.surfaces(p, F, dict(x, funding=sig), sims, known=known, elig=F.elig)["long"]
+        bands = {(lo, hi): m for lo, hi, m in corrected["bands"]}
+        self.assertEqual(sorted(bands), [(50, 70), (70, 80)])
+        self.assertFalse(corrected["base"][:, :13].any())
+        for m in bands.values():
+            self.assertFalse(m[:, :13].any())                       # never an authoritative row
+        self.assertTrue(bands[(50, 70)][:, 13:26].any() and not bands[(50, 70)][:, 26:].any())
+        self.assertTrue(bands[(70, 80)][:, 26:].any() and not bands[(70, 80)][:, 13:26].any())
+        self.assertTrue((corrected["score"][:, 26:] == 70).all())   # the observed 0.0 passes: 65 + 5
+
+    def test_top5_follows_observed_funding_and_unknown_candidates_can_block_it(self):
+        import numpy as np
+        import pk_day
+        T, N = pk_day.FIRST + pk_day.HOLD + 40, 40
+        leg = np.full((T, N), 0.0005)
+        leg[:, :5] = 0.00005                                         # LEGACY: coins 0-4 pass the long rule
+        p, F, x, sims = fake_day(T, N, leg)
+        legacy = self.surfaces(p, F, x, sims)["long"]
+        obs = np.full((T, N), 0.0005)
+        obs[:, 5:10] = 0.0                                           # observed: coins 5-9 pass, 0-4 fail
+        known = np.ones((T, N), dtype=bool)
+        known[:, 39] = False                                         # unknown, low score: can never reach the Top 5
+        x["trend1d"][:, 39] = x["trend4h"][:, 39] = x["ema9_21"][:, 39] = -0.1
+        k0 = pk_day.FIRST
+        known[k0, 38] = False                                        # unknown at the first sample, high score: 70 + 5
+        x["vol24_7d"][k0, 38] = 2.0
+        sig = np.where(known, obs, np.nan)
+        corrected = self.surfaces(p, F, dict(x, funding=sig), sims, known=known, elig=F.elig)["long"]
+        self.assertEqual(corrected["undetermined"], [k0])
+        samples = [k for k, _, _ in legacy["top"] if k != k0]
+        self.assertTrue(samples)
+        for k, pk, _ in legacy["top"]:
+            if k != k0:
+                self.assertEqual(sorted(int(j) for j in pk), [0, 1, 2, 3, 4])
+        self.assertEqual([k for k, _, _ in corrected["top"]], samples)
+        for k, pk, _ in corrected["top"]:
+            self.assertEqual(sorted(int(j) for j in pk), [5, 6, 7, 8, 9])   # the observed values decide
+
+    def test_fewer_than_five_known_candidates_is_undetermined_and_nan_is_no_evidence(self):
+        import numpy as np
+        import pit_cost as PC
+        import pit_research as PR
+        import pk_day
+        T, N = pk_day.FIRST + pk_day.HOLD + 40, 40
+        p, F, x, sims = fake_day(T, N, 0.0)
+        known = np.zeros((T, N), dtype=bool)
+        known[:, :4] = True                                          # four known candidates only
+        corrected = self.surfaces(p, F, dict(x, funding=np.where(known, 0.0, np.nan)), sims, known=known,
+                                  elig=F.elig)["long"]
+        self.assertEqual(corrected["top"], [])
+        self.assertEqual(corrected["undetermined"], list(range(pk_day.FIRST, T - pk_day.HOLD, pk_day.EVERY)))
+        none = self.surfaces(p, F, dict(x, funding=np.full((T, N), np.nan)), sims, known=np.zeros((T, N), bool),
+                             elig=F.elig)["long"]
+        self.assertEqual((none["top"], none["bands"]), ([], []))
+        self.assertFalse(none["base"].any())
+        # a recorded rate that is not a number is no evidence
+        rate = np.array([[0.0001], [np.nan], [0.0]])
+        state = np.array([[PC.F_OBSERVED], [PC.F_OBSERVED], [PC.F_OBSERVED_ZERO]], dtype=np.int8)
+        sig, kn, code = PR.funding_signal(rate, state)
+        self.assertEqual(kn[:, 0].tolist(), [True, False, True])
+        self.assertTrue(np.isnan(sig[1, 0]) and sig[2, 0] == 0.0)
+        self.assertEqual(int(code[1, 0]), PR.SIG_UNKNOWN)
+
+    def test_all_known_equals_the_legacy_surfaces(self):
+        """Known everywhere and the same input: the corrected path is the legacy selection exactly."""
+        import numpy as np
+        import pk_day
+        T, N = pk_day.FIRST + pk_day.HOLD + 40, 40
+        rng = np.random.default_rng(3)
+        p, F, x, sims = fake_day(T, N, rng.choice([-0.0002, 0.0, 0.00005, 0.0003], size=(T, N)))
+        x["vol24_7d"] = rng.choice([0.5, 2.0], size=(T, N))
+        a = self.surfaces(p, F, x, sims)
+        b = self.surfaces(p, F, x, sims, known=np.ones((T, N), dtype=bool), elig=F.elig)
+        for side in ("long", "short"):
+            np.testing.assert_array_equal(a[side]["score"], b[side]["score"])
+            np.testing.assert_array_equal(a[side]["base"], b[side]["base"])
+            self.assertEqual([(lo, hi) for lo, hi, _ in a[side]["bands"]],
+                             [(lo, hi) for lo, hi, _ in b[side]["bands"]])
+            self.assertEqual([(k, list(pk)) for k, pk, _ in a[side]["top"]],
+                             [(k, list(pk)) for k, pk, _ in b[side]["top"]])
+            self.assertEqual(b[side]["undetermined"], [])
+            self.assertNotIn("undetermined", a[side])               # the legacy surfaces are unchanged
 
 
 # --------------------------------------------------------------------------- finding 4: shadow ledger STATUS provenance
@@ -728,7 +1091,9 @@ class Versions(unittest.TestCase):
     def test_research_versions(self):
         import pit_cost as PC
         import pit_sim as PS
-        self.assertEqual((PC.VERSION, PS.VERSION), ("v8.pit-cost/2", "v8.pit-research/2"))
+        import pit_research as PR
+        self.assertEqual((PC.VERSION, PS.VERSION, PR.VERSION), ("v8.pit-cost/2", "v8.pit-research/3",
+                                                                "v8.pit-research/3"))
 
 
 class ScanGateInvariants(unittest.TestCase):
