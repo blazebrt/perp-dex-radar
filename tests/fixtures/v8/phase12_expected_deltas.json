@@ -12,11 +12,11 @@
   "DESK_TODAY_FRONT_PAGE": "Today (today.html) replaces the retired dashboard as the published front page index.html. It renders decision.json (v8.decision/1) through desk.js: Best Trades Now, Emerging, Avoided summary, Portfolio, Funding and System. Presentation only; no engine output changes.",
   "DESK_ANALYZER_PRESENTATION": "The Analyzer shows the desk's decision panel first (the same cards as Today, from desk.js), labels price, chart and CoinGecko data as context, prioritises discovery assets in search and fails closed with the desk's wording. Its call is unchanged: the Phase 11 decision alone.",
   "DESK_ANALYZER_SHARED_CORE": "analyze.js delegates its Phase 11 authority reading (authority, asset decision, code wording) to desk.js, so TODAY and the Analyzer read one object one way; without a live price no plan is placed. Exports and the call semantics are unchanged.",
-  "DESK_SHARED_PRESENTATION_CORE": "desk.js (new): the shared presentation core. Reads decision.json and the audit snapshot, validates their shape, labels and escapes; decides nothing (no state, rank, section, authority, identity or portfolio verdict of its own).",
+  "DESK_SHARED_PRESENTATION_CORE": "desk.js (new): the shared presentation core. Reads decision.json and the audit snapshot, validates their shape, labels and escapes; decides nothing (no state, rank, section, authority, identity or portfolio verdict of its own). Phase 12 correction changes only Research evidence presentation and source/provenance validation; Today/Analyzer/Funding/Portfolio semantics remain unchanged.",
   "DESK_DESIGN_SYSTEM": "desk.css (new): the desk's one state visual language (TRADE, WATCH, AVOID, MISSING/DEGRADED), responsive layout, focus, reduced motion and dark theme.",
   "DESK_FUNDING_PAGE": "funding.html (new): qualified funding_opportunities separated from the evaluated market; never risk-free; no degraded leg is shown.",
   "DESK_PORTFOLIO_CONSOLE": "portfolio.html (new): the Phase 10 summary the decision carries, with the audit snapshot's detail only when it is the same evaluation; stress labelled deterministic.",
-  "DESK_RESEARCH_PAGE": "research.html (new): the committed Phase 9 record (strategy matrix, qualification truth, transparency) and the earlier engines' records as historical, unqualified context.",
+  "DESK_RESEARCH_PAGE": "Research separates current production policy authority from isolated, validated production research evidence; reviewed Phase 9 files are explicitly historical baseline. Current/main-mismatch/last-known-good/baseline/unavailable presentation never grants promotion or changes decisions.",
   "LEGACY_PAGE_DEMOTED_TO_DIAGNOSTIC": "picks.html, quant.html, smart.html and the 15-minute radar (radar.html) keep running unchanged as diagnostics: the desk's five-link navigation with no tab current, the desk brand and a note that their scores and calls are not desk decisions and not trade-ready. No number, signal or call on them changes."
  },
  "universe": [],
@@ -49,7 +49,7 @@
   {
    "file": "desk.js",
    "base_sha256": null,
-   "head_sha256": "9fd2efaafe832091671c22a90b51c5cd873233e27a7f717af0f09a225510ab7a",
+   "head_sha256": "69c6a04b5054808830d489fcc4221310a82e37502a378312620179711aafa798",
    "rule": "DESK_SHARED_PRESENTATION_CORE"
   },
   {
@@ -91,7 +91,7 @@
   {
    "file": "research.html",
    "base_sha256": null,
-   "head_sha256": "37ff2e1306bea7219c6c53457804feb9d823a724d68aab89efcac1b0636c6637",
+   "head_sha256": "e9f248f7cfa3e5ac7797b16a7d00f58b27a472079a61d706c5f8980565409f25",
    "rule": "DESK_RESEARCH_PAGE"
   },
   {
@@ -177,5 +177,5 @@
  "removed_sources": [
   "dashboard.html"
  ],
- "not_allowed": "Any difference at all in any other legacy published file (data/*.json included), universe, identity, DEX status, decision, signal, ranking, stop, size or journal, and any change to the engine (v8/decision.py, v8/decision_policy.json, v8/portfolio_risk*.py/json, quant, identity, discovery). Phase 12 changes published pages only: the twelve files above, each pinned to its exact base and head digest. The Phase 9 research record is published unchanged as audit files under data/v8/research/phase9/ (never digested as legacy files). dashboard.html is retired: it is no longer published (Today is index.html); dashboard.py still writes data/dashboard.json byte-identical."
+ "not_allowed": "Any difference at all in any other legacy published file (data/*.json included), universe, identity, DEX status, decision, signal, ranking, stop, size or journal, and any change to the engine (v8/decision.py, v8/decision_policy.json, v8/portfolio_risk*.py/json, quant, identity, discovery). Phase 12 changes published pages only: the twelve files above, each pinned to its exact base and head digest. The Phase 9 research record is published unchanged as audit files under data/v8/research/phase9/ (never digested as legacy files). dashboard.html is retired: it is no longer published (Today is index.html); dashboard.py still writes data/dashboard.json byte-identical. The correction additionally permits production-only Research workflow, scheduled refresh, read-only Scan publication and their tests/docs. No engine or decision delta is authorized."
 }

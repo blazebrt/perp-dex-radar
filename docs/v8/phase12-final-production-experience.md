@@ -30,7 +30,7 @@ Exactly five surfaces, the same tab bar on every page:
 | Analyzer | `analyze.html`, `analyze.js` | `decision.json`; prices, chart, legacy records, CoinGecko and sentiment as labelled context |
 | Funding | `funding.html` | `decision.json` (`funding_opportunities` and every evaluated `FUNDING_SPREAD`) |
 | Portfolio | `portfolio.html` | `decision.json` (`portfolio.phase10`); detail from `audit_latest.json(.gz)` only when it is the same evaluation |
-| Research | `research.html` | the committed Phase 9 record (`data/v8/research/phase9/*.json`), `data/dashboard.json` as historical context |
+| Research | `research.html` | production policy authority, isolated current production evidence (`data/v8/research/current/snapshot.json`), explicitly historical Phase 9 baseline, diagnostic context |
 
 Shared by all of them: `desk.js` (the presentation core, `window.DESK`) and `desk.css` (the design system).
 
@@ -174,10 +174,10 @@ The call (`decide()`) is unchanged: LONG or SHORT only for a current Phase 11 TR
   - Missing authority ("never counted as zero").
   - With the bound detail: concentration by asset, strategy, side and cluster, then positions. Identity-blocked positions are marked and stated as "still counted in every risk figure above".
 - **Research:**
-  - "Why zero trade can be the correct result".
-  - The qualification truth: 24 candidates, ≥ 199 known trials, census incomplete, 0 point-in-time days, 0 qualified trades, 0 requalified.
-  - The strategy authority matrix. Only Requalified / Requalified can trade; holdovers read "No: watch at most", and disabled strategies sit in a disclosure.
-  - The requalification gate against today's best evidence, multiple testing, matched controls, out-of-sample, registration, the shadow ledger and provenance hashes.
+  - Production strategy authority comes from the deployed checkout's policy, separately from evidence.
+  - Latest successful production evidence carries its own time, age and current/mismatch/last-known-good state. Without it, the committed record is explicitly the Reviewed Phase 9 baseline.
+  - The current reviewed outcome remains 24 candidates, ≥ 199 known trials, incomplete census and zero PIT overlap/qualified trades/requalified strategies; these are evaluation values, not hardcoded future outcomes.
+  - The evaluation matrix never grants promotion; the gate, multiple testing, controls, registration, shadow ledger and provenance remain available for advanced review.
   - The earlier engines' records as historical, unqualified context, with links to the diagnostic pages.
 
 ## 9. Quality
@@ -270,6 +270,44 @@ The legacy parity golden for this branch is `tests/fixtures/v8/legacy_parity_gol
 `tools/v8/delta_parity.py` against the base `0efcf72` reports 0 universe, DEX status, note or decision deltas and 12 pinned file deltas.
 
 ## Known limitations
+
+### Research-publication correction
+
+The committed `research/phase9/` files are the **Reviewed Phase 9 baseline**, not current evidence. The historical
+`b74d630c…` → `4d69e56f…` difference includes later history and the accepted final Phase 9 closure (method identity,
+explicit zero gate fields and runtime binding). The regression authority is final Phase 9 `19596979…`, whose runtime,
+method and policy files remain unchanged through this correction.
+
+Research runs daily at **03:17 UTC (08:47 IST)** on default/main. This keeps the expensive evidence evaluation separate
+from 20-minute scans. It uses the existing governed process and a current-time production cutoff; review runs keep
+their exact-head cutoff. Phase runs write only the generic `research` review branch. Only successful main schedule/
+manual runs may write `research-production`, guarded by the exact ref/event/default branch and by checkout == current
+remote main, checked again immediately before publication. Full unit tests and mandatory Phase 9/10/11/12 checks must
+succeed. A complete validated `snapshot.json` is committed with the prior production snapshot as parent and pushed
+without force: either the whole new snapshot replaces the tip, or the previous tip remains. No policy file is written.
+
+The snapshot binds main SHA/tree, strategy policy, exact runtime implementation, research-method identity, trial census,
+history cutoff/head/view, dataset, adjudication and all curated evidence files. It includes generated time and workflow
+run/attempt. Scan reads **only** `research-production`, validates the bundle, then publishes
+`data/v8/research/current/snapshot.json` and `data/v8/research/authority.json`. This step is informational and cannot
+change the decision artifact; its failure does not stop Today or Analyzer. Browser code reads only these same-site
+files and the labelled baseline, never the generic review branch.
+
+Research shows production policy first, independently from evaluation results. States are CURRENT,
+LAST_KNOWN_GOOD (a later failed main run or more than 36 hours old), AUTHORITY_MISMATCH, BASELINE_ONLY and UNAVAILABLE.
+Full hashes sit behind Advanced detail. A changed main SHA, tree, policy, runtime or method prevents the current label.
+An old valid snapshot may still be viewed with its mismatch/age; missing or malformed evidence falls back only to the
+historical baseline. A newer successful evidence result, even requalified, never grants runtime eligibility. Reviewed
+main policy remains the only promotion path.
+
+`tests/test_v8_research_publication.py` exercises production/review isolation, exact bindings, failed checks, atomic
+publication to a local bare Git fixture, unchanged policy, browser states, escaping and Today/Analyzer independence.
+The existing Phase 12 authority tests remain required. Parity fixtures change only the exact `desk.js` Research
+presentation and `research.html` digests; engine outputs and other page digests remain unchanged.
+
+After this correction is reviewed and merged, the production channel still needs its first successful main run.
+Until then the correct Research state is BASELINE_ONLY. This PR does not perform a production Research dispatch,
+merge, promotion or deployment.
 
 - The diagnostic pages still show their own scores and calls (labelled as not desk decisions). `data/dashboard.json` is still built, for the historical record on Research.
 - The Analyzer still loads exchange candles, CoinGecko and sentiment for context. They are labelled and never decide, but they are external requests.

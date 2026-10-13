@@ -952,7 +952,7 @@
     return {status: "AVAILABLE", state, html: h};
   }
 
-  /* RESEARCH: the Phase 9 truth from the committed research record. S: {sum, mt, mc, reg, adj, dash}, each optional
+  /* RESEARCH: an explicitly labelled evidence record, never runtime/promotion authority. S: {sum, mt, mc, reg, adj, dash}, each optional
      except the summary. */
   const STATE_TXT = {LEGACY_HOLDOVER: "Legacy holdover", ACTIVE_REQUALIFIED: "Requalified", PAPER_ONLY: "Paper only", DISABLED: "Disabled",
                      INSUFFICIENT_EVIDENCE: "Insufficient evidence", REQUALIFIED: "Requalified", PROBATION: "Probation", REJECTED: "Rejected", INVALIDATED: "Invalidated"};
@@ -969,21 +969,21 @@
     const qualified = strats.reduce((n, x) => n + (x.qualified_closed_trades || 0), 0);
     const holdovers = strats.filter((x) => x.deployment_state === "LEGACY_HOLDOVER"), disabled = strats.filter((x) => x.deployment_state === "DISABLED");
     const g = (S.adj && S.adj.gate) || {};
-    let h = '<section class="sec panel" aria-labelledby="why-h"><h2 id="why-h">Why zero trade can be the correct result</h2>' +
+    let h = '<section class="sec panel" aria-labelledby="why-h"><h2 id="why-h">' + esc(S.evidenceLabel || "Reviewed Phase 9 baseline") + '</h2>' +
       '<p class="lead">A strategy signal can become a trade only when its strategy is requalified on point-in-time evidence (runtime <b>Requalified</b>, research <b>Requalified</b>). ' +
       (g.pit_calendar_days ? 'Requalification needs at least ' + esc(g.pit_calendar_days) + ' days of point-in-time history and ' + esc(g.qualified_closed_trades) + ' fully qualified closed trades, among other gates. ' : "") +
-      'Today the record has ' + esc(s.pit_overlap_calendar_days) + ' point-in-time overlap days and ' + esc(qualified) + ' qualified trades, so <b>' + esc(s.requalified_count) + ' of ' + esc(s.candidate_count) + '</b> strategies are requalified.</p>' +
-      '<p class="lead ink2">The ' + holdovers.length + ' legacy holdovers keep running on the paper desk for continuity, so their signals can be watched, never traded. The other ' + disabled.length + ' are disabled. Nothing here is a judgment that the strategies lose money: the evidence to qualify them does not exist yet.</p></section>';
-    h += '<section class="sec" aria-labelledby="tr-h"><div class="sechead"><h2 id="tr-h">Qualification truth</h2><span class="n">Phase 9 adjudication</span></div><div class="tiles">' +
+      'This evaluation records ' + esc(s.pit_overlap_calendar_days) + ' point-in-time overlap days and ' + esc(qualified) + ' qualified trades, so <b>' + esc(s.requalified_count) + ' of ' + esc(s.candidate_count) + '</b> strategies are requalified in evidence.</p>' +
+      '<p class="lead ink2">The record contains ' + holdovers.length + ' legacy holdovers and ' + disabled.length + ' disabled strategies. Research evidence never promotes or enables a strategy. Production authority is shown separately.</p></section>';
+    h += '<section class="sec" aria-labelledby="tr-h"><div class="sechead"><h2 id="tr-h">Evaluation results</h2><span class="n">Phase 9 adjudication</span></div><div class="tiles">' +
       rtile("Strategy candidates", s.candidate_count) + rtile("Known historical trials", "≥ " + s.known_historical_trials, "a lower bound") +
       rtile("Trial census", s.trial_census_complete ? "Complete" : "Incomplete") + rtile("Point-in-time overlap", s.pit_overlap_calendar_days + " days", g.pit_calendar_days ? "of " + g.pit_calendar_days + " required" : "") +
       rtile("Qualified closed trades", qualified, g.qualified_closed_trades ? "of " + g.qualified_closed_trades + " required per strategy" : "") + rtile("Requalified strategies", s.requalified_count) + '</div></section>';
     const row = (x) => '<tr class="' + (x.deployment_state === "DISABLED" ? "dim" : "") + '"><td>' + esc(x.strategy_id) + '</td><td>' + esc(st(x.deployment_state)) + '</td><td>' + esc(st(x.research_state)) +
-      '</td><td class="num">' + esc(x.qualified_closed_trades) + '</td><td>' + (x.deployment_state === "ACTIVE_REQUALIFIED" && x.research_state === "REQUALIFIED" ? stateChip("TRADE", {text: "Eligible"})
+      '</td><td class="num">' + esc(x.qualified_closed_trades) + '</td><td>' + (x.deployment_state === "ACTIVE_REQUALIFIED" && x.research_state === "REQUALIFIED" ? '<span>Evidence gate passed; reviewed promotion required</span>'
         : x.deployment_state === "DISABLED" ? '<span class="muted">No: disabled</span>' : '<span>No: watch at most</span>') + '</td></tr>';
-    const thead = '<thead><tr><th>Strategy</th><th>Runtime</th><th>Research</th><th class="num">Qualified trades</th><th>Can it make a trade today?</th></tr></thead>';
+    const thead = '<thead><tr><th>Strategy</th><th>Recorded runtime</th><th>Research result</th><th class="num">Qualified trades</th><th>Promotion from this evidence?</th></tr></thead>';
     const live = strats.filter((x) => x.deployment_state !== "DISABLED");
-    h += '<section class="sec panel" aria-labelledby="mx-h"><h2 id="mx-h">Strategy authority</h2><p class="small ink2" style="margin:0 0 8px">Runtime is what the paper desk runs; research is what the evidence supports. Only Requalified / Requalified can produce a trade.</p>' +
+    h += '<section class="sec panel" aria-labelledby="mx-h"><h2 id="mx-h">Evaluation record</h2><p class="small ink2" style="margin:0 0 8px">Recorded deployment states describe the authority evaluated by this result. They do not update production policy.</p>' +
       '<div class="tblwrap"><table class="tbl matrix">' + thead + '<tbody>' + (live.length ? live.map(row).join("") : '<tr><td colspan="5" class="muted">No strategy runs on the paper desk.</td></tr>') + '</tbody></table></div>' +
       (disabled.length ? '<details class="more-d" style="margin-top:10px"><summary>The ' + disabled.length + ' disabled strategies</summary><div class="tblwrap" style="margin-top:8px"><table class="tbl matrix">' + thead + '<tbody>' + disabled.map(row).join("") + '</tbody></table></div></details>' : "") + '</section>';
     h += '<section class="sec" aria-labelledby="ev-h"><div class="sechead"><h2 id="ev-h">Research evidence</h2><span class="n">for advanced review</span></div><div class="panel ev">' + evidence(S) + '</div></section>';
@@ -992,6 +992,38 @@
   }
   const rtile = (l, v, sub) => '<div class="tile"><div class="t-l">' + esc(l) + '</div><div class="t-v">' + esc(v) + '</div>' + (sub ? '<div class="t-s">' + esc(sub) + '</div>' : "") + '</div>';
   const det = (title, body) => '<details class="more-d"><summary>' + esc(title) + '</summary><div class="dbody">' + body + '</div></details>';
+
+  function vResearchPublication(S) {
+    S = S || {};
+    const a = S.authority, snap = S.snapshot, now = isInt(S.now) ? S.now : Math.floor(Date.now() / 1000);
+    const binding = ["main_sha", "tree_sha", "strategy_policy_hash", "runtime_implementation_hash", "method_code_hash"];
+    const bound = (o) => o && binding.every((k) => typeof o[k] === "string" && /^[a-f0-9]+$/.test(o[k]) && o[k].length === (k === "main_sha" || k === "tree_sha" ? 40 : 64));
+    const rowsOk = (rows) => Array.isArray(rows) && rows.every((r) => r && typeof r === "object" && typeof r.strategy_id === "string" && typeof r.deployment_state === "string" && typeof r.research_state === "string");
+    const validA = a && a.schema === "v8.production-research-authority/1" && bound(a) && a.strategy_policy && rowsOk(a.strategy_policy.strategies);
+    // Complete hashes are validated before publication; the browser independently checks source and authority.
+    const docs = snap && snap.documents || {}, sum = docs["research_phase9_summary.json"], adj = docs["research_strategy_adjudication.json"];
+    const valid = snap && snap.schema === "v8.production-research/1" && snap.source && snap.source.channel === "research-production" && snap.source.ref === "refs/heads/main" && snap.source.promotion_authority === "NONE" && snap.source.workflow === ".github/workflows/research.yml" && ["schedule", "workflow_dispatch"].includes(snap.source.event) && bound(snap.authority) && snap.source.sha === snap.authority.main_sha && isInt(snap.generated_at) && snap.generated_at > 0 && snap.generated_at <= now && snap.provenance && isInt(snap.provenance.cutoff) && sum && sum.schema === "v8.phase9-summary/1" && rowsOk(sum.strategies) && adj && Array.isArray(adj.strategies) && adj.strategies.every((r) => r && typeof r === "object") && adj.runtime_policy_hash === snap.authority.strategy_policy_hash && adj.runtime_implementation_hash === snap.authority.runtime_implementation_hash && snap.provenance.method_code_hash === snap.authority.method_code_hash && snap.file_hashes && sum.adjudication_hash === snap.file_hashes["research_strategy_adjudication.json"];
+    const baseline = S.baseline && S.baseline.sum && S.baseline.sum.schema === "v8.phase9-summary/1" && rowsOk(S.baseline.sum.strategies) ? S.baseline : null;
+    let status = valid ? (validA && binding.every((k) => snap.authority[k] === a[k]) ? "CURRENT" : "AUTHORITY_MISMATCH") : baseline ? "BASELINE_ONLY" : "UNAVAILABLE";
+    if (status === "CURRENT" && (a.evidence_status === "LAST_KNOWN_GOOD" || now - snap.generated_at > 36 * 3600)) status = "LAST_KNOWN_GOOD";
+    let h = '<section class="sec panel"><h2>Production strategy authority</h2><p class="lead">Only the reviewed production policy can enable a strategy. New research evidence never changes this authority or grants a trade.</p>';
+    if (validA) {
+      h += '<div class="tblwrap"><table class="tbl matrix"><thead><tr><th>Strategy</th><th>Deployment</th><th>Research authority</th></tr></thead><tbody>' + a.strategy_policy.strategies.map((r) => '<tr><td>' + esc(r.strategy_id) + '</td><td>' + esc(st(r.deployment_state)) + '</td><td>' + esc(st(r.research_state)) + '</td></tr>').join("") + '</tbody></table></div><p class="note">Strategies absent from the production policy are disabled. Today and Analyzer continue to use the Phase 11 decision.</p>';
+    } else h += '<p class="note">Production policy detail is unavailable. The historical baseline does not substitute for runtime authority. Today and Analyzer still use their own governed decision artifact.</p>';
+    h += '</section><section class="sec panel"><h2>Latest research evidence</h2><p><b>' + esc(titleCase(status)) + '</b></p>';
+    if (valid) h += '<p class="lead">Governed evaluation from production main ' + esc(snap.authority.main_sha.slice(0, 7)) + ', generated ' + esc(utcTxt(snap.generated_at)) + ' (' + esc(durTxt(Math.max(0, now - snap.generated_at))) + ' old).</p>';
+    if (status === "AUTHORITY_MISMATCH") h += '<p class="note">This evidence belongs to a different production authority or current authority could not be verified. It is not current evidence.</p>';
+    if (status === "LAST_KNOWN_GOOD") h += '<p class="note">Showing the previous successful production evaluation. A newer refresh failed or the daily refresh is overdue; the evidence age is shown above.</p>';
+    if (status === "BASELINE_ONLY") h += '<p class="note">No valid production research snapshot is available. The reviewed Phase 9 baseline below is historical, not current evidence.</p>';
+    if (status === "UNAVAILABLE") h += '<p class="note">Research evidence is unavailable. Today and Analyzer remain governed by Phase 11.</p>';
+    h += '</section>';
+    const selected = valid ? {sum, adj, mt: docs["research_multiple_testing.json"], mc: docs["research_matched_controls.json"], reg: docs["research_phase9_registration_plan.json"], dash: S.dash,
+      evidenceLabel: status === "CURRENT" ? "Latest governed production evaluation" : "Previous governed production evaluation"} : baseline && {...baseline, dash: S.dash, evidenceLabel: "Reviewed Phase 9 baseline"};
+    if (selected) h += vResearch(selected);
+    if (validA || valid) h += '<section class="sec panel ev">' + det("Advanced: production and research provenance", '<pre style="white-space:pre-wrap;overflow-wrap:anywhere">' + esc(JSON.stringify({production: validA ? Object.fromEntries(binding.map((k) => [k, a[k]])) : null,
+      evidence: valid ? {authority: snap.authority, generated_at: snap.generated_at, source: snap.source, provenance: snap.provenance, adjudication_hash: sum.adjudication_hash, trial_census_hash: sum.trial_census_hash, run_provenance: snap.run_provenance} : null}, null, 2)) + '</pre>') + '</section>';
+    return {status, html: h};
+  }
 
   function evidence(S) {
     const mt = S.mt || {}, mc = S.mc || {}, adj = S.adj || {}, g = adj.gate || {}, reg = S.reg || {};
@@ -1004,7 +1036,7 @@
                  ["Hansen SPA p", "≤ " + g.spa_p, "unavailable"], ["Deflated Sharpe probability", "≥ " + g.dsr_probability, "unavailable"],
                  ["Matched controls per signal", g.controls_per_signal + ", ≥ " + Math.round((g.full_matched_fraction || 0) * 100) + "% fully matched", "unavailable"],
                  ["Mean R at 1.5× costs", "> " + g.stress_1_5_mean_R, "unavailable"]];
-    let h = det("The requalification gate", '<table class="tbl"><thead><tr><th>Requirement</th><th>Gate</th><th>Best of the ' + esc((adj.strategies || []).length) + ' candidates today</th></tr></thead><tbody>' +
+    let h = det("The requalification gate", '<table class="tbl"><thead><tr><th>Requirement</th><th>Gate</th><th>Best of the ' + esc((adj.strategies || []).length) + ' candidates in this evaluation</th></tr></thead><tbody>' +
       (g.pit_calendar_days ? req.map((r) => '<tr><td>' + esc(r[0]) + '</td><td>' + esc(r[1]) + '</td><td>' + esc(r[2]) + '</td></tr>').join("") : '<tr><td colspan="3" class="muted">The adjudication record did not load.</td></tr>') +
       '</tbody></table><p class="note">Promotion: ' + esc(adj.promotion || "–") + '.</p>');
     h += det("Multiple-testing authority (PBO, Reality Check, SPA, FDR)", '<dl class="kv" style="text-align:left">' +
@@ -1103,7 +1135,7 @@
     traceRows, strip, stripSummary, counts, degradations, zeroTrade, avoidSummary, portfolioView, changes,
     fmt: {esc, pct, lev, usd, price, rate8h, utc: utcTxt, time: timeTxt, dur: durTxt, ago: agoTxt, title: titleCase, limit: limitValue},
     html: {stateChip, pfChip, dirTag, resultTag, gateStrip, traceTable, traceDetails, needsList, failClosed, freshness, oppCard, fundingCard},
-    views: {research: vResearch, status: vStatus, today: vToday, funding: vFunding, fundingMarket: vFundingMarket, portfolio: vPortfolio, assetPanel: vAssetPanel, boundDetail},
+    views: {research: vResearch, researchPublication: vResearchPublication, status: vStatus, today: vToday, funding: vFunding, fundingMarket: vFundingMarket, portfolio: vPortfolio, assetPanel: vAssetPanel, boundDetail},
     timeKey, bindTraces, getJSON, loadDecision, loadAudit, shell, nowS, esc, sideOf,
   };
 });

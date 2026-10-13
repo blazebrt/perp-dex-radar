@@ -49,11 +49,12 @@
   D.shell();
   const R = D.RESEARCH_DIR + "phase9/";
   const ok = (r) => r.status === "OK" && r.data && typeof r.data === "object" ? r.data : null;
-  // the governed Phase 9 record (committed, hash-bound) and the earlier engines' records; DESK.views.research renders them
+  // Production authority and the isolated production evidence channel; committed files are only a historical baseline.
   (async function load() {
-    const [sum, mt, mc, reg, adj, dash] = await Promise.all(["research_phase9_summary.json", "research_multiple_testing.json", "research_matched_controls.json",
-      "research_phase9_registration_plan.json", "research_strategy_adjudication.json"].map((f) => D.getJSON(R + f)).concat([D.getJSON("data/dashboard.json")]));
-    $("#body").innerHTML = D.views.research({sum: ok(sum), mt: ok(mt), mc: ok(mc), reg: ok(reg), adj: ok(adj), dash: ok(dash)});
+    const [sum, mt, mc, reg, adj, dash, authority, snapshot] = await Promise.all(["research_phase9_summary.json", "research_multiple_testing.json", "research_matched_controls.json",
+      "research_phase9_registration_plan.json", "research_strategy_adjudication.json"].map((f) => D.getJSON(R + f)).concat([D.getJSON("data/dashboard.json"), D.getJSON(D.RESEARCH_DIR + "authority.json"), D.getJSON(D.RESEARCH_DIR + "current/snapshot.json")]));
+    const v = D.views.researchPublication({baseline: {sum: ok(sum), mt: ok(mt), mc: ok(mc), reg: ok(reg), adj: ok(adj)}, dash: ok(dash), authority: ok(authority), snapshot: ok(snapshot)});
+    $("#body").innerHTML = v.html;
   })();
 })();
 </script>

@@ -14,7 +14,7 @@
   "data/v8/research/phase9/research_phase9_summary.json",
   "data/v8/research/phase9/research_strategy_adjudication.json"
  ],
- "combined": "15051066123402ae1f6e26edd10cd2c2e16d993a6d3ddd45795728769a64cd80",
+ "combined": "f2f6fec4c9f208b5f26a4140cd92447bb0577a3413d0aea21ff6afed07aa2702",
  "decisions": {
   "picks": {
    "daytrade_all": [
@@ -507,14 +507,14 @@
   "data/smart_journal.json": "8e3d1bd64125bb3f4cfb8cb82e749b1860f829398a5b49e0c43f1fdc8704d054",
   "data/smart_research.json": "55138a1057b0be42f3b23763967ec6ada6a8b878bb131acb1af60f5127cc6cc2",
   "desk.css": "3cab76b9106aa5ef9756efcb1546a866f6e72574181b824da59ff9a6eb0aca7d",
-  "desk.js": "9fd2efaafe832091671c22a90b51c5cd873233e27a7f717af0f09a225510ab7a",
+  "desk.js": "69c6a04b5054808830d489fcc4221310a82e37502a378312620179711aafa798",
   "funding.html": "babfdea3ee2ca3d1f991b0947d047a42cb42cc4e4a89116b6591d5e305df03a1",
   "index.html": "99ff267701d1804d4be6d7a050c24abc49b9ec13b60d41b3da0ffc6151293e7c",
   "picks.html": "13b9dd80832cb70bcc8228ead21c7ad8558a8c5cac07581caa29c207e2c5618d",
   "portfolio.html": "3b31b17ebe1a7010cf7a6118339746c0d2a48016963ca7b6882251619a574dcc",
   "quant.html": "8b7a6ec2bf09f3b7c373e4d4f3ed467b70ab1b2bd04a356dfac6ccea9cce3519",
   "radar.html": "87a764163d7d68cf0b4ec27863de8aa5fe373b4aa1bb1878f06c150ef0692ad4",
-  "research.html": "37ff2e1306bea7219c6c53457804feb9d823a724d68aab89efcac1b0636c6637",
+  "research.html": "e9f248f7cfa3e5ac7797b16a7d00f58b27a472079a61d706c5f8980565409f25",
   "smart.html": "4e0b9eb0d99916116f441275c9f3225f26a105d9a032526f60fc358d8880e2ab"
  },
  "schema": "v8.parity/1",
