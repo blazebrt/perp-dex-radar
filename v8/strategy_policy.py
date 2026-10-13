@@ -16,6 +16,14 @@ def digest(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
 
 
+def adjudicated_definition_hash(row):
+    """Bind the exact research representation, independently of runtime metadata."""
+    fields = ("strategy_id", "implementation", "params", "parameter_hash", "code_hash", "code_files")
+    if not isinstance(row, dict) or any(k not in row or row[k] is None for k in fields):
+        raise ValueError("STRATEGY_POLICY_INVALID: adjudicated definition fields missing")
+    return digest({k: row[k] for k in fields})
+
+
 def validate(policy, strats, root=None):
     """No fallback. Promotion references an in-repository, hash-bound reviewed evidence record."""
     def require(ok, message):
@@ -69,7 +77,12 @@ def validate(policy, strats, root=None):
             require(len(matches) == 1 and matches[0].get("research_state") == "REQUALIFIED" and
                     adjudicate(matches[0].get("evidence", {}))["research_state"] == "REQUALIFIED",
                     "adjudication does not satisfy current gate")
-            require(ev.get("runtime_definition_hash") == digest(strats[sid]), "runtime definition differs from review")
+            adjudicated = matches[0]
+            require(ev.get("runtime_definition_hash") == adjudicated.get("runtime_definition_hash") == digest(strats[sid]),
+                    "runtime definition differs between runtime, review and adjudication")
+            definition_hash = adjudicated_definition_hash(adjudicated)
+            require(ev.get("adjudicated_definition_hash") == adjudicated.get("adjudicated_definition_hash") == definition_hash,
+                    "adjudicated definition differs from review or row content")
     require(all(isinstance(s, str) for s in order) and len(set(order)) == len(order), "duplicate or invalid order")
     require(set(order) == set(enabled), "order must contain every deployment-enabled strategy exactly once")
     return policy

@@ -322,14 +322,16 @@ def run(md, hist_dir, cutoff, folder, replications=5000):
         if pbo["status"] == "AVAILABLE":
             evidence["pbo"] = pbo["pbo"]
         verdict = SA.adjudicate(evidence)
-        results.append({**c, **verdict, "dataset_provenance": provenance, "pit_version": PIT.VERSION,
+        bindings = {"runtime_definition_hash": SP.digest(quant.STRATS[sid]) if sid in quant.STRATS else None,
+                    "adjudicated_definition_hash": SP.adjudicated_definition_hash(c)}
+        results.append({**c, **verdict, **bindings, "dataset_provenance": provenance, "pit_version": PIT.VERSION,
                         "cost_model": PC.VERSION, "trial_census_version": census.VERSION, "trial_census_hash": chash,
                         "matched_control_version": MC.VERSION, "matched_control_hash": match_hash,
                         "multiple_testing_version": MT.VERSION, "multiple_testing_hash": mhash,
                         "sample_counts": candidate_info[sid], "aggregate": agg, "robustness": robust, "dsr": dsr,
                         "matched_control_diagnostic": matched_diagnostic,
                         "evidence": evidence, "deployment_state": deployment.get(sid, "DISABLED"),
-                        "trace": {"definition": c, "trial_history": trial_census["status"], "pit_evidence": candidate_info[sid],
+                        "trace": {"definition": c, **bindings, "trial_history": trial_census["status"], "pit_evidence": candidate_info[sid],
                                   "data_completeness": "INCOMPLETE", "costs": PC.VERSION,
                                   "matched_controls": matched["status"], "multiple_testing": {"hash": mhash, "status": statistics["status"]},
                                   "oos": robust["oos"], "robustness": robust,

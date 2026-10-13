@@ -1,5 +1,6 @@
 """Phase 9 independent arithmetic, adversarial authority and deployment separation tests."""
 import copy
+import hashlib
 import itertools
 import json
 import math
@@ -62,6 +63,18 @@ class Policy(unittest.TestCase):
         p["strategies"][0]["research_state"] = "REQUALIFIED"
         self.assertEqual(SP.validate(p, quant.STRATS)["strategies"][0]["deployment_state"], "LEGACY_HOLDOVER")
 
+    def test_audit_exposes_current_and_adjudicated_definition_bindings(self):
+        import quant
+        from v8 import provenance
+        audit = provenance.strategy_authority()
+        self.assertEqual(audit["runtime_definition_hashes"],
+                         {sid: SP.digest(quant.STRATS[sid]) for sid in quant.RUNTIME_ORDER})
+        self.assertEqual(len(audit["adjudicated_definition_bindings"]), 24)
+        for sid, binding in audit["adjudicated_definition_bindings"].items():
+            self.assertTrue(binding["stored_definition_hash_matches"], sid)
+            self.assertEqual(binding["runtime_definition_hash"],
+                             SP.digest(quant.STRATS[sid]) if sid in quant.STRATS else None)
+
     def test_census_and_canonical_parameters(self):
         cat = SC.catalog()
         self.assertEqual(len(cat), 24)
@@ -100,6 +113,135 @@ class Policy(unittest.TestCase):
             self.assertNotEqual(SA.adjudicate(bad)["research_state"], "REQUALIFIED", key)
         e["trial_census_complete"] = False
         self.assertEqual(SA.adjudicate(e)["research_state"], "INSUFFICIENT_EVIDENCE")
+
+
+class PromotionBinding(unittest.TestCase):
+    """Synthetic passing evidence never changes the repository deployment policy."""
+    def setUp(self):
+        import quant
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.strats = copy.deepcopy(quant.STRATS)
+        self.policy = SP.load(quant.STRATS)
+        e = {k: True for k in ("trial_census_complete", "trial_return_universe_complete", "pit_integrity_ok",
+                              "prospective_registration_valid", "full_feature_authority", "robustness_slices_complete")}
+        e.update(pit_calendar_days=400, qualified_closed_trades=1000, mean_R=.5, mean_R_lower_95=.3,
+                 matched_edge=.2, matched_lower_95=.1, full_matched_fraction=.95, controls_per_signal=50,
+                 dsr_probability=.99, pbo=.1, spa_p=.01, white_rc_p=.01, by_q=.01, oos_mean_R=.4,
+                 stress_1_5_mean_R=.3, top1_positive_fraction=.01, top5_positive_fraction=.05,
+                 top10_positive_fraction=.1, month_positive_fraction=.1, leave_one_asset_out_min_mean_R=.2,
+                 both_sides=True, sides={s: {"n": 500, "mean_R": .5, "upper_95": .7} for s in ("long", "short")})
+        self.row = next(r for r in SC.catalog() if r["strategy_id"] == "TSMOM")
+        self.row.update(SA.adjudicate(e), evidence=e, runtime_definition_hash=SP.digest(self.strats["TSMOM"]))
+        self.row["adjudicated_definition_hash"] = SP.adjudicated_definition_hash(self.row)
+        self.artifact = {"schema": SA.VERSION, "strategies": [self.row]}
+        self.ev = {"schema": "v8.reviewed-strategy-evidence/1", "strategy_id": "TSMOM",
+                   "research_state": "REQUALIFIED", "blocking_reasons": [], "review_decision": "APPROVED",
+                   "review_url": "https://github.com/blazebrt/perp-dex-radar/pull/21",
+                   "adjudication_path": "adjudication.json",
+                   "runtime_definition_hash": self.row["runtime_definition_hash"],
+                   "adjudicated_definition_hash": self.row["adjudicated_definition_hash"]}
+        self.policy["strategies"][0].update(deployment_state="ACTIVE_REQUALIFIED", research_state="REQUALIFIED")
+        self.write_package()
+
+    def write_package(self, rehash_artifact=True):
+        raw = (json.dumps(self.artifact, sort_keys=True) + "\n").encode()
+        (self.root / "adjudication.json").write_bytes(raw)
+        if rehash_artifact:
+            self.ev["adjudication_sha256"] = hashlib.sha256(raw).hexdigest()
+        raw = (json.dumps(self.ev, sort_keys=True) + "\n").encode()
+        (self.root / "review.json").write_bytes(raw)
+        self.policy["strategies"][0]["reviewed_evidence"] = {
+            "path": "review.json", "sha256": hashlib.sha256(raw).hexdigest()}
+
+    def assert_invalid(self):
+        with self.assertRaisesRegex(ValueError, "STRATEGY_POLICY_INVALID"):
+            SP.validate(self.policy, self.strats, self.root)
+
+    def test_positive_complete_promotion(self):
+        self.assertEqual(SA.adjudicate(self.row["evidence"])["research_state"], "REQUALIFIED")
+        # Runtime hold_h/metadata and research hold_days/code are intentionally different representations.
+        self.assertNotEqual(self.strats["TSMOM"]["params"], self.row["params"])
+        self.assertIs(SP.validate(self.policy, self.strats, self.root), self.policy)
+
+    def test_exact_old_acceptance_runtime_a_adjudication_with_runtime_b_review(self):
+        self.assertEqual(self.strats["TSMOM"]["params"]["look"], 30)
+        self.strats["TSMOM"]["params"]["look"] = 31
+        self.ev["runtime_definition_hash"] = SP.digest(self.strats["TSMOM"])
+        self.write_package()
+        self.assert_invalid()
+
+    def test_same_id_changed_research_definition_cannot_reuse_review(self):
+        original = copy.deepcopy(self.row)
+        for key, value in (("params", {**self.row["params"], "look": 60}), ("code_hash", "a" * 64)):
+            with self.subTest(field=key):
+                self.row.clear()
+                self.row.update(copy.deepcopy(original))
+                self.row[key] = value
+                self.row["parameter_hash"] = SP.digest(self.row["params"])
+                self.row["adjudicated_definition_hash"] = SP.adjudicated_definition_hash(self.row)
+                self.write_package()  # Even a new artifact checksum cannot substitute for definition review.
+                self.assert_invalid()
+
+    def test_independent_tampering_matrix(self):
+        originals = copy.deepcopy((self.strats, self.artifact, self.ev))
+        changes = [
+            ("runtime STRATS parameter", "runtime", "look", 31),
+            ("adjudication params", "row", "params", {**self.row["params"], "look": 60}),
+            ("adjudication parameter_hash", "row", "parameter_hash", "a" * 64),
+            ("adjudication code_hash", "row", "code_hash", "a" * 64),
+            ("adjudication implementation", "row", "implementation", "different_implementation"),
+            ("adjudication code_files", "row", "code_files", {"different.py": "a" * 64}),
+            ("reviewed runtime_definition_hash", "ev", "runtime_definition_hash", "a" * 64),
+            ("reviewed adjudicated_definition_hash", "ev", "adjudicated_definition_hash", "a" * 64),
+            ("adjudication runtime_definition_hash", "row", "runtime_definition_hash", "a" * 64),
+            ("adjudication adjudicated_definition_hash", "row", "adjudicated_definition_hash", "a" * 64),
+            ("adjudication artifact bytes", "bytes", None, None),
+            ("adjudication_sha256", "ev", "adjudication_sha256", "a" * 64),
+            ("strategy_id", "row", "strategy_id", "TREND_EMA"),
+            ("reviewed strategy_id", "ev", "strategy_id", "TREND_EMA"),
+        ]
+        for label, target, key, value in changes:
+            with self.subTest(mutation=label):
+                self.strats, self.artifact, self.ev = copy.deepcopy(originals)
+                self.row = self.artifact["strategies"][0]
+                if target != "bytes":
+                    obj = self.strats["TSMOM"]["params"] if target == "runtime" else self.row if target == "row" else self.ev
+                    obj[key] = value
+                self.write_package(rehash_artifact=key != "adjudication_sha256")
+                if target == "bytes":
+                    with (self.root / "adjudication.json").open("ab") as f:
+                        f.write(b" ")
+                self.assert_invalid()
+
+    def test_missing_definition_bindings_fail_closed(self):
+        originals = copy.deepcopy((self.artifact, self.ev))
+        for target, fields in (("ev", ("runtime_definition_hash", "adjudicated_definition_hash")),
+                               ("row", ("runtime_definition_hash", "adjudicated_definition_hash", "implementation",
+                                        "params", "parameter_hash", "code_hash", "code_files"))):
+            for key in fields:
+                for missing in (True, False):
+                    with self.subTest(target=target, key=key, absent=missing):
+                        self.artifact, self.ev = copy.deepcopy(originals)
+                        obj = self.artifact["strategies"][0] if target == "row" else self.ev
+                        if missing:
+                            del obj[key]
+                        else:
+                            obj[key] = None
+                        self.write_package()
+                        self.assert_invalid()
+
+    def test_intentionally_regenerated_review_package_can_promote_new_definition(self):
+        self.strats["TSMOM"]["params"]["look"] = 31
+        self.row["params"]["look"] = 31
+        self.row["parameter_hash"] = SP.digest(self.row["params"])
+        self.row["runtime_definition_hash"] = SP.digest(self.strats["TSMOM"])
+        self.row["adjudicated_definition_hash"] = SP.adjudicated_definition_hash(self.row)
+        for key in ("runtime_definition_hash", "adjudicated_definition_hash"):
+            self.ev[key] = self.row[key]
+        self.write_package()
+        self.assertIs(SP.validate(self.policy, self.strats, self.root), self.policy)
 
 
 @unittest.skipIf(np is None, "numpy research dependencies required")
@@ -298,6 +440,14 @@ class EndToEndCutoff(unittest.TestCase):
             self.assertGreater(sum(r["sample_counts"]["fully_qualified_closed_trades"] for r in doc["strategies"]), 0)
             self.assertEqual(doc["provenance"]["history_cutoff_head_hash"], H.verify(store)["head_hash"])
             self.assertEqual(doc["requalified_count"], 0)
+            import quant
+            for row in doc["strategies"]:
+                sid = row["strategy_id"]
+                expected = SP.digest(quant.STRATS[sid]) if sid in quant.STRATS else None
+                self.assertEqual(row["runtime_definition_hash"], expected)
+                self.assertEqual(row["adjudicated_definition_hash"], SP.adjudicated_definition_hash(row))
+                for key in ("runtime_definition_hash", "adjudicated_definition_hash"):
+                    self.assertEqual(row["trace"][key], row[key])
             first = {p.name: p.read_bytes() for p in out.glob("*.json")}
             # Append only after cutoff, including a new asset known only in the future.
             for c in coins:

@@ -175,6 +175,7 @@ def strategy_authority():
         out.update(runtime_policy_schema=SP.VERSION, runtime_policy_hash=SP.digest(policy),
                    quant_runtime_order=policy["runtime_order"], deployment_states={r["strategy_id"]: r["deployment_state"] for r in policy["strategies"]},
                    research_states={r["strategy_id"]: r["research_state"] for r in policy["strategies"]},
+                   runtime_definition_hashes={sid: SP.digest(q.STRATS[sid]) for sid in policy["runtime_order"]},
                    health=["STRATEGY_POLICY_OK"],
                    legacy_holdover_count=sum(r["deployment_state"] == "LEGACY_HOLDOVER" for r in policy["strategies"]))
     except (OSError, ValueError, TypeError, KeyError) as e:
@@ -195,6 +196,11 @@ def strategy_authority():
         out["adjudicated_research_states"] = {r["strategy_id"]: r["research_state"] for r in report["strategies"]}
         out["requalified_strategy_count"] = sum(v == "REQUALIFIED" for v in out["adjudicated_research_states"].values())
         out["adjudication_provenance"] = report["provenance"]
+        out["adjudicated_definition_bindings"] = {r["strategy_id"]: {
+            "runtime_definition_hash": r.get("runtime_definition_hash"),
+            "adjudicated_definition_hash": SP.adjudicated_definition_hash(r),
+            "stored_definition_hash_matches": r.get("adjudicated_definition_hash") == SP.adjudicated_definition_hash(r)
+        } for r in report["strategies"]}
     except (OSError, ValueError, KeyError) as e:
         out["adjudication_status"] = "UNAVAILABLE"
         out["adjudication_error"] = str(e)

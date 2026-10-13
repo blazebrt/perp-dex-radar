@@ -12,6 +12,31 @@ policy raises an error, with no tuple fallback. ACTIVE_REQUALIFIED requires a
 hash-bound, reviewed evidence file and adjudication satisfying the current gate.
 A subsequent reviewed main-branch change is required to promote or demote deployment.
 
+Promotion binds two distinct representations using the shared canonical hash helpers
+in `v8.strategy_policy`. Every adjudication row carries `runtime_definition_hash`
+(the digest of `quant.STRATS[sid]`, or null when there is no runtime definition) and
+`adjudicated_definition_hash` (the digest of exactly `strategy_id`, `implementation`,
+`params`, `parameter_hash`, `code_hash`, and `code_files`). The trace retains both
+hashes and the complete research definition; audit provenance exposes the bindings.
+
+ACTIVE_REQUALIFIED requires the current runtime digest, adjudication runtime hash,
+and reviewed runtime hash to agree. It also recomputes the adjudicated definition
+hash from the row and requires both the stored and reviewed hashes to agree with it.
+The reviewed package still binds the complete artifact bytes with SHA-256. Missing
+bindings fail closed with STRATEGY_POLICY_INVALID. Same-ID evidence cannot authorize
+a different definition, even if its outer file checksum has been refreshed.
+Runtime and research dictionaries are not compared directly: their representations
+differ (for example hold_h versus hold_days). Any future semantic mapping and actual
+promotion require a new reviewed package; these hashes do not establish semantic
+equivalence on their own. No present strategy is promoted.
+
+The added fields harden the existing Phase 9 promotion contract; all version labels
+remain unchanged. Prior research artifacts remain diagnostic records, but cannot
+authorize promotion without the required definition bindings. Synthetic tests cover
+valid promotion, the former look=30 adjudication / look=31 runtime acceptance, same-ID
+research substitution, missing fields, independent tampering, and a consistently
+regenerated reviewed package. Statistical methods and their availability are unchanged.
+
 The entire `qexport.verdict` ID shortcut is removed, including variant-by-ID rejection.
 That exporter now labels all its historical results LEGACY_SURVIVORSHIP_UNQUALIFIED.
 The old random-twin statistics remain diagnostics. Its combined portfolio follows
