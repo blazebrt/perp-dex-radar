@@ -172,6 +172,17 @@ def load_previous_decision(pages_url=None, path=None):
     return None, "none"
 
 
+def decision_as_of(ts, discovery_generated_at, quant_as_of, portfolio_as_of, contracts):
+    """The decision time: the latest knowledge time among this scan's inputs (the scanner's header time, discovery,
+    the quant run, the portfolio, the latest contract receipt). Every input is then at or before it, so the engine's
+    freshness and signal-age gates never see a future input, and nothing later than the scan is used."""
+    times = [t for t in (ts, discovery_generated_at, quant_as_of, portfolio_as_of) if isinstance(t, int)
+             and not isinstance(t, bool)]
+    times += [c.get("rcv_ts") for c in contracts or [] if isinstance(c.get("rcv_ts"), int)
+              and not isinstance(c.get("rcv_ts"), bool)]
+    return max(times) if times else None
+
+
 def _decision(P, reg, disc_bytes, hdr, ts, pages_url, decision_path):
     """(decision.json bytes or None, snapshot decision section). v8 Phase 11. Never raises: a failure is a named gap."""
     try:
@@ -201,19 +212,24 @@ def _decision(P, reg, disc_bytes, hdr, ts, pages_url, decision_path):
                 "phase9_authority": {"version": SA.VERSION, "gate_hash": SP.digest(SA.GATE),
                                      "implementation_hash": provenance.file_sha(os.path.join(provenance.ROOT, "v8",
                                                                                              "strategy_authority.py"))}}
-        snapshot = {"as_of": int(ts), "discovery": {"assets": disc.get("assets") or [],
+        inputs_as_of = {"discovery": (disc.get("provenance") or {}).get("generated_at"), "quant": di.get("as_of"),
+                        "portfolio": (di.get("portfolio") or {}).get("as_of")}
+        as_of = decision_as_of(ts, inputs_as_of["discovery"], inputs_as_of["quant"], inputs_as_of["portfolio"],
+                               contracts)
+        snapshot = {"as_of": as_of, "discovery": {"assets": disc.get("assets") or [],
                                                     "provenance": disc.get("provenance") or {},
                                                     "venues": disc.get("venues") or {}},
                     "contracts": contracts, "trade_dexes": di.get("trade_dexes") or [], "signals": di.get("signals") or {},
                     "strategies": strategies, "portfolio": di.get("portfolio"), "sizing": di.get("sizing"),
                     "phase10_state": (qp.get("portfolio_risk") or {}).get("state"),
-                    "inputs_as_of": {"discovery": (disc.get("provenance") or {}).get("generated_at"),
-                                     "quant": di.get("as_of"), "portfolio": (di.get("portfolio") or {}).get("as_of")},
+                    "inputs_as_of": inputs_as_of,
                     "authorities": auth, "previous": prev,
                     "input_provenance": {"discovery": DS.FILE, "registry_contracts": len(contracts),
                                          "quant_part": "data/v8/parts/quant.json decision_inputs",
                                          "signals_source": "quant.py strategy functions at the latest closed bar",
-                                         "previous_decision": prev_src, "scan_id": hdr.get("scan_id")}}
+                                         "previous_decision": prev_src, "scan_id": hdr.get("scan_id"),
+                                         "decision_as_of_rule": "latest knowledge time among this scan's inputs",
+                                         "scan_header_ts": ts}}
         doc = DEC.build(snapshot)
         b = dumps(doc)
         s = DEC.summary(doc)

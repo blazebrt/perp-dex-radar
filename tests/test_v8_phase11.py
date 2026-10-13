@@ -243,6 +243,20 @@ class States(unittest.TestCase):
         _, c = one(signal=sig("REQ"), rec={"identity": None})
         self.assertEqual((c["state"], c["blockers"]), (DE.AVOID, ["IDENTITY_NOT_VERIFIED"]))
 
+    def test_future_inputs_are_refused(self):
+        """An input or a funding receipt after the decision time is not knowledge at that time (the live skew found by
+        the first exact-head Research run): the snapshot therefore decides at the latest input time."""
+        s = snapshot([rec("HI")], {"HI": [sig("REQ")]}, contracts=[contract("HI", rcv=AS_OF + 1)])
+        s["inputs_as_of"]["quant"] = AS_OF + 120
+        c = next(c for c in DE.build(s)["candidates"] if c["type"] == DE.DIRECTIONAL)
+        self.assertEqual(c["state"], DE.WATCH)
+        # missing funding also leaves the Phase 10 after-state unevaluable: never a zero-funding proposal
+        self.assertEqual(sorted(c["missing_authorities"]), ["FUNDING_UNKNOWN", "INPUT_STALE", "PORTFOLIO_UNEVALUABLE"])
+        s["as_of"] = AS_OF + 120                                       # the latest knowledge time
+        s["portfolio"]["as_of"] = AS_OF + 120
+        c = next(c for c in DE.build(s)["candidates"] if c["type"] == DE.DIRECTIONAL)
+        self.assertEqual((c["state"], c["funding"]["state"]), (DE.TRADE, "OBSERVED"))
+
     def test_missing_values_never_default(self):
         _, c = one(signal=sig("REQ"), contracts=[contract("HI", fund=None)])
         self.assertEqual(c["funding"]["state"], "MISSING")
@@ -740,6 +754,22 @@ class LiveIntegration(unittest.TestCase):
             if c["type"] == DE.DIRECTIONAL:
                 self.assertIn("STRATEGY_RESEARCH_AUTHORITY_INSUFFICIENT", c["caps"])
                 self.assertNotEqual(c["state"], DE.TRADE)
+
+    def test_inputs_are_current_and_funding_observed(self):
+        """The decision time is the scan's latest knowledge time: no candidate is stale and observed funding is used."""
+        for c in self.doc["candidates"]:
+            self.assertNotIn("INPUT_STALE", c["missing_authorities"], c["id"])
+        d = [c for c in self.doc["candidates"] if c["type"] == DE.DIRECTIONAL]
+        self.assertTrue(d)
+        self.assertTrue(all(c["funding"]["state"] in ("OBSERVED", "OBSERVED_ZERO") for c in d))
+        self.assertGreaterEqual(self.doc["as_of"], self.snap["manifest"]["ts"])
+
+    def test_decision_time_rule(self):
+        from v8 import snapshot as SN
+        self.assertEqual(SN.decision_as_of(100, 100, 160, 160, [{"rcv_ts": 101}, {"rcv_ts": None}]), 160)
+        self.assertEqual(SN.decision_as_of(100, None, None, None, [{"rcv_ts": 103}]), 103)
+        self.assertIsNone(SN.decision_as_of(None, None, None, None, []))
+        self.assertEqual(SN.decision_as_of(100, True, None, None, []), 100)        # a bool is not a time
 
     def test_legacy_outputs_unchanged(self):
         sys.path.insert(0, str(ROOT / "tools" / "v8"))

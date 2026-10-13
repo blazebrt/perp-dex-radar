@@ -71,6 +71,12 @@ All of this happens inside the audit; no legacy engine reads any of it:
 
    It then calls `decision.build()`, writes `data/v8/decision.json` and adds `manifest.decision` and
    `data_health.decision`.
+
+   The **decision time** (`as_of`) is the latest knowledge time among this scan's inputs (`decision_as_of`): the
+   scanner header, discovery, the quant run, the portfolio and the latest contract receipt. Every input is then at or
+   before it. The engine refuses any input after its decision time (as `INPUT_STALE` or missing funding). The first
+   exact-head Research run showed why: venue funding is received a second after the scanner header time, and the
+   quant run comes minutes later, so the header time alone made every live candidate look stale and unfunded.
 3. **Engine** (`decision.build` / `decision.evaluate_asset`): a pure, deterministic, standard-library module. It has
    no I/O except reading its policy, and Phase 10's.
 
