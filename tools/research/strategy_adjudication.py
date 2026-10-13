@@ -100,19 +100,18 @@ def registration_plan(catalog, trial_census, cutoff):
                         for c in catalog]}
 
 
-def validate_plan(plan, catalog):
-    expected = {c["strategy_id"]: c for c in catalog}
-    entries = plan["entries"]
-    if len({r["experiment_id"] for r in entries}) != len(entries) or len(entries) != len(expected):
-        raise ValueError("registration plan IDs / coverage")
-    for r in entries:
-        c = expected[r["strategy_id"]]
-        if any(r[k] != c[k] for k in ("parameter_hash", "code_hash", "code_files", "family")):
-            raise ValueError("registration plan provenance")
-        if census.digest(r["params"]) != r["parameter_hash"] or r["evaluation_start"] is not None:
-            raise ValueError("invalid parameters or retrospective registration")
-        if r["historical_trial_count"] < len(expected) or r["evaluation_horizon_days"] < 180 or r["pass_rule"] != SA.GATE:
-            raise ValueError("registration plan gate")
+def validate_plan(plan, catalog, trial_census=None):
+    """Validate the entire frozen plan, including corrections and prospective rules."""
+    entries = plan.get("entries") if isinstance(plan, dict) else None
+    if not isinstance(entries, list) or not entries:
+        raise ValueError("registration plan entries")
+    cutoff = entries[0].get("data_cutoff")
+    if isinstance(cutoff, bool) or not isinstance(cutoff, int) or cutoff <= 0:
+        raise ValueError("registration plan cutoff")
+    trials = census.build() if trial_census is None else trial_census
+    expected = registration_plan(catalog, trials, cutoff)
+    if plan != expected:
+        raise ValueError("registration plan differs from canonical parameters, family, corrections or prospective gate")
     return True
 
 
@@ -337,7 +336,7 @@ def run(md, hist_dir, cutoff, folder, replications=5000):
                                   "prospective_evidence": "PLAN_NOT_REGISTERED", "final_research_state": verdict["research_state"],
                                   "runtime_deployment_state": deployment.get(sid, "DISABLED"), "blocking_reasons": verdict["blocking_reasons"]}})
     plan = registration_plan(catalog, trial_census, cutoff)
-    validate_plan(plan, catalog)
+    validate_plan(plan, catalog, trial_census)
     save(folder, "research_phase9_registration_plan.json", plan)
     report = {"schema": SA.VERSION, "provenance": provenance, "gate": SA.GATE,
               "strategies": results, "candidate_count": len(catalog), "requalified_count": sum(r["status"] == "REQUALIFIED" for r in results),

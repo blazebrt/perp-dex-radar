@@ -200,6 +200,30 @@ class Statistics(unittest.TestCase):
         with self.assertRaises(ValueError):
             AD.validate_plan(plan, c)
 
+    def test_registration_tampering_fails_closed(self):
+        c = SC.catalog()
+        plan = AD.registration_plan(c, {"known_lower_bound": 199, "complete": False}, 100)
+        changes = {"corrections_planned": [], "historical_trial_count": 24,
+                   "minimum_qualified_closed_trades": 1, "evaluation_horizon_days": 179,
+                   "evaluation_start": 99, "start_rule": "RETROSPECTIVE",
+                   "multiple_testing_family": "WINNING_THREE", "primary_metric": "ordinary_sharpe",
+                   "fail_rule": "promote regardless", "code_files": {}, "code_hash": "wrong",
+                   "parameter_hash": "wrong", "family": "wrong", "data_cutoff": 99}
+        for key, value in changes.items():
+            bad = copy.deepcopy(plan)
+            bad["entries"][0][key] = value
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                AD.validate_plan(bad, c)
+        for key, value in (("authority", "ACTIVE"), ("state", "REGISTERED"), ("schema", "wrong")):
+            bad = copy.deepcopy(plan)
+            bad[key] = value
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                AD.validate_plan(bad, c)
+        bad = copy.deepcopy(plan)
+        bad["entries"][1] = copy.deepcopy(bad["entries"][0])
+        with self.assertRaises(ValueError):
+            AD.validate_plan(bad, c)
+
     def test_clustered_not_iid_trades(self):
         rows = [{"decision_time": d*86400, "net_R": (-1)**d} for d in range(30) for _ in range(10)]
         r = AD.clustered(rows)
