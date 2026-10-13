@@ -238,8 +238,9 @@ def quant_part(now, universe, coins, got, data, daily, lastd, new, open_trades, 
 
 
 def portfolio_risk_part(now, universe, daily, open_trades, blocked_open, journal, cfg, trade_dexes):
-    """v8.portfolio-risk/1 on this scan's actionable open paper positions at the page's default sizing. Never raises
-    and is never read back by any engine: an error is reported as UNEVALUABLE."""
+    """v8.portfolio-risk/1 on this scan's whole open paper book - actionable and identity-blocked positions, both
+    existing exposure - at the page's default sizing. Never raises and is never read back by any engine: an error is
+    reported as UNEVALUABLE."""
     from . import evidence as EV
     from . import portfolio_risk as PR
     try:
@@ -247,11 +248,11 @@ def portfolio_risk_part(now, universe, daily, open_trades, blocked_open, journal
         closed = [t.get("r") for t in (journal or {}).get("closed") or [] if EV.qualified(t)]
         pf = PR.live_portfolio(open_trades, universe, daily, now, cfg["account"], cfg["risk"], trade_dexes,
                                closed if journal is not None else None,
-                               market_asset=policy["dependence"]["market_asset"]["value"])
+                               market_asset=policy["dependence"]["market_asset"]["value"], blocked_open=blocked_open)
         res = PR.evaluate(pf, policy)
-        res["inputs"] = {"source": "quant actionable open paper positions (journal) at this scan",
+        res["inputs"] = {"source": "quant open paper positions (journal) at this scan: actionable and identity-blocked",
                          "sizing": pf["sizing"], "positions": len(pf["positions"]),
-                         "identity_blocked_positions_not_evaluated": len(blocked_open or []),
+                         "positions_by_actionability": pf["book"],
                          "returns_assets": sorted(pf["returns"]),
                          "funding": "MISSING: the journal's funding sums count a missing settlement as zero and are "
                                     "not an authority",

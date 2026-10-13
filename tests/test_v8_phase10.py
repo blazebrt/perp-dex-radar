@@ -89,7 +89,11 @@ class Policy(unittest.TestCase):
     def test_policy_is_governed_and_labelled(self):
         p = PR.load_policy()
         self.assertEqual(p["schema"], "v8.portfolio-risk-policy/1")
-        self.assertEqual(p["review_status"], "POLICY_DEFAULT_PENDING_REVIEW")
+        self.assertEqual(p["review_status"], "POLICY_REVIEWED_INITIAL_V1")
+        self.assertEqual(PR.REVIEW_STATUS, "POLICY_REVIEWED_INITIAL_V1")
+        for word in ("empirically validated", "statistically validated", "optimized", "backtested", "proven"):
+            self.assertNotIn("is " + word, p["statement"].lower())
+        self.assertIn("None is an empirically validated quantity", p["statement"])
         entries = [p["approach_fraction"]] + [e for sec in PR.SECTIONS for e in p[sec].values()]
         self.assertEqual({e["basis"] for e in entries}, {"POLICY", "GOVERNED_CONSTANT"})
         self.assertTrue(all(e["rationale"].strip() for e in entries))
@@ -123,7 +127,13 @@ class Policy(unittest.TestCase):
                 ("cost multiplier < 1", lambda q: q["stress"]["cost_multiplier"].update(value=.5)),
                 ("float steps", lambda q: q["stress"]["liquidity_tier_steps"].update(value=1.5)),
                 ("no rationale", lambda q: q["stress"]["stop_gap_fraction"].update(rationale=" ")),
-                ("extra field", lambda q: q["stress"]["stop_gap_fraction"].update(source="x"))):
+                ("extra field", lambda q: q["stress"]["stop_gap_fraction"].update(source="x")),
+                ("pending status", lambda q: q.update(review_status="POLICY_DEFAULT_PENDING_REVIEW")),
+                ("free-form status", lambda q: q.update(review_status="reviewed")),
+                ("validated status", lambda q: q.update(review_status="EMPIRICALLY_VALIDATED")),
+                ("status case", lambda q: q.update(review_status="policy_reviewed_initial_v1")),
+                ("status not str", lambda q: q.update(review_status=None)),
+                ("empty statement", lambda q: q.update(statement=" "))):
             b = copy.deepcopy(good)
             mutate(b)
             bad.append((label, b))
@@ -809,6 +819,274 @@ class AuditIntegration(unittest.TestCase):
         self.assertEqual((out["state"], out["missing_authorities"]), (PR.UNEVALUABLE, ["PORTFOLIO_RISK_ERROR"]))
         self.assertIn("boom", out["error"])
         self.assertEqual(PR.audit_summary(None)["state"], PR.UNEVALUABLE)
+
+
+def blocked(pid, asset="HI", d=1, notional=100.0, strategy="TSMOM", **kw):
+    return pos(pid, asset, d, notional, strategy, actionability="IDENTITY_BLOCKED", **kw)
+
+
+def actionable(pid, asset="HI", d=1, notional=100.0, strategy="TSMOM", **kw):
+    return pos(pid, asset, d, notional, strategy, actionability="ACTIONABLE", **kw)
+
+
+class BlockedOpenExposure(unittest.TestCase):
+    """Not actionable is not "no exposure": an identity-blocked open position is existing economic exposure."""
+    def book(self):
+        return [actionable("a1", "HI", 1, 100.0, "TSMOM"), actionable("a2", "LO", -1, 60.0, "XSMOM")]
+
+    def test_A_blocked_exposure_changes_portfolio_risk(self):
+        without = PR.evaluate(portfolio(self.book()))
+        withb = PR.evaluate(portfolio(self.book() + [blocked("b1", "TWIN", 1, 120.0, "TSMOM")]))
+        self.assertEqual(without["state"], PR.WITHIN)
+        lw, lb = without["limits"], withb["limits"]
+        for key, inc in (("max_gross_leverage", .12), ("max_executable_risk", None), ("max_side_stop_risk", .006),
+                         ("max_strategy_stop_risk", .006), ("max_stressed_loss", None), ("max_cluster_stop_risk", None),
+                         ("max_net_leverage", .12)):
+            with self.subTest(metric=key):
+                self.assertGreater(lb[key]["metric"], lw[key]["metric"])
+                if inc is not None:
+                    self.assertAlmostEqual(lb[key]["metric"] - lw[key]["metric"], inc)
+        b = withb["exposure"]["by_actionability"]
+        self.assertEqual((b["ACTIONABLE"]["positions"], b["IDENTITY_BLOCKED"]["positions"]), (2, 1))
+        self.assertAlmostEqual(b["IDENTITY_BLOCKED"]["gross_leverage"], .12)
+        self.assertAlmostEqual(b["IDENTITY_BLOCKED"]["stop_risk"], .006)
+        self.assertEqual(next(p for p in withb["positions"] if p["id"] == "b1")["actionability"], "IDENTITY_BLOCKED")
+        self.assertEqual(withb["concentration"]["strategy"]["TSMOM"]["positions"], 2)
+        self.assertIn("b1", [i for c in withb["dependence"]["clusters"] for i in c["positions"]])
+
+    def test_B_blocked_exposure_can_create_a_breach(self):
+        cases = {
+            "max_asset_stop_risk": ([actionable("a", "HI", 1, 100.0, "TSMOM")], blocked("b", "HI", 1, 120.0, "XSMOM")),
+            "max_side_stop_risk": ([actionable(f"a{k}", a, 1, 90.0, s) for k, (a, s) in
+                                    enumerate((("HI", "TSMOM"), ("LO", "XSMOM"), ("NEG", "TREND_EMA"), ("BTC", "X1")))],
+                                   blocked("b", "TWIN", 1, 160.0, "X2")),
+            "max_strategy_stop_risk": ([actionable("a", "HI", 1, 150.0, "TSMOM"), actionable("c", "LO", -1, 150.0, "TSMOM")],
+                                       blocked("b", "NEG", -1, 150.0, "TSMOM")),
+            "max_gross_leverage": ([actionable("a", "LO", 1, 1800.0, "TSMOM", stop_pct=.001),
+                                    actionable("c", "NEG", -1, 900.0, "XSMOM", stop_pct=.001)],
+                                   blocked("b", "HI", 1, 600.0, "TREND_EMA", stop_pct=.001)),
+            "max_cluster_stop_risk": ([actionable("a", "HI", 1, 100.0, "TSMOM"), actionable("c", "TWIN", 1, 100.0, "XSMOM"),
+                                       actionable("d", "BTC", 1, 100.0, "TREND_EMA")],
+                                      blocked("b", "HI", 1, 100.0, "X1")),
+        }
+        for key, (act, blk) in cases.items():
+            with self.subTest(limit=key):
+                alone = PR.evaluate(portfolio(act))
+                self.assertNotIn(key, alone["breached"])
+                self.assertNotEqual(alone["limits"][key]["status"], "BREACHED")
+                full = PR.evaluate(portfolio(act + [blk]))
+                self.assertIn(key, full["breached"])
+                self.assertEqual(full["state"], PR.BREACHED)
+
+    def test_C_missing_liquidity_does_not_erase_exposure(self):
+        withb = PR.evaluate(portfolio(self.book() + [blocked("b1", "TWIN", 1, 120.0, liquidity={"state": "MISSING"})]))
+        p = next(x for x in withb["positions"] if x["id"] == "b1")
+        self.assertEqual(p["status"], "VALID")
+        self.assertAlmostEqual(p["notional_usd"], 120.0)
+        self.assertAlmostEqual(p["leverage"], .12)
+        self.assertAlmostEqual(p["risk"]["theoretical_stop"], .006)
+        self.assertIsNone(p["risk"]["expected_executable"])
+        self.assertIn("LIQUIDITY_UNKNOWN:b1", withb["missing_authorities"])
+        self.assertEqual(withb["state"], PR.UNEVALUABLE)
+        self.assertEqual(withb["limits"]["max_executable_risk"]["status"], "UNAVAILABLE")
+        self.assertAlmostEqual(withb["exposure"]["gross_leverage"], .1 + .06 + .12)
+        self.assertAlmostEqual(withb["liquidity"]["theoretical_stop_risk"], .005 + .003 + .006)
+
+    def test_D_outside_the_current_universe(self):
+        ret = {a: v for a, v in RET.items() if a != "TWIN"}             # the asset left the scan: no bars, no liquidity
+        pf = portfolio(self.book() + [blocked("gone", "TWIN", 1, 120.0, liquidity={"state": "MISSING"},
+                                              funding={"state": "MISSING"})], returns=ret)
+        r = PR.evaluate(pf)
+        p = next(x for x in r["positions"] if x["id"] == "gone")
+        self.assertEqual(p["status"], "VALID")
+        self.assertAlmostEqual(r["exposure"]["gross_leverage"], .28)
+        for code in ("LIQUIDITY_UNKNOWN:gone", "FUNDING_UNKNOWN:gone", "BETA_UNAVAILABLE:TWIN",
+                     "DEPENDENCE_UNAVAILABLE:HI|TWIN"):
+            self.assertIn(code, r["missing_authorities"])
+        self.assertEqual(r["state"], PR.UNEVALUABLE)
+
+    def test_E_unquantifiable_open_position_blocks_a_safe_state(self):
+        base = PR.evaluate(portfolio(self.book()))
+        self.assertEqual(base["state"], PR.WITHIN)
+        for label, change in (("mark", {"mark": None}), ("stop", {"stop": None}), ("size", {"notional": None}),
+                              ("mark nan", {"mark": float("nan")}), ("stop wrong side", {"stop": 110.0})):
+            with self.subTest(missing=label):
+                b = dict(blocked("u1", "TWIN"), **change)
+                r = PR.evaluate(portfolio(self.book() + [b]))
+                self.assertEqual(r["state"], PR.UNEVALUABLE)
+                self.assertIn("OPEN_POSITION_RISK_UNQUANTIFIABLE:u1", r["missing_authorities"])
+                self.assertEqual(r["exposure"]["unquantified_open_positions"], ["u1"])
+                self.assertEqual(r["exposure"]["by_actionability"]["IDENTITY_BLOCKED"]["unquantified"], ["u1"])
+                self.assertEqual(len(r["positions"]), 3)                     # reported, never dropped
+                self.assertFalse(r["concentration"]["complete"])
+                for key in ("max_gross_leverage", "max_side_stop_risk", "max_asset_stop_risk", "max_stressed_loss"):
+                    self.assertEqual(r["limits"][key]["status"], "UNAVAILABLE", key)
+        # a known lower bound that already breaches is still reported
+        r = PR.evaluate(portfolio([actionable("big", "HI", 1, 2500.0), dict(blocked("u1", "TWIN"), mark=None)]))
+        self.assertEqual(r["state"], PR.BREACHED)
+        self.assertIn("OPEN_POSITION_RISK_UNQUANTIFIABLE:u1", r["missing_authorities"])
+        # a proposal (not entered) that cannot be quantified is malformed, not an open position
+        prop = dict(pos("p", "TWIN", entered=False), mark=None)
+        self.assertNotIn("OPEN_POSITION_RISK_UNQUANTIFIABLE:p", PR.evaluate(portfolio([prop]))["missing_authorities"])
+
+    def test_actionability_is_metadata_only(self):
+        rows = {}
+        for act in ("ACTIONABLE", "IDENTITY_BLOCKED", "PROPOSED", None):
+            p = pos("x", "HI", 1, 100.0)
+            if act:
+                p["actionability"] = act
+            r = PR.evaluate(portfolio([p]))
+            rows[act] = r
+            self.assertEqual(r["positions"][0]["actionability"], act or "UNSPECIFIED")
+        strip = lambda r: canon({k: v for k, v in r.items() if k not in ("positions", "trace", "exposure")})
+        self.assertEqual(len({strip(r) for r in rows.values()}), 1)          # identical risk whatever the label
+        self.assertEqual(len({r["exposure"]["gross_leverage"] for r in rows.values()}), 1)
+        bad = PR.evaluate(portfolio([dict(pos("x"), actionability="TRADE_NOW")]))
+        self.assertIn("POSITION_MALFORMED:x", bad["missing_authorities"])
+
+    def test_G_what_if_baseline_is_the_whole_open_book(self):
+        tr_a = {"id": "A", "c": "HI", "s": "TSMOM", "d": 1, "t_in": AS_OF - 3600, "hold_h": 48, "px": 100.0,
+                "stop_pct": .05, "res": {"last_px": 100.0, "stop_now": 95.0}}
+        tr_b = dict(tr_a, id="B", c="TWIN", s="XSMOM", res={"last_px": 100.0, "stop_now": 95.0})
+        uni = {c: {"t": c, "venues": {"hyperliquid": {}}, "trade_vol": 5e6} for c in ("HI", "TWIN")}
+        daily = {a: [{"t": t, "c": c} for t, c in RET[a]] for a in ("HI", "TWIN", "BTC")}
+        live = PR.live_portfolio([tr_a], uni, daily, AS_OF, 1000.0, .005, ("hyperliquid",), None, "BTC",
+                                 blocked_open=[tr_b])
+        self.assertEqual(live["book"], {"ACTIONABLE": 1, "IDENTITY_BLOCKED": 1})
+        self.assertEqual([p["actionability"] for p in live["positions"]], ["ACTIONABLE", "IDENTITY_BLOCKED"])
+        only = PR.live_portfolio([tr_a], uni, daily, AS_OF, 1000.0, .005, ("hyperliquid",), None, "BTC")
+        prop = pos("N", "LO", 1, 100.0)
+        del prop["entered"]
+        w = PR.what_if(live, {"action": "ADD", "position": prop})
+        w_only = PR.what_if(only, {"action": "ADD", "position": prop})
+        self.assertAlmostEqual(w["before"]["metrics"]["max_gross_leverage"], .2)        # both open positions
+        self.assertAlmostEqual(w_only["before"]["metrics"]["max_gross_leverage"], .1)
+        self.assertAlmostEqual(w["before"]["metrics"]["max_cluster_stop_risk"], .01)    # HI and TWIN co-move
+        self.assertEqual({p["id"] for p in w["before_result"]["positions"]}, {"A", "B"})
+        self.assertEqual(next(p for p in w["after_result"]["positions"] if p["id"] == "N")["actionability"], "PROPOSED")
+
+    def test_live_mark_and_stop_are_never_fabricated(self):
+        tr = {"id": "P", "c": "HI", "s": "TSMOM", "d": 1, "t_in": AS_OF - 3600, "hold_h": 48, "px": 100.0,
+              "stop": 95.0, "stop_pct": .05, "res": None}
+        p = PR.live_open_position(tr, "ACTIONABLE", {}, AS_OF, 1000.0, .005)
+        self.assertIsNone(p["mark"])                   # no entry price stands in for the current mark
+        self.assertIsNone(p["stop"])                   # no initial stop stands in for the current one
+        self.assertEqual(p["liquidity"]["state"], "MISSING")
+        r = PR.evaluate({"equity": 1000.0, "as_of": AS_OF, "positions": [p], "returns": {}})
+        self.assertIn("OPEN_POSITION_RISK_UNQUANTIFIABLE:P", r["missing_authorities"])
+        pending = dict(tr, px=None, res=None)          # a signal not yet filled has no size and no mark
+        r = PR.evaluate({"equity": 1000.0, "as_of": AS_OF, "returns": {},
+                         "positions": [PR.live_open_position(pending, "ACTIONABLE", {}, AS_OF, 1000.0, .005)]})
+        self.assertIn("OPEN_POSITION_RISK_UNQUANTIFIABLE:P", r["missing_authorities"])
+
+
+class BlockedOpenBookProduction(unittest.TestCase):
+    """The real quant run (Phase 3 closure fixture): blocked positions are counted as exposure, stay blocked, and
+    portfolio risk cannot change any quant output."""
+    @classmethod
+    def setUpClass(cls):
+        import quant as Q
+        import scanner as sc
+        from tests import test_v8_phase3_closure as P3
+        from v8 import identity as ID
+        cls.P3 = P3
+        cls.fx = P3.FakeExchange(n_coins=16, days=130, seed=5)
+        cls.old = sc.FETCH, sc.now_ts
+        sc.FETCH = cls.fx.fetch
+        sc.now_ts = lambda: cls.fx.now
+        cls.tmp = tempfile.mkdtemp(prefix="v8p10blk")
+        t0 = (cls.fx.now // P3.H) * P3.H - 72 * P3.H
+        opened = [P3.qtrade(P3.LEG_UNVERIFIED, t0, 10_000), P3.qtrade(P3.LEG_VERIFIED, t0, 10_000),
+                  P3.qtrade(P3.MISSING, t0, 10_000), P3.proof(P3.qtrade(P3.DEGRADED_OPEN, t0, 10_000), P3.DEGRADED_OPEN),
+                  P3.proof(P3.qtrade("FAKE12", t0, 10_000, d=-1), "FAKE12")]
+        J = {"engine": Q.ENGINE, "version": Q.VERSION, "created": t0 - 300 * P3.H, "updated": t0, "scans": 5,
+             "open": opened, "closed": [], "done": {}}
+        cls.opened = {t["id"] for t in opened}
+        jp = os.path.join(cls.tmp, "journal.json")
+        with open(jp, "w") as fh:
+            json.dump(J, fh)
+        states = {P3.LEG_UNVERIFIED: ID.UNVERIFIED, P3.DEGRADED_OPEN: ID.AMBIGUOUS}
+        uni = P3.universe(cls.fx, states, drop=(P3.MISSING,))
+        cls.runs = {}
+        for name, patch in (("gated", None), ("control", "all_verified"), ("no_risk", "disable")):
+            out = os.path.join(cls.tmp, name)
+            u = P3.universe(cls.fx) if patch == "all_verified" else copy.deepcopy(uni)
+            if patch == "disable":
+                with mock.patch.object(PR, "live_portfolio", side_effect=RuntimeError("disabled")):
+                    Q.run(out, journal_path=jp, universe=u)
+            else:
+                Q.run(out, journal_path=jp, universe=u)
+            data = os.path.join(out, "data")
+            cls.runs[name] = {f: Path(data, f).read_bytes() for f in ("quant.json", "quant_journal.json")}
+            cls.runs[name]["part"] = json.loads(Path(data, "v8", "parts", "quant.json").read_text())
+            cls.runs[name]["pub"] = json.loads(cls.runs[name]["quant.json"])
+
+    @classmethod
+    def tearDownClass(cls):
+        import scanner as sc
+        sc.FETCH, sc.now_ts = cls.old
+        shutil.rmtree(cls.tmp, ignore_errors=True)
+
+    def test_every_open_journal_position_is_in_portfolio_risk(self):
+        g = self.runs["gated"]
+        pub, pr = g["pub"], g["part"]["portfolio_risk"]
+        open_ids = {o["id"] for o in pub["open"]}
+        blocked_ids = {b["id"] for b in pub["blocked_open"]}
+        self.assertEqual(len(blocked_ids), 3)              # unverified, ambiguous, and outside the universe
+        self.assertEqual({p["id"] for p in pr["positions"]}, open_ids | blocked_ids)
+        acts = {p["id"]: p["actionability"] for p in pr["positions"]}
+        self.assertEqual({i for i, a in acts.items() if a == "IDENTITY_BLOCKED"}, blocked_ids)
+        self.assertEqual({i for i, a in acts.items() if a == "ACTIONABLE"}, open_ids)
+        self.assertEqual(pr["inputs"]["positions_by_actionability"],
+                         {"ACTIONABLE": len(open_ids), "IDENTITY_BLOCKED": len(blocked_ids)})
+        self.assertNotIn("identity_blocked_positions_not_evaluated", pr["inputs"])
+
+    def test_D_outside_universe_position_keeps_its_exposure(self):
+        pr = self.runs["gated"]["part"]["portfolio_risk"]
+        gone = next(p for p in pr["positions"] if p["asset"] == self.P3.MISSING)
+        self.assertEqual((gone["status"], gone["actionability"]), ("VALID", "IDENTITY_BLOCKED"))
+        self.assertGreater(gone["leverage"], 0)
+        self.assertEqual(gone["liquidity"]["state"], "MISSING")
+        self.assertIn("LIQUIDITY_UNKNOWN:" + gone["id"], pr["missing_authorities"])
+        self.assertIn("FUNDING_UNKNOWN:" + gone["id"], pr["missing_authorities"])
+        self.assertNotEqual(pr["state"], PR.WITHIN)
+
+    def test_blocked_exposure_equals_its_verified_exposure(self):
+        """The same positions with every coin verified (control): identical exposure, only the label differs."""
+        g = {p["id"]: p for p in self.runs["gated"]["part"]["portfolio_risk"]["positions"]}
+        c = {p["id"]: p for p in self.runs["control"]["part"]["portfolio_risk"]["positions"]}
+        # the journal's own positions (the control universe ranks XSMOM over more coins, so its new trades differ)
+        self.assertLessEqual(self.opened, set(g) & set(c))
+        for pid in sorted(self.opened):
+            p = g[pid]
+            if p["asset"] == self.P3.MISSING:
+                continue                                    # the control universe also has its liquidity
+            for key in ("leverage", "account_risk", "notional_usd", "direction", "mark", "stop"):
+                self.assertEqual(p[key], c[pid][key], (pid, key))
+        self.assertEqual({p["actionability"] for p in c.values()}, {"ACTIONABLE"})
+        self.assertEqual({g[i]["actionability"] for i in self.opened if g[i]["asset"] in
+                          (self.P3.LEG_UNVERIFIED, self.P3.DEGRADED_OPEN, self.P3.MISSING)}, {"IDENTITY_BLOCKED"})
+
+    def test_F_phase3_separation_is_intact(self):
+        g, n = self.runs["gated"], self.runs["no_risk"]
+        # portfolio risk cannot change a quant output: byte-identical with the evaluation disabled
+        strip = lambda raw: canon({k: v for k, v in json.loads(raw).items() if k != "duration_s"})   # wall clock
+        self.assertEqual(strip(g["quant.json"]), strip(n["quant.json"]))
+        self.assertEqual(g["quant_journal.json"], n["quant_journal.json"])
+        self.assertEqual(n["part"]["portfolio_risk"]["missing_authorities"], ["PORTFOLIO_RISK_ERROR"])
+        pub = g["pub"]
+        blocked_ids = {b["id"] for b in pub["blocked_open"]}
+        self.assertFalse(blocked_ids & {o["id"] for o in pub["open"]})          # still not actionable
+        self.assertFalse(blocked_ids & {f"{s['c']}-{s['s']}-{s['t']}" for s in pub["signals"]})   # not an entry
+        self.assertTrue(all(b["actionable"] is False for b in pub["blocked_open"]))
+        self.assertTrue(all(o["identity"] == "VERIFIED_CRYPTO" for o in pub["open"]))
+        import quant as Q
+        from v8 import strategy_policy as SP
+        self.assertEqual(SP.runtime_implementation_hash(),
+                         "b14aa0ab60bd8e160ebe87d1bc32138e255bb489cb7e1159152cde4743652719")
+        src = (ROOT / "quant.py").read_text(encoding="utf-8")
+        self.assertNotIn("portfolio_risk", src)
+        self.assertTrue(callable(Q.split_open))
 
 
 class EarlierAuthorityUnchanged(unittest.TestCase):

@@ -1,7 +1,7 @@
 {
  "schema": "v8.portfolio-risk-policy/1",
- "review_status": "POLICY_DEFAULT_PENDING_REVIEW",
- "statement": "Every value below is a reviewed-policy choice (POLICY) or a governed cost constant (GOVERNED_CONSTANT). None is an empirically validated quantity: the repository has no qualified portfolio history from which a limit or a stress size could be estimated (Phase 9: 0 PIT overlap days, 0 fully qualified trades). An EMPIRICALLY_VALIDATED basis is not accepted by this schema.",
+ "review_status": "POLICY_REVIEWED_INITIAL_V1",
+ "statement": "Independent review approved these values as the initial conservative Phase 10 policy (POLICY_REVIEWED_INITIAL_V1), chosen in the absence of sufficient portfolio history. Every value below is a reviewed-policy choice (POLICY) or a governed cost constant (GOVERNED_CONSTANT). None is an empirically validated quantity: the repository has no qualified portfolio history from which a limit or a stress size could be estimated (Phase 9: 0 PIT overlap days, 0 fully qualified trades). An EMPIRICALLY_VALIDATED basis is not accepted by this schema.",
  "limits": {
   "max_position_leverage": {"value": 2.0, "unit": "position notional / equity", "basis": "POLICY", "rationale": "No single position may carry more notional than twice equity, whatever its stop distance."},
   "max_gross_leverage": {"value": 3.0, "unit": "sum |notional| / equity", "basis": "POLICY", "rationale": "Total long plus short notional; leverage is never treated as risk capacity."},

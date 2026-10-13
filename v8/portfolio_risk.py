@@ -65,6 +65,10 @@ SECTIONS = {
 SCENARIOS = ("CORRELATED_MARKET_MOVE", "DIVERSIFICATION_FAILURE", "STOP_SLIPPAGE", "EXECUTION_COST",
              "LIQUIDITY_DEGRADATION", "FUNDING_DETERIORATION")
 FUNDING_KNOWN = ("OBSERVED", "OBSERVED_ZERO")
+# Actionability is metadata only: it never decides whether a position's economic exposure is counted.
+ACTIONABLE, IDENTITY_BLOCKED, PROPOSED, UNSPECIFIED = "ACTIONABLE", "IDENTITY_BLOCKED", "PROPOSED", "UNSPECIFIED"
+ACTIONABILITY = (ACTIONABLE, IDENTITY_BLOCKED, PROPOSED)
+REVIEW_STATUS = "POLICY_REVIEWED_INITIAL_V1"      # the one accepted review status of v8.portfolio-risk-policy/1
 LIQUIDITY_KNOWN = "KNOWN"
 EFFECTS = ("REDUCES_RISK", "INCREASES_RISK", "MIXED", "NO_CHANGE", "BREACHES_LIMIT", "INSUFFICIENT_AUTHORITY",
            "PROPOSAL_INVALID")
@@ -153,8 +157,10 @@ def validate_policy(policy):
     expected = {"schema", "review_status", "statement", "approach_fraction", *SECTIONS}
     if set(policy) != expected:
         raise PolicyError("PORTFOLIO_RISK_POLICY_INVALID: top-level keys " + repr(sorted(set(policy) ^ expected)))
-    if not (isinstance(policy["review_status"], str) and isinstance(policy["statement"], str)):
-        raise PolicyError("PORTFOLIO_RISK_POLICY_INVALID: review_status / statement")
+    if policy["review_status"] != REVIEW_STATUS:
+        raise PolicyError("PORTFOLIO_RISK_POLICY_INVALID: review_status must be " + REVIEW_STATUS)
+    if not (isinstance(policy["statement"], str) and policy["statement"].strip()):
+        raise PolicyError("PORTFOLIO_RISK_POLICY_INVALID: statement")
     _check_entry("approach_fraction", "approach_fraction", policy["approach_fraction"])
     for section, keys in SECTIONS.items():
         block = policy[section]
@@ -201,6 +207,9 @@ def _position(raw, equity, policy):
         return {"id": pid, "status": "MALFORMED", "reasons": ["POSITION_NOT_A_RECORD"]}, ["POSITION_MALFORMED:" + pid]
     asset, strategy, d = raw.get("asset"), raw.get("strategy"), raw.get("direction")
     mark, stop = raw.get("mark"), raw.get("stop")
+    act = raw.get("actionability", UNSPECIFIED)
+    if act != UNSPECIFIED and act not in ACTIONABILITY:
+        bad.append("ACTIONABILITY_INVALID")
     if not (isinstance(asset, str) and asset):
         bad.append("ASSET_MISSING")
     if not (isinstance(strategy, str) and strategy):
@@ -229,8 +238,13 @@ def _position(raw, equity, policy):
         if not dist > 0:
             bad.append("STOP_WRONG_SIDE")
     if bad:
-        return ({"id": pid, "status": "MALFORMED", "reasons": sorted(bad)},
-                [f"POSITION_MALFORMED:{pid}"] + [f"{b}:{pid}" for b in sorted(bad) if b.startswith("STOP")])
+        miss = [f"POSITION_MALFORMED:{pid}"] + [f"{b}:{pid}" for b in sorted(bad) if b.startswith("STOP")]
+        if entered is True:      # an open position whose exposure cannot be established never disappears
+            miss.append("OPEN_POSITION_RISK_UNQUANTIFIABLE:" + pid)
+        return ({"id": pid, "status": "MALFORMED", "reasons": sorted(bad), "entered": entered,
+                 "actionability": act if act in ACTIONABILITY else UNSPECIFIED,
+                 "asset": asset if isinstance(asset, str) else None,
+                 "strategy": strategy if isinstance(strategy, str) else None}, miss)
     size = sizes[0]
     if size == "quantity":
         qty = float(raw["quantity"])
@@ -274,7 +288,7 @@ def _position(raw, equity, policy):
     executable = (stop_risk + fees + slippage + adverse_funding
                   if slippage is not None and adverse_funding is not None else None)
     gap = _v(policy, "stress", "stop_gap_fraction")
-    row = {"id": pid, "status": "VALID", "asset": asset, "strategy": strategy, "direction": d,
+    row = {"id": pid, "status": "VALID", "actionability": act, "asset": asset, "strategy": strategy, "direction": d,
            "entry": raw.get("entry") if _num(raw.get("entry")) else None, "mark": float(mark), "stop": float(stop),
            "stop_distance": dist, "quantity": qty, "notional_usd": notional, "sizing_input": size,
            "entered": entered, "leverage": lev, "account_risk": stop_risk,
@@ -512,7 +526,25 @@ def evaluate(portfolio, policy=None):
                 "gross_long_usd": long_ * equity, "gross_short_usd": short * equity,
                 "net_usd": (long_ - short) * equity,
                 "max_position_leverage": max((r["leverage"] for r in valid), default=0.0)}
-    trace.append(_trace("GROSS_EXPOSURE", {"positions": len(valid)}, "gross = long + short; net = long - short",
+    by_act = {}
+    for r_ in rows:
+        g = by_act.setdefault(r_.get("actionability", UNSPECIFIED),
+                              {"positions": 0, "quantified": 0, "gross_leverage": 0.0, "net_leverage": 0.0,
+                               "stop_risk": 0.0, "unquantified": []})
+        g["positions"] += 1
+        if r_["status"] == "VALID":
+            g["quantified"] += 1
+            g["gross_leverage"] += r_["leverage"]
+            g["net_leverage"] += r_["direction"] * r_["leverage"]
+            g["stop_risk"] += r_["account_risk"]
+        elif r_.get("entered") is True:
+            g["unquantified"].append(r_["id"])
+    exposure["by_actionability"] = dict(sorted(by_act.items()))
+    exposure["unquantified_open_positions"] = sorted(r_["id"] for r_ in rows
+                                                     if r_["status"] != "VALID" and r_.get("entered") is True)
+    trace.append(_trace("GROSS_EXPOSURE", {"positions": len(valid),
+                                           "by_actionability": {k: v["positions"] for k, v in by_act.items()}},
+                        "gross = long + short; net = long - short; every open position counts, actionable or not",
                         {k: exposure[k] for k in ("gross_leverage", "net_leverage")},
                         "a hedged net never offsets gross leverage"))
 
@@ -529,7 +561,9 @@ def evaluate(portfolio, policy=None):
                                                                           if r["asset"] == a} == {1, -1}),
                      "multi_strategy_assets": sorted(a for a in by_asset
                                                      if len({r["strategy"] for r in valid if r["asset"] == a}) > 1),
-                     "strategy_overlap": _overlap(valid)}
+                     "strategy_overlap": _overlap(valid),
+                     # shares are over quantified positions only; an unquantified open position makes them incomplete
+                     "complete": not malformed}
     trace.append(_trace("CONCENTRATION", {"assets": len(by_asset), "strategies": len(by_strategy)},
                         "group stop risk by asset, strategy and side; same asset = one exposure",
                         {"max_asset_stop_risk": max((g["stop_risk"] for g in by_asset.values()), default=0.0),
@@ -799,7 +833,8 @@ def what_if(portfolio, proposal, policy=None):
         elif any(isinstance(p, dict) and p.get("id") == pos.get("id") for p in positions):
             why = "PROPOSED_ID_ALREADY_OPEN"
         else:
-            positions.append(dict(pos, entered=pos.get("entered", False)))
+            positions.append(dict(pos, entered=pos.get("entered", False),
+                                  actionability=pos.get("actionability", PROPOSED)))
     elif action == "REDUCE":
         frac = proposal.get("fraction")
         idx = [k for k, p in enumerate(positions) if isinstance(p, dict) and p.get("id") == proposal.get("id")]
@@ -872,34 +907,45 @@ def what_if(portfolio, proposal, policy=None):
 
 
 # --------------------------------------------------------------------------- live adapter (audit)
-def live_portfolio(open_trades, universe, daily, now, account, risk, trade_dexes=(), closed_trade_r=None,
-                   market_asset=None):
-    """The quant desk's actionable open paper positions as a portfolio input, at the page's default sizing
-    (account x risk per trade at the entry stop distance). Observational: nothing is read back by quant.py.
-
-    Liquidity comes from v8.liquidity on this scan's universe record. Funding is MISSING: the journal's funding sums
-    treat a missing settlement as zero, so they are not an authority. Returns are the scan's closed daily bars."""
+def live_open_position(tr, actionability, universe, now, account, risk, trade_dexes=()):
+    """One open journal paper position as a portfolio-risk position at the page's default sizing (account x risk per
+    trade at the entry stop distance). The current mark and exit stop come only from the journal's own replay of this
+    scan (res.last_px, res.stop_now): no entry price stands in for a mark and no initial stop for a moved one, so a
+    position without them is OPEN_POSITION_RISK_UNQUANTIFIABLE, never dropped. Liquidity is v8.liquidity on this
+    scan's universe record (absent from the universe: MISSING). Funding is MISSING: the journal's funding sums treat a
+    missing settlement as zero, so they are not an authority."""
     from . import liquidity as LQ
-    positions = []
-    for tr in open_trades or []:
-        res = tr.get("res") or {}
-        px, stop_pct = tr.get("px"), tr.get("stop_pct")
-        qty = (account * risk / (stop_pct * px)) if _num(px) and px > 0 and _num(stop_pct) and stop_pct > 0 else None
-        ev = LQ.evaluate((universe or {}).get(tr.get("c")), tuple(trade_dexes or ()))
-        end = (tr.get("t_in") or 0) + (tr.get("hold_h") or 0) * 3600
-        positions.append({
-            "id": tr.get("id"), "asset": tr.get("c"), "strategy": tr.get("s"), "direction": tr.get("d"),
-            "entry": px, "mark": res.get("last_px", px), "stop": res.get("stop_now", tr.get("stop")),
+    res = tr.get("res") if isinstance(tr.get("res"), dict) else {}
+    px, stop_pct = tr.get("px"), tr.get("stop_pct")
+    qty = (account * risk / (stop_pct * px)) if _num(px) and px > 0 and _num(stop_pct) and stop_pct > 0 else None
+    ev = LQ.evaluate((universe or {}).get(tr.get("c")), tuple(trade_dexes or ()))
+    end = (tr.get("t_in") or 0) + (tr.get("hold_h") or 0) * 3600
+    return {"id": tr.get("id"), "asset": tr.get("c"), "strategy": tr.get("s"), "direction": tr.get("d"),
+            "actionability": actionability, "entry": px, "mark": res.get("last_px"), "stop": res.get("stop_now"),
             "quantity": qty, "entered": True,
             "liquidity": {"state": ev["state"], "volume": ev["value"]},
             "funding": {"state": "MISSING", "reason": "NO_AUTHORITATIVE_LIVE_FUNDING"},
-            "hold_hours_remaining": max(0.0, (end - now) / 3600.0) if _int(tr.get("t_in")) and tr.get("hold_h") else None})
+            "hold_hours_remaining": (max(0.0, (end - now) / 3600.0)
+                                     if _int(tr.get("t_in")) and _num(tr.get("hold_h")) and tr.get("hold_h") else None)}
+
+
+def live_portfolio(open_trades, universe, daily, now, account, risk, trade_dexes=(), closed_trade_r=None,
+                   market_asset=None, blocked_open=None):
+    """The quant desk's whole open paper book as a portfolio input: every actionable open position (ACTIONABLE) and
+    every identity-blocked one still open in the journal until its stop or time exit (IDENTITY_BLOCKED). Not actionable
+    is not "no exposure": both count as existing economic exposure; nothing here makes a blocked position actionable,
+    and nothing is read back by quant.py. Returns are the scan's closed daily bars."""
+    positions = [live_open_position(tr, ACTIONABLE, universe, now, account, risk, trade_dexes)
+                 for tr in open_trades or []]
+    positions += [live_open_position(tr, IDENTITY_BLOCKED, universe, now, account, risk, trade_dexes)
+                  for tr in blocked_open or []]
     assets = sorted({p["asset"] for p in positions if isinstance(p["asset"], str)} | ({market_asset} if market_asset
                                                                                       else set()))
     returns = {a: [[int(x["t"]), x["c"]] for x in (daily or {}).get(a) or []] for a in assets if (daily or {}).get(a)}
     return {"equity": float(account), "as_of": int(now), "positions": positions, "returns": returns,
             "closed_trade_r": list(closed_trade_r) if closed_trade_r is not None else None,
-            "sizing": {"basis": "PAGE_DEFAULT_SIZING", "account": account, "risk_per_trade": risk}}
+            "sizing": {"basis": "PAGE_DEFAULT_SIZING", "account": account, "risk_per_trade": risk},
+            "book": {ACTIONABLE: len(open_trades or []), IDENTITY_BLOCKED: len(blocked_open or [])}}
 
 
 def audit_summary(result):

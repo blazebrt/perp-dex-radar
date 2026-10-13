@@ -45,7 +45,16 @@ Every number in `portfolio_risk_policy.json` carries a `basis`:
   scanner's slippage tiers. Tests bind them to `quant.CFG` and `pit_cost`.
 
 The schema rejects any other basis, including `EMPIRICALLY_VALIDATED`. No limit is statistically proven, because
-Phase 9 has 0 PIT overlap days and 0 fully qualified trades. `review_status` is `POLICY_DEFAULT_PENDING_REVIEW`. The
+Phase 9 has 0 PIT overlap days and 0 fully qualified trades.
+
+**Review status.** Independent review approved these values as the initial conservative Phase 10 policy:
+`review_status` is `POLICY_REVIEWED_INITIAL_V1`. That is the only status the validator accepts, so a free-form or
+"validated" status fails closed as `PORTFOLIO_RISK_POLICY_INVALID`. The values were chosen in the absence of
+sufficient portfolio history. They are reviewed policy, not empirically or statistically validated, optimized,
+backtested or proven. The policy hash moved from `467830b6…` to `86c8c855…` only because of this metadata. All 25
+numeric values are unchanged.
+
+The
 only empirical quantity is the observed tail loss beyond stops in identity-qualified closed trades
 (`stop_realism.empirical_tail`). It is labelled `EMPIRICAL_DIAGNOSTIC`, it is `INSUFFICIENT` below 100 trades, and it
 never sets or validates a limit.
@@ -229,9 +238,40 @@ EFFECT), in this fixed order:
 What-if adds `PROPOSAL`, `PROPOSED_TRADE_RISK`, one `LIMIT_DELTA` per changed metric, and
 `FINAL_PORTFOLIO_EFFECT`. Phase 11 can consume this trace; no UI renders it yet.
 
+## Open book: actionable and identity-blocked
+
+Phase 3 separates actionable open positions from identity-blocked ones. A blocked position is never a trade signal,
+but it stays open in the journal until its normal stop or time exit. Not actionable is not "no exposure", so the
+portfolio-risk evaluation counts **every open journal position**:
+
+- **Labels.** `live_portfolio(open_trades, ..., blocked_open=...)` builds one position per actionable trade
+  (`actionability: ACTIONABLE`) and one per identity-blocked trade (`IDENTITY_BLOCKED`). A what-if proposal is
+  `PROPOSED`. The label is metadata only: it never decides whether exposure is counted. A test shows identical risk
+  whatever the label, and an unknown label is malformed.
+- **What a known blocked position counts toward:** position, gross and net leverage; asset, strategy and side
+  concentration; theoretical stop risk; dependence clusters and stress (where returns exist); and the what-if
+  "before" state. `exposure.by_actionability` reports each group's positions, gross and net leverage and stop risk.
+- **Outside the current universe.** A position whose coin left the scan still counts. Liquidity is MISSING
+  (`LIQUIDITY_UNKNOWN`), funding is MISSING (`FUNDING_UNKNOWN`), and with no bars dependence is
+  `DEPENDENCE_UNAVAILABLE` / `BETA_UNAVAILABLE`. Its known notional, leverage and stop risk still count.
+- **No fabricated mark or stop.** The current mark and exit stop come only from the journal's own replay of this
+  scan (`res.last_px`, `res.stop_now`). An entry price never stands in for a mark, and an initial stop never stands in
+  for a moved one.
+- **Unquantifiable positions.** An open position whose mark, stop or size cannot be established truthfully (no
+  replay yet, a signal not yet filled, a non-finite or wrong-side value) is reported as
+  `OPEN_POSITION_RISK_UNQUANTIFIABLE:<id>`. It is listed in `exposure.unquantified_open_positions`, and concentration
+  shares are marked incomplete. It is never removed from the book. The portfolio is then UNEVALUABLE unless a known
+  lower bound already proves a breach.
+
+Nothing in portfolio risk makes a blocked position actionable, publishes it as an entry, allows a new trade, or
+changes identity rules or strategy signals. `quant.py` is byte-identical. A production-path test shows `quant.json`
+(apart from its wall-clock `duration_s`) and the journal are byte-identical with the portfolio-risk evaluation
+disabled.
+
 ## Audit and provenance
 
-- **Live evaluation.** `v8.audit_quant.portfolio_risk_part` evaluates the scan's actionable open paper positions:
+- **Live evaluation.** `v8.audit_quant.portfolio_risk_part` evaluates the scan's whole open paper book (see
+  [Open book](#open-book-actionable-and-identity-blocked)):
   - sizing is the page's default (`CFG["account"]` x `CFG["risk"]` per trade at the entry stop distance), recorded
     as `PAGE_DEFAULT_SIZING`;
   - liquidity comes from `v8.liquidity` on this scan's universe;
@@ -273,10 +313,11 @@ never digested as legacy files) and the audit version change.
 
 ## Current limitations
 
-- Every limit and stress size is a POLICY default pending review. None is empirically validated.
+- Every limit and stress size is a reviewed initial POLICY (`POLICY_REVIEWED_INITIAL_V1`). None is empirically
+  validated.
 - Live funding is not an authority, so the live state is UNEVALUABLE unless a limit is already breached.
-- Live sizing is the page default, not a real account. Identity-blocked journal positions are counted but not
-  evaluated.
+- Live sizing is the page default, not a real account. Blocked positions are sized the same way, from their
+  journal entry.
 - Dependence uses at most 60 daily returns. It is a short, regime-specific sample, and the down-market correlation
   is a diagnostic only.
 - Same-asset opposite positions add their stop risks: conservative, not netted.

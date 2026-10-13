@@ -590,12 +590,12 @@ See [the Phase 9 design and limitations](docs/v8/phase9-strategy-authority.md).
 
 ## Phase 10 portfolio and risk realism
 
-Every scan's audit now evaluates the quant desk's open paper positions as one portfolio
+Every scan's audit now evaluates the quant desk's whole open paper book (actionable and identity-blocked positions) as one portfolio
 (`v8.portfolio-risk/1`): gross and net leverage, concentration by asset, strategy and side,
 point-in-time correlation and BTC beta, liquidity- and funding-aware executable risk, six
 deterministic stress scenarios, governed limits and a what-if function, each with a trace.
-Every limit is a reviewed **policy** default (`v8/portfolio_risk_policy.json`), not an
-empirically validated quantity, and missing liquidity, funding or dependence is never treated
+Every limit is a reviewed initial **policy** (`v8/portfolio_risk_policy.json`,
+`POLICY_REVIEWED_INITIAL_V1`), not an empirically validated quantity, and missing liquidity, funding or dependence is never treated
 as safe. It is audit-only: no trade, size, ranking or page changes. The growth planner stays a
 legacy diagnostic. See [the Phase 10 design and limitations](docs/v8/phase10-portfolio-risk.md).
 Phase 11 (the decision engine and Top-5 ranking) is not implemented or authorized.
