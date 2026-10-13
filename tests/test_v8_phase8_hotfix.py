@@ -1520,7 +1520,7 @@ class ShadowStatusProvenance(Tmp):
 class Versions(unittest.TestCase):
     def test_versions(self):
         from v8 import ENGINE_VERSION, SCHEMA, discovery as DS, identity as ID, provenance
-        self.assertEqual((SCHEMA, ENGINE_VERSION), ("v8.audit/8", "v8-phase9.0"))
+        self.assertEqual((SCHEMA, ENGINE_VERSION), ("v8.audit/9", "v8-phase10.0"))
         self.assertEqual((H.VERSION, H.SCHEMAS, P.VERSION), ("v8.history/2", ("v8.history/1", "v8.history/2"),
                                                              "v8.pit/2"))
         self.assertEqual((ID.VERSION, DS.VERSION, SL.VERSION), ("v8.identity/4", "v8.discovery/1",

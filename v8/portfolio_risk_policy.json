@@ -1,0 +1,40 @@
+{
+ "schema": "v8.portfolio-risk-policy/1",
+ "review_status": "POLICY_REVIEWED_INITIAL_V1",
+ "statement": "Independent review approved these values as the initial conservative Phase 10 policy (POLICY_REVIEWED_INITIAL_V1), chosen in the absence of sufficient portfolio history. Every value below is a reviewed-policy choice (POLICY) or a governed cost constant (GOVERNED_CONSTANT). None is an empirically validated quantity: the repository has no qualified portfolio history from which a limit or a stress size could be estimated (Phase 9: 0 PIT overlap days, 0 fully qualified trades). An EMPIRICALLY_VALIDATED basis is not accepted by this schema.",
+ "limits": {
+  "max_position_leverage": {"value": 2.0, "unit": "position notional / equity", "basis": "POLICY", "rationale": "No single position may carry more notional than twice equity, whatever its stop distance."},
+  "max_gross_leverage": {"value": 3.0, "unit": "sum |notional| / equity", "basis": "POLICY", "rationale": "Total long plus short notional; leverage is never treated as risk capacity."},
+  "max_net_leverage": {"value": 1.5, "unit": "|long notional - short notional| / equity", "basis": "POLICY", "rationale": "Directional exposure to the market as a whole."},
+  "max_executable_risk": {"value": 0.03, "unit": "sum (stop risk + expected exit/entry costs + adverse funding) / equity", "basis": "POLICY", "rationale": "Expected loss if every stop is hit at its price, after fees, slippage under the liquidity authority and adverse funding."},
+  "max_asset_stop_risk": {"value": 0.01, "unit": "stop risk of all positions on one asset / equity", "basis": "POLICY", "rationale": "Several strategies on the same asset are one exposure."},
+  "max_strategy_stop_risk": {"value": 0.02, "unit": "stop risk of one strategy / equity", "basis": "POLICY", "rationale": "One strategy's positions share one failure mode."},
+  "max_side_stop_risk": {"value": 0.025, "unit": "stop risk of all longs or of all shorts / equity", "basis": "POLICY", "rationale": "Same-direction positions are exposed to the same market move."},
+  "max_cluster_stop_risk": {"value": 0.02, "unit": "stop risk of one dependence cluster / equity", "basis": "POLICY", "rationale": "Positions whose losses co-move (direction-adjusted return correlation at or above dependence.cluster_correlation) are one exposure."},
+  "max_stressed_loss": {"value": 0.06, "unit": "worst governed stress-scenario loss / equity", "basis": "POLICY", "rationale": "Loss under the worst deterministic stress below; a scenario that cannot be evaluated is never treated as a pass."}
+ },
+ "approach_fraction": {"value": 0.8, "unit": "fraction of a limit", "basis": "POLICY", "rationale": "A metric at or above this share of its limit (and not above the limit) is APPROACHING_LIMITS."},
+ "costs": {
+  "fee_taker": {"value": 0.00045, "unit": "fraction of notional per market order", "basis": "GOVERNED_CONSTANT", "rationale": "v8.fees/1 (tools/research/pit_cost.FEE_SCHEDULE), the taker fee quant.py charges; one schedule for every venue and date."},
+  "slippage_tiers": {"value": [[1000000.0, 0.0005], [200000.0, 0.001], [0.0, 0.002]], "unit": "[minimum KNOWN 24h trade-DEX volume USD, slippage per market order]", "basis": "GOVERNED_CONSTANT", "rationale": "The scanner tiers used by quant.CFG['slip'] and pit_cost.SLIP_TIERS; applied only to a KNOWN v8.liquidity volume."}
+ },
+ "dependence": {
+  "bar_seconds": {"value": 86400, "unit": "seconds per return bar", "basis": "POLICY", "rationale": "Daily close-to-close returns from closed UTC days."},
+  "lookback_bars": {"value": 60, "unit": "returns", "basis": "POLICY", "rationale": "Trailing window ending at the evaluation time; nothing after it is read."},
+  "min_overlap_bars": {"value": 30, "unit": "returns", "basis": "POLICY", "rationale": "Fewer common returns make a pairwise correlation or a beta UNAVAILABLE."},
+  "cluster_correlation": {"value": 0.7, "unit": "direction-adjusted correlation", "basis": "POLICY", "rationale": "Two positions whose losses correlate at or above this are clustered together."},
+  "market_asset": {"value": "BTC", "unit": "asset", "basis": "POLICY", "rationale": "The market factor for beta and the down-market regime."},
+  "min_regime_bars": {"value": 15, "unit": "returns", "basis": "POLICY", "rationale": "Down-market (market return < 0) correlation needs at least this many common down days, else UNAVAILABLE."}
+ },
+ "stress": {
+  "market_move": {"value": 0.1, "unit": "adverse market-factor move", "basis": "POLICY", "rationale": "CORRELATED_MARKET_MOVE: the market factor moves this much up and down; each position moves by its beta, losses capped at its stop."},
+  "stop_gap_fraction": {"value": 0.5, "unit": "extra loss beyond the stop as a share of the stop distance", "basis": "POLICY", "rationale": "STOP_SLIPPAGE: a stop is not a guaranteed maximum loss; fills are assumed this far through the stop."},
+  "cost_multiplier": {"value": 2.0, "unit": "x expected fees and slippage", "basis": "POLICY", "rationale": "EXECUTION_COST: execution costs at this multiple (the Phase 9 cost stress diagnostic also reports 2x)."},
+  "liquidity_tier_steps": {"value": 1, "unit": "slippage tiers", "basis": "POLICY", "rationale": "LIQUIDITY_DEGRADATION: every KNOWN volume pays the slippage of this many tiers worse."},
+  "unknown_liquidity_multiplier": {"value": 2.0, "unit": "x worst slippage tier", "basis": "POLICY", "rationale": "The degraded bound for a position without KNOWN liquidity: never zero slippage, never a tier."},
+  "adverse_funding_8h": {"value": 0.0005, "unit": "funding rate per 8h, paid by every position", "basis": "POLICY", "rationale": "FUNDING_DETERIORATION: every position pays this rate against its direction for its remaining planned holding time."}
+ },
+ "empirical": {
+  "tail_min_closed_trades": {"value": 100, "unit": "identity-qualified closed trades", "basis": "POLICY", "rationale": "Below this many qualified closed trades the observed tail loss beyond stops is reported INSUFFICIENT and never used to size a limit."}
+ }
+}
