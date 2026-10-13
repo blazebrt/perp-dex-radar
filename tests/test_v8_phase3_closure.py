@@ -285,7 +285,7 @@ class QuantEvidence(unittest.TestCase):
         self.assertEqual(ev["blocked_coins"], sorted([LEG_UNVERIFIED, DEGRADED_OPEN, MISSING]))
         self.assertEqual(ev["unqualified_reasons"], {EV.LEGACY_NO_IDENTITY_PROOF: 6})
         self.assertEqual(ev["actionable_open"], len(self.out["open"]))
-        for sid in Q.ORDER:
+        for sid in Q.RUNTIME_ORDER:
             self.assertEqual(self.out["strategies"][sid]["open"], sum(1 for t in self.out["open"] if t["s"] == sid))
 
     def test_every_journal_trade_is_kept(self):

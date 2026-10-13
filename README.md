@@ -578,3 +578,13 @@ costs, the backtest length and the discovery settings are in the `CFG` block at 
   **Run workflow**.
 
 This is an educational tool, not financial advice. Perpetual futures are leveraged and can lose more than you put in.
+
+
+## Phase 9 research authority
+
+The quant desk's deployed TSMOM, TREND_EMA and XSMOM strategies are **legacy holdovers**,
+all with **INSUFFICIENT_EVIDENCE** for governed requalification. Historical quant results
+and portfolio/planner figures are unqualified diagnostics. Deployment follows the validated
+`v8/quant_strategy_policy.json`; research cannot promote a strategy automatically.
+See [the Phase 9 design and limitations](docs/v8/phase9-strategy-authority.md).
+Phase 10 portfolio realism is not implemented or authorized.

@@ -636,7 +636,7 @@ class Versions(unittest.TestCase):
 
     def test_discovery_and_audit_versions(self):
         from v8 import ENGINE_VERSION, SCHEMA
-        self.assertEqual((DS.VERSION, SCHEMA, ENGINE_VERSION), ("v8.discovery/1", "v8.audit/7", "v8-phase8.1"))
+        self.assertEqual((DS.VERSION, SCHEMA, ENGINE_VERSION), ("v8.discovery/1", "v8.audit/8", "v8-phase9.0"))
         self.assertEqual(provenance.engine_version("discovery"), "v8.discovery/1")
 
 
@@ -705,7 +705,7 @@ class PipelineDiscovery(unittest.TestCase):
         shutil.rmtree(cls.tmp, ignore_errors=True)
 
     def test_legacy_outputs_unchanged(self):
-        for g in ("legacy_parity_golden_phase7.json", "legacy_parity_golden_phase6.json"):
+        for g in ("legacy_parity_golden_phase9.json",):
             with open(os.path.join(HERE, "fixtures", "v8", g)) as fh:
                 golden = json.load(fh)
             self.assertEqual(self.LP.compare(golden, self.summary), [], g)
@@ -755,7 +755,7 @@ class PipelineDiscovery(unittest.TestCase):
         self.assertEqual((p["identity_version"], p["scan_id"], p["identity_config_hash"]),
                          ("v8.identity/4", m["scan_id"], m["identity_config_hash"]))
         self.assertEqual(s["requests"]["discovery_extra"], 0)
-        self.assertEqual(self.snap["schema"], "v8.audit/7")
+        self.assertEqual(self.snap["schema"], "v8.audit/8")
 
     def test_model_eligibility_is_the_engines_ledgers(self):
         led = {e: {x["a"]: x for x in self.snap["dispositions"].get(e) or []} for e in DS.ENGINES}
