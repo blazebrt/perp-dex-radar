@@ -598,4 +598,17 @@ Every limit is a reviewed initial **policy** (`v8/portfolio_risk_policy.json`,
 `POLICY_REVIEWED_INITIAL_V1`), not an empirically validated quantity, and missing liquidity, funding or dependence is never treated
 as safe. It is audit-only: no trade, size, ranking or page changes. The growth planner stays a
 legacy diagnostic. See [the Phase 10 design and limitations](docs/v8/phase10-portfolio-risk.md).
-Phase 11 (the decision engine and Top-5 ranking) is not implemented or authorized.
+
+## Phase 11 unified decision engine
+
+Every scan's audit now writes one decision document, `data/v8/decision.json` (`v8.decision/1`): a TRADE /
+WATCH / AVOID decision for every opportunity and every discovered asset, with up to five Best Trades Now
+(TRADE only, never filled with weaker candidates), up to five Emerging Opportunities and up to five funding
+spreads (both WATCH only), the market summary and a full Decision Trace. It consumes the identity, discovery,
+Phase 9 strategy and Phase 10 portfolio authorities. A legacy-holdover strategy is never TRADE, so with today's
+evidence **zero TRADE is the expected result**. Every rule is a reviewed initial policy (`v8/decision_policy.json`,
+`POLICY_REVIEWED_INITIAL_V1`), not an empirically validated one. The Analyzer's call now comes from this decision
+alone: LONG or SHORT only for a current Phase 11 TRADE, WATCH / AVOID / WAIT otherwise with the engine's exact
+reason, and no call when the decision is missing, stale or malformed. Legacy swing, quant and smart-money signals are
+shown as context only. No engine or other page changes. See [the Phase 11 design](docs/v8/phase11-decision-engine.md).
+Phase 12 (the final TODAY and Analyzer experience) is not implemented or authorized.

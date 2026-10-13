@@ -518,24 +518,29 @@
     return out;
   }
 
-  // ------------------------------------------------------------------ the call: tested signals only
-  /* Only signals that held up in our tests make the call, and each one comes with the exits it was tested with:
-       swing  the Coin picks swing score, ready at 80 (3-year test: in at the next daily open, stop 2 daily ATR kept
-              between 5% and 25%, a trailing stop 3 ATR behind the best price, out after 30 days at the latest)
-       quant  a position of the quant desk, whose live strategies passed a 3-year test: its own stop, trailing stop
-              and time limit
-       smart  2+ proven Hyperliquid traders shorting a coin together (promising in a 30-day test without
-              hindsight): stop 1.5 times the typical daily move (1.5% at least), out 24 hours after the signal
-     The plan joins the tested trade as it stands: same stop level, same trailing stop, same time limit, so the
-     trade on the page is the one the records count. Proven signals are sized at the chosen risk, mixed and promising
-     ones at half of it. Proven signals on both sides mean no trade. The chart read never confirms or blocks a call:
-     in a 3-year test of 5,453 swing signals the trades did no better when the 4-hour or the daily read agreed
-     (tools/research/analyzer_gate.py). */
+  // ------------------------------------------------------------------ the call: the Phase 11 decision only
+  /* v8 Phase 11: the call is governed by the unified decision engine (v8/decision.py), which the scan publishes as
+     data/v8/decision.json (v8.decision/1). This file only reads that governed result: it never re-evaluates identity,
+     exposure, strategy authority, signals, liquidity, funding, portfolio risk or the TRADE / WATCH / AVOID state.
+       TRADE   a directional call (LONG or SHORT), in the decision's own direction only, with a plan sized at the
+               chosen risk (the quant desk position the decision is about: its own stop, trailing stop, time limit)
+       WATCH   no call and no plan: monitor, with the engine's exact caps and missing authorities
+       AVOID   no call and no plan, with the engine's rejection step and blockers
+       none    no Phase 11 directional decision on the coin: no call
+     A missing, malformed or stale document (past its valid_until), a malformed decision on the coin, or TRADE
+     decisions that disagree in direction are no call: the Analyzer fails closed and never falls back to its old
+     authority. The legacy sources keep their own records and stay visible as context, never as the call:
+       swing  the Coin picks swing score (ready at 80; picks_research.json bands), with the trade it was tested with
+       quant  a paper position of the quant desk, labelled by its Phase 9 deployment state (never "Proven")
+       smart  proven Hyperliquid traders shorting a coin together (smart.json's own verdict)
+     None of them, nor the chart read, can make, flip, size or block a call: only a Phase 11 TRADE is sized. */
   const DAY = 86400, HOUR = 3600;
   const SWING = {stopK: 2, trailK: 3, minStop: 0.05, maxStop: 0.25, days: 30, readyAt: 80};
   const SMART = {stopK: 1.5, minStop: 0.015, hours: 24, lateHours: 6};
-  const RISK_SHARE = {Proven: 1, Mixed: 0.5, Promising: 0.5};
-  const SOURCE = {swing: "Coin picks swing", quant: "Quant desk", smart: "Smart money"};
+  const DECISION = {schema: "v8.decision/1", file: "data/v8/decision.json", directional: "DIRECTIONAL_STRATEGY"};
+  const STATE_ORDER = {TRADE: 0, WATCH: 1, AVOID: 2};
+  const RISK_SHARE = {TRADE: 1};   // only a current Phase 11 TRADE is sized (at the chosen risk); no legacy tier is
+  const SOURCE = {swing: "Coin picks swing", quant: "Quant desk", smart: "Smart money", phase11: "Phase 11 decision"};
   const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const per100 = (r) => (r == null || !isFinite(r)) ? null : Math.round(r * 100);
   const monthYear = (t) => { const d = new Date(t * 1000); return MON[d.getUTCMonth()] + " " + d.getUTCFullYear(); };
@@ -556,7 +561,8 @@
     return {n: b.n, win: b.win, R: b.R, per100: per100(b.R), ret: b.ret, years, up: years.filter((y) => y.r > 0).length,
             band: b.lo + "–" + Math.min(100, b.hi - 1), tier: tierOf(b.R, years.map((y) => y.r)), period: research.period || null};
   }
-  /* The record of one quant desk strategy (quant_research.json); "live" strategies passed the desk's tests. */
+  /* The legacy research record of one quant desk strategy (quant_research.json): context only. Its old "live" verdict
+     is not research authority (Phase 9: LEGACY_HOLDOVER / INSUFFICIENT_EVIDENCE), so it is a "Legacy record". */
   function quantRecord(research, sid) {
     const s = research && research.strategies ? research.strategies[sid] : null;
     const t = s ? (s.three_year || s.one_year) : null;
@@ -564,7 +570,7 @@
     const years = (s.years || []).filter((y) => y && y.n).map((y) => ({y: monthYear(y.from) + " to " + monthYear(y.to), r: y.avg, n: y.n}));
     const w = research.window_3y || [];
     return {n: t.n, win: t.wr, R: t.avg, per100: per100(t.avg), years, up: years.filter((y) => y.r > 0).length,
-            tier: s.verdict === "live" ? "Proven" : "No edge", period: w.length === 2 ? monthYear(w[0]) + " to " + monthYear(w[1]) : null};
+            tier: s.verdict === "live" ? "Legacy record" : "No edge", period: w.length === 2 ? monthYear(w[0]) + " to " + monthYear(w[1]) : null};
   }
   /* The record of the smart-money rule (smart.json): the test sets the verdict until 40 live trades decide it. */
   function smartRecord(sm) {
@@ -596,8 +602,15 @@
     return s / (b.length - 1);
   }
 
-  /* What the scans say about one coin: {signals (tested, long or short), notes (there, but not a signal), inScan}.
-     src: {picks, picksResearch, quant, quantResearch, smart}, each optional. */
+  /* The quant desk's own label for a strategy: its Phase 9 deployment state as quant.json publishes it (the same label
+     as the Quant desk page). Only ACTIVE_REQUALIFIED is requalified; anything else is a legacy holdover. A label, not
+     authority: the call comes from the Phase 11 decision. */
+  function deskLabel(st) {
+    return st && st.deployment_state === "ACTIVE_REQUALIFIED" ? "Requalified" : "Legacy holdover";
+  }
+  /* What the legacy scans say about one coin, as context: {signals (legacy signals, long or short), notes (there, but
+     not a signal), inScan}. src: {picks, picksResearch, quant, quantResearch, smart}, each optional. None of it is the
+     call (see decide). */
   function testedSignals(coin, src) {
     src = src || {};
     const signals = [], notes = [];
@@ -631,7 +644,7 @@
       if (o.identity !== "VERIFIED_CRYPTO") { blockedNote(o); continue; }
       const rec = quantRecord(src.quantResearch, o.s), st = strategies[o.s] || {}, side = o.d > 0 ? "long" : "short";
       if (rec && rec.tier === "No edge") continue;
-      signals.push({src: "quant", name: SOURCE.quant, side, tier: "Proven", rec, pos: o, sid: o.s, strategy: st.name || o.s, desc: st.desc || "",
+      signals.push({src: "quant", name: SOURCE.quant, side, tier: deskLabel(st), rec, pos: o, sid: o.s, strategy: st.name || o.s, desc: st.desc || "",
                     text: (st.name || o.s) + " is " + side + (o.px == null ? ", in at the next open" : " since " + dayTxt(o.t_in))});
     }
     for (const o of (Q && Q.blocked_open) || []) if (o.c === coin) blockedNote(o);
@@ -733,7 +746,7 @@
             signal: {t: t0, entry: k ? tr.px * k : null, stopPct: sp, move: k ? d * (px / (tr.px * k) - 1) : null}};
   }
   function sized(plan, tier, ctx) {
-    plan.riskShare = RISK_SHARE[tier] || 0.5;
+    plan.riskShare = RISK_SHARE[tier] || 0;
     plan.riskUsd = ctx.account * ctx.risk * plan.riskShare;
     plan.size = plan.riskUsd / plan.stopPct;
     plan.lev = plan.size / ctx.account;
@@ -744,67 +757,156 @@
     return usd100(rec.per100) + " per $100 risked over " + rec.n.toLocaleString("en-US") + " trades, " + Math.round(rec.win * 100) + "% winners";
   }
 
+  // ---- the Phase 11 authority (read only)
+  const isInt = (x) => Number.isInteger(x);
+  const sideOf = (d) => d === 1 ? "long" : d === -1 ? "short" : null;
+  const utcTxt = (t) => new Date(t * 1000).toISOString().slice(0, 16).replace("T", " ") + " UTC";
+  /* Plain words for the engine's codes (wording only: the code itself is always kept next to it). */
+  const CODE_TXT = {
+    STRATEGY_RESEARCH_AUTHORITY_INSUFFICIENT: "strategy authority insufficient (not requalified by Phase 9)",
+    STRATEGY_DISABLED: "strategy disabled", STRATEGY_UNGOVERNED: "strategy not governed by the Phase 9 policy",
+    STRATEGY_RESEARCH_REJECTED: "strategy research rejected", STRATEGY_RESEARCH_INVALIDATED: "strategy research invalidated",
+    FUNDING_UNKNOWN: "funding missing", PORTFOLIO_APPROACHING_LIMITS: "portfolio approaching its risk limits",
+    PORTFOLIO_LIMIT_BREACHED: "the position would breach the portfolio risk limits", PORTFOLIO_UNEVALUABLE: "portfolio risk unevaluable",
+    PORTFOLIO_INPUT_MISSING: "no portfolio input", PROPOSAL_UNQUANTIFIABLE: "the position cannot be quantified", COST_UNKNOWN: "costs unknown",
+    EXECUTION_LIQUIDITY_BELOW_GATE: "liquidity below the execution gate", EXECUTION_LIQUIDITY_UNKNOWN: "liquidity unknown",
+    NOT_ON_TRADE_DEX: "not on a trade DEX", IDENTITY_NOT_VERIFIED: "identity not verified as crypto", IDENTITY_NON_CRYPTO: "not a crypto asset",
+    ECONOMIC_EXPOSURE_CONFLICT: "conflicting economic exposure", EXPOSURE_METADATA_DEGRADED: "exposure checks degraded",
+    VENUE_DATA_DEGRADED: "venue data degraded", DISCOVERY_DEGRADED: "discovery degraded", INPUT_STALE: "an input of the scan is stale",
+    NOT_IN_DISCOVERY: "not in discovery", UNSUPPORTED_OR_INACTIVE_MARKET: "no active supported perp",
+    SIGNAL_STALE: "signal stale", SIGNAL_INVALID: "signal invalid", SIGNAL_TIMEFRAME_UNKNOWN: "signal timeframe unknown",
+    POSITION_ALREADY_OPEN: "the book already holds this position",
+  };
+  const codeTxt = (c) => (CODE_TXT[c] || String(c).toLowerCase().replace(/_/g, " ")) + " (" + c + ")";
+  /* The decision document as an authority: {status: AVAILABLE | MISSING | MALFORMED | STALE, doc, reason}. Only the
+     shape this file reads is checked; nothing in it is recomputed. Stale: past the document's own valid_until. */
+  function decisionAuthority(doc, now) {
+    if (doc == null) return {status: "MISSING", doc: null, reason: "the Phase 11 decision (" + DECISION.file + ") is not loaded"};
+    if (typeof doc !== "object" || doc.schema !== DECISION.schema || !isInt(doc.as_of) || !isInt(doc.valid_until) ||
+        !Array.isArray(doc.candidates) || !Array.isArray(doc.assets) || !doc.authority || typeof doc.authority !== "object") {
+      return {status: "MALFORMED", doc: null, reason: "the Phase 11 decision is not a valid " + DECISION.schema + " document"};
+    }
+    if (!(now <= doc.valid_until)) {
+      return {status: "STALE", doc: null, as_of: doc.as_of, valid_until: doc.valid_until,
+              reason: "the Phase 11 decision of " + utcTxt(doc.as_of) + " is stale (valid until " + utcTxt(doc.valid_until) + ")"};
+    }
+    return {status: "AVAILABLE", doc, as_of: doc.as_of, valid_until: doc.valid_until, reason: null};
+  }
+  function candidateOk(c) {
+    return !!c && typeof c === "object" && typeof c.id === "string" && STATE_ORDER[c.state] != null && !!sideOf(c.direction) &&
+      typeof c.strategy === "string" && Array.isArray(c.blockers) && Array.isArray(c.caps) && Array.isArray(c.missing_authorities) &&
+      isInt(c.valid_until) && !!c.explanation && typeof c.explanation === "object";
+  }
+  function briefOf(c, now) {
+    const codes = c.state === "WATCH" ? c.caps.concat(c.missing_authorities) : c.state === "AVOID" ? c.blockers.slice() : [];
+    const pl = c.placement && typeof c.placement === "object" ? c.placement : {};
+    return {id: c.id, strategy: c.strategy, side: sideOf(c.direction), state: c.state, blocking_step: c.blocking_step || null,
+            blockers: c.blockers.slice(), caps: c.caps.slice(), missing: c.missing_authorities.slice(), codes, reasons: codes.map(codeTxt),
+            to_become_trade: (c.explanation.to_become_trade || []).filter((x) => x && x.code).map((x) => ({step: x.step, code: x.code})),
+            valid_until: c.valid_until, expired: !(now <= c.valid_until), section: pl.section || null, rank: pl.section ? pl.rank : null};
+  }
+  /* The Phase 11 decision on one coin: {status, state (TRADE | WATCH | AVOID | NONE; null without an available
+     decision), trade (the one current TRADE when there is one and it agrees with every other TRADE), candidates
+     (every directional decision on the coin, best state first), conflict, asset, reason, as_of, valid_until, hashes}.
+     Nothing is decided here: the states, codes and reasons are the engine's. */
+  function phase11Of(coin, decision, now) {
+    const A = decisionAuthority(decision, now);
+    const out = {status: A.status, state: null, trade: null, candidates: [], conflict: false, asset: null, reason: A.reason,
+                 as_of: A.as_of || null, valid_until: A.valid_until || null, policy_hash: null, authority_hash: null};
+    if (A.status !== "AVAILABLE") return out;
+    out.policy_hash = A.doc.policy_hash || null;
+    out.authority_hash = A.doc.authority.authority_hash || null;
+    const mine = A.doc.candidates.filter((c) => c && c.type === DECISION.directional && c.asset === coin);
+    if (!mine.every(candidateOk)) {
+      return Object.assign(out, {status: "MALFORMED", reason: "a Phase 11 decision on " + coin + " is malformed"});
+    }
+    const a = A.doc.assets.find((x) => x && x.asset === coin) || null;
+    out.asset = a ? {state: a.state, identity: a.identity, blockers: Array.isArray(a.blockers) ? a.blockers.slice() : []} : null;
+    out.candidates = mine.map((c) => briefOf(c, now)).sort((x, y) => STATE_ORDER[x.state] - STATE_ORDER[y.state] || (x.id < y.id ? -1 : 1));
+    if (!mine.length) {
+      return Object.assign(out, {state: "NONE", reason: "Phase 11 has no directional decision on " + coin +
+        (a ? " (asset state " + a.state + ")" : " (not in this scan's discovery)")});
+    }
+    const trades = out.candidates.filter((c) => c.state === "TRADE");
+    if (trades.some((c) => c.expired)) {
+      return Object.assign(out, {status: "STALE", reason: "the Phase 11 TRADE " + trades.find((c) => c.expired).id + " is past its valid_until"});
+    }
+    if (new Set(trades.map((c) => c.side)).size > 1) {
+      return Object.assign(out, {state: "TRADE", conflict: true, reason: "Phase 11 TRADE decisions on " + coin + " disagree in direction"});
+    }
+    out.state = out.candidates[0].state;
+    if (trades.length) out.trade = trades.slice().sort((x, y) => (x.rank == null ? 1e9 : x.rank) - (y.rank == null ? 1e9 : y.rank) || (x.id < y.id ? -1 : 1))[0];
+    return out;
+  }
+
   /* The call for one coin. inp: {coin, price (on the chart's scale), d1 (daily candles, oldest first; the last may
-     still be forming), now (seconds), account, risk, src}. Returns {verdict: LONG | SHORT | WAIT, side, tier, lead
-     (the signal whose plan is used: the strongest tested record), plan, signals, agree, against, expired, notes,
-     conflict, inScan, headline}. */
+     still be forming), now (seconds), account, risk, src: {decision (data/v8/decision.json), picks, picksResearch,
+     quant, quantResearch, smart}}. Returns {verdict: LONG | SHORT (a current Phase 11 TRADE only) | WATCH | AVOID |
+     WAIT, side, tier ("TRADE" or null), lead (the TRADE's quant desk position), plan (sized only for a TRADE),
+     authority (the Phase 11 decision on the coin), signals and expired (legacy, context only, never sized), agree,
+     against, notes, conflict, inScan, headline}. */
   function decide(inp) {
     const ctx = {coin: inp.coin, price: inp.price, now: inp.now || Math.floor(Date.now() / 1000), d1: inp.d1 || [],
                  account: inp.account > 0 ? inp.account : 500, risk: inp.risk > 0 ? inp.risk : 0.02};
-    const T = testedSignals(inp.coin, inp.src);
+    const src = inp.src || {};
+    const T = testedSignals(inp.coin, src);
     const live = [], expired = [];
     for (const s of T.signals) {
       const p = s.src === "swing" ? swingPlan(s, ctx) : s.src === "quant" ? quantPlan(s, ctx) : smartPlan(s, ctx);
       if (p.expired) { s.why = p.error; expired.push(s); continue; }
-      s.plan = p.error ? null : sized(p, s.tier, ctx);
+      s.plan = p.error ? null : p;          // the legacy trade's levels, as context: never sized, never the call
       s.planError = p.error || null;
       live.push(s);
     }
-    const proven = live.filter((s) => s.tier === "Proven");
-    const pool = proven.length ? proven : live;
-    const sides = Array.from(new Set(pool.map((s) => s.side)));
-    const side = sides.length === 1 ? sides[0] : null;
-    const rank = (s) => (s.plan ? 1000 : 0) + (s.rec && s.rec.per100 != null ? s.rec.per100 : 0);
-    const lead = side ? pool.filter((s) => s.side === side).sort((a, b) => rank(b) - rank(a))[0] : null;
-    const out = {coin: inp.coin, verdict: side ? side.toUpperCase() : "WAIT", side, tier: lead ? lead.tier : null, lead,
-                 plan: lead ? lead.plan : null, signals: live, expired, notes: T.notes, inScan: T.inScan,
-                 agree: side ? live.filter((s) => s !== lead && s.side === side) : [],
-                 against: side ? live.filter((s) => s.side !== side) : [], conflict: sides.length > 1,
-                 lossRun: lead && lead.rec ? lossRun(lead.rec.win, 20) : null};
-    const nm = (s) => s.name + " " + s.side + (s.src === "quant" ? " (" + s.strategy + ")" : s.src === "swing" ? " " + Math.round(s.score) : "");
-    if (out.conflict) {
-      out.headline = "Tested signals disagree: " + pool.map(nm).join(" against ") + ". With " + (proven.length ? "proven" : "tested") + " signals on both sides there is no trade.";
-    } else if (lead) {
-      out.headline = lead.name + ": " + lead.text + ". " + (lead.rec ? "Tested: " + recordTxt(lead.rec) + "." : "") +
-        (lead.tier !== "Proven" ? " " + lead.tier + " record, so half size." : "");
-    } else if (expired.length) {
-      out.headline = "The tested signal has run its course: " + expired[0].why;
-    } else {
-      out.headline = "No tested signal on " + inp.coin + " right now. Nothing that held up in our tests points either way, so the answer is to wait.";
+    const auth = phase11Of(inp.coin, src.decision, ctx.now);
+    let lead = null, plan = null, stopped = null;
+    const t = auth.trade;
+    if (t) {
+      const Q = src.quant, st = ((Q && Q.strategies) || {})[t.strategy] || {}, d = t.side === "long" ? 1 : -1;
+      const pos = ((Q && Q.open) || []).find((o) => o && o.c === inp.coin && o.s === t.strategy && o.d === d && o.identity === "VERIFIED_CRYPTO") || null;
+      lead = {src: pos ? "quant" : "phase11", name: pos ? SOURCE.quant : SOURCE.phase11, side: t.side, tier: "TRADE", authority: t, rec: null,
+              pos, sid: t.strategy, strategy: st.name || t.strategy, desc: st.desc || "",
+              text: (st.name || t.strategy) + " " + t.side + ": a Phase 11 TRADE (decision of " + utcTxt(auth.as_of) + ")"};
+      if (pos) {
+        const p = quantPlan(lead, ctx);
+        if (p.expired) stopped = p.error;
+        else { plan = p.error ? null : sized(p, "TRADE", ctx); lead.planError = p.error || null; }
+      } else {
+        lead.planError = "The quant desk position this decision is about is not in the loaded scan, so its stop cannot be placed on this chart. Use the Quant desk page.";
+      }
+      if (stopped) { lead = null; plan = null; }
     }
-    return out;
+    const side = lead ? lead.side : null;
+    const nm = (c) => c.strategy + " " + c.side;
+    let headline;
+    if (lead) headline = "Phase 11 decision: TRADE, " + nm(t) + " on " + inp.coin + ". Every governed gate passes (decision of " + utcTxt(auth.as_of) + ").";
+    else if (stopped) headline = "Phase 11 decision: TRADE, " + nm(t) + ", but " + stopped.charAt(0).toLowerCase() + stopped.slice(1) + " No call until the next decision.";
+    else if (auth.status !== "AVAILABLE") headline = "No call: " + auth.reason + ". The Analyzer does not fall back to the legacy signals, which are context only.";
+    else if (auth.conflict) headline = "No call: " + auth.reason + ".";
+    else if (auth.state === "NONE") headline = "No call: " + auth.reason + ". The legacy signals are context only and cannot make one.";
+    else if (auth.state === "WATCH") headline = "Phase 11 decision: WATCH, not a trade. " + auth.candidates.filter((c) => c.state === "WATCH").map((c) => nm(c) + ": " + c.reasons.join(", ")).join("; ") + ".";
+    else headline = "Phase 11 decision: AVOID. " + auth.candidates.map((c) => nm(c) + " rejected at " + c.blocking_step + ": " + c.reasons.join(", ")).join("; ") + ".";
+    const verdict = lead ? side.toUpperCase() : (!stopped && (auth.state === "WATCH" || auth.state === "AVOID")) ? auth.state : "WAIT";
+    const same = (s) => lead && lead.pos && s.pos === lead.pos;    // the TRADE's own desk position, already the lead
+    return {coin: inp.coin, verdict, side, tier: lead ? "TRADE" : null, lead, plan, signals: live, expired, notes: T.notes, inScan: T.inScan,
+            agree: lead ? live.filter((s) => s.side === side && !same(s)) : [], against: lead ? live.filter((s) => s.side !== side) : [],
+            conflict: auth.conflict, lossRun: null, authority: auth, headline};
   }
-  /* Coins with a call from tested signals right now, strongest first: [{coin, side, tier, srcs}]. Needs no candles,
-     so only the time limits are checked here; the page checks the stops when a coin is opened. */
+  /* Coins with a call right now: every coin with a current Phase 11 TRADE, best-placed first (the Best Trades Now
+     rank, then the coin): [{coin, side, tier: "TRADE", srcs: ["phase11"], strategy, rank}]. Legacy signals never put
+     a coin here. Needs no candles. */
   function signalCoins(src, now) {
     src = src || {};
     now = now || Math.floor(Date.now() / 1000);
-    const timely = (s) => s.src === "quant" ? now < s.pos.t_in + (s.pos.hold_h || 0) * HOUR
-      : s.src === "smart" ? ((s.trade && s.trade.t_out_by) || (s.t || now) + SMART.hours * HOUR) - now > SMART.lateHours * HOUR : true;
-    const coins = new Set(), P = src.picks, readyAt = (P && P.settings && P.settings.ready) || SWING.readyAt;
-    for (const [c, x] of Object.entries((P && P.scores) || {})) if (x && x.score >= readyAt) coins.add(c);
-    for (const o of (src.quant && src.quant.open) || []) if (o.identity === "VERIFIED_CRYPTO") coins.add(o.c);
-    for (const r of (src.smart && src.smart.coins) || []) if (r.signal && r.identity === "VERIFIED_CRYPTO") coins.add(r.coin);
+    const A = decisionAuthority(src.decision, now);
+    if (A.status !== "AVAILABLE") return [];
+    const coins = new Set(A.doc.candidates.filter((c) => c && c.type === DECISION.directional && c.state === "TRADE" && typeof c.asset === "string").map((c) => c.asset));
     const out = [];
-    for (const c of coins) {
-      const sig = testedSignals(c, src).signals.filter(timely), proven = sig.filter((s) => s.tier === "Proven"), pool = proven.length ? proven : sig;
-      if (!pool.length) continue;
-      const sides = new Set(pool.map((s) => s.side));
-      if (sides.size !== 1) continue;
-      const side = pool[0].side;
-      out.push({coin: c, side, tier: proven.length ? "Proven" : pool[0].tier, srcs: Array.from(new Set(pool.filter((s) => s.side === side).map((s) => s.src)))});
+    for (const coin of coins) {
+      const P = phase11Of(coin, src.decision, now);
+      if (P.trade) out.push({coin, side: P.trade.side, tier: "TRADE", srcs: ["phase11"], strategy: P.trade.strategy, rank: P.trade.rank});
     }
-    return out.sort((a, b) => (a.tier === "Proven" ? 0 : 1) - (b.tier === "Proven" ? 0 : 1) || b.srcs.length - a.srcs.length || (a.coin < b.coin ? -1 : 1));
+    return out.sort((a, b) => (a.rank == null ? 1e9 : a.rank) - (b.rank == null ? 1e9 : b.rank) || (a.coin < b.coin ? -1 : 1));
   }
 
   // ------------------------------------------------------------------ candles from the exchanges (browser only)
@@ -957,7 +1059,8 @@
   }
 
   const TA = {analyze, analyzeAll, load, update, SOURCES, ema, rsi, atr, macd, bbWidth, pivots, structure, swingLabels, buildZones, volumeProfile, fmtPrice, TF_LABEL, TF_SEC,
-              decide, testedSignals, signalCoins, swingRecord, quantRecord, smartRecord, scaleOf, lossRun, recordTxt, usd100, dayTxt, SWING, SMART};
+              decide, testedSignals, signalCoins, phase11Of, decisionAuthority, codeTxt, swingRecord, quantRecord, smartRecord, scaleOf, lossRun, recordTxt, usd100, dayTxt,
+              SWING, SMART, DECISION, RISK_SHARE};
   if (typeof module !== "undefined" && module.exports) module.exports = TA;
   else root.TA = TA;
 })(typeof window !== "undefined" ? window : this);

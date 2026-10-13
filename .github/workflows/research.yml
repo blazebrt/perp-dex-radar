@@ -85,7 +85,7 @@ jobs:
         # differences the change explains.
         continue-on-error: true
         run: |
-          BASE_SHA=$(python -c "import json; print(json.load(open('tests/fixtures/v8/phase10_expected_deltas.json'))['base']['sha'])")
+          BASE_SHA=$(python -c "import json; print(json.load(open('tests/fixtures/v8/phase11_expected_deltas.json'))['base']['sha'])")
           echo "phase base $BASE_SHA" > research_base.txt
           git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA" >> research_base.txt 2>&1 || true
           cd "$RUNNER_TEMP/base"
@@ -272,6 +272,17 @@ jobs:
           tail -5 research_phase10.txt
           test "$rc" -eq 0
 
+      - name: Phase 11 unified decision engine on this run (mandatory; truthful even when it is zero TRADE)
+        run: |
+          rc=0
+          python -m unittest tests.test_v8_phase11 -v >> research_phase11.txt 2>&1 || rc=$?
+          if [ "$rc" -eq 0 ]; then python -c "import json; s=json.load(open('out_new/data/v8/audit_latest.json')); d=s['manifest']['decision']; assert d['status']=='OK', d; assert d['trace_available'] and d['portfolio_binding']['consistent'], d; print(d['market_summary'])" >> research_phase11.txt 2>&1 || rc=$?; fi
+          if [ "$rc" -eq 0 ]; then python tools/v8/decision_report.py out_new/data/v8/decision.json --json research_phase11_decision.json >> research_phase11.txt 2>&1 || rc=$?; fi
+          echo "exit $rc" >> research_phase11.txt
+          python -c "import json,os; json.dump({'head':os.environ['GITHUB_SHA'],'exit_code':int('$rc')},open('research_phase11_exit.json','w'),sort_keys=True)"
+          tail -12 research_phase11.txt
+          test "$rc" -eq 0
+
       - name: Save the results for review
         if: always()
         env:
@@ -284,6 +295,7 @@ jobs:
           cp research_*.txt R/ 2>/dev/null || true
           cp research_strategy_*.json research_multiple_testing.json research_matched_controls.json research_phase9_*.json R/ 2>/dev/null || true
           cp research_phase10_*.json R/ 2>/dev/null || true
+          cp research_phase11_*.json R/ 2>/dev/null || true
           for f in latest.json journal.csv quant.json picks.json smart.json dashboard.json; do
             if [ -f "out_new/data/$f" ]; then cp "out_new/data/$f" "R/new_$f"; fi
           done

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Coin Analyzer · Perp DEX Radar</title>
-<meta name="description" content="Search any coin: a long, short or wait call from signals that made money in our tests, the tested trade plan with your position size, and a chart read on four timeframes.">
+<meta name="description" content="Search any coin: the Phase 11 decision (trade, watch or avoid), the plan and your position size only for a Phase 11 trade, legacy signals as context, and a chart read on four timeframes.">
 <script>try{var t=localStorage.getItem("picks_theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
 <style>
 :root {
@@ -155,6 +155,7 @@ h3 { font-size: 13px; margin: 14px 0 4px; color: var(--muted); text-transform: u
 .sgr .ss small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
 .sgr .sr { color: var(--ink-2); font-size: 13px; }
 .sgr .sr b { color: var(--ink); }
+.sgr .st .tier { white-space: normal; }   /* longer authority tags (Phase 11 WATCH, Legacy holdover) wrap in their column */
 .sgr.dim .ss, .sgr.dim .sn { color: var(--ink-2); }
 .sgr.lead > div { background: color-mix(in srgb, var(--accent) 5%, transparent); }
 .sgr.lead > div:first-child { box-shadow: inset 3px 0 0 var(--accent); padding-left: 10px; }
@@ -325,7 +326,7 @@ header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: 
 
 <main class="wrap">
   <h1>Analyze any coin</h1>
-  <p class="lede">Type a coin. The call (long, short or wait) comes only from signals that made money in our tests, and the plan is the trade they were tested with: entry, stop, trailing stop, time limit and your size. The chart read on four timeframes shows where the price sits. Prices update live.</p>
+  <p class="lede">Type a coin. The call comes only from the Phase 11 decision engine: long or short for a current Phase 11 TRADE, with the desk's trade (entry, stop, trailing stop, time limit) and your size; watch, avoid or wait otherwise, with the exact reason. Legacy signals and the chart read on four timeframes are context. Prices update live.</p>
 
   <form class="card search" id="form" autocomplete="off">
     <div class="sbox">
@@ -382,14 +383,15 @@ header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: 
   <section class="section method" id="how">
     <div class="card">
       <h2>How the call is made</h2>
-      <p><b>Only tested signals make the call.</b> A coin gets LONG or SHORT only when one of these is live on it. Everything else is a wait.</p>
+      <p><b>Only the Phase 11 decision makes the call.</b> Every scan, the unified decision engine (v8.decision/1) decides TRADE, WATCH or AVOID for every discovered coin from governed evidence: identity, venue health, the Phase 9 strategy authority, liquidity, observed funding and the Phase 10 portfolio risk of adding the position. A coin gets LONG or SHORT only for a current Phase 11 TRADE, and only in its direction. WATCH and AVOID show the engine's exact reasons and get no plan and no size. Without a current decision (missing, stale or malformed) there is no call: the page never falls back to the legacy signals.</p>
+      <p><b>Legacy signals are context.</b> They stay visible with their own records, but none of them makes, flips, sizes or blocks the call:</p>
       <ul>
         <li><b>A Coin picks swing score of 80 or more.</b> Three-year test on 118 coins (Oct 2023 to Oct 2026): +$29 per $100 risked over 5,453 trades after fees, positive every year for longs and shorts. Exits as tested: in at the daily open, stop 2 daily ATR (kept between 5% and 25%), trailing stop 3 ATR behind the best price, out after 30 days at the latest.</li>
-        <li><b>A position of the quant desk.</b> Its three live strategies made +$9 per $100 risked over 4,514 trades in three years after fees, slippage and funding, and did better than random entries taken at the same moments. Exits: the desk's own stop, trailing stop and time limit.</li>
-        <li><b>Proven traders shorting together:</b> 2 or more of Hyperliquid's proven traders opening shorts on the same coin within 24 hours. Promising, not proven: +$14 per $100 risked over 31 trades in a 30-day test without hindsight, so it is traded at half size until 40 live trades decide. Exits: stop 1.5 times the coin's typical daily move, out after 24 hours.</li>
+        <li><b>A position of the quant desk.</b> Its strategies are legacy holdovers until Phase 9 requalifies them, so its old research record is shown, not used. Exits: the desk's own stop, trailing stop and time limit.</li>
+        <li><b>Proven traders shorting together:</b> 2 or more of Hyperliquid's proven traders opening shorts on the same coin within 24 hours. Promising, not proven: +$14 per $100 risked over 31 trades in a 30-day test without hindsight. Exits: stop 1.5 times the coin's typical daily move, out after 24 hours.</li>
       </ul>
-      <p><b>The plan is the tested trade.</b> You join each trade as it stands (same stop level, same trailing stop, same time limit), so the trade on this page is the one the records count. There are no profit targets: the tested exits let the winners run, and the winners pay for the losers. The size is set so the stop costs your chosen share of the account (half of it for promising and mixed signals).</p>
-      <p><b>When signals disagree.</b> Proven signals on both sides: no trade. When several agree, the plan follows the one with the strongest record. A weaker signal against a proven one is shown but does not change the call.</p>
+      <p><b>The plan is the desk's trade.</b> For a Phase 11 TRADE you join the quant desk position the decision is about as it stands (same stop level, same trailing stop, same time limit). There are no profit targets. The size is set so the stop costs your chosen share of the account.</p>
+      <p><b>When decisions disagree.</b> Phase 11 TRADE decisions on both sides of one coin: no call.</p>
       <p><b>The chart read is context.</b> Trend, levels, momentum and positioning on four timeframes show where the price sits and which levels matter. We tested whether it makes the calls better: on the 5,453 swing signals of the last three years, trades made +$27 per $100 risked when the 4-hour read agreed and +$38 when it disagreed (+$18 against +$45 on the daily chart), and swing shorts did worst when the 4-hour read agreed (−$1). So the chart read never confirms or blocks a call. On its own its plans were about break-even before fees and lost money after them (29,039 trades on 1-hour charts and 8,400 on 4-hour charts, one year, 118 coins).</p>
       <p><b>No guarantee.</b> Between 38% and 61% of these trades win, depending on the signal. The edge is small and shows over many trades, not in any one of them. Expect losing runs, risk the same small share every time, and never move a stop away from the price.</p>
     </div>
@@ -427,8 +429,10 @@ const cssv = (n) => getComputedStyle(document.documentElement).getPropertyValue(
 const LOCALE = (() => { try { new Intl.DateTimeFormat(navigator.language).format(0); return navigator.language; } catch (e) { return "en-US"; } })();
 
 let PK = null;            // the scan (data/picks.json): tested swing scores, sentiment, market mood
-// the scans the call is made from (all optional): Coin picks, its 3-year test, the quant desk and its test, smart money
-const SRC = {picks: null, picksResearch: null, quant: null, quantResearch: null, smart: null};
+// the call's only authority, the Phase 11 decision (data/v8/decision.json), and the legacy scans shown as context
+// (all optional; without a current decision every coin is a wait): Coin picks, its 3-year test, the quant desk and its
+// research, smart money
+const SRC = {decision: null, picks: null, picksResearch: null, quant: null, quantResearch: null, smart: null};
 // one-year walk-forward test of the chart read's own plans (hourly and 4-hour charts, after 0.12% round-trip costs)
 const SELF_TEST = {h1: {trades: 29039, coins: 118, avgR: -0.039, win: 0.419, gross: 0.00036, net: -0.00084}, h4: {trades: 8400, coins: 117, avgR: -0.024, win: 0.424, gross: 0.00076, net: -0.00044}, period: "Sep 2025 to Oct 2026"};
 // does the chart read make the tested swing signals better? 5,453 swing signals (score 80+, Oct 2023 to Oct 2026),
@@ -452,9 +456,9 @@ async function getData(name, fresh) {
 let SCANS_AT = 0;
 async function loadScans() {
   SCANS_AT = Date.now();
-  const [pk, pr, q, qr, sm] = await Promise.all([getData("picks.json", true), getData("picks_research.json"), getData("quant.json", true),
-    getData("quant_research.json"), getData("smart.json", true)]);
-  Object.assign(SRC, {picks: pk, picksResearch: pr, quant: q, quantResearch: qr, smart: sm});
+  const [dc, pk, pr, q, qr, sm] = await Promise.all([getData("v8/decision.json", true), getData("picks.json", true), getData("picks_research.json"),
+    getData("quant.json", true), getData("quant_research.json"), getData("smart.json", true)]);
+  Object.assign(SRC, {decision: dc, picks: pk, picksResearch: pr, quant: q, quantResearch: qr, smart: sm});
   PK = pk;
   if (PK) {
     const list = PK.scores ? Object.entries(PK.scores).map(([sym, x]) => ({sym, side: x.side, score: x.score, label: x.label}))
@@ -463,7 +467,8 @@ async function loadScans() {
     if (PK.market && PK.market.fng) S.fng = PK.market.fng;
   }
   const t = [PK && PK.generated, q && q.generated, sm && sm.generated].filter(Boolean);
-  $("#ver").textContent = t.length ? "Scans updated " + agoS(Math.min(...t)) + "." : "";
+  $("#ver").textContent = (t.length ? "Scans updated " + agoS(Math.min(...t)) + "." : "") +
+    (dc && Number.isInteger(dc.as_of) ? " Phase 11 decision of " + agoS(dc.as_of) + "." : " No Phase 11 decision loaded.");
   renderQuick();
 }
 function scanOf(sym) {
@@ -481,9 +486,8 @@ function renderQuick() {
   let h = "";
   const calls = TA.signalCoins(SRC, Math.floor(Date.now() / 1000)).filter((x) => /^[A-Z0-9]+$/.test(x.coin)).slice(0, 10);
   if (calls.length) {
-    h += '<span class="lb" title="Coins with a call from tested signals right now">Tested calls now</span>' + calls.map((x) => '<button class="qc" type="button" data-c="' + esc(x.coin) + '" title="' +
-      esc(x.srcs.map((s) => ({swing: "Coin picks swing", quant: "Quant desk", smart: "Smart money"}[s] || s)).join(" + ") + " · " + x.tier) + '">' + esc(x.coin) +
-      ' <span class="s-' + x.side + '">' + x.side + '</span>' + (x.tier === "Proven" ? "" : ' <span class="muted">½</span>') + '</button>').join("");
+    h += '<span class="lb" title="Coins with a current Phase 11 TRADE">Phase 11 trades now</span>' + calls.map((x) => '<button class="qc" type="button" data-c="' + esc(x.coin) + '" title="' +
+      esc("Phase 11 TRADE · " + x.strategy) + '">' + esc(x.coin) + ' <span class="s-' + x.side + '">' + x.side + '</span></button>').join("");
   }
   const rc = recent();
   if (rc.length) h += '<span class="lb" style="margin-left:8px">Recent</span>' + rc.map((c) => '<button class="qc" type="button" data-c="' + esc(c) + '">' + esc(c) + '</button>').join("");
@@ -740,8 +744,9 @@ function vClass(a) { return a.side || "wait"; }
 const sgn = (x) => (x > 0 ? "+" : "") + x;
 const money2 = (x) => x == null || !isFinite(x) ? "–" : x < 10 ? "$" + x.toFixed(2) : money(x);
 const LEAN = (a) => a.side === "long" ? "Leans long" : a.side === "short" ? "Leans short" : "No lean";
-const TIER_CLS = {Proven: "proven", Mixed: "mixed", Promising: "promising"};
-const PAGE_OF = {swing: "picks.html", quant: "quant.html", smart: "smart.html"};
+const TIER_CLS = {TRADE: "proven", WATCH: "mixed", AVOID: "bad", Proven: "proven", Mixed: "mixed", Promising: "promising"};
+const PAGE_OF = {swing: "picks.html", quant: "quant.html", smart: "smart.html", phase11: "quant.html"};
+const P11_TAG = {TRADE: "Phase 11 TRADE", WATCH: "Phase 11 WATCH", AVOID: "Phase 11 AVOID"};
 function tierTag(t, txt) { return '<span class="tier ' + (TIER_CLS[t] || "none") + '">' + esc(txt || t) + '</span>'; }
 function sidePill(side, quiet) { return side ? '<span class="pill ' + (quiet ? "ord" : side) + '">' + (quiet ? side : side.toUpperCase()) + '</span>' : ""; }
 function whenShort(t) { return new Date(t * 1000).toLocaleString(LOCALE, {month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"}); }
@@ -751,17 +756,19 @@ function callWhy() {
   const c = S.call;
   if (!c) return "";
   let t = esc(c.headline);
-  if (c.lead && c.agree.length) t += ' <b>Also for it:</b> ' + c.agree.map((s) => esc(sigName(s) + " " + s.side)).join(", ") + '.';
-  if (c.lead && c.against.length) t += ' <b>Against it:</b> ' + c.against.map((s) => esc(sigName(s) + " " + s.side + " (" + s.tier.toLowerCase() + ")")).join(", ") + '. It has the weaker record, so it does not change the call.';
+  if (c.lead && c.agree.length) t += ' <b>Legacy context for it:</b> ' + c.agree.map((s) => esc(sigName(s) + " " + s.side)).join(", ") + '.';
+  if (c.lead && c.against.length) t += ' <b>Legacy context against it:</b> ' + c.against.map((s) => esc(sigName(s) + " " + s.side + " (" + s.tier.toLowerCase() + ")")).join(", ") + '. Legacy signals do not change the Phase 11 call.';
   return t;
 }
 function renderHead() {
   const a = A(), c = S.call, d = S.data, m = S.meta && !S.meta.mismatch ? S.meta : null;
   const h1 = d.bars["1h"], px = last(h1).c, ref = h1[Math.max(0, h1.length - 25)].c, ch = px / ref - 1;
   const v = c ? c.verdict : "WAIT", cls = c && c.side ? c.side : "wait";
-  const tag = !c ? '<span class="tier none">Loading the scans</span>' : c.lead ? tierTag(c.lead.tier, c.lead.tier + " signal")
-    : '<span class="tier none">' + (c.conflict ? "Tested signals disagree" : c.expired.length ? "Signal ran its course" : "No tested signal") + '</span>';
-  const sub = c && c.lead ? esc(sigName(c.lead)) + " · " + (c.lead.tier === "Proven" ? "full size" : "half size")
+  const au = c && c.authority;
+  const tag = !c ? '<span class="tier none">Loading the scans</span>' : c.lead ? tierTag("TRADE", P11_TAG.TRADE)
+    : P11_TAG[c.verdict] ? tierTag(c.verdict, P11_TAG[c.verdict])
+    : '<span class="tier none">' + (au && au.status !== "AVAILABLE" ? "No decision authority" : c.conflict ? "Phase 11 decisions disagree" : "No Phase 11 call") + '</span>';
+  const sub = c && c.lead ? esc(sigName(c.lead)) + " · full size"
     : "Chart " + TFN[S.tf] + ": " + LEAN(a).toLowerCase() + " (context only)";
   let h = '<div class="coinid">' + (m && m.image ? '<img src="' + esc(m.image) + '" alt="">' : '<div class="ph">' + esc(S.coin.slice(0, 1)) + '</div>') +
     '<div><div class="sym">' + esc(S.coin) + '</div><div class="nm">' + esc(m ? m.name : "") + (m && m.rank ? " · #" + m.rank : "") + '</div></div></div>' +
@@ -794,12 +801,27 @@ function renderSignals() {
     '<div class="ss">' + state + (small ? '<small>' + small + '</small>' : "") + '</div><div class="st">' + tier + '</div><div class="sr">' + rec + '</div></div>');
   const ran = '<span class="tier none">Ran its course</span>', noSig = (t) => '<span class="tier none">' + (t || "No signal") + '</span>';
   const all = c.signals.concat(c.expired), isLive = (s) => c.signals.includes(s), lead = (s) => s === c.lead ? "lead" : (isLive(s) ? "" : "dim");
+  // the Phase 11 decision: the call's only authority
+  const au = c.authority || {status: "MISSING", candidates: []}, dsub = "v8.decision/1 · makes the call";
+  if (au.status !== "AVAILABLE") {
+    row("", "Phase 11 decision", dsub, esc({MISSING: "Not loaded", STALE: "Stale", MALFORMED: "Malformed"}[au.status] || au.status), esc(au.reason || ""),
+      '<span class="tier bad">No authority</span>', "No call until a current decision loads");
+  } else if (!au.candidates.length) {
+    row("", "Phase 11 decision", dsub, "No directional decision", esc(au.reason || ""), noSig("No call"),
+      'Decision of ' + whenShort(au.as_of) + (au.asset ? ' · asset ' + esc(au.asset.state) : ' · not in discovery'));
+  } else {
+    for (const k of au.candidates) {
+      row(au.trade && k.id === au.trade.id && c.lead ? "lead" : "", "Phase 11 decision", esc(k.strategy), sidePill(k.side) + esc(k.state) + (k.blocking_step ? " at " + esc(k.blocking_step) : ""),
+        esc(k.reasons.join(", ") || "every governed gate passes"), tierTag(k.state, P11_TAG[k.state]),
+        'Decision of ' + whenShort(au.as_of) + ' · policy ' + esc(String(au.policy_hash || "").slice(0, 12)));
+    }
+  }
   // Coin picks swing
   const sw = all.find((s) => s.src === "swing"), swn = c.notes.find((n) => n.src === "swing");
   if (sw) {
     row(lead(sw), "Coin picks swing", "Score 80+, days to weeks", sidePill(sw.side) + 'Score ' + Math.round(sw.score) + (sw.label ? ' · ' + esc(sw.label) : ""),
       isLive(sw) ? esc(sw.planError || (sw.plan ? "Tested entry " + fp(sw.plan.tested.entry) + " at the " + TA.dayTxt(sw.plan.tested.t) + " daily open" : "")) : esc(sw.why),
-      isLive(sw) ? tierTag(sw.tier) : ran, recTxt(sw.rec, "swing") + (sw.rec ? ' <span class="muted">(' + sw.side + 's with a chart score of ' + sw.rec.band + ')</span>' : ""));
+      isLive(sw) ? tierTag(sw.tier, sw.tier + " record") : ran, recTxt(sw.rec, "swing") + (sw.rec ? ' <span class="muted">(' + sw.side + 's with a chart score of ' + sw.rec.band + ')</span>' : ""));
   } else if (swn) {
     const sc = scanOf(S.coin) || {};
     row("dim", "Coin picks swing", "Score 80+, days to weeks", 'Score ' + Math.round(swn.score) + ' for a ' + swn.side + ' · not ready', 'A trade starts at ' + swn.readyAt + '.',
@@ -826,7 +848,7 @@ function renderSignals() {
     const p = ss.plan;
     row(lead(ss), "Smart money", "Proven traders shorting together", sidePill(ss.side) + esc(ss.text),
       isLive(ss) ? (p && p.signal.move != null ? "Signal " + agoS(p.signal.t) + ", " + pct(p.signal.move) + " for the trade since" : "Signal " + agoS(ss.t)) + (ss.cluster >= 3 ? " · " + ss.cluster + " coins at once" : "") : esc(ss.why),
-      isLive(ss) ? tierTag(ss.tier) : ran, recTxt(ss.rec) + (ss.rec && ss.rec.live && ss.rec.live.n ? ' · live: ' + ss.rec.live.n + ' trades' : ' · live record starting'));
+      isLive(ss) ? tierTag(ss.tier, ss.tier + " record") : ran, recTxt(ss.rec) + (ss.rec && ss.rec.live && ss.rec.live.n ? ' · live: ' + ss.rec.live.n + ' trades' : ' · live record starting'));
   } else {
     row("dim", "Smart money", "Proven traders shorting together", SRC.smart ? esc(sn ? sn.text : "No proven-trader crowd") : "Scan not loaded", "",
       sn && sn.side ? noSig("Information") : noSig(), srec ? 'Rule: ' + TA.usd100(srec.per100) + ' per $100 risked over ' + srec.n + ' trades (shorts)' : "");
@@ -836,8 +858,8 @@ function renderSignals() {
   row("dim", "Chart read · " + TFN[S.tf], "Trend, levels, momentum", LEAN(a) + ' · score ' + sgn(a.bias), "", '<span class="tier ctx">Context</span>',
     g ? 'Tested on ' + GATE_TEST.n.toLocaleString("en-US") + ' swing signals: ' + TA.usd100(g.agree[1]) + ' per $100 risked when this read agreed, ' + TA.usd100(g.disagree[1]) + ' when it disagreed. It does not change the call.'
       : 'Its own plans: ' + pct(st.net, 2) + ' a trade after fees over ' + st.trades.toLocaleString("en-US") + ' trades (one year). It does not change the call.');
-  $("#signals").innerHTML = '<h2>What decides the call on ' + esc(S.coin) + ' <span class="small muted" style="font-weight:500">every tested signal, with its record after fees</span></h2>' +
-    '<div class="sgrid">' + rows.join("") + '</div><p class="signote">Records come from tests on past data after fees; live results will differ. Proven: made money overall and in every test year. Promising or mixed: half size.</p>';
+  $("#signals").innerHTML = '<h2>The call on ' + esc(S.coin) + ' <span class="small muted" style="font-weight:500">the Phase 11 decision, then every legacy signal as context</span></h2>' +
+    '<div class="sgrid">' + rows.join("") + '</div><p class="signote">Only the Phase 11 decision makes, sizes or blocks the call. Legacy records come from tests on past data after fees; they are context only, size nothing and cannot change the call.</p>';
 }
 const DEX = {HL: "Hyperliquid", VR: "Variational", AS: "Aster", EG: "edgeX", LT: "Lighter", DY: "dYdX", PX: "Paradex", EX: "Extended"};
 function venuesTxt() {
@@ -1004,23 +1026,6 @@ document.querySelectorAll(".tg").forEach((b) => b.addEventListener("click", () =
 }));
 
 // ---- plan
-// the chart read's own plans: only shown, folded away, as untested risk control when there is no call
-function levelRows(p) {
-  const L = p.side === "long", px = A().price;
-  const away = p.entry === px ? "at the current price" : (Math.abs(p.entry / px - 1) * 100).toFixed(2) + "% " + (p.entry > px ? "above" : "below") + " the price";
-  let h = '<div class="lvls">' +
-    '<div class="lv entry"><span class="k">Entry</span><span class="p">' + fp(p.entry) + '<small>' + esc(away) + '</small></span><span class="r">' + (p.order === "market" ? "Market" : p.order === "limit" ? "Limit" : "Stop order") + '</span></div>' +
-    '<div class="lv stop"><span class="k">Stop</span><span class="p">' + fp(p.stop) + '<small>' + esc(p.invalid) + '</small></span><span class="r neg">' + (L ? "−" : "+") + (p.stopPct * 100).toFixed(2) + '%</span></div>';
-  p.targets.forEach((t, i) => {
-    h += '<div class="lv tgt"><span class="k">T' + (i + 1) + '</span><span class="p">' + fp(t.price) + '<small>' + esc(t.why) + '</small></span><span class="r"><b>' + t.rr.toFixed(1) + 'R</b><br><span class="pos">' + pct(t.pct, 2) + '</span></span></div>';
-  });
-  return h + '</div>';
-}
-function planCard(p) {
-  const L = p.side === "long";
-  return '<div class="cond"><h2><span class="small muted" style="font-weight:600">' + (L ? "Long idea" : "Short idea") + '</span><span class="pill ' + p.side + '">' + (L ? "LONG" : "SHORT") + '</span>' + esc(p.type) + '</h2>' +
-    levelRows(p) + '<p class="small muted" style="margin:6px 0 0">Size at your risk: ' + money(p.size) + ' (' + p.lev.toFixed(1) + 'x).</p></div>';
-}
 function acctInputs() {
   return '<div class="acctrow"><label>Account $<input id="acctIn" type="number" min="10" step="10" value="' + acct() + '"></label><label>Risk %<input id="riskIn" type="number" min="0.1" max="10" step="0.1" value="' + (riskPct() * 100).toFixed(1).replace(/\.0$/, "") + '"></label></div>';
 }
@@ -1049,7 +1054,7 @@ function testedPlanCard(c) {
   const refTxt = ref ? esc(ref.lbl) + " " + fp(ref.px) + " (" + whenShort(ref.t) + "), " + pct(ref.move) + " for the trade since" : p.kind === "quant" && p.desk.pending ? "The desk enters at the next open" : "";
   const cap = (x) => x.charAt(0).toUpperCase() + x.slice(1);
   let h = '<h2><span class="pill ' + p.side + '">' + (L ? "LONG" : "SHORT") + '</span>' + esc(title) + '</h2>' +
-    '<div class="subhead">' + tierTag(s.tier) + ' ' + (s.tier === "Proven" ? "Full size." : "Half size until it is proven.") + ' The exits it was tested with.</div>';
+    '<div class="subhead">' + tierTag("TRADE", P11_TAG.TRADE) + ' Full size at your chosen risk. The desk\'s own exits.</div>';
   h += '<div class="lvls">' +
     '<div class="lv entry"><span class="k">Entry</span><span class="p">' + fp(p.entry) + '<small>' + refTxt + '</small></span><span class="r">Market</span></div>' +
     '<div class="lv stop"><span class="k">Stop</span><span class="p">' + fp(p.stop) + '<small>' + esc(stopWhy(s, p)) + '</small></span><span class="r neg">' + (L ? "−" : "+") + (p.stopPct * 100).toFixed(2) + '%</span></div>' +
@@ -1062,7 +1067,7 @@ function testedPlanCard(c) {
     (p.lev > 10 ? ' <b class="neg">Over 10x: use a smaller risk or skip it.</b>' : "") + '</div>' + acctInputs() + '</div>';
   if (s.rec) h += '<div class="note info"><b>' + Math.round(s.rec.win * 100) + '% of these trades won in the test.</b> ' + (c.lossRun ? 'Runs of about ' + c.lossRun + ' losses in a row are normal over 20 trades. ' : '') +
     'Keep the stop, skip early profit-taking and risk the same share every time: that is the trade the record counts.</div>';
-  if (c.against.length) h += '<div class="note"><b>Against it:</b> ' + c.against.map((x) => esc(sigName(x) + " " + x.side + " (" + x.tier.toLowerCase() + ")")).join(", ") + '. It has the weaker record, so it does not change the call.</div>';
+  if (c.against.length) h += '<div class="note"><b>Legacy context against it:</b> ' + c.against.map((x) => esc(sigName(x) + " " + x.side + " (" + x.tier.toLowerCase() + ")")).join(", ") + '. Legacy signals do not change the Phase 11 call.</div>';
   if (s.src === "smart" && s.cluster >= 3) h += '<div class="note"><b>' + s.cluster + ' smart-money signals at once.</b> These coins usually move together: treat them as one bet on the market falling and split this risk between them if you take several.</div>';
   return h;
 }
@@ -1071,28 +1076,25 @@ function leftTxt(t) {
   return s <= 0 ? "due" : s >= 2 * 86400 ? Math.round(s / 86400) + " days" : Math.max(1, Math.round(s / 3600)) + " h";
 }
 function waitCard(c) {
-  const a = A();
-  const title = c.conflict ? "Tested signals disagree" : c.expired.length && !c.signals.length ? "The signal ran its course" : "No tested signal";
-  let h = '<h2><span class="pill">WAIT</span>' + title + '</h2><p class="small ink2" style="margin:0 0 6px">' + esc(c.headline) + '</p>';
+  const au = c.authority || {status: "MISSING", candidates: []}, v = c.verdict || "WAIT";
+  const title = v === "WATCH" ? "Phase 11: watch, not a trade" : v === "AVOID" ? "Phase 11: avoid" :
+    au.status !== "AVAILABLE" ? "No decision authority" : au.conflict ? "Phase 11 decisions disagree" : "No Phase 11 call";
+  let h = '<h2><span class="pill">' + esc(v) + '</span>' + esc(title) + '</h2><p class="small ink2" style="margin:0 0 6px">' + esc(c.headline) + '</p>';
   const next = [];
-  if (c.conflict) next.push("The signals on one side ending: a quant desk trade closing, the swing score falling under 80, or the smart-money window passing.");
-  else {
-    if (!c.inScan && PK) next.push(esc(S.coin) + " is not in your DEX scan, so it has no swing score.");
-    for (const n of c.notes) if (n.want) next.push(esc(n.want));
+  for (const k of au.candidates || []) {
+    if (k.state === "WATCH") for (const x of k.to_become_trade) next.push(esc(k.strategy + " " + k.side + " · " + x.step + ": " + TA.codeTxt(x.code)));
+    if (k.state === "AVOID") next.push(esc(k.strategy + " " + k.side + " · rejected at " + k.blocking_step + ": " + k.reasons.join(", ")));
   }
-  for (const s of c.expired) next.push(esc(s.name + ": " + s.why));
-  if (next.length) h += '<h3>What would make it a trade</h3><ul class="next">' + next.map((x) => '<li>' + x + '</li>').join("") + '</ul>';
-  const ideas = a.side ? [a.plans[0], a.alt] : [a.plans[0], a.plans[1]];
-  h += '<details class="alt"><summary>Chart levels if you trade it anyway (untested)</summary><p class="small ink2" style="margin:8px 0 0">The chart read\'s own plans broke even before fees in our test and lost money after them. Use these only as risk control: where an idea is wrong, and how big to go.</p>' +
-    ideas.filter(Boolean).map(planCard).join("") + '</details>';
+  if (next.length) h += '<h3>' + (v === "WATCH" ? "What Phase 11 needs before it can be a trade" : "Why Phase 11 rejects it") + '</h3><ul class="next">' + next.map((x) => '<li>' + x + '</li>').join("") + '</ul>';
+  h += '<p class="small muted" style="margin:8px 0 0">No plan and no size: only a current Phase 11 TRADE gets one. The legacy signals and the chart read are context only.</p>';
   return h;
 }
 function renderPlan() {
   const c = S.call;
   let h;
   if (c && c.lead && c.plan) h = testedPlanCard(c);
-  else if (c && c.lead) h = '<h2><span class="pill ' + c.side + '">' + c.verdict + '</span>' + esc(sigName(c.lead)) + '</h2><div class="subhead">' + tierTag(c.lead.tier) + '</div><div class="note">' + esc(c.lead.planError || "The plan could not be built.") + '</div>';
-  else h = waitCard(c || {notes: [], expired: [], signals: [], headline: "Loading the scans…", conflict: false, inScan: true});
+  else if (c && c.lead) h = '<h2><span class="pill ' + c.side + '">' + c.verdict + '</span>' + esc(sigName(c.lead)) + '</h2><div class="subhead">' + tierTag("TRADE", P11_TAG.TRADE) + '</div><div class="note">' + esc(c.lead.planError || "The plan could not be built.") + '</div>';
+  else h = waitCard(c || {verdict: "WAIT", headline: "Loading the scans…", authority: {status: "MISSING", candidates: []}});
   h += '<div class="btnrow"><button class="btn" type="button" id="copyPlan">Copy plan</button><button class="btn" type="button" id="reload">Re-analyze</button>' +
     (c && c.lead ? '<a class="btn" href="' + PAGE_OF[c.lead.src] + '">' + esc(c.lead.name) + ' page</a>' : "") + '</div>';
   $("#plan").innerHTML = h;
@@ -1108,7 +1110,7 @@ function planText() {
   const utc = (t) => new Date(t * 1000).toISOString().slice(0, 16).replace("T", " ") + " UTC";
   if (c && c.lead && c.plan) {
     const s = c.lead, p = c.plan, L = p.side === "long";
-    lines.push(S.coin + " · " + c.verdict + " · " + s.tier + " signal: " + sigName(s) + ". " + s.text + ".");
+    lines.push(S.coin + " · " + c.verdict + " · Phase 11 TRADE: " + sigName(s) + ". " + s.text + ".");
     if (s.rec) lines.push("Tested: " + TA.recordTxt(s.rec) + (s.rec.period ? " (" + s.rec.period + ")" : "") + ".");
     lines.push((L ? "Buy" : "Sell") + " at market, near " + fp(p.entry));
     lines.push("Stop " + fp(p.stop) + " (" + (L ? "−" : "+") + (p.stopPct * 100).toFixed(2) + "%): " + stopWhy(s, p).replace(/^./, (m) => m.toLowerCase()));
@@ -1117,7 +1119,7 @@ function planText() {
     lines.push("No profit target.");
     lines.push("Size " + money(p.size) + " (" + p.lev.toFixed(1) + "x), risk " + money2(p.riskUsd) + (p.riskShare < 1 ? " (half size)" : "") + ".");
   } else {
-    lines.push(S.coin + " · WAIT. " + (c ? c.headline : ""));
+    lines.push(S.coin + " · " + (c ? c.verdict : "WAIT") + ". No trade. " + (c ? c.headline : ""));
   }
   lines.push("— Perp DEX Radar analyzer, " + utc(Date.now() / 1000) + ". Not financial advice.");
   return lines.join("\n");
@@ -1275,20 +1277,20 @@ function aiForm(prov) {
 function aiPayload() {
   const a = A(), c = S.call, r2 = (x) => x == null ? null : +TA.fmtPrice(x);
   const rec = (r) => r ? {trades: r.n, win_rate: +r.win.toFixed(3), usd_per_100_risked: r.per100, period: r.period} : null;
-  const sig = (s) => ({source: sigName(s), side: s.side, tier: s.tier, signal: s.text, tested_record: rec(s.rec)});
+  const sig = (s) => ({source: sigName(s), side: s.side, legacy_label: s.tier, signal: s.text, legacy_record: rec(s.rec)});
   const p = c && c.plan, ld = c && c.lead;
   const plan = p && ld ? {side: p.side, order: "market", entry: r2(p.entry), stop: r2(p.stop), stop_pct: +(p.stopPct * 100).toFixed(2), stop_basis: stopWhy(ld, p),
     trailing_stop: p.trail > 0 ? {distance: r2(p.trail), pct: +(p.trailPct * 100).toFixed(2), rule: trailWhy(ld, p)} : null,
     exit_by_utc: new Date(p.exitBy * 1000).toISOString().slice(0, 16).replace("T", " "), exit_rule: exitWhy(ld, p), profit_target: "none (the tested exits let winners run)",
     size_usd: Math.round(p.size), leverage: +p.lev.toFixed(1), risk_usd: +p.riskUsd.toFixed(2), half_size: p.riskShare < 1} : null;
-  const cp = (x) => x && {side: x.side, setup: x.type, entry: r2(x.entry), stop: r2(x.stop), targets: x.targets.map((t) => r2(t.price))};
   return {
     coin: S.coin, price: r2(a.price), exchange: S.data.exchange, change_24h_pct: +(a.chgDay * 100).toFixed(2),
-    call: c ? {verdict: c.verdict, tier: c.tier, headline: c.headline, tested_signals_disagree: c.conflict} : null,
+    call: c ? {verdict: c.verdict, authority: "Phase 11 decision (v8.decision/1)", authority_status: c.authority ? c.authority.status : "MISSING",
+      headline: c.headline, phase11_decisions_disagree: c.conflict,
+      phase11_decisions: ((c.authority && c.authority.candidates) || []).map((k) => ({strategy: k.strategy, side: k.side, state: k.state, rejected_at: k.blocking_step, reasons: k.reasons}))} : null,
     plan,
-    tested_signals: c ? c.signals.map(sig) : [], signals_that_ran_their_course: c ? c.expired.map((s) => ({source: sigName(s), side: s.side, why: s.why})) : [],
+    legacy_signals_context_only: c ? c.signals.map(sig) : [], legacy_signals_that_ran_their_course: c ? c.expired.map((s) => ({source: sigName(s), side: s.side, why: s.why})) : [],
     not_signals: c ? c.notes.map((n) => n.text) : [],
-    expected_losing_run: c && c.lossRun ? c.lossRun + " losses in a row are normal over 20 trades" : null,
     chart_read_context: {
       note: "Context only. In a 3-year test of 5,453 swing signals, trades did as well or better when the chart read disagreed, so it never changes the call.",
       timeframe: TA.TF_LABEL[S.tf], lean: a.side || "none", score: a.bias,
@@ -1296,7 +1298,7 @@ function aiPayload() {
       score_parts: a.parts.map((x) => ({name: x.name, points: x.pts, why: x.why})),
       support_zones: a.zones.support.map((z) => ({from: r2(z.lo), to: r2(z.hi), sources: z.src})),
       resistance_zones: a.zones.resistance.map((z) => ({from: r2(z.lo), to: r2(z.hi), sources: z.src})),
-      written_read: a.text, untested_chart_plans: c && !c.lead ? (a.side ? [cp(a.plans[0]), cp(a.alt)] : [cp(a.plans[0]), cp(a.plans[1])]) : undefined,
+      written_read: a.text,
     },
     fundamentals: S.meta && !S.meta.mismatch ? {market_cap: S.meta.mc, fdv: S.meta.fdv, rank: S.meta.rank, circulating_share: S.meta.circ && (S.meta.max || S.meta.total) ? +(S.meta.circ / (S.meta.max || S.meta.total)).toFixed(2) : null, pct_from_ath: S.meta.athPct} : null,
     sentiment: S.sent ? {score: S.sent.score, label: S.sent.label, partial: !!S.sent.partial, stocktwits: S.sent.stocktwits || null, reddit: S.sent.reddit || null, news_count: S.sent.news ? S.sent.news.n : null, headlines: S.sent.news && S.sent.news.top ? S.sent.news.top.map((x) => x.title) : []} : null,
@@ -1305,11 +1307,11 @@ function aiPayload() {
 }
 const AI_SYSTEM = "You are a senior crypto derivatives trader writing a short desk note for a trader who will act on it today. " +
   "Use ONLY the numbers in the JSON you are given; never invent prices, levels, news, indicators or records. " +
-  "The call (LONG, SHORT or WAIT) and the plan come only from signals that made money in back-tests, each with the exits it was tested with. Repeat the plan exactly: never change the entry, stop, trailing stop, time limit or size, and never add profit targets. " +
-  "The chart read is context only (in a 3-year test it did not make the calls better): use it to say where the price sits and which levels matter, never to argue for a different call. " +
-  "For WAIT, say plainly that nothing tested points either way and list what would make it a trade; you may mention the untested chart levels only as risk control. " +
-  "Be direct, plain English, short sentences, no hype, no emojis. Format in Markdown with these sections: '## Bottom line' (two sentences: the call and the main reason), '## The trade' (bullets with the plan exactly as given, or 'No trade' for WAIT), " +
-  "'## Why' (3 to 5 bullets, the tested signal and its record first), '## What would make me wrong' (2 to 3 bullets), '## Managing it' (2 to 3 bullets: follow the tested exits, expect the losing runs). Maximum 300 words. End with the line: Not financial advice.";
+  "The call (LONG, SHORT, WATCH, AVOID or WAIT) comes only from the Phase 11 decision engine, and a plan exists only for a Phase 11 TRADE. Repeat the plan exactly: never change the entry, stop, trailing stop, time limit or size, and never add profit targets. " +
+  "The legacy signals and the chart read are context only: use them to say where the price sits and which levels matter, never to argue for a call, a direction, an entry, a stop or a size. " +
+  "For WATCH, AVOID or WAIT, say plainly that there is no trade, give the Phase 11 reason exactly as given, and never suggest an entry, a stop, a size or a direction. " +
+  "Be direct, plain English, short sentences, no hype, no emojis. Format in Markdown with these sections: '## Bottom line' (two sentences: the call and the main reason), '## The trade' (bullets with the plan exactly as given, or 'No trade' for WATCH, AVOID or WAIT), " +
+  "'## Why' (3 to 5 bullets, the Phase 11 decision and its reason first), '## What would make me wrong' (2 to 3 bullets), '## Managing it' (2 to 3 bullets: follow the desk's exits, or what to monitor when there is no trade). Maximum 300 words. End with the line: Not financial advice.";
 function mdLite(s) {
   const lines = esc(s).split(/\r?\n/), out = [];
   let inList = false;

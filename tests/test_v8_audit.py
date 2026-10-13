@@ -55,7 +55,9 @@ from v8 import taxonomy as T  # noqa: E402
 # manifests and their goldens are kept for the record and still checked for consistency below: the Phase 3, closure
 # and Phase 4 identity states are the v8.identity/2 states (this run's contracts replayed under the /2 rules), the
 # Phase 5 states are the v8.identity/3 states, which this run's audit records per asset as `previous`.
-GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase9.json")
+GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase11.json")
+PHASE9_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase9.json")
+ANALYZER_CUTOVER = ("analyze.html", "analyze.js")     # Phase 11 correction: the only legacy files that changed
 PHASE7_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase7.json")
 PHASE6_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase6.json")
 PHASE7_MANIFEST = os.path.join(HERE, "fixtures", "v8", "phase7_expected_deltas.json")
@@ -127,6 +129,11 @@ class PipelineAudit(unittest.TestCase):
         self.assertEqual(diffs, [], "legacy outputs changed:\n" + "\n".join(diffs))
         self.assertEqual(self.summary["combined"], golden["combined"])
         self.assertGreaterEqual(len(golden["files"]), 20)
+        with open(PHASE9_GOLDEN) as fh:                       # historical: Phase 9 -> Phase 11 is the Analyzer cutover only
+            p9 = json.load(fh)
+        self.assertEqual(sorted(f for f in set(p9["files"]) | set(golden["files"])
+                                if p9["files"].get(f) != golden["files"].get(f)), list(ANALYZER_CUTOVER))
+        self.assertEqual((p9["decisions"], p9["audit_files"]), (golden["decisions"], golden["audit_files"]))
 
     def test_base_golden_and_manifest_are_the_phase_base(self):
         with open(BASE_GOLDEN) as fh:
@@ -240,7 +247,7 @@ class PipelineAudit(unittest.TestCase):
     def test_candidate_evidence_is_traced_never_authority(self):
         """v8 Phase 4: the snapshot carries every contract's observed candidate evidence apart from its authoritative
         evidence, and counts it; no candidate rule is qualified."""
-        self.assertEqual(self.snap["manifest"]["audit_version"], "v8-phase10.0")
+        self.assertEqual(self.snap["manifest"]["audit_version"], "v8-phase11.0")
         self.assertIn("candidate", SN.CONTRACT_FIELDS)
         self.assertTrue({"wrapper", "xcheck"} <= set(SN.CONTRACT_FIELDS))
         cc = self.snap["registry"]["counts"]["candidate_evidence"]
@@ -766,7 +773,7 @@ class PipelineAudit(unittest.TestCase):
                     self.assertIn(x, T.STEPS)
                 self.assertNotIn(r["c"], T.RETIRED, (e, a))
         self.assertNotIn("FILTERED", T.REASONS)
-        self.assertEqual(self.snap["schema"], "v8.audit/9")
+        self.assertEqual(self.snap["schema"], "v8.audit/10")
         self.assertEqual(self.snap["manifest"]["identity_version"], "v8.identity/4")
         self.assertEqual(len(self.snap["manifest"]["identity_config_hash"]), 64)
         self.assertEqual(self.snap["manifest"]["liquidity_version"], "v8.liquidity/1")

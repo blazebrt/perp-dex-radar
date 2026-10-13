@@ -234,7 +234,78 @@ def quant_part(now, universe, coins, got, data, daily, lastd, new, open_trades, 
     # v8 Phase 10: the governed portfolio-risk evaluation of the actionable open positions (observational)
     part["portfolio_risk"] = portfolio_risk_part(now, universe, daily, open_trades, blocked_open, journal, cfg,
                                                  sc.CFG["trade_dexes"])
+    # v8 Phase 11: what the decision engine consumes at snapshot time (observational; nothing is read back)
+    part["decision_inputs"] = decision_inputs_part(q, now, universe, data, daily, feats, xs_dir, lastd, new, open_trades,
+                                                   blocked_open, journal, cfg, sc.CFG["trade_dexes"])
     return part
+
+
+def signal_states(q, data, feats, xs_dir, lastd, new):
+    """{coin: [signal]}: every deployment-enabled strategy's current signal at the latest closed bar, computed with
+    quant.py's own functions (trend_feats/sig_trend_ema, sig_tsmom, xs_scores/_stop) exactly as this audit already
+    evaluates them; a signal that opened a paper trade this scan is kind NEW, any other current one ACTIVE. Only the
+    strategies quant.py runs (RUNTIME_ORDER) are evaluated: a disabled strategy has no live signal."""
+    out = {}
+
+    def put(t, sid, d, stop, trail, bar_close, kind, trade_id=None):
+        lst = out.setdefault(t, [])
+        for x in lst:
+            if x["strategy"] == sid and x["direction"] == d:
+                if kind == "NEW":
+                    x.update(kind=kind, bar_close_t=int(bar_close), stop_pct=stop, trail_pct=trail, trade_id=trade_id)
+                return
+        lst.append({"strategy": sid, "direction": d, "stop_pct": stop, "trail_pct": trail,
+                    "bar_close_t": int(bar_close), "kind": kind, "trade_id": trade_id})
+    if "TREND_EMA" in q.RUNTIME_ORDER:
+        for t in sorted(data):
+            c4 = data[t]["c4"]
+            j = len(c4) - 1
+            if j >= 1 and q.eligible(c4, j, c4[j]["t"]):
+                s = q.sig_trend_ema(q.trend_feats(c4), j)
+                if s:
+                    put(t, "TREND_EMA", s[0], s[1], s[2], c4[j]["t"] + q.B4, "ACTIVE")
+    if lastd is not None and "TSMOM" in q.RUNTIME_ORDER:
+        for t in sorted(feats):
+            f = feats[t]
+            s = q.sig_tsmom(f, len(f["c"]) - 1)
+            if s:
+                put(t, "TSMOM", s[0], s[1], s[2], lastd + q.DAY, "ACTIVE")
+    if lastd is not None and "XSMOM" in q.RUNTIME_ORDER:
+        p = q.STRATS["XSMOM"]["params"]
+        for t in sorted(xs_dir):
+            f = feats[t]
+            stop = q._stop(f["c"][-1], f["atr"][-1], p["stop_k"])
+            if stop:
+                put(t, "XSMOM", xs_dir[t], stop, 0.0, lastd + q.DAY, "ACTIVE")
+    for tr in new:
+        put(tr["c"], tr["s"], tr["d"], tr["stop_pct"], tr["trail_pct"], tr["t_sig"], "NEW", tr.get("id"))
+    return {t: sorted(v, key=lambda x: (x["strategy"], x["direction"])) for t, v in sorted(out.items())}
+
+
+def decision_inputs_part(q, now, universe, data, daily, feats, xs_dir, lastd, new, open_trades, blocked_open, journal,
+                         cfg, trade_dexes):
+    """The quant-side inputs of the Phase 11 decision engine: the current signals, the Phase 10 whole-book portfolio
+    input (with the closed daily bars of every signalled asset, so a proposal's dependence can be evaluated), the
+    strategies' timeframe and holding horizon, the page sizing and the trade DEXs. Never raises."""
+    from . import portfolio_risk as PR
+    try:
+        policy = PR.load_policy()
+        market = policy["dependence"]["market_asset"]["value"]
+        bars = policy["dependence"]["lookback_bars"]["value"] + 2
+        sig = signal_states(q, data, feats, xs_dir, lastd, new)
+        pf = PR.live_portfolio(open_trades, universe, daily, now, cfg["account"], cfg["risk"], trade_dexes, None,
+                               market_asset=market, blocked_open=blocked_open)
+        for a in sorted(set(sig) | {market}):
+            if a not in pf["returns"] and (daily or {}).get(a):
+                pf["returns"][a] = [[int(x["t"]), x["c"]] for x in daily[a]]
+        pf["returns"] = {a: v[-bars:] for a, v in sorted(pf["returns"].items())}
+        strategies = {sid: {"tf": v.get("tf"), "hold_h": (v.get("params") or {}).get("hold_h")}
+                      for sid, v in q.STRATS.items()}
+        return {"as_of": int(now), "signals": sig, "portfolio": pf, "strategies": strategies,
+                "sizing": dict(pf["sizing"]), "trade_dexes": list(trade_dexes or ()),
+                "runtime_order": list(q.RUNTIME_ORDER)}
+    except Exception as e:  # noqa: BLE001 - the audit must never break the scan
+        return {"error": f"{type(e).__name__}: {e}"[:300]}
 
 
 def portfolio_risk_part(now, universe, daily, open_trades, blocked_open, journal, cfg, trade_dexes):

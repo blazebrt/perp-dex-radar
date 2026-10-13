@@ -109,7 +109,9 @@ class SmartIdentityGate(unittest.TestCase):
         self.assertIn("ETH", D.signals(None, None, None, out))
         if NODE:
             a = node_signals(out, "ETH")
-            self.assertEqual((a["signals"], a["coins"]), (["smart"], ["ETH"]))
+            # v8 Phase 11: the verified signal is still the Analyzer's legacy smart signal (context), but only a Phase 11
+            # TRADE lists a coin as a call, so signalCoins without a decision is empty
+            self.assertEqual((a["signals"], a["coins"]), (["smart"], []))
 
     # ---- UNVERIFIED, VERIFIED_TRADFI, AMBIGUOUS, missing: observable, never actionable
     def check_blocked(self, out, reason, state):

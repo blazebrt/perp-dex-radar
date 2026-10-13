@@ -636,7 +636,7 @@ class Versions(unittest.TestCase):
 
     def test_discovery_and_audit_versions(self):
         from v8 import ENGINE_VERSION, SCHEMA
-        self.assertEqual((DS.VERSION, SCHEMA, ENGINE_VERSION), ("v8.discovery/1", "v8.audit/9", "v8-phase10.0"))
+        self.assertEqual((DS.VERSION, SCHEMA, ENGINE_VERSION), ("v8.discovery/1", "v8.audit/10", "v8-phase11.0"))
         self.assertEqual(provenance.engine_version("discovery"), "v8.discovery/1")
 
 
@@ -705,10 +705,14 @@ class PipelineDiscovery(unittest.TestCase):
         shutil.rmtree(cls.tmp, ignore_errors=True)
 
     def test_legacy_outputs_unchanged(self):
-        for g in ("legacy_parity_golden_phase9.json",):
+        for g in ("legacy_parity_golden_phase11.json",):
             with open(os.path.join(HERE, "fixtures", "v8", g)) as fh:
                 golden = json.load(fh)
             self.assertEqual(self.LP.compare(golden, self.summary), [], g)
+        # historical: against Phase 9's golden, only the Phase 11 Analyzer authority cutover differs
+        with open(os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase9.json")) as fh:
+            p9 = json.load(fh)
+        self.assertEqual(sorted(d.split(":")[0] for d in self.LP.compare(p9, self.summary)), ["analyze.html", "analyze.js"])
         with open(os.path.join(HERE, "fixtures", "v8", "phase7_expected_deltas.json")) as fh:
             man = json.load(fh)
         self.assertEqual((man["base"]["sha"], man["base"]["tree"]),
@@ -755,7 +759,7 @@ class PipelineDiscovery(unittest.TestCase):
         self.assertEqual((p["identity_version"], p["scan_id"], p["identity_config_hash"]),
                          ("v8.identity/4", m["scan_id"], m["identity_config_hash"]))
         self.assertEqual(s["requests"]["discovery_extra"], 0)
-        self.assertEqual(self.snap["schema"], "v8.audit/9")
+        self.assertEqual(self.snap["schema"], "v8.audit/10")
 
     def test_model_eligibility_is_the_engines_ledgers(self):
         led = {e: {x["a"]: x for x in self.snap["dispositions"].get(e) or []} for e in DS.ENGINES}
