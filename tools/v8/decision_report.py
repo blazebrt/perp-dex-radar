@@ -26,7 +26,7 @@ def research_summary(doc):
     directional = [c for c in by_id.values() if c["type"] == "DIRECTIONAL_STRATEGY"]
     return {"schema": doc.get("schema"), "policy_hash": doc.get("policy_hash"),
             "implementation_hash": doc.get("implementation_hash"), "authority": doc.get("authority"),
-            "as_of": doc.get("as_of"), "market_summary": doc.get("market_summary"),
+            "as_of": doc.get("as_of"), "valid_until": doc.get("valid_until"), "market_summary": doc.get("market_summary"),
             "portfolio": doc.get("portfolio"), "changes": {k: v for k, v in (doc.get("changes") or {}).items()
                                                            if k != "changes"},
             "sections": {s: {"count": doc[s]["count"], "items": [brief(i["id"]) for i in doc[s]["items"]],

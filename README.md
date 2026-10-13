@@ -606,6 +606,9 @@ WATCH / AVOID decision for every opportunity and every discovered asset, with up
 (TRADE only, never filled with weaker candidates), up to five Emerging Opportunities and up to five funding
 spreads (both WATCH only), the market summary and a full Decision Trace. It consumes the identity, discovery,
 Phase 9 strategy and Phase 10 portfolio authorities. A legacy-holdover strategy is never TRADE, so with today's
-evidence **zero TRADE is the expected result**. Every rule is a proposed policy (`v8/decision_policy.json`). It is
-audit-only: no trade, page or legacy output changes. See [the Phase 11 design](docs/v8/phase11-decision-engine.md).
+evidence **zero TRADE is the expected result**. Every rule is a reviewed initial policy (`v8/decision_policy.json`,
+`POLICY_REVIEWED_INITIAL_V1`), not an empirically validated one. The Analyzer's call now comes from this decision
+alone: LONG or SHORT only for a current Phase 11 TRADE, WATCH / AVOID / WAIT otherwise with the engine's exact
+reason, and no call when the decision is missing, stale or malformed. Legacy swing, quant and smart-money signals are
+shown as context only. No engine or other page changes. See [the Phase 11 design](docs/v8/phase11-decision-engine.md).
 Phase 12 (the final TODAY and Analyzer experience) is not implemented or authorized.

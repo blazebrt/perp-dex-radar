@@ -39,7 +39,7 @@ VERSION = "v8.decision/1"
 POLICY_VERSION = "v8.decision-policy/1"
 PATH = Path(__file__).with_name("decision_policy.json")
 FILE = "data/v8/decision.json"
-REVIEW_STATUS = "POLICY_PROPOSED_PENDING_REVIEW"
+REVIEW_STATUS = "POLICY_REVIEWED_INITIAL_V1"      # the one accepted review status of v8.decision-policy/1
 TRADE, WATCH, AVOID = "TRADE", "WATCH", "AVOID"
 STATES = (TRADE, WATCH, AVOID)
 STATE_ORDER = {TRADE: 0, WATCH: 1, AVOID: 2}
@@ -131,7 +131,9 @@ def validate_policy(policy):
             raise PolicyError("DECISION_POLICY_INVALID: " + why)
     need(isinstance(policy, dict) and policy.get("schema") == POLICY_VERSION, "schema")
     need(set(policy) == {"schema", "review_status", "statement", *SECTION_KEYS}, "top-level keys")
-    need(policy["review_status"] == REVIEW_STATUS, "review_status must be " + REVIEW_STATUS)
+    # exactly the reviewed status: the old pending status, a free-form or "validated" label, or an empty one is refused
+    need(isinstance(policy["review_status"], str) and policy["review_status"] == REVIEW_STATUS,
+         "review_status must be " + REVIEW_STATUS)
     need(isinstance(policy["statement"], str) and bool(policy["statement"].strip()), "statement")
     for sec, keys in SECTION_KEYS.items():
         need(isinstance(policy[sec], dict) and set(policy[sec]) == set(keys), sec + " keys")
@@ -346,6 +348,34 @@ def _freshness(snap, policy):
     return stale
 
 
+def _horizon(snap, policy):
+    """Until when the document's inputs stay within freshness.max_input_age_s: the engine's own INPUT_STALE rule
+    evaluated at a later time (every declared input time, and the decision time itself, plus max_input_age_s)."""
+    ts = [t for t in (snap.get("inputs_as_of") or {}).values() if _int(t)]
+    return min([snap["as_of"]] + ts) + _v(policy, "freshness", "max_input_age_s")
+
+
+def _valid_until(cand, snap, policy):
+    """Until when a decision's time-bound inputs, as its trace records them, stay within their policy ages: the
+    document horizon, the signal's max_age_s for its timeframe and every used funding observation's max_rate_age_s.
+    A consumer (the Analyzer) must treat the decision as stale after it and fail closed; nothing is re-decided."""
+    rate_age = _v(policy, "funding", "max_rate_age_s")
+    until = [_horizon(snap, policy)]
+    if cand["type"] == DIRECTIONAL:
+        s = next((g["input"] for g in cand["trace"] if g["step"] == "SIGNAL" and isinstance(g["input"], dict)
+                  and "bar_close_t" in g["input"]), {})
+        tf = s.get("timeframe")
+        ma = _v(policy, "signal", "max_age_s").get(tf) if isinstance(tf, str) else None
+        if _int(s.get("bar_close_t")) and ma is not None:
+            until.append(s["bar_close_t"] + ma)
+        until += [o["received_ts"] + rate_age for o in (cand.get("funding") or {}).get("observations") or []
+                  if _int(o.get("received_ts"))]
+    elif cand["type"] == FUNDING:
+        until += [leg["received_ts"] + rate_age for leg in (cand.get("legs") or {}).values()
+                  if _int(leg.get("received_ts"))]
+    return min(until)
+
+
 def _resolve(gates, max_state):
     fails = [g for g in gates if g["result"] == FAIL]
     if fails:
@@ -547,18 +577,27 @@ def _emerging(asset, rec, base, directional, policy):
 
 
 def _funding_spread(asset, rec, base, snap, policy):
-    obs = _funding_obs(asset, snap, policy)
+    fresh = _funding_obs(asset, snap, policy)
+    # Pair eligibility: a leg is an active, admitted trade-DEX perp with fresh venue-reported funding AND a HEALTHY
+    # contract. An unhealthy contract is never a candidate leg (it cannot be chosen and then merely flagged), so a
+    # degraded venue with an extreme rate cannot hijack the pair. Fewer than two healthy venues: no spread at all
+    # (never a zero or "no spread" finding, never stale funding, a default rate or journal funding in its place).
+    obs = [o for o in fresh if o["health"] == HEALTHY]
     if len({o["venue"] for o in obs}) < 2:
         return None
     long_ = min(obs, key=lambda o: (o["rate_8h"], o["venue"] or ""))
     short = max([o for o in obs if o["venue"] != long_["venue"]], key=lambda o: (o["rate_8h"], o["venue"] or ""))
     spread = short["rate_8h"] - long_["rate_8h"]
     gates = copy.deepcopy(base)
-    legs = {"long": {k: long_[k] for k in ("venue", "contract", "rate_8h", "interval_h", "received_ts", "volume", "price")},
-            "short": {k: short[k] for k in ("venue", "contract", "rate_8h", "interval_h", "received_ts", "volume", "price")}}
-    gates.append(_gate("SIGNAL", {"spread_8h": spread, "legs": [long_["venue"], short["venue"]]},
-                       "a positive funding differential between two trade-DEX venues", PASS if spread > 0 else FAIL,
-                       None if spread > 0 else "NO_FUNDING_SPREAD"))
+    legs = {"long": {k: long_[k] for k in ("venue", "contract", "rate_8h", "interval_h", "received_ts", "volume", "price",
+                                           "health")},
+            "short": {k: short[k] for k in ("venue", "contract", "rate_8h", "interval_h", "received_ts", "volume", "price",
+                                            "health")}}
+    gates.append(_gate("SIGNAL", {"spread_8h": spread, "legs": [long_["venue"], short["venue"]],
+                                  "eligible_venues": sorted({o["venue"] for o in obs}),
+                                  "unhealthy_excluded": sorted({o["venue"] for o in fresh if o["health"] != HEALTHY})},
+                       "a positive funding differential between two healthy trade-DEX venues",
+                       PASS if spread > 0 else FAIL, None if spread > 0 else "NO_FUNDING_SPREAD"))
     gates.append(_gate("STRATEGY_AUTHORITY", None, "no research authority for funding-spread persistence: at most WATCH",
                        CAP, "FUNDING_SPREAD_RESEARCH_AUTHORITY_MISSING"))
     thr = ((rec or {}).get("execution_liquidity") or {}).get("threshold")
@@ -574,11 +613,9 @@ def _funding_spread(asset, rec, base, snap, policy):
         else:
             leg_ok.append((side, PASS, None))
         slips[side] = PR.slippage_tier(vol, prpol) if _num(vol) else None
-        if o["health"] != HEALTHY:
-            leg_ok.append((side, MISSING, "LEG_VENUE_DEGRADED"))
     worst = FAIL if any(r == FAIL for _, r, _ in leg_ok) else MISSING if any(r == MISSING for _, r, _ in leg_ok) else PASS
     gates.append(_gate("EXECUTION_LIQUIDITY", {"legs": leg_ok, "threshold": thr},
-                       "both legs' own venue volume >= the execution threshold, both contracts healthy", worst,
+                       "both legs' own venue volume >= the execution threshold (both legs are healthy contracts)", worst,
                        next((c for _, r, c in leg_ok if r == worst and c), None)))
     costs = (2 * (fee + slips["long"]) + 2 * (fee + slips["short"])
              if slips["long"] is not None and slips["short"] is not None else None)
@@ -635,6 +672,8 @@ def _evaluate_asset(asset, rec, snap, policy):
         f = _funding_spread(asset, rec, base, snap, policy)
         if f:
             opps.append(_finish(f, policy))
+    for c in opps:
+        c["valid_until"] = _valid_until(c, snap, policy)
     opps.sort(key=lambda c: c["id"])
     best = min((c["state"] for c in opps), key=lambda s: STATE_ORDER[s]) if opps else AVOID
     asset_blockers = [g["code"] for g in base if g["result"] in (FAIL, MISSING) and g["code"]]
@@ -790,7 +829,8 @@ def evaluate_asset(snapshot, asset, policy=None):
     policy, snap, recs = _context(snapshot, policy)
     record, opps = _evaluate_asset(asset, recs.get(asset), snap, policy)
     return _clean({"schema": VERSION, "policy_hash": policy_hash(policy), "implementation_hash": implementation_hash(),
-                   "as_of": snap["as_of"], "asset": record, "opportunities": opps})
+                   "as_of": snap["as_of"], "valid_until": _horizon(snap, policy), "asset": record,
+                   "opportunities": opps})
 
 
 def authority(snap, policy):
@@ -853,6 +893,7 @@ def build(snapshot, policy=None):
                "zero_trade": states[TRADE] == 0}
     doc = {"schema": VERSION, "policy_schema": POLICY_VERSION, "policy_hash": info["policy_hash"],
            "implementation_hash": implementation_hash(), "as_of": snap["as_of"],
+           "valid_until": _horizon(snap, policy),
            "authority": authority(snap, policy), "inputs": snap.get("input_provenance"),
            "best_trades_now": sections["best_trades_now"], "emerging_opportunities": sections["emerging_opportunities"],
            "funding_opportunities": sections["funding_opportunities"], "portfolio": portfolio,
@@ -865,6 +906,8 @@ def build(snapshot, policy=None):
                                      AVOID: "do not take this opportunity now under the governed rules (a current "
                                             "decision, not a permanent verdict on the asset)"},
                           "gate_results": EFFECT_TEXT, "trace_steps": list(TRACE_STEPS) + list(PLACEMENT_STEPS),
+                          "valid_until": "after this time the decision's inputs exceed their policy ages (freshness, "
+                                         "signal age, funding age): a consumer must treat it as stale and fail closed",
                           "execution": "NONE: nothing here places, sizes for real money or ranks a trade for execution"}}
     return _clean(doc)
 
@@ -880,7 +923,7 @@ def summary(doc):
             blockers[b] = blockers.get(b, 0) + 1
     return {"schema": VERSION, "status": "OK", "policy_schema": doc["policy_schema"], "policy_hash": doc["policy_hash"],
             "implementation_hash": doc["implementation_hash"], "authority_hash": doc["authority"]["authority_hash"],
-            "as_of": doc["as_of"], "market_summary": doc["market_summary"],
+            "as_of": doc["as_of"], "valid_until": doc.get("valid_until"), "market_summary": doc["market_summary"],
             "section_counts": {s: doc[s]["count"] for s in SECTIONS}, "top_selections": top,
             "blockers": dict(sorted(blockers.items(), key=lambda kv: (-kv[1], kv[0]))[:20]),
             "degraded_authorities": doc["market_summary"]["major_missing_authorities"],

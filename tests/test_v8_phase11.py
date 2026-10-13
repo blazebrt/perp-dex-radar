@@ -129,17 +129,49 @@ def steps(c):
     return {g["step"]: g for g in c["trace"]}
 
 
+# The reviewed Phase 11 policy values (states, gates, sections, ranking rules): the independent review approved them
+# unchanged. Only the review status and its statement changed in the correction; any value change fails here.
+REVIEWED_VALUES_DIGEST = "2c788403b1f4f65f4d591a1075aeebceba24782d94d28a725a47f9cb19df8914"
+
+
 class Policy(unittest.TestCase):
-    def test_policy_is_governed_and_proposed(self):
+    def test_policy_is_governed_and_reviewed(self):
         p = DE.load_policy()
-        self.assertEqual((p["schema"], p["review_status"]), ("v8.decision-policy/1", "POLICY_PROPOSED_PENDING_REVIEW"))
+        self.assertEqual((p["schema"], p["review_status"]), ("v8.decision-policy/1", "POLICY_REVIEWED_INITIAL_V1"))
+        self.assertEqual(DE.REVIEW_STATUS, "POLICY_REVIEWED_INITIAL_V1")
         for sec in DE.SECTION_KEYS:
             for k, e in p[sec].items():
                 self.assertEqual(e["basis"], "POLICY", f"{sec}.{k}")
-        self.assertIn("none is learned, fitted, optimized or statistically validated", p["statement"].lower())
-        for claim in ("is validated", "is optimized", "is backtested", "is proven", "are validated"):
-            self.assertNotIn(claim, p["statement"].lower())
+        st = p["statement"].lower()
+        self.assertIn("none is learned, fitted, optimized or statistically validated", st)
+        self.assertIn("reviewed policy choice", st)
+        for claim in ("is validated", "is optimized", "is backtested", "is proven", "are validated", "empirically validated",
+                      "statistically proven", "are optimized", "were backtested", "is optimal"):
+            self.assertNotIn(claim, st)
         self.assertEqual(DE.policy_hash(p), DE.policy_hash(DE.load_policy()))
+
+    def test_reviewed_values_are_unchanged(self):
+        p = DE.load_policy()
+        self.assertEqual(DE.digest({s: {k: e["value"] for k, e in p[s].items()} for s in DE.SECTION_KEYS}),
+                         REVIEWED_VALUES_DIGEST)
+        self.assertEqual(p["portfolio"]["after_state_effects"]["value"]["APPROACHING_LIMITS"], "CAP_WATCH")
+        self.assertEqual(p["portfolio"]["after_state_effects"]["value"]["LIMIT_BREACHED"], "AVOID")
+
+    def test_review_status_is_exactly_the_reviewed_value(self):
+        good = DE.load_policy()
+        DE.validate_policy(copy.deepcopy(good))
+        for label, value in (("old pending", "POLICY_PROPOSED_PENDING_REVIEW"), ("arbitrary", "REVIEWED_BY_ME"),
+                             ("fake validated", "VALIDATED"), ("empirically", "POLICY_EMPIRICALLY_VALIDATED"),
+                             ("lower case", "policy_reviewed_initial_v1"), ("empty", ""), ("none", None), ("number", 1)):
+            with self.subTest(status=label):
+                p = copy.deepcopy(good)
+                p["review_status"] = value
+                with self.assertRaises(DE.PolicyError):
+                    DE.validate_policy(p)
+        p = copy.deepcopy(good)
+        del p["review_status"]
+        with self.assertRaises(DE.PolicyError):
+            DE.validate_policy(p)
 
     def test_unsafe_or_malformed_policy_is_refused(self):
         good = DE.load_policy()
@@ -164,7 +196,7 @@ class Policy(unittest.TestCase):
             "conflict allowed": lambda q: q["exposure"]["conflict_flags"].update(value=[]),
             "precedence": lambda q: q["states"]["precedence"].update(value=["TRADE", "WATCH", "AVOID"]),
             "empirical basis": lambda q: q["signal"]["max_age_s"].update(basis="EMPIRICALLY_VALIDATED"),
-            "status": lambda q: q.update(review_status="POLICY_REVIEWED_INITIAL_V1"),
+            "status": lambda q: q.update(review_status="POLICY_PROPOSED_PENDING_REVIEW"),
             "extra key": lambda q: q["signal"].update(extra={"value": 1, "basis": "POLICY", "rationale": "x"}),
             "warning as evidence": lambda q: q["emerging"]["warning_flags"]["value"].append("NEW_LISTING"),
             "funding default": lambda q: q["funding"]["venue_rule"].update(value="FUND_DEFAULT"),
@@ -470,8 +502,123 @@ class FundingSpread(unittest.TestCase):
                 self.assertEqual(doc["funding_opportunities"]["count"], 0)
         _, c = self.spread(fund=None)                       # one leg's funding missing: no spread to evaluate
         self.assertIsNone(c)
-        _, c = self.spread(health="STALE")
-        self.assertIn("LEG_VENUE_DEGRADED", c["missing_authorities"])
+
+
+class FundingSpreadHealthyLegs(unittest.TestCase):
+    """Phase 11 correction: health is part of pair eligibility. Only active, admitted, trade-DEX perps with fresh
+    venue-reported funding and a HEALTHY contract can be a leg; an unhealthy one is never chosen and then flagged."""
+    def doc(self, legs, assets=("HI",)):
+        return DE.build(snapshot([rec(a) for a in assets], {}, contracts=legs))
+
+    def spread_of(self, doc, asset="HI"):
+        return next((c for c in doc["candidates"] if c["type"] == DE.FUNDING and c["asset"] == asset), None)
+
+    def healthy_pair(self, asset="HI"):
+        return [contract(asset, "hyperliquid", fund=-0.003, vol=5e6, npx=100.0),
+                contract(asset, "lighter", fund=0.003, vol=5e6, npx=100.1)]
+
+    def test_two_healthy_legs_can_be_a_watch_funding_opportunity(self):
+        doc = self.doc(self.healthy_pair())
+        c = self.spread_of(doc)
+        self.assertEqual(c["state"], DE.WATCH)
+        self.assertEqual({c["legs"]["long"]["health"], c["legs"]["short"]["health"]}, {"HEALTHY"})
+        self.assertEqual([i["id"] for i in doc["funding_opportunities"]["items"]], [c["id"]])
+        self.assertIn("FUNDING_SPREAD_RESEARCH_AUTHORITY_MISSING", c["caps"])          # still capped at WATCH
+        self.assertIn("PORTFOLIO_HEDGE_MODEL_UNAVAILABLE", c["missing_authorities"])
+        self.assertTrue(any(w.startswith("NOT_RISK_FREE") for w in c["warnings"]))
+
+    def test_one_healthy_and_one_degraded_venue_is_no_funding_opportunity(self):
+        for bad in ("STALE", "DEGRADED", "ERROR", None):
+            with self.subTest(health=bad):
+                legs = self.healthy_pair()
+                legs[1]["health"] = bad
+                doc = self.doc(legs)
+                self.assertIsNone(self.spread_of(doc))
+                self.assertEqual(doc["funding_opportunities"]["count"], 0)
+                self.assertNotIn("LEG_VENUE_DEGRADED", canon(doc))
+
+    def test_a_degraded_extreme_rate_venue_cannot_hijack_the_pair(self):
+        legs = self.healthy_pair() + [contract("HI", "aster", fund=0.09, vol=5e6, npx=100.05, health="STALE")]
+        c = self.spread_of(self.doc(legs))
+        self.assertEqual((c["legs"]["long"]["venue"], c["legs"]["short"]["venue"]), ("hyperliquid", "lighter"))
+        self.assertAlmostEqual(c["spread_8h"], .006)
+        sg = next(g for g in c["trace"] if g["step"] == "SIGNAL")
+        self.assertEqual((sg["input"]["eligible_venues"], sg["input"]["unhealthy_excluded"]),
+                         (["hyperliquid", "lighter"], ["aster"]))
+        # the degraded venue on the long side (an extreme negative rate) is ignored the same way
+        legs = self.healthy_pair() + [contract("HI", "aster", fund=-0.09, vol=5e6, npx=100.05, health="DEGRADED")]
+        c = self.spread_of(self.doc(legs))
+        self.assertEqual((c["legs"]["long"]["venue"], c["legs"]["short"]["venue"]), ("hyperliquid", "lighter"))
+
+    def test_stale_or_degraded_funding_cannot_improve_rank(self):
+        base = self.spread_of(self.doc(self.healthy_pair()))
+        for extra in (contract("HI", "aster", fund=0.09, health="STALE"),                 # degraded contract
+                      contract("HI", "aster", fund=0.09, rcv=AS_OF - 10 * 3600),          # stale rate, healthy contract
+                      contract("HI", "variational", fund=-0.09, health="DEGRADED")):
+            with self.subTest(extra=extra["venue"] + ":" + str(extra["health"]) + ":" + str(extra["rcv_ts"])):
+                c = self.spread_of(self.doc(self.healthy_pair() + [extra]))
+                self.assertEqual(c["ranking_inputs"], base["ranking_inputs"])
+                self.assertEqual((c["net_carry"], c["spread_8h"]), (base["net_carry"], base["spread_8h"]))
+
+    def test_a_degraded_leg_never_appears_in_funding_opportunities(self):
+        assets = ["HI", "TWIN", "LO", "NEG", "ALPHA", "BRAVO"]
+        legs = []
+        for k, a in enumerate(assets):
+            pair = self.healthy_pair(a)
+            if k % 2:
+                pair[k % 2]["health"] = "STALE"             # every other asset has one degraded leg
+                pair.append(contract(a, "aster", fund=0.5, vol=5e6, npx=100.0, health="DEGRADED"))
+            legs += pair
+        doc = self.doc(legs, assets)
+        health = {c["id"]: c["health"] for c in legs}
+        by_id = {c["id"]: c for c in doc["candidates"]}
+        self.assertEqual(doc["funding_opportunities"]["count"], 3)
+        for item in doc["funding_opportunities"]["items"]:
+            c = by_id[item["id"]]
+            for leg in c["legs"].values():
+                self.assertEqual(health[leg["contract"]], "HEALTHY", item["id"])
+        for c in doc["candidates"]:
+            if c["type"] == DE.FUNDING:
+                self.assertEqual({health[leg["contract"]] for leg in c["legs"].values()}, {"HEALTHY"}, c["id"])
+
+    def test_missing_healthy_second_venue_is_not_zero_or_no_spread(self):
+        for label, second in (("degraded", {"health": "STALE"}), ("stale rate", {"rcv_ts": AS_OF - 10 * 3600}),
+                              ("missing rate", {"fund8h": None}), ("not admitted", {"admitted": False}),
+                              ("not a trade dex", {"venue": "binance", "id": "binance:HI"})):
+            with self.subTest(second=label):
+                legs = self.healthy_pair()
+                legs[1].update(second)
+                doc = self.doc(legs)
+                self.assertIsNone(self.spread_of(doc))
+                a = next(x for x in doc["assets"] if x["asset"] == "HI")
+                self.assertFalse(any(o.startswith(DE.FUNDING) for o in a["opportunities"]))
+                self.assertNotIn("NO_FUNDING_SPREAD", canon(doc))
+                self.assertEqual(doc["market_summary"]["opportunity_states_by_type"][DE.FUNDING],
+                                 {DE.TRADE: 0, DE.WATCH: 0, DE.AVOID: 0})
+
+
+class ValidityHorizon(unittest.TestCase):
+    """valid_until: the time after which the decision's own policy ages (freshness, signal age, funding age) would no
+    longer hold, published so a consumer (the Analyzer) fails closed instead of re-deciding anything."""
+    def test_document_and_candidate_horizons(self):
+        pol = DE.load_policy()
+        lim, rate_age = pol["freshness"]["max_input_age_s"]["value"], pol["funding"]["max_rate_age_s"]["value"]
+        snap = snapshot([rec("HI")], {"HI": [sig("REQ", age=3600)]})
+        snap["inputs_as_of"] = {"discovery": AS_OF - 120, "quant": AS_OF, "portfolio": AS_OF - 30}
+        doc = DE.build(snap)
+        self.assertEqual(doc["valid_until"], AS_OF - 120 + lim)
+        c = next(x for x in doc["candidates"] if x["type"] == DE.DIRECTIONAL)
+        self.assertEqual(c["state"], DE.TRADE)
+        self.assertEqual(c["valid_until"], min(AS_OF - 120 + lim, AS_OF - 3600 + pol["signal"]["max_age_s"]["value"]["1d"],
+                                               AS_OF - 60 + rate_age))
+        one_asset = DE.evaluate_asset(snap, "HI")
+        self.assertEqual(one_asset["valid_until"], doc["valid_until"])
+        self.assertEqual(one_asset["opportunities"][0]["valid_until"], c["valid_until"])
+        # an old signal expires before the document does
+        doc = DE.build(snapshot([rec("HI")], {"HI": [sig("REQ", age=pol["signal"]["max_age_s"]["value"]["1d"] - 50)]}))
+        c = next(x for x in doc["candidates"] if x["type"] == DE.DIRECTIONAL)
+        self.assertEqual((c["state"], c["valid_until"]), (DE.TRADE, AS_OF + 50))
+        self.assertTrue(all(isinstance(x["valid_until"], int) for x in doc["candidates"]))
 
 
 class Sections(unittest.TestCase):
@@ -778,8 +925,12 @@ class LiveIntegration(unittest.TestCase):
         self.assertEqual(LP.compare(golden, self.summary), [])
 
     def test_no_engine_reads_the_decision(self):
-        for name in ("scanner.py", "quant.py", "picks.py", "smart.py", "dashboard.py", "analyze.js", "quant.html",
-                     "dashboard.html", "tools/research/qexport.py"):
+        # The Analyzer (analyze.js / analyze.html) is the one page that consumes the published decision (the Phase 11
+        # correction: its call is governed by v8.decision/1). No engine and no other page reads it.
+        self.assertIn('getData("v8/decision.json", true)', (ROOT / "analyze.html").read_text(encoding="utf-8"))
+        self.assertIn('schema: "v8.decision/1"', (ROOT / "analyze.js").read_text(encoding="utf-8"))
+        for name in ("scanner.py", "quant.py", "picks.py", "smart.py", "dashboard.py", "quant.html", "picks.html",
+                     "smart.html", "index.html", "dashboard.html", "tools/research/qexport.py"):
             self.assertNotIn("decision.json", (ROOT / name).read_text(encoding="utf-8"), name)
             self.assertIsNone(re.search(r"\bimport\s+[^\n]*\bdecision\b|from\s+v8\s+import\s+decision",
                                         (ROOT / name).read_text(encoding="utf-8")), name)

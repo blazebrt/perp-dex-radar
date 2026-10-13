@@ -200,7 +200,10 @@ class QuantEvidence(unittest.TestCase):
             self.assertIn("The quant journal still contains this historical paper position", note[0])
             self.assertIn(f"{c} is not currently verified as crypto", note[0])
             self.assertIn("so it is not a trade signal", note[0])
-        self.assertIn(["quant", "long", "Proven"], R["tested"][LEG_VERIFIED]["signals"])   # (the engine may hold more)
+        # (the engine may hold more) v8 Phase 11: a legacy-holdover desk position is context labelled by its Phase 9
+        # state, never "Proven", and makes no call (the coin list below comes from Phase 11 TRADEs only)
+        self.assertIn(["quant", "long", "Legacy holdover"], R["tested"][LEG_VERIFIED]["signals"])
+        self.assertNotIn("Proven", json.dumps(R["tested"]))
         coins = {x["coin"] for x in R["coins"]}
         self.assertTrue({LEG_UNVERIFIED, DEGRADED_OPEN, MISSING}.isdisjoint(coins), coins)
         self.assertTrue(coins <= {o["c"] for o in self.out["open"]}, coins)   # verified positions only

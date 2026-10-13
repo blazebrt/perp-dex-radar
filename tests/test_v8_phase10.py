@@ -810,7 +810,12 @@ class AuditIntegration(unittest.TestCase):
         import legacy_parity as LP
         with open(ROOT / "tests/fixtures/v8/legacy_parity_golden_phase10.json") as fh:
             golden = json.load(fh)
-        self.assertEqual(LP.compare(golden, self.summary), [])
+        with open(ROOT / "tests/fixtures/v8/legacy_parity_golden_phase9.json") as fh:
+            self.assertEqual(json.load(fh)["combined"], golden["combined"])      # historical: Phase 10 changed none
+        # on this branch, only the Phase 11 Analyzer authority cutover differs from the Phase 10 golden
+        self.assertEqual(sorted(d.split(":")[0] for d in LP.compare(golden, self.summary)), ["analyze.html", "analyze.js"])
+        with open(ROOT / "tests/fixtures/v8/legacy_parity_golden_phase11.json") as fh:
+            self.assertEqual(LP.compare(json.load(fh), self.summary), [])
 
     def test_audit_never_raises(self):
         from v8 import audit_quant as AQ

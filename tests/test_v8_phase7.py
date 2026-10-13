@@ -705,10 +705,14 @@ class PipelineDiscovery(unittest.TestCase):
         shutil.rmtree(cls.tmp, ignore_errors=True)
 
     def test_legacy_outputs_unchanged(self):
-        for g in ("legacy_parity_golden_phase9.json",):
+        for g in ("legacy_parity_golden_phase11.json",):
             with open(os.path.join(HERE, "fixtures", "v8", g)) as fh:
                 golden = json.load(fh)
             self.assertEqual(self.LP.compare(golden, self.summary), [], g)
+        # historical: against Phase 9's golden, only the Phase 11 Analyzer authority cutover differs
+        with open(os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase9.json")) as fh:
+            p9 = json.load(fh)
+        self.assertEqual(sorted(d.split(":")[0] for d in self.LP.compare(p9, self.summary)), ["analyze.html", "analyze.js"])
         with open(os.path.join(HERE, "fixtures", "v8", "phase7_expected_deltas.json")) as fh:
             man = json.load(fh)
         self.assertEqual((man["base"]["sha"], man["base"]["tree"]),

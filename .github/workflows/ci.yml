@@ -52,9 +52,10 @@ jobs:
         run: python tools/v8/legacy_parity.py --out "$RUNNER_TEMP/parity_head" --check tests/fixtures/v8/legacy_parity_golden_phase11.json
 
       - name: Differential parity against the phase base (approved deltas only)
-        # Phase 11 adds an audit-only decision engine (data/v8/decision.json): no legacy published file,
-        # universe, identity, decision, signal, ranking, stop, size or journal may change (an empty manifest).
-        # Both the frozen base and this branch must reproduce their respective golden digests.
+        # Phase 11 adds an audit-only decision engine (data/v8/decision.json): no universe, identity, decision,
+        # signal, ranking, stop, size or journal may change. The one approved legacy delta is the Analyzer
+        # authority cutover (analyze.js and analyze.html, pinned to their exact base and head digests in the
+        # manifest). Both the frozen base and this branch must reproduce their respective golden digests.
         run: |
           MANIFEST=tests/fixtures/v8/phase11_expected_deltas.json
           BASE_SHA=$(python -c "import json; print(json.load(open('$MANIFEST'))['base']['sha'])")

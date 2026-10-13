@@ -1,7 +1,7 @@
 {
  "schema": "v8.decision-policy/1",
- "review_status": "POLICY_PROPOSED_PENDING_REVIEW",
- "statement": "The Phase 11 decision rules: which governed evidence makes an opportunity TRADE, WATCH or AVOID, how each section is filled and ordered, and what every gate does with a missing input. Every rule is a POLICY choice proposed for independent review. None is learned, fitted, optimized or statistically validated, and no rule assigns an expected return.",
+ "review_status": "POLICY_REVIEWED_INITIAL_V1",
+ "statement": "The Phase 11 decision rules: which governed evidence makes an opportunity TRADE, WATCH or AVOID, how each section is filled and ordered, and what every gate does with a missing input. Independent review approved these rules, unchanged, as the initial conservative Phase 11 policy (POLICY_REVIEWED_INITIAL_V1). Every rule is a reviewed POLICY choice. None is learned, fitted, optimized or statistically validated, and no rule assigns an expected return.",
  "states": {
   "precedence": {"value": ["AVOID", "WATCH", "TRADE"], "basis": "POLICY", "rationale": "A known disqualifier (a FAIL gate) makes AVOID; otherwise any capped or missing authority makes WATCH; only when every mandatory gate passes is it TRADE. Unknown never becomes TRADE."},
   "max_state_by_type": {"value": {"DIRECTIONAL_STRATEGY": "TRADE", "EMERGING_OBSERVATION": "WATCH", "FUNDING_SPREAD": "WATCH"}, "basis": "POLICY", "rationale": "Only a governed strategy signal can be TRADE. An emerging observation has no strategy authority, and a funding spread has no research authority for its persistence and no portfolio hedge model, so both are capped at WATCH."}
