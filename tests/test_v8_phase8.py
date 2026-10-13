@@ -853,7 +853,7 @@ class ShadowLedger(Tmp):
 class VersionsAndIsolation(unittest.TestCase):
     def test_versions(self):
         from v8 import ENGINE_VERSION, SCHEMA, discovery as DS, identity as ID, provenance
-        self.assertEqual((SCHEMA, ENGINE_VERSION), ("v8.audit/9", "v8-phase10.0"))
+        self.assertEqual((SCHEMA, ENGINE_VERSION), ("v8.audit/10", "v8-phase11.0"))
         self.assertEqual((H.VERSION, P.VERSION, SL.VERSION), ("v8.history/2", "v8.pit/2", "v8.shadow-ledger/1"))
         self.assertEqual(H.SCHEMAS, ("v8.history/1", "v8.history/2"))
         self.assertEqual((ID.VERSION, DS.VERSION), ("v8.identity/4", "v8.discovery/1"))

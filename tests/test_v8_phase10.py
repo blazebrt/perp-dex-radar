@@ -789,7 +789,7 @@ class AuditIntegration(unittest.TestCase):
 
     def test_snapshot_manifest_and_health(self):
         m = self.snap["manifest"]
-        self.assertEqual((self.snap["schema"], m["audit_version"]), ("v8.audit/9", "v8-phase10.0"))
+        self.assertEqual((self.snap["schema"], m["audit_version"]), ("v8.audit/10", "v8-phase11.0"))
         pr = m["portfolio_risk"]
         self.assertEqual(pr["version"], "v8.portfolio-risk/1")
         self.assertEqual(pr["policy_schema"], "v8.portfolio-risk-policy/1")
@@ -1111,8 +1111,9 @@ class EarlierAuthorityUnchanged(unittest.TestCase):
             self.assertIsNone(pat.search((ROOT / name).read_text(encoding="utf-8")), name)
         users = sorted(os.path.relpath(f, ROOT) for f in glob.glob(str(ROOT / "v8" / "*.py"))
                        if pat.search(Path(f).read_text(encoding="utf-8")))
-        self.assertEqual(users, ["v8/__init__.py", "v8/audit_quant.py", "v8/portfolio_risk.py", "v8/provenance.py",
-                                 "v8/snapshot.py"])
+        # v8 Phase 11: the decision engine consumes Phase 10 what_if() (the brief requires it); no legacy engine does
+        self.assertEqual(users, ["v8/__init__.py", "v8/audit_quant.py", "v8/decision.py", "v8/portfolio_risk.py",
+                                 "v8/provenance.py", "v8/snapshot.py"])
 
     def test_legacy_planner_stays_a_labelled_diagnostic(self):
         text = (ROOT / "tools/research/qexport.py").read_text(encoding="utf-8")

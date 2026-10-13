@@ -1,0 +1,64 @@
+{
+ "schema": "v8.decision-policy/1",
+ "review_status": "POLICY_PROPOSED_PENDING_REVIEW",
+ "statement": "The Phase 11 decision rules: which governed evidence makes an opportunity TRADE, WATCH or AVOID, how each section is filled and ordered, and what every gate does with a missing input. Every rule is a POLICY choice proposed for independent review. None is learned, fitted, optimized or statistically validated, and no rule assigns an expected return.",
+ "states": {
+  "precedence": {"value": ["AVOID", "WATCH", "TRADE"], "basis": "POLICY", "rationale": "A known disqualifier (a FAIL gate) makes AVOID; otherwise any capped or missing authority makes WATCH; only when every mandatory gate passes is it TRADE. Unknown never becomes TRADE."},
+  "max_state_by_type": {"value": {"DIRECTIONAL_STRATEGY": "TRADE", "EMERGING_OBSERVATION": "WATCH", "FUNDING_SPREAD": "WATCH"}, "basis": "POLICY", "rationale": "Only a governed strategy signal can be TRADE. An emerging observation has no strategy authority, and a funding spread has no research authority for its persistence and no portfolio hedge model, so both are capped at WATCH."}
+ },
+ "identity": {
+  "trade_identity": {"value": "VERIFIED_CRYPTO", "basis": "POLICY", "rationale": "v8.identity/4 crypto execution identity. Every other state (VERIFIED_TRADFI, UNVERIFIED, AMBIGUOUS, none) is AVOID for every opportunity type: identity is never inferred from a ticker, a price, a score or a venue label."}
+ },
+ "exposure": {
+  "conflict_flags": {"value": ["ECONOMIC_EXPOSURE_CONFLICT"], "basis": "POLICY", "rationale": "Conflicting economic evidence or a ticker collision is an affirmative exposure disqualifier: AVOID."},
+  "degraded_flags": {"value": ["EXPOSURE_METADATA_DEGRADED"], "basis": "POLICY", "rationale": "An exposure check that did not run cleanly is missing authority: at most WATCH."}
+ },
+ "venue_health": {
+  "healthy_data_quality": {"value": "HEALTHY", "basis": "POLICY", "rationale": "The discovery record's data quality; DATA_DEGRADED (a contract with a non-healthy value) is missing authority, at most WATCH. A degraded or fallback discovery is missing authority for every candidate."}
+ },
+ "signal": {
+  "max_age_s": {"value": {"4h": 18000, "1d": 90000}, "basis": "POLICY", "rationale": "A strategy signal is current until its next bar would have closed, plus one hour for late scans (4h: 4h + 1h; 1d: 24h + 1h). An older signal is stale: AVOID."},
+  "max_stop_fraction": {"value": 0.5, "basis": "POLICY", "rationale": "A signal's stop distance must be a fraction in (0, 0.5); anything else is an invalid signal (AVOID). quant.py's own stop bounds are tighter and unchanged."}
+ },
+ "strategy_authority": {
+  "trade_deployment_states": {"value": ["ACTIVE_REQUALIFIED"], "basis": "POLICY", "rationale": "Phase 9 deployment authority sufficient for TRADE (it already requires research_state REQUALIFIED and a reviewed promotion)."},
+  "trade_research_states": {"value": ["REQUALIFIED"], "basis": "POLICY", "rationale": "Phase 9 research authority sufficient for TRADE."},
+  "watch_deployment_states": {"value": ["LEGACY_HOLDOVER", "PAPER_ONLY"], "basis": "POLICY", "rationale": "Runtime continuity is not research authority: a LEGACY_HOLDOVER or paper-only signal is at most WATCH, blocker STRATEGY_RESEARCH_AUTHORITY_INSUFFICIENT."},
+  "avoid_deployment_states": {"value": ["DISABLED"], "basis": "POLICY", "rationale": "A disabled strategy cannot create a directional opportunity: AVOID."},
+  "avoid_research_states": {"value": ["REJECTED", "INVALIDATED"], "basis": "POLICY", "rationale": "A rejected or invalidated research state is an affirmative disqualifier whatever the deployment state."}
+ },
+ "execution": {
+  "effects": {"value": {"KNOWN_PASS": "PASS", "KNOWN_BELOW_GATE": "CAP_WATCH", "MISSING": "WATCH_MISSING", "NO_COIN_RECORD": "WATCH_MISSING", "NOT_ON_TRADE_DEX": "AVOID"}, "basis": "POLICY", "rationale": "The v8.liquidity execution gate of the discovery record decides; below the gate can still be WATCHed (never TRADE), missing liquidity is never liquid, and a coin not listed on a trade DEX cannot be acted upon."}
+ },
+ "funding": {
+  "venue_rule": {"value": "MOST_ADVERSE_OBSERVED_TRADE_DEX", "basis": "POLICY", "rationale": "A directional proposal pays the most adverse current rate observed on any trade-DEX contract of its admitted exposure (the venue is the human's choice). The venue, its reported interval and its receive time are kept."},
+  "max_rate_age_s": {"value": 3600, "basis": "POLICY", "rationale": "A funding observation received more than an hour before the decision is not current."}
+ },
+ "freshness": {
+  "max_input_age_s": {"value": 3600, "basis": "POLICY", "rationale": "Discovery, the quant inputs and the portfolio must all be from this scan (within an hour of the decision time)."}
+ },
+ "portfolio": {
+  "after_state_effects": {"value": {"WITHIN_LIMITS": "PASS", "APPROACHING_LIMITS": "CAP_WATCH", "LIMIT_BREACHED": "AVOID", "UNEVALUABLE": "WATCH_MISSING"}, "basis": "POLICY", "rationale": "The Phase 10 what_if after-state of the proposed position against the whole open book. APPROACHING_LIMITS is capped at WATCH (conservative: no existing evidence justifies trading into the approach band)."}
+ },
+ "emerging": {
+  "evidence_from_flags": {"value": {"NEW_LISTING": "RECENTLY_OBSERVED_BY_DESK", "STAGE1_EXTREME": "LARGE_24H_MOVE", "MULTI_VENUE": "MULTI_VENUE_PRESENCE"}, "basis": "POLICY", "rationale": "Discovery research flags (observational, v8.discovery/1) used as positive evidence. NEW_LISTING is first seen by this desk after tracking started, never a listing date: it is RECENTLY_OBSERVED_BY_DESK, not NEWLY_LISTED."},
+  "primary_evidence": {"value": ["CURRENT_STRATEGY_SIGNAL", "RECENTLY_OBSERVED_BY_DESK", "LARGE_24H_MOVE"], "basis": "POLICY", "rationale": "An emerging candidate needs at least one primary item: a current enabled-strategy signal whose own decision is WATCH, a market first seen by the desk recently, or a 24h move of at least 15% either way."},
+  "warning_flags": {"value": ["FUNDING_EXTREME", "PRICE_DISPERSION", "OI_HIGH_RELATIVE_TO_VOLUME", "THIN_LIQUIDITY", "LIQUIDITY_MISSING", "SINGLE_VENUE"], "basis": "POLICY", "rationale": "Flags reported as warnings; never positive evidence."}
+ },
+ "funding_spread": {
+  "holding_hours": {"value": 24, "basis": "POLICY", "rationale": "The carry is projected over this horizon at the current observed rates; rates change, so it is a projection, not an expectation."},
+  "max_basis": {"value": 0.005, "basis": "POLICY", "rationale": "The two legs' prices per coin must be within 0.5% of their mean, else the basis risk dominates the carry: AVOID."},
+  "min_net_carry": {"value": 0.0, "basis": "POLICY", "rationale": "The projected carry after four taker fills and both legs' slippage must be positive."},
+  "leg_volume_threshold": {"value": "EXECUTION_LIQUIDITY_THRESHOLD", "basis": "POLICY", "rationale": "Each leg's own venue 24h volume must meet the discovery record's execution-liquidity threshold (the scanner's legacy minimum; never a second copy of the number)."}
+ },
+ "sections": {
+  "best_trades_now": {"value": {"max": 5, "states": ["TRADE"], "types": ["DIRECTIONAL_STRATEGY"]}, "basis": "POLICY", "rationale": "Up to five TRADE opportunities, never a minimum: a WATCH is never promoted to fill it."},
+  "emerging_opportunities": {"value": {"max": 5, "states": ["WATCH"], "types": ["EMERGING_OBSERVATION"], "exclude_assets_in": ["best_trades_now"]}, "basis": "POLICY", "rationale": "Up to five WATCH emerging observations with primary evidence and no affirmative disqualifier."},
+  "funding_opportunities": {"value": {"max": 5, "states": ["WATCH"], "types": ["FUNDING_SPREAD"]}, "basis": "POLICY", "rationale": "Up to five FUNDING_SPREAD_OPPORTUNITY candidates whose spread survives costs and basis; never called risk-free arbitrage."}
+ },
+ "ranking": {
+  "best_trades_now": {"value": [["signal_kind_order", "asc"], ["signal_age_s", "asc"], ["slippage_rate", "asc"], ["after_executable_risk", "asc"], ["asset", "asc"], ["strategy", "asc"], ["direction", "asc"]], "basis": "POLICY", "rationale": "After every gate: a new signal before an already-active one, fresher first, cheaper execution tier, smaller portfolio risk after the addition, then a deterministic tie-break. No volume, market cap or popularity input."},
+  "emerging_opportunities": {"value": [["primary_evidence_count", "desc"], ["evidence_count", "desc"], ["outstanding_blockers", "asc"], ["asset", "asc"]], "basis": "POLICY", "rationale": "More distinct governed evidence first, then closer to trade-ready (fewer outstanding blockers), then a deterministic tie-break. No volume, market cap or popularity input."},
+  "funding_opportunities": {"value": [["net_carry", "desc"], ["basis_abs", "asc"], ["asset", "asc"]], "basis": "POLICY", "rationale": "Larger projected carry after costs first, then smaller basis, then a deterministic tie-break."}
+ }
+}

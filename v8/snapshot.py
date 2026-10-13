@@ -30,6 +30,7 @@ import urllib.request
 
 from . import ENGINE_VERSION, SCHEMA
 from .liquidity import VERSION as LIQUIDITY_VERSION
+from . import decision as DEC
 from . import discovery as DS
 from . import history as HI
 from . import ledger as LG
@@ -153,7 +154,77 @@ def _smart_fill(smart, registry):
                by_reason=dict(sorted(by_c.items())))
 
 
-def build(out_dir, pages_url=None, first_seen_path=None, identity_path=None):
+def load_previous_decision(pages_url=None, path=None):
+    """The previous scan's Phase 11 decision document: an explicit file, else the published one, else none."""
+    if path:
+        try:
+            with open(path) as fh:
+                d = json.load(fh)
+            return (d if isinstance(d, dict) else None), "file"
+        except (OSError, ValueError):
+            return None, "missing"
+    if pages_url:
+        try:
+            d = _load_json_url(pages_url.rstrip("/") + "/" + DEC.FILE)
+            return (d if isinstance(d, dict) else None), "site"
+        except Exception:  # noqa: BLE001 - the first Phase 11 scan has none
+            return None, "unavailable"
+    return None, "none"
+
+
+def _decision(P, reg, disc_bytes, hdr, ts, pages_url, decision_path):
+    """(decision.json bytes or None, snapshot decision section). v8 Phase 11. Never raises: a failure is a named gap."""
+    try:
+        import quant as q
+        from . import strategy_authority as SA
+        from . import strategy_policy as SP
+        qp = P.get("quant") or {}
+        di = qp.get("decision_inputs") or {}
+        if not qp.get("ok") or not di or di.get("error"):
+            raise ValueError("quant decision inputs unavailable: " + str(di.get("error") or "quant part not ok"))
+        if disc_bytes is None:
+            raise ValueError("discovery unavailable")
+        disc = json.loads(disc_bytes)
+        policy = SP.load(q.STRATS)
+        rows = {r["strategy_id"]: r for r in policy["strategies"]}
+        strategies = {sid: dict((di.get("strategies") or {}).get(sid) or {}, deployment_state=r["deployment_state"],
+                                research_state=r["research_state"]) for sid, r in rows.items()}
+        prev, prev_src = load_previous_decision(pages_url, decision_path)
+        contracts = [{k: c.get(k) for k in ("id", "venue", "asset", "type", "active", "price", "npx", "vol", "fund8h",
+                                            "fund_iv_h", "src_ts", "rcv_ts", "health", "admitted", "legacy")}
+                     for c in (reg or {}).get("contracts") or []]
+        auth = {"identity_version": (disc.get("provenance") or {}).get("identity_version"),
+                "identity_config_hash": hdr.get("identity_config_hash"),
+                "discovery_schema": disc.get("schema"), "discovery_document_hash": hashlib.sha256(disc_bytes).hexdigest(),
+                "strategy_policy_schema": SP.VERSION, "strategy_policy_hash": SP.digest(policy),
+                "strategy_runtime_implementation_hash": SP.runtime_implementation_hash(),
+                "phase9_authority": {"version": SA.VERSION, "gate_hash": SP.digest(SA.GATE),
+                                     "implementation_hash": provenance.file_sha(os.path.join(provenance.ROOT, "v8",
+                                                                                             "strategy_authority.py"))}}
+        snapshot = {"as_of": int(ts), "discovery": {"assets": disc.get("assets") or [],
+                                                    "provenance": disc.get("provenance") or {},
+                                                    "venues": disc.get("venues") or {}},
+                    "contracts": contracts, "trade_dexes": di.get("trade_dexes") or [], "signals": di.get("signals") or {},
+                    "strategies": strategies, "portfolio": di.get("portfolio"), "sizing": di.get("sizing"),
+                    "phase10_state": (qp.get("portfolio_risk") or {}).get("state"),
+                    "inputs_as_of": {"discovery": (disc.get("provenance") or {}).get("generated_at"),
+                                     "quant": di.get("as_of"), "portfolio": (di.get("portfolio") or {}).get("as_of")},
+                    "authorities": auth, "previous": prev,
+                    "input_provenance": {"discovery": DS.FILE, "registry_contracts": len(contracts),
+                                         "quant_part": "data/v8/parts/quant.json decision_inputs",
+                                         "signals_source": "quant.py strategy functions at the latest closed bar",
+                                         "previous_decision": prev_src, "scan_id": hdr.get("scan_id")}}
+        doc = DEC.build(snapshot)
+        b = dumps(doc)
+        s = DEC.summary(doc)
+        s.update(file={"path": DEC.FILE, "sha256": hashlib.sha256(b).hexdigest(), "bytes": len(b)},
+                 previous_decision_source=prev_src)
+        return b, s
+    except Exception as e:  # noqa: BLE001 - the decision engine must never stop the snapshot
+        return None, {"schema": DEC.VERSION, "status": "FAILED", "error": f"{type(e).__name__}: {e}"[:500]}
+
+
+def build(out_dir, pages_url=None, first_seen_path=None, identity_path=None, decision_path=None):
     data = os.path.join(out_dir, "data")
     P = {e: PT.read(out_dir, e) for e in ENGINES}
     uni = P.get("universe") or {}
@@ -337,6 +408,11 @@ def build(out_dir, pages_url=None, first_seen_path=None, identity_path=None):
     manifest["discovery_file"] = ({"path": DS.FILE.replace(os.sep, "/"), "sha256": hashlib.sha256(disc_bytes).hexdigest(),
                                    "bytes": len(disc_bytes)} if disc_bytes is not None else None)
     manifest["parts"]["discovery"] = disc_sum.get("part")
+    # v8 Phase 11: the unified decision engine (data/v8/decision.json; summary here)
+    dec_bytes, manifest["decision"] = _decision(P, reg, disc_bytes, hdr, ts, pages_url, decision_path)
+    data_health["decision"] = [manifest["decision"].get("status")]
+    if manifest["decision"].get("status") != "OK":
+        problems["decision"] = [manifest["decision"].get("error") or manifest["decision"].get("status")]
     if disc_sum.get("status") != "OK":
         problems["discovery"] = [disc_sum.get("error") or disc_sum.get("status")]
     elif disc_sum.get("problems"):
@@ -349,7 +425,7 @@ def build(out_dir, pages_url=None, first_seen_path=None, identity_path=None):
             "steps": T.STEPS, "legacy_output_refs": refs, "discovery": disc_sum,
             # v8 Phase 10: the full portfolio-risk result with its INPUT -> RULE -> RESULT -> EFFECT trace
             "portfolio_risk": (P.get("quant") or {}).get("portfolio_risk")}
-    return snap, fs, id_map, disc_bytes
+    return snap, fs, id_map, disc_bytes, dec_bytes
 
 
 def _discovery(out_dir, reg, dispositions, hdr, fs, fs_src, ts):
@@ -430,8 +506,10 @@ class ArchiveDir:
 
 
 def write(out_dir, pages_url=None, first_seen_path=None, archive_dir=None, keep_parts=False, identity_path=None,
-          history_branch=None, history_backfill=False, history_repo=None, history_store=None):
-    snap, fs, id_map, disc = build(out_dir, pages_url, first_seen_path, identity_path)
+          history_branch=None, history_backfill=False, history_repo=None, history_store=None, decision_path=None):
+    built = build(out_dir, pages_url, first_seen_path, identity_path, decision_path)
+    snap, fs, id_map, disc = built[:4]
+    dec = built[4] if len(built) > 4 else None      # v8 Phase 11 decision bytes (an older 4-value build has none)
     # v8 Phase 8: append this scan's point-in-time observation to the history branch (only when the Scan workflow
     # asks for it). capture() never raises; a failure is HISTORY_CAPTURE_DEGRADED here and never stops the files below.
     if history_branch or history_store is not None:
@@ -463,6 +541,13 @@ def write(out_dir, pages_url=None, first_seen_path=None, archive_dir=None, keep_
         os.replace(tmp, os.path.join(out_dir, DS.FILE))
     elif os.path.exists(os.path.join(out_dir, DS.FILE)):       # never leave another scan's discovery beside this one
         os.remove(os.path.join(out_dir, DS.FILE))
+    if dec is not None:       # v8 Phase 11: written whole or not at all, never another scan's beside this one
+        tmp = os.path.join(out_dir, DEC.FILE) + ".tmp"
+        with open(tmp, "wb") as fh:
+            fh.write(dec)
+        os.replace(tmp, os.path.join(out_dir, DEC.FILE))
+    elif os.path.exists(os.path.join(out_dir, DEC.FILE)):
+        os.remove(os.path.join(out_dir, DEC.FILE))
     arch = ArchiveDir(archive_dir).append(snap["manifest"]["scan_id"] or "unknown", z) if archive_dir else None
     if not keep_parts:
         shutil.rmtree(os.path.join(out_dir, PT.PART_DIR), ignore_errors=True)
@@ -478,6 +563,8 @@ def main(argv=None):
                     help="previous identity_state.json (default: read from the site)")
     ap.add_argument("--archive-dir", default=None, help="append the gzip snapshot to this bounded archive folder")
     ap.add_argument("--keep-parts", action="store_true")
+    ap.add_argument("--decision-previous", default=None,
+                    help="previous data/v8/decision.json (default: read from the site; v8 Phase 11)")
     ap.add_argument("--history-branch", default=None,
                     help="append this scan's point-in-time observation to this branch (v8 Phase 8; Scan workflow)")
     ap.add_argument("--history-backfill", action="store_true",
@@ -486,7 +573,7 @@ def main(argv=None):
                     help="owner/name of the repository whose artifacts are backfilled")
     a = ap.parse_args(argv)
     snap, n, z, arch = write(a.out, a.pages_url, a.first_seen, a.archive_dir, a.keep_parts, a.identity_state,
-                             a.history_branch, a.history_backfill, a.history_repo)
+                             a.history_branch, a.history_backfill, a.history_repo, decision_path=a.decision_previous)
     s = snap["coverage"]["summary"]
     print(f"[v8] audit snapshot {snap['manifest']['scan_id']}: {s['raw_contracts']} contracts, "
           f"{s['canonical_assets']} assets, {snap['manifest']['dispositions']} dispositions, unaccounted "

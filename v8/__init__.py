@@ -36,7 +36,11 @@ Modules
     portfolio_risk  the governed portfolio-risk authority (v8.portfolio-risk/1; policy portfolio_risk_policy.json,
                 v8.portfolio-risk-policy/1): exposure, concentration, dependence, liquidity, funding, stress, limits,
                 what-if and trace; it observes and never sizes, ranks or executes a trade (Phase 10)
+    decision    the unified decision engine (v8.decision/1; policy decision_policy.json, v8.decision-policy/1): one
+                TRADE / WATCH / AVOID record per opportunity and per discovered asset, Best Trades Now, Emerging
+                Opportunities, funding spreads, the market summary and the Decision Trace (data/v8/decision.json);
+                it consumes the authorities above, never recomputes them, and executes nothing (Phase 11)
 """
 
-SCHEMA = "v8.audit/9"
-ENGINE_VERSION = "v8-phase10.0"
+SCHEMA = "v8.audit/10"
+ENGINE_VERSION = "v8-phase11.0"
