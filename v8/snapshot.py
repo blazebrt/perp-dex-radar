@@ -324,6 +324,13 @@ def build(out_dir, pages_url=None, first_seen_path=None, identity_path=None):
     manifest["strategy_authority"]["shadow_ledger"] = SL.summary(os.path.join(provenance.ROOT, SL.DIR))
     if "STRATEGY_POLICY_INVALID" in data_health["strategy_authority"]:
         problems["strategy_authority"] = [manifest["strategy_authority"].get("error")]
+    # v8 Phase 10: the governed portfolio-risk authority (the full result and its trace are in the quant part)
+    from . import portfolio_risk as PRISK
+    manifest["portfolio_risk"] = dict(provenance.portfolio_risk_authority(),
+                                      evaluation=PRISK.audit_summary((P.get("quant") or {}).get("portfolio_risk")))
+    data_health["portfolio_risk"] = [manifest["portfolio_risk"]["evaluation"]["state"]]
+    if manifest["portfolio_risk"].get("health") == "PORTFOLIO_RISK_POLICY_INVALID":
+        problems["portfolio_risk"] = [manifest["portfolio_risk"].get("error")]
     # v8 Phase 7: full-universe discovery (observational; data/v8/discovery.json, summary in the snapshot)
     disc_bytes, disc_sum = _discovery(out_dir, reg, dispositions, hdr, fs, fs_src, ts)
     manifest["discovery_version"] = DS.VERSION
@@ -339,7 +346,9 @@ def build(out_dir, pages_url=None, first_seen_path=None, identity_path=None):
                          "assets": (reg or {}).get("assets") or {}, "events": (reg or {}).get("events") or []},
             "data_health": data_health, "dispositions": dispositions,
             "reasons": {k: {"disposition": v[0], "text": v[1]} for k, v in T.REASONS.items()},
-            "steps": T.STEPS, "legacy_output_refs": refs, "discovery": disc_sum}
+            "steps": T.STEPS, "legacy_output_refs": refs, "discovery": disc_sum,
+            # v8 Phase 10: the full portfolio-risk result with its INPUT -> RULE -> RESULT -> EFFECT trace
+            "portfolio_risk": (P.get("quant") or {}).get("portfolio_risk")}
     return snap, fs, id_map, disc_bytes
 
 

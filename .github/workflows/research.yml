@@ -85,7 +85,7 @@ jobs:
         # differences the change explains.
         continue-on-error: true
         run: |
-          BASE_SHA=$(python -c "import json; print(json.load(open('tests/fixtures/v8/phase9_expected_deltas.json'))['base']['sha'])")
+          BASE_SHA=$(python -c "import json; print(json.load(open('tests/fixtures/v8/phase10_expected_deltas.json'))['base']['sha'])")
           echo "phase base $BASE_SHA" > research_base.txt
           git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA" >> research_base.txt 2>&1 || true
           cd "$RUNNER_TEMP/base"
@@ -262,6 +262,16 @@ jobs:
           test "$rc" -eq 0
           python -c "import json; s=json.load(open('research_phase9_summary.json')); assert s['candidate_count'] >= 24; print(s)"
 
+      - name: Phase 10 portfolio-risk authority on this run (mandatory; audit-only, nothing validated by running)
+        run: |
+          rc=0
+          python -m unittest tests.test_v8_phase10 -v >> research_phase10.txt 2>&1 || rc=$?
+          if [ "$rc" -eq 0 ]; then python -c "import json; s=json.load(open('out_new/data/v8/audit_latest.json')); m=s['manifest']['portfolio_risk']; full=s.get('portfolio_risk'); assert m['health']=='PORTFOLIO_RISK_POLICY_OK', m; assert full and full['schema']=='v8.portfolio-risk/1' and full['trace'], 'missing evaluation'; json.dump({'manifest': m, 'evaluation': full}, open('research_phase10_portfolio_risk.json','w'), indent=1, sort_keys=True); print(m['evaluation']['state'], m['evaluation']['breached'], m['evaluation']['missing_authority_count'])" >> research_phase10.txt 2>&1 || rc=$?; fi
+          echo "exit $rc" >> research_phase10.txt
+          python -c "import json,os; json.dump({'head':os.environ['GITHUB_SHA'],'exit_code':int('$rc')},open('research_phase10_exit.json','w'),sort_keys=True)"
+          tail -5 research_phase10.txt
+          test "$rc" -eq 0
+
       - name: Save the results for review
         if: always()
         env:
@@ -273,6 +283,7 @@ jobs:
           mkdir -p R
           cp research_*.txt R/ 2>/dev/null || true
           cp research_strategy_*.json research_multiple_testing.json research_matched_controls.json research_phase9_*.json R/ 2>/dev/null || true
+          cp research_phase10_*.json R/ 2>/dev/null || true
           for f in latest.json journal.csv quant.json picks.json smart.json dashboard.json; do
             if [ -f "out_new/data/$f" ]; then cp "out_new/data/$f" "R/new_$f"; fi
           done

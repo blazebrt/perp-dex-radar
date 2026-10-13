@@ -32,7 +32,11 @@ Modules
                 live engine imports it (Phase 8)
     shadow_ledger  the append-only shadow experiment ledger (research/shadow-ledger/, v8.shadow-ledger/1); no
                 record has trade authority (Phase 8)
+    strategy_policy / strategy_authority  reviewed deployment policy and the governed requalification gate (Phase 9)
+    portfolio_risk  the governed portfolio-risk authority (v8.portfolio-risk/1; policy portfolio_risk_policy.json,
+                v8.portfolio-risk-policy/1): exposure, concentration, dependence, liquidity, funding, stress, limits,
+                what-if and trace; it observes and never sizes, ranks or executes a trade (Phase 10)
 """
 
-SCHEMA = "v8.audit/8"
-ENGINE_VERSION = "v8-phase9.0"
+SCHEMA = "v8.audit/9"
+ENGINE_VERSION = "v8-phase10.0"

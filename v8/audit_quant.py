@@ -231,7 +231,35 @@ def quant_part(now, universe, coins, got, data, daily, lastd, new, open_trades, 
                       "open": len(open_trades), "blocked_open": len(blocked_open or []), "latest_day": lastd}
     if journal is not None:
         part["journal"] = journal_part(journal, open_trades, blocked_open)
+    # v8 Phase 10: the governed portfolio-risk evaluation of the actionable open positions (observational)
+    part["portfolio_risk"] = portfolio_risk_part(now, universe, daily, open_trades, blocked_open, journal, cfg,
+                                                 sc.CFG["trade_dexes"])
     return part
+
+
+def portfolio_risk_part(now, universe, daily, open_trades, blocked_open, journal, cfg, trade_dexes):
+    """v8.portfolio-risk/1 on this scan's actionable open paper positions at the page's default sizing. Never raises
+    and is never read back by any engine: an error is reported as UNEVALUABLE."""
+    from . import evidence as EV
+    from . import portfolio_risk as PR
+    try:
+        policy = PR.load_policy()
+        closed = [t.get("r") for t in (journal or {}).get("closed") or [] if EV.qualified(t)]
+        pf = PR.live_portfolio(open_trades, universe, daily, now, cfg["account"], cfg["risk"], trade_dexes,
+                               closed if journal is not None else None,
+                               market_asset=policy["dependence"]["market_asset"]["value"])
+        res = PR.evaluate(pf, policy)
+        res["inputs"] = {"source": "quant actionable open paper positions (journal) at this scan",
+                         "sizing": pf["sizing"], "positions": len(pf["positions"]),
+                         "identity_blocked_positions_not_evaluated": len(blocked_open or []),
+                         "returns_assets": sorted(pf["returns"]),
+                         "funding": "MISSING: the journal's funding sums count a missing settlement as zero and are "
+                                    "not an authority",
+                         "qualified_closed_trades": len(closed)}
+        return res
+    except Exception as e:  # noqa: BLE001 - the audit must never break the scan
+        return {"schema": PR.VERSION, "state": PR.UNEVALUABLE, "missing_authorities": ["PORTFOLIO_RISK_ERROR"],
+                "error": f"{type(e).__name__}: {e}"[:300]}
 
 
 def audit(out_dir, now, **kw):

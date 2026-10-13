@@ -217,6 +217,23 @@ def strategy_authority():
     return out
 
 
+def portfolio_risk_authority():
+    """v8 Phase 10: the portfolio-risk authority version, its governed policy and the code that applies it."""
+    from . import portfolio_risk as PR
+    out = {"version": PR.VERSION, "policy_schema": PR.POLICY_VERSION,
+           "files": {name: file_sha(os.path.join(ROOT, name))
+                     for name in ("v8/portfolio_risk.py", "v8/portfolio_risk_policy.json", "v8/audit_quant.py")}}
+    try:
+        policy = PR.load_policy()
+        out.update(health="PORTFOLIO_RISK_POLICY_OK", policy_hash=PR.policy_hash(policy),
+                   policy_review_status=policy["review_status"],
+                   bases=sorted({e["basis"] for sec in PR.SECTIONS for e in policy[sec].values()}
+                                | {policy["approach_fraction"]["basis"]}))
+    except (OSError, ValueError) as e:
+        out.update(health="PORTFOLIO_RISK_POLICY_INVALID", policy_hash=None, error=str(e)[:300])
+    return out
+
+
 def header(engine, ts):
     from . import ENGINE_VERSION, SCHEMA
     return {"schema": SCHEMA, "engine": engine, "scan_id": scan_id(ts), "ts": int(ts), "git_sha": git_sha(),
