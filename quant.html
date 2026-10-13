@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Quant Desk · Perp DEX Radar</title>
-<meta name="description" content="Long and short trend and momentum strategies for perp DEXs, tested on one and three years of data, with live paper trading and a growth planner.">
+<meta name="description" content="Legacy holdover strategies for perp DEXs, with unqualified historical diagnostics and live paper trading.">
 <script>try{var t=localStorage.getItem("picks_theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
 <style>
 :root {
@@ -274,12 +274,12 @@ header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: 
   </section>
 
   <section class="section" id="strategies">
-    <div class="section-head"><h2>Strategies that went live</h2><p>24 strategies were built and tested on real data, long and short. These 3 passed.</p></div>
+    <div class="section-head"><h2>Legacy holdover strategies</h2><p>Historical results are unqualified diagnostics. The deployed strategies await governed requalification.</p></div>
     <div class="strats" id="strats"></div>
   </section>
 
   <section class="section" id="planner">
-    <div class="section-head"><h2>Growth planner</h2><p id="plannerNote"></p></div>
+    <div class="section-head"><h2>Growth planner · legacy diagnostic</h2><p id="plannerNote"></p></div>
     <div class="two">
       <div class="card">
         <h3 id="pTitle">Two years from now</h3>
@@ -417,13 +417,13 @@ function sizeFor(entry, stopPct) {
 // ------------------------------------------------------------------ renderers
 function renderHeader() {
   const P = R && R.portfolio;
-  const ok = R ? Object.values(R.strategies).filter((s) => s.verdict === "live").length : 3;
+  const ok = Q && Q.strategies ? Object.keys(Q.strategies).length : 0;
   const tested = R ? Object.keys(R.strategies).length : 24;
-  $("lede").textContent = `${tested} strategies were built and tested on a year of hourly data and three years of 4-hour data from the coins that trade on your DEXs, long and short, after fees, slippage and funding. ${ok} passed. They are traded on paper here on every scan, and the growth planner shows what different risk levels would have done.`;
+  $("lede").textContent = `${tested} historical strategy diagnostics; ${ok} strategies remain deployed as legacy holdovers. None is requalified by these results. Point-in-time evidence, full matched controls and multiple-testing governance are required. The planner is LEGACY_DIAGNOSTIC / NOT STRATEGY AUTHORITY.`;
   const A = account(), f = risk();
   const k = P ? P.kelly : null;
   $("riskhint").textContent = `Each trade risks ${fmtUsd(A * f)} (the loss if its stop is hit). ` +
-    (k ? `Maximum-growth risk from the backtest is about ${pct(k, 1)} per trade; half of it (${pct(k / 2, 2)}) keeps the chance of losing 90% near zero.` : "");
+    (k ? `Maximum-growth risk from the backtest is about ${pct(k, 1)} per trade; half of it (${pct(k / 2, 2)}) is a legacy model estimate, not a qualified risk forecast.` : "");
 }
 
 function renderMarket() {
@@ -528,12 +528,12 @@ function renderStrats() {
   box.textContent = "";
   if (!R) return;
   for (const [sid, s] of Object.entries(R.strategies)) {
-    if (s.verdict !== "live") continue;
+    if (!(Q && Q.strategies && Q.strategies[sid])) continue;
     const live = (Q && Q.live && Q.live[sid]) || { n: 0 };
     const desc = (Q && Q.strategies && Q.strategies[sid] && Q.strategies[sid].desc) || s.desc;
     const y3 = s.three_year || {}, y1 = s.one_year || {};
     const card = el("div", { class: "card strat" }, [
-      el("h3", {}, [s.name, el("span", { class: "pill live" }, [el("span", { class: "dot" }), "Live"])]),
+      el("h3", {}, [s.name, el("span", { class: "pill live" }, [el("span", { class: "dot" }), "Legacy holdover"])]),
       el("div", { class: "muted small", text: `${s.tf === "1d" ? "Daily bars" : "4-hour bars"} · long and short · ${s.family}` }),
       el("p", { text: desc }),
     ]);
@@ -790,10 +790,10 @@ function renderAll_tested() {
   if (!R) return;
   t.append(el("thead", {}, el("tr", {}, ["Strategy", "Bars", "Last year / trade", "3 years / trade", "Trades (1y)", "vs random", "Verdict"].map((h, i) => el("th", { class: i >= 2 && i <= 5 ? "num" : "", text: h })))));
   const tb = el("tbody");
-  const entries = Object.entries(R.strategies).sort((a, b) => (a[1].verdict === "live" ? -1 : 0) - (b[1].verdict === "live" ? -1 : 0) || ((b[1].three_year || b[1].one_year || {}).avg || -9) - ((a[1].three_year || a[1].one_year || {}).avg || -9));
+  const entries = Object.entries(R.strategies).sort((a, b) => (Q && Q.strategies && Q.strategies[a[0]] ? -1 : 0) - (Q && Q.strategies && Q.strategies[b[0]] ? -1 : 0) || ((b[1].three_year || b[1].one_year || {}).avg || -9) - ((a[1].three_year || a[1].one_year || {}).avg || -9));
   for (const [sid, s] of entries) {
     const y1 = s.one_year || {}, y3 = s.three_year || {};
-    const v = s.verdict === "live" ? el("span", { class: "pill live" }, [el("span", { class: "dot" }), "Live"]) : el("span", { class: "pill rej" }, [el("span", { class: "dot" }), "Rejected"]);
+    const v = Q && Q.strategies && Q.strategies[sid] ? el("span", { class: "pill live" }, [el("span", { class: "dot" }), "Legacy holdover"]) : el("span", { class: "pill rej" }, [el("span", { class: "dot" }), "Unqualified diagnostic"]);
     tb.append(el("tr", {}, [
       el("td", {}, [el("b", { text: s.name }), el("div", { class: "why", text: s.desc })]),
       el("td", { class: "ink2", text: s.tf }),
@@ -801,7 +801,7 @@ function renderAll_tested() {
       el("td", { class: "num " + tone(y3.avg), text: y3.n ? sgn(y3.avg) + "R" : "–" }),
       el("td", { class: "num", text: (y1.n || 0).toLocaleString() }),
       el("td", { class: "num", text: y3.edge !== undefined && y3.edge !== null ? sgn(y3.edge) + "R" : (y1.edge !== undefined && y1.edge !== null ? sgn(y1.edge) + "R" : "–") }),
-      el("td", {}, [v, el("div", { class: "why", text: s.why })]),
+      el("td", {}, [v, el("div", { class: "why", text: "Legacy survivorship-biased diagnostic; insufficient qualified evidence." })]),
     ]));
   }
   t.append(tb);
@@ -816,8 +816,8 @@ function renderMethod() {
     ["Data", `Hourly candles for ${R.coins_1y} coins that trade on your DEXs (${d(R.window_1y[0])} to ${d(R.window_1y[1])}) and 4-hour candles for ${R.coins_3y} coins back to ${d(R.window_3y[0])}, from MEXC futures (Gate.io where MEXC has none), with MEXC funding history. A coin is only traded after 30 days of history and with $5M+ a day of volume.`],
     ["Costs", `Every trade pays a 0.045% taker fee each way, slippage by liquidity (0.05% for coins with $1M+ a day on your DEXs, more for thinner ones) and funding while it is held (longs pay positive funding, shorts receive it).`],
     ["No peeking", `Signals use closed bars only and are entered at the open of the next hour. A bar that touches both the stop and the target counts as a loss, trailing stops move only at the close of a bar, and gaps through a stop exit at the open. The live desk runs the same code: its signals match the research engine trade for trade.`],
-    ["Honest yardstick", `Each trade is compared with a random twin: the same order, same direction and same exits, on a random other coin at the same moment. A strategy only counts if it beats its twins, not just a rising or falling market.`],
-    ["Out of sample", `The last year was split into the first 8 months and the last 4; the three live strategies made money in both, and again over three years on 4-hour data. Their settings are textbook defaults, not tuned to this data; changing them a little keeps them positive (all 18 trend-rider variants and 96% of 135 crossover variants were positive over three years).`],
+    ["Legacy comparator", `Historical random twins are descriptive diagnostics. They are not full point-in-time controls matched on beta, volatility, liquidity, market cap, listing age, funding, trend and regime.`],
+    ["Research authority", `Historical splits and parameter variants do not establish requalification. The historical trial family is incompletely recoverable. The deployed strategies remain legacy holdovers pending qualified point-in-time data, multiple-testing correction and prospective evidence.`],
     ["What can still go wrong", `Today's coin list is used for the past, so coins that were delisted are missing. Trend strategies lose in sideways markets (2025 was flat to slightly negative) and rely on a few big winners. Live results usually fall short of backtests; the planner's 'half as good' switch shows that case. This is research and paper trading, not financial advice.`],
   ];
   for (const [h, p] of items) { b.append(el("h3", { text: h })); b.append(el("p", { text: p })); }

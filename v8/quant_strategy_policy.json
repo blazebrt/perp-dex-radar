@@ -1,0 +1,10 @@
+{
+  "schema": "v8.quant-strategy-policy/1",
+  "runtime_order": ["TSMOM", "TREND_EMA", "XSMOM"],
+  "strategies": [
+    {"strategy_id": "TSMOM", "deployment_state": "LEGACY_HOLDOVER", "research_state": "INSUFFICIENT_EVIDENCE"},
+    {"strategy_id": "TREND_EMA", "deployment_state": "LEGACY_HOLDOVER", "research_state": "INSUFFICIENT_EVIDENCE"},
+    {"strategy_id": "XSMOM", "deployment_state": "LEGACY_HOLDOVER", "research_state": "INSUFFICIENT_EVIDENCE"}
+  ],
+  "authority": "Reviewed main-branch policy. Research cannot promote or demote runtime strategies."
+}

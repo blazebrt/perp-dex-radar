@@ -85,7 +85,7 @@ jobs:
         # differences the change explains.
         continue-on-error: true
         run: |
-          BASE_SHA=$(python -c "import json; print(json.load(open('tests/fixtures/v8/phase8_1_expected_deltas.json'))['base']['sha'])")
+          BASE_SHA=$(python -c "import json; print(json.load(open('tests/fixtures/v8/phase9_expected_deltas.json'))['base']['sha'])")
           echo "phase base $BASE_SHA" > research_base.txt
           git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA" >> research_base.txt 2>&1 || true
           cd "$RUNNER_TEMP/base"
@@ -251,6 +251,17 @@ jobs:
           tail -30 research_pit_cutoff.txt
           tail -60 research_pit.txt
 
+      - name: Phase 9 governed strategy adjudication (mandatory, no promotion)
+        run: |
+          rc=0
+          python -m pip install --disable-pip-version-check --quiet numpy numba pandas >> research_phase9.txt 2>&1 || rc=$?
+          if [ "$rc" -eq 0 ]; then python -m unittest tests.test_v8_phase9 -v >> research_phase9.txt 2>&1 || rc=$?; fi
+          if [ "$rc" -eq 0 ]; then python tools/research/strategy_adjudication.py --md md --history hist_prod --cutoff "$(git show -s --format=%ct HEAD)" --out . >> research_phase9.txt 2>&1 || rc=$?; fi
+          echo "exit $rc" >> research_phase9.txt
+          python -c "import json,os; json.dump({'head':os.environ['GITHUB_SHA'],'exit_code':int('$rc')},open('research_phase9_exit.json','w'),sort_keys=True)"
+          test "$rc" -eq 0
+          python -c "import json; s=json.load(open('research_phase9_summary.json')); assert s['candidate_count'] >= 24; print(s)"
+
       - name: Save the results for review
         if: always()
         env:
@@ -261,6 +272,7 @@ jobs:
         run: |
           mkdir -p R
           cp research_*.txt R/ 2>/dev/null || true
+          cp research_strategy_*.json research_multiple_testing.json research_matched_controls.json research_phase9_*.json R/ 2>/dev/null || true
           for f in latest.json journal.csv quant.json picks.json smart.json dashboard.json; do
             if [ -f "out_new/data/$f" ]; then cp "out_new/data/$f" "R/new_$f"; fi
           done

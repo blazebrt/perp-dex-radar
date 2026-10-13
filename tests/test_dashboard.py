@@ -112,7 +112,7 @@ class Accuracy(Base):
         self.assertEqual(day["tested"]["n"], 16056, "only bands of 80+ count")
         self.assertLess(day["tested"]["per100"], 0)
         q = sc["Quant desk"]
-        self.assertEqual((q["verdict"], q["tested"]["per100"], q["tested"]["vs_random"]), ("Proven", 9, 7))
+        self.assertEqual((q["verdict"], q["tested"]["per100"], q["tested"]["vs_random"]), ("Legacy holdover", 9, 7))
         self.assertAlmostEqual(q["tested"]["ret"], 0.093 * 0.1109, places=5)
         r = sc["15m radar"]
         self.assertEqual(r["verdict"], "Not proven", "a passed variant does not count as a passed strategy")

@@ -55,7 +55,8 @@ from v8 import taxonomy as T  # noqa: E402
 # manifests and their goldens are kept for the record and still checked for consistency below: the Phase 3, closure
 # and Phase 4 identity states are the v8.identity/2 states (this run's contracts replayed under the /2 rules), the
 # Phase 5 states are the v8.identity/3 states, which this run's audit records per asset as `previous`.
-GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase7.json")
+GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase9.json")
+PHASE7_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase7.json")
 PHASE6_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase6.json")
 PHASE7_MANIFEST = os.path.join(HERE, "fixtures", "v8", "phase7_expected_deltas.json")
 PHASE5_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase5.json")
@@ -203,7 +204,9 @@ class PipelineAudit(unittest.TestCase):
         self.assertEqual(man["head_golden"], "tests/fixtures/v8/legacy_parity_golden_phase6.json")
         self.assertNotEqual(base["combined"], self.summary["combined"])     # Phase 6 changes outputs on purpose
         with open(PHASE6_GOLDEN) as fh:
-            self.assertEqual(json.load(fh)["combined"], self.summary["combined"])     # Phase 7 changes none
+            phase6 = json.load(fh)
+        with open(PHASE7_GOLDEN) as fh:
+            self.assertEqual(phase6["combined"], json.load(fh)["combined"])  # historical Phase 7 changed none
         self.assertEqual(man["identity_states"], self.states())
         prev, now = self.states(previous=True), self.states()
         moved = {t for t in now if prev[t] != now[t]}
@@ -229,7 +232,7 @@ class PipelineAudit(unittest.TestCase):
         self.assertEqual(man["identity_states"], self.states())
         with open(PHASE6_GOLDEN) as fh:
             base = json.load(fh)
-        with open(GOLDEN) as fh:
+        with open(PHASE7_GOLDEN) as fh:
             head = json.load(fh)
         self.assertEqual((base["combined"], base["files"], base["decisions"]),
                          (head["combined"], head["files"], head["decisions"]))
@@ -237,7 +240,7 @@ class PipelineAudit(unittest.TestCase):
     def test_candidate_evidence_is_traced_never_authority(self):
         """v8 Phase 4: the snapshot carries every contract's observed candidate evidence apart from its authoritative
         evidence, and counts it; no candidate rule is qualified."""
-        self.assertEqual(self.snap["manifest"]["audit_version"], "v8-phase8.1")
+        self.assertEqual(self.snap["manifest"]["audit_version"], "v8-phase9.0")
         self.assertIn("candidate", SN.CONTRACT_FIELDS)
         self.assertTrue({"wrapper", "xcheck"} <= set(SN.CONTRACT_FIELDS))
         cc = self.snap["registry"]["counts"]["candidate_evidence"]
@@ -763,7 +766,7 @@ class PipelineAudit(unittest.TestCase):
                     self.assertIn(x, T.STEPS)
                 self.assertNotIn(r["c"], T.RETIRED, (e, a))
         self.assertNotIn("FILTERED", T.REASONS)
-        self.assertEqual(self.snap["schema"], "v8.audit/7")
+        self.assertEqual(self.snap["schema"], "v8.audit/8")
         self.assertEqual(self.snap["manifest"]["identity_version"], "v8.identity/4")
         self.assertEqual(len(self.snap["manifest"]["identity_config_hash"]), 64)
         self.assertEqual(self.snap["manifest"]["liquidity_version"], "v8.liquidity/1")
@@ -811,7 +814,7 @@ class PipelineAudit(unittest.TestCase):
         self.assertTrue(m["scan_ids_consistent"])
         self.assertEqual(set(m["legacy_output_hashes"]), {r["path"] for r in self.snap["legacy_output_refs"]})
         self.assertEqual(len(m["config_hashes"]["radar"]), 64)
-        self.assertTrue(m["strategy_authority"]["research_verdict_preassigned_live"])
+        self.assertFalse(m["strategy_authority"]["research_verdict_preassigned_live"])
 
 
 if __name__ == "__main__":

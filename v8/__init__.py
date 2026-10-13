@@ -34,5 +34,5 @@ Modules
                 record has trade authority (Phase 8)
 """
 
-SCHEMA = "v8.audit/7"
-ENGINE_VERSION = "v8-phase8.1"
+SCHEMA = "v8.audit/8"
+ENGINE_VERSION = "v8-phase9.0"

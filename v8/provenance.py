@@ -166,42 +166,44 @@ def scan_id(ts):
 
 
 def strategy_authority():
-    """Where quant strategy authority comes from today (exposed, not changed): quant.py runs its ORDER tuple
-    regardless of any research verdict, and tools/research/qexport.py assigns the verdict "live" to its FINAL tuple
-    before any evidence test runs. Read with ast (qexport imports numpy/pandas), never executed."""
-    import ast
-    out = {"quant_runtime_order": None, "research_final": None, "research_verdict_preassigned_live": None,
-           "research_file_verdicts": None, "files": {}}
+    """Deployment comes from reviewed policy; the governed report has no runtime authority."""
+    from . import strategy_policy as SP, strategy_authority as SA
+    out = {"research_verdict_preassigned_live": False, "research_final": [], "files": {}}
     try:
         import quant as q
-        out["quant_runtime_order"] = list(q.ORDER)
-    except Exception:  # noqa: BLE001
-        pass
-    path = os.path.join(ROOT, "tools", "research", "qexport.py")
-    out["files"]["tools/research/qexport.py"] = file_sha(path)
-    out["files"]["quant.py"] = file_sha(os.path.join(ROOT, "quant.py"))
-    out["files"]["quant_research.json"] = file_sha(os.path.join(ROOT, "quant_research.json"))
+        policy = SP.load(q.STRATS)
+        out.update(runtime_policy_schema=SP.VERSION, runtime_policy_hash=SP.digest(policy),
+                   quant_runtime_order=policy["runtime_order"], deployment_states={r["strategy_id"]: r["deployment_state"] for r in policy["strategies"]},
+                   research_states={r["strategy_id"]: r["research_state"] for r in policy["strategies"]},
+                   health=["STRATEGY_POLICY_OK"],
+                   legacy_holdover_count=sum(r["deployment_state"] == "LEGACY_HOLDOVER" for r in policy["strategies"]))
+    except (OSError, ValueError, TypeError, KeyError) as e:
+        out.update(health=["STRATEGY_POLICY_INVALID"], error=str(e))
+    out.update(adjudication_version=SA.VERSION, trial_census_version="v8.strategy-trial-census/1",
+               trial_census_complete=False, matched_control_version="v8.matched-controls/1",
+               matched_control_status="FULL_MATCHED_CONTROL_UNAVAILABLE", multiple_testing_version="v8.multiple-testing/1",
+               multiple_testing_status="MULTIPLE_TESTING_INSUFFICIENT_DATA", requalified_strategy_count=0)
+    out["health"].extend(["TRIAL_CENSUS_INCOMPLETE", "MATCHED_CONTROLS_INCOMPLETE", "STRATEGY_EVIDENCE_INSUFFICIENT"])
+    for name in ("research_strategy_trial_census.json", "research_strategy_adjudication.json"):
+        path = os.path.join(ROOT, "research", "phase9", name)
+        out[name + "_hash"] = file_sha(path)
     try:
-        with open(path) as fh:
-            tree = ast.parse(fh.read())
-        for node in tree.body:
-            if isinstance(node, ast.Assign) and any(getattr(t, "id", None) == "FINAL" for t in node.targets):
-                out["research_final"] = list(ast.literal_eval(node.value))
-            if isinstance(node, ast.FunctionDef) and node.name == "verdict" and node.body:
-                first = node.body[0]
-                if isinstance(first, ast.If) and "FINAL" in ast.dump(first.test):
-                    ret = next((b for b in first.body if isinstance(b, ast.Return)), None)
-                    val = getattr(ret, "value", None)
-                    lead = val.elts[0] if isinstance(val, ast.Tuple) and val.elts else None
-                    out["research_verdict_preassigned_live"] = isinstance(lead, ast.Constant) and lead.value == "live"
-    except Exception as e:  # noqa: BLE001
-        out["error"] = f"{type(e).__name__}: {e}"[:200]
-    try:
-        with open(os.path.join(ROOT, "quant_research.json")) as fh:
-            st = json.load(fh).get("strategies") or {}
-        out["research_file_verdicts"] = {k: (v or {}).get("verdict") for k, v in sorted(st.items())}
-    except (OSError, ValueError, AttributeError):
-        pass
+        with open(os.path.join(ROOT, "research", "phase9", "research_strategy_adjudication.json")) as fh:
+            report = json.load(fh)
+        if report.get("schema") != SA.VERSION:
+            raise ValueError("unsupported adjudication schema")
+        out["adjudicated_research_states"] = {r["strategy_id"]: r["research_state"] for r in report["strategies"]}
+        out["requalified_strategy_count"] = sum(v == "REQUALIFIED" for v in out["adjudicated_research_states"].values())
+        out["adjudication_provenance"] = report["provenance"]
+    except (OSError, ValueError, KeyError) as e:
+        out["adjudication_status"] = "UNAVAILABLE"
+        out["adjudication_error"] = str(e)
+    for name in ("tools/research/qexport.py", "quant.py", "quant_research.json"):
+        out["files"][name] = file_sha(os.path.join(ROOT, name))
+    with open(os.path.join(ROOT, "quant_research.json")) as fh:
+        out["legacy_stored_verdicts"] = {k: v.get("verdict") for k, v in json.load(fh)["strategies"].items()}
+    out["research_file_verdicts"] = {k: "LEGACY_SURVIVORSHIP_UNQUALIFIED" for k in out["legacy_stored_verdicts"]}
+    out["legacy_portfolio_label"] = "LEGACY_DIAGNOSTIC / NOT STRATEGY AUTHORITY"
     return out
 
 

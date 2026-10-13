@@ -283,9 +283,9 @@ class Provenance(unittest.TestCase):
     def test_hard_coded_quant_authority_is_exposed(self):
         a = provenance.strategy_authority()
         self.assertEqual(a["quant_runtime_order"], ["TSMOM", "TREND_EMA", "XSMOM"])
-        self.assertEqual(a["research_final"], ["TSMOM", "TREND_EMA", "XSMOM"])
-        self.assertTrue(a["research_verdict_preassigned_live"])
-        self.assertEqual({a["research_file_verdicts"][k] for k in a["research_final"]}, {"live"})
+        self.assertEqual(a["research_final"], [])
+        self.assertFalse(a["research_verdict_preassigned_live"])
+        self.assertEqual(set(a["research_file_verdicts"].values()), {"LEGACY_SURVIVORSHIP_UNQUALIFIED"})
         self.assertEqual(len(a["files"]["tools/research/qexport.py"]), 64)
 
     def test_scan_id(self):

@@ -1,5 +1,5 @@
 """Build quant_research.json for the dashboard: every strategy tested (1-year on 1h bars, 3-year on 4h bars),
-the verdicts, equity curves, and the account simulation / growth planner for the strategies that passed."""
+legacy diagnostics, equity curves, and the legacy account / growth planner (not strategy authority)."""
 from __future__ import annotations
 
 import json
@@ -16,7 +16,13 @@ import qstats
 import qstrat
 from qdata import Panel
 
-FINAL = ("TSMOM", "TREND_EMA", "XSMOM")
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from v8 import strategy_policy
+
+def legacy_portfolio_ids():
+    # Composition only, never a research verdict.
+    return json.loads(strategy_policy.PATH.read_text())["runtime_order"]
 
 TESTED = {
     # id: (function, kwargs, name, family, timeframe, description)
@@ -108,44 +114,9 @@ VARIANTS = {"XSMOM_7D", "XSMOM_14D_7", "DC20_D", "DC55_D", "EMA5_20_D", "EMA10_5
 
 
 def verdict(sid, one, ins, oos, three):
-    if sid in FINAL:
-        return "live", ("Made money after costs in both halves of the last year and over three years, and did better "
-                        "than random entries taken at the same moments. Settings are textbook defaults, not tuned "
-                        "to this data.")
-    if not one.get("n"):
-        return "rejected", "Almost never triggers."
-    a = one["avg"]
-    if a < -0.02:
-        w = f"Loses money after costs: {_r(a)} per trade over {one['n']:,} trades in the last year."
-        if one["gross"] > 0:
-            w += (f" It is slightly positive before costs ({_r(one['gross'])}), but fees, slippage and funding take "
-                  f"{one['cost']:.2f}R of every trade.")
-        return "rejected", w
-    if a <= 0.02:
-        if one["cost"] < 0.01:
-            return "rejected", (f"Breaks even ({_r(a)} per trade over {one['n']:,} trades) even though funding "
-                                f"payments work in its favour: no edge.")
-        return "rejected", (f"Breaks even at best after costs ({_r(a)} per trade over {one['n']:,} trades): "
-                            f"fees and slippage ({one['cost']:.2f}R a trade) eat whatever edge it has.")
-    ia, oa = ins.get("avg") or 0, oos.get("avg") or 0
-    if ia * oa < 0:
-        return "rejected", (f"Made money in one part of the year and lost it in the other ({_r(ia)} vs {_r(oa)} "
-                            f"per trade): not reliable.")
-    if three and three.get("n") and three["avg"] <= 0.01:
-        return "rejected", f"Positive in the last year ({_r(a)}) but not over three years ({_r(three['avg'])})."
-    e3 = (three or {}).get("edge_t")
-    if e3 is not None and e3 < 1.0:
-        return "rejected", (f"Over three years it was no better than random entries at the same moments "
-                            f"({_r(three['edge'])} \u00b1 {three['edge_se']:.2f}).")
-    if three is None and one.get("edge_t") is not None and one["edge_t"] < 1.5:
-        return "rejected", (f"Not clearly better than random entries at the same moments ({_r(one['edge'])} "
-                            f"\u00b1 {one['edge_se']:.2f}).")
-    if oa < 0.3 * ia:
-        return "rejected", (f"Most of its profit came early in the year ({_r(ia)} per trade); in the last 4 months it "
-                            f"made only {_r(oa)}, and a few big winners carry the total.")
-    if sid in VARIANTS:
-        return "rejected", "A close variant of a live strategy that did worse; keeping both would double the same bet."
-    return "rejected", "Positive, but not consistent enough across the tests to trust yet."
+    return "LEGACY_SURVIVORSHIP_UNQUALIFIED", ("Historical diagnostic only. Governed Phase 9 PIT, "
+        "matched-control, multiple-testing and prospective evidence is required for research authority.")
+
 
 
 def main():
@@ -190,7 +161,7 @@ def main():
                 a, b = end4 - (k + 1) * 365 * 86400, end4 - k * 365 * 86400
                 if a >= s4 - 120 * 86400:
                     years.append({"from": max(a, s4), "to": b, **slim(qstats.stats(d4, max(a, s4), b))})
-            if sid in FINAL:
+            if sid in legacy_portfolio_ids():
                 finals_3y.append(d4)
         v, why = verdict(sid, one, ins, oos, three)
         res["strategies"][sid] = {
@@ -202,7 +173,7 @@ def main():
             "months": {k: round(v_, 2) for k, v_ in (one.get("months") or {}).items()},
         }
         print(f"{sid:12s} {v:8s} 1y n={one.get('n')} avg={one.get('avg', 0):+.3f}  3y={three.get('avg') if three else None}")
-    # combined account and growth planner for the strategies that went live (3 years, 4h bars)
+    # combined account and growth planner for the legacy holdovers (diagnostic only) (3 years, 4h bars)
     T = pd.concat(finals_3y, ignore_index=True)
     T = T[T.reason != "end"]
     comb = qstats.stats(T, s4, end4)
@@ -232,7 +203,8 @@ def main():
                                   for k, v in row.items()} for row in gp.to_dict("records")]
     sharpe = float(daily.mean() / daily.std() * math.sqrt(365)) if daily.std() > 0 else None
     res["portfolio"] = {
-        "strategies": list(FINAL), "all_trades": slim(comb), "taken": slim(qstats.stats(TK, s4, end4)),
+        "label": "LEGACY_DIAGNOSTIC / NOT STRATEGY AUTHORITY",
+        "strategies": list(legacy_portfolio_ids()), "all_trades": slim(comb), "taken": slim(qstats.stats(TK, s4, end4)),
         "max_open": 60, "max_per_strategy": 20,
         "daily_r_mean": round(float(daily.mean()), 4), "daily_r_sd": round(float(daily.std()), 4),
         "sharpe": round(sharpe, 3) if sharpe else None, "kelly": round(qport.kelly(daily), 4),

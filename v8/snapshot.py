@@ -319,6 +319,11 @@ def build(out_dir, pages_url=None, first_seen_path=None, identity_path=None):
         "legacy_output_hashes": {r["path"]: r["sha256"] for r in refs},
         "strategy_authority": provenance.strategy_authority(),
     }
+    data_health["strategy_authority"] = manifest["strategy_authority"]["health"]
+    from . import shadow_ledger as SL
+    manifest["strategy_authority"]["shadow_ledger"] = SL.summary(os.path.join(provenance.ROOT, SL.DIR))
+    if "STRATEGY_POLICY_INVALID" in data_health["strategy_authority"]:
+        problems["strategy_authority"] = [manifest["strategy_authority"].get("error")]
     # v8 Phase 7: full-universe discovery (observational; data/v8/discovery.json, summary in the snapshot)
     disc_bytes, disc_sum = _discovery(out_dir, reg, dispositions, hdr, fs, fs_src, ts)
     manifest["discovery_version"] = DS.VERSION

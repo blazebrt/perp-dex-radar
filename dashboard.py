@@ -143,14 +143,9 @@ def quant_accuracy(Q, QR):
         tested["vs_random"] = per100(a["edge"])
     la = (Q or {}).get("live_all") or {}
     live = rec(la.get("n"), la.get("wr"), la.get("avg"))
-    if a.get("n") and (a.get("avg") or 0) > 0 and (a.get("t") or 0) >= 2:
-        verdict, tone = "Proven", "good"
-        why = (f"{len(pf.get('strategies') or [])} strategies that made money after fees, slippage and funding over "
-               "three years and beat random entries taken at the same moments.")
-    elif a.get("n"):
-        verdict, tone, why = "Mixed", "warn", "Positive but not clearly above chance."
-    else:
-        verdict, tone, why = "Not tested", "muted", "No test results on this site yet."
+    verdict, tone = "Legacy holdover", "warn"
+    why = ("Unqualified legacy diagnostic; point-in-time evidence, full matched controls and "
+           "multiple-testing correction have not established strategy authority.")
     return {"name": "Quant desk", "sub": "Trend strategies, long and short", "page": "quant.html",
             "tested": tested, "live": live, "verdict": verdict, "tone": tone, "why": why}
 
@@ -281,7 +276,7 @@ def quant_card(Q, acc):
               "text": (f"{len(op)} open: {nl} long, {len(op) - nl} short" if op else "No open positions") +
                       (f" · {len(sig)} new this scan" if sig else "")}
     return {"id": "quant", "name": "Quant desk", "page": "quant.html", "logo": "Q",
-            "what": "Three trend strategies, long and short, that passed a 3-year test",
+            "what": "Legacy holdover strategies; historical results are unqualified diagnostics",
             "updated": (Q or {}).get("generated"), "status": status, "items": items[:6], "open_n": len(op),
             "accuracy": [acc]}
 

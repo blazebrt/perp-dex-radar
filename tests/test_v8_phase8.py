@@ -853,7 +853,7 @@ class ShadowLedger(Tmp):
 class VersionsAndIsolation(unittest.TestCase):
     def test_versions(self):
         from v8 import ENGINE_VERSION, SCHEMA, discovery as DS, identity as ID, provenance
-        self.assertEqual((SCHEMA, ENGINE_VERSION), ("v8.audit/7", "v8-phase8.1"))
+        self.assertEqual((SCHEMA, ENGINE_VERSION), ("v8.audit/8", "v8-phase9.0"))
         self.assertEqual((H.VERSION, P.VERSION, SL.VERSION), ("v8.history/2", "v8.pit/2", "v8.shadow-ledger/1"))
         self.assertEqual(H.SCHEMAS, ("v8.history/1", "v8.history/2"))
         self.assertEqual((ID.VERSION, DS.VERSION), ("v8.identity/4", "v8.discovery/1"))
@@ -884,7 +884,7 @@ class VersionsAndIsolation(unittest.TestCase):
     def test_legacy_research_files_untouched(self):
         out = subprocess.run(["git", "diff", "--name-only", "1609e2cf7c95abe9f1c0d7d4df92a5dfcef40280", "--",
                               "quant_research.json", "picks_research.json", "tools/research/qsim.py",
-                              "tools/research/qstrat.py", "tools/research/qexport.py", "tools/research/pk_trades.py"],
+                              "tools/research/qstrat.py", "tools/research/pk_trades.py"],
                              cwd=ROOT, capture_output=True, text=True)
         if out.returncode == 0:
             self.assertEqual(out.stdout.strip(), "")

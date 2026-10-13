@@ -1,0 +1,187 @@
+{
+ "schema": "v8.delta/2",
+ "phase": "v8 Phase 9: explicit research/deployment separation, runtime holdovers unchanged",
+ "base": {
+  "sha": "c2d48549a8012fa77862cb57d7e706620fa85a18",
+  "tree": "b31048c449411a48cafe6f557ba2e54b3d13e482",
+  "golden": "tests/fixtures/v8/legacy_parity_golden_phase8_1.json"
+ },
+ "head_golden": "tests/fixtures/v8/legacy_parity_golden_phase9.json",
+ "counterfactual_projection": null,
+ "rules": {
+  "RESEARCH_LABEL_ONLY": "User explicitly authorized research-label changes only. No numerical, signal, ranking, Top N, journal, or trading behavior changes."
+ },
+ "universe": [],
+ "dex_status": [],
+ "notes": {
+  "removed": [],
+  "added": []
+ },
+ "code": [
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "scorecard",
+    1,
+    "tone"
+   ],
+   "base": "good",
+   "head": "warn",
+   "rule": "RESEARCH_LABEL_ONLY"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "scorecard",
+    1,
+    "verdict"
+   ],
+   "base": "Proven",
+   "head": "Legacy holdover",
+   "rule": "RESEARCH_LABEL_ONLY"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "scorecard",
+    1,
+    "why"
+   ],
+   "base": "3 strategies that made money after fees, slippage and funding over three years and beat random entries taken at the same moments.",
+   "head": "Unqualified legacy diagnostic; point-in-time evidence, full matched controls and multiple-testing correction have not established strategy authority.",
+   "rule": "RESEARCH_LABEL_ONLY"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    1,
+    "accuracy",
+    0,
+    "tone"
+   ],
+   "base": "good",
+   "head": "warn",
+   "rule": "RESEARCH_LABEL_ONLY"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    1,
+    "accuracy",
+    0,
+    "verdict"
+   ],
+   "base": "Proven",
+   "head": "Legacy holdover",
+   "rule": "RESEARCH_LABEL_ONLY"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    1,
+    "accuracy",
+    0,
+    "why"
+   ],
+   "base": "3 strategies that made money after fees, slippage and funding over three years and beat random entries taken at the same moments.",
+   "head": "Unqualified legacy diagnostic; point-in-time evidence, full matched controls and multiple-testing correction have not established strategy authority.",
+   "rule": "RESEARCH_LABEL_ONLY"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    1,
+    "what"
+   ],
+   "base": "Three trend strategies, long and short, that passed a 3-year test",
+   "head": "Legacy holdover strategies; historical results are unqualified diagnostics",
+   "rule": "RESEARCH_LABEL_ONLY"
+  }
+ ],
+ "decisions": [],
+ "files": [
+  {
+   "file": "index.html",
+   "base_sha256": "27c23a51d81fe34fc24566dec1f1d8397710acd741684b17ac641dfef6873bb4",
+   "head_sha256": "74c29f980c4c4299e05c3e4dd2decaaec604baf442591bfdfaf76f82f5d8e39d",
+   "rule": "RESEARCH_LABEL_ONLY"
+  },
+  {
+   "file": "quant.html",
+   "base_sha256": "7d4f2478d81d164d8ca295bb80c5be4bcff50406672595e71c4c5af6cdfc28c7",
+   "head_sha256": "71259c59cf739c0c77cced08ccfa773ece035d10286f62c3d5e3c1e2fcdf3d20",
+   "rule": "RESEARCH_LABEL_ONLY"
+  }
+ ],
+ "identity_states": {
+  "AAPL": "VERIFIED_TRADFI",
+  "ACME": "VERIFIED_TRADFI",
+  "ADBE": "VERIFIED_TRADFI",
+  "ASTS": "VERIFIED_TRADFI",
+  "BB": "VERIFIED_CRYPTO",
+  "BTC": "VERIFIED_CRYPTO",
+  "BYD": "VERIFIED_TRADFI",
+  "ETH": "VERIFIED_CRYPTO",
+  "EURUSD": "VERIFIED_TRADFI",
+  "EXTONLY": "UNVERIFIED",
+  "FAKE00": "VERIFIED_CRYPTO",
+  "FAKE01": "VERIFIED_CRYPTO",
+  "FAKE02": "VERIFIED_CRYPTO",
+  "FAKE03": "VERIFIED_CRYPTO",
+  "FAKE04": "VERIFIED_CRYPTO",
+  "FAKE05": "VERIFIED_CRYPTO",
+  "FAKE06": "VERIFIED_CRYPTO",
+  "FAKE07": "UNVERIFIED",
+  "FAKE08": "VERIFIED_CRYPTO",
+  "FAKE09": "VERIFIED_CRYPTO",
+  "FAKE10": "VERIFIED_CRYPTO",
+  "FAKE11": "VERIFIED_CRYPTO",
+  "FAKE12": "VERIFIED_CRYPTO",
+  "FAKE13": "VERIFIED_CRYPTO",
+  "FAKE14": "VERIFIED_CRYPTO",
+  "FAKE15": "VERIFIED_CRYPTO",
+  "FAKE16": "VERIFIED_CRYPTO",
+  "FAKE17": "VERIFIED_CRYPTO",
+  "FAKE18": "VERIFIED_CRYPTO",
+  "FAKE19": "VERIFIED_CRYPTO",
+  "FAKE20": "VERIFIED_CRYPTO",
+  "FAKE21": "VERIFIED_CRYPTO",
+  "FAKE22": "VERIFIED_CRYPTO",
+  "FAKE23": "VERIFIED_CRYPTO",
+  "FAKE24": "VERIFIED_CRYPTO",
+  "FAKE25": "VERIFIED_CRYPTO",
+  "FAKE26": "VERIFIED_CRYPTO",
+  "FAKE27": "VERIFIED_CRYPTO",
+  "HYUNDAI": "UNVERIFIED",
+  "HYUNDAIUSD": "VERIFIED_TRADFI",
+  "KIOXIA": "VERIFIED_TRADFI",
+  "KORU": "VERIFIED_TRADFI",
+  "LONLY": "VERIFIED_CRYPTO",
+  "MOONX": "UNVERIFIED",
+  "NEW10": "VERIFIED_CRYPTO",
+  "NEW40": "VERIFIED_CRYPTO",
+  "NEWCOIN": "UNVERIFIED",
+  "NOCAND": "VERIFIED_CRYPTO",
+  "ONDS": "VERIFIED_TRADFI",
+  "PRLX": "UNVERIFIED",
+  "PURR": "VERIFIED_CRYPTO",
+  "QNT": "VERIFIED_CRYPTO",
+  "SAMSUNGUSD": "VERIFIED_TRADFI",
+  "SCALEX": "VERIFIED_CRYPTO",
+  "SECT": "AMBIGUOUS",
+  "SKHYNIX": "VERIFIED_TRADFI",
+  "SKHYNIXUSD": "VERIFIED_TRADFI",
+  "THINREF": "VERIFIED_CRYPTO",
+  "TINY": "VERIFIED_CRYPTO",
+  "US100S": "VERIFIED_TRADFI",
+  "US10Y": "VERIFIED_TRADFI",
+  "VANA": "VERIFIED_CRYPTO",
+  "XIAOMI": "VERIFIED_TRADFI",
+  "ZEROV": "VERIFIED_CRYPTO"
+ },
+ "not_allowed": "Any difference other than the exact research-label fields and HTML hashes listed here; all decisions and numerical results remain unchanged."
+}

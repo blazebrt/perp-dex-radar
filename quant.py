@@ -6,7 +6,7 @@ Runs after scanner.py in every scan (see .github/workflows/scan.yml):
      $5M+ a day on the reference exchange, listed for 30+ days.
   2. Candles: 4-hour candles (about 83 days) from MEXC futures (Gate.io as a fallback); daily bars are
      built from them. Only closed bars are used, so live signals are exactly what the backtest saw.
-  3. Signals: the strategies that passed the one-year and three-year tests (quant_research.json):
+  3. Signals: legacy holdover strategies pending governed requalification:
        TSMOM      Daily trend rider       30- and 7-day returns and the 50-day EMA agree (long or short)
        TREND_EMA  4-hour trend crossover  EMA 20 crosses EMA 100 with ADX above 20 (long or short)
        XSMOM      Momentum rotation       the 5 strongest coins of the last 14 days long, the 5 weakest short
@@ -80,7 +80,9 @@ STRATS = {
         "params": {"look": 14, "vol_days": 30, "top": 5, "stop_k": 2.5, "hold_h": 14 * 24},
     },
 }
-ORDER = ("TSMOM", "TREND_EMA", "XSMOM")
+from v8 import strategy_policy as STRATEGY_POLICY
+POLICY = STRATEGY_POLICY.load(STRATS)
+RUNTIME_ORDER = tuple(POLICY["runtime_order"])
 
 
 def log(msg):
@@ -598,7 +600,7 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
     backd = 1 if fresh else CFG["catch_up_days"]
     signals = []
     last4 = max((v["c4"][-1]["t"] for v in data.values()), default=None)
-    if last4 is not None:
+    if last4 is not None and "TREND_EMA" in RUNTIME_ORDER:
         lo4 = max(done.get("TREND_EMA", 0), last4 - (back4 - 1) * B4 - 1)
         for t, v in data.items():
             c4 = v["c4"]
@@ -616,7 +618,8 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
     if lastd is not None:
         p = STRATS["XSMOM"]["params"]
         for day in range(lastd - (backd - 1) * DAY, lastd + 1, DAY):
-            run_ts, run_xs = done.get("TSMOM", 0) < day, done.get("XSMOM", 0) < day
+            run_ts = "TSMOM" in RUNTIME_ORDER and done.get("TSMOM", 0) < day
+            run_xs = "XSMOM" in RUNTIME_ORDER and done.get("XSMOM", 0) < day
             if not (run_ts or run_xs):
                 continue
             feats, xs = {}, {}
@@ -702,20 +705,20 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
                                                             "fee_taker", "account", "risk")},
         "trade_dexes": [sc.DEX_NAME.get(d, d) for d in sc.CFG["trade_dexes"]],
         "market": {"btc": btc_state, "above_ema50": up, "below_ema50": dn},
-        "strategies": {sid: {k: v for k, v in STRATS[sid].items()} for sid in ORDER},
+        "strategies": {sid: {k: v for k, v in STRATS[sid].items()} for sid in RUNTIME_ORDER},
         "signals": [{"s": t["s"], "c": t["c"], "d": t["d"], "t": t["t_in"], "stop_pct": t["stop_pct"],
                      "trail_pct": t["trail_pct"]} for t in new],
         "open": actionable, "blocked_open": blocked, "closed": J["closed"][-150:],
         # v8 Phase 3 closure: the live record counts identity-qualified trades only (entry-time VERIFIED_CRYPTO proof)
-        "live": {sid: live_stats([t for t in qual if t["s"] == sid]) for sid in ORDER},
+        "live": {sid: live_stats([t for t in qual if t["s"] == sid]) for sid in RUNTIME_ORDER},
         "live_all": live_stats(qual),
         "legacy_unqualified": {"reason": EV.LEGACY_NO_IDENTITY_PROOF,
-                               "live": {sid: live_stats([t for t in unq if t["s"] == sid]) for sid in ORDER},
+                               "live": {sid: live_stats([t for t in unq if t["s"] == sid]) for sid in RUNTIME_ORDER},
                                "live_all": live_stats(unq)},
         "evidence": journal_evidence(J, actionable, blocked),
         "next_scan_min": sc.CFG["schedule_every_min"],
     }
-    for sid in ORDER:
+    for sid in RUNTIME_ORDER:
         out["strategies"][sid]["open"] = sum(1 for t in actionable if t["s"] == sid)
         out["strategies"][sid]["blocked_open"] = sum(1 for t in blocked if t["s"] == sid)
     data_dir = os.path.join(out_dir, "data")

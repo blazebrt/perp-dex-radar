@@ -236,7 +236,7 @@ header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: 
   <section class="section" aria-labelledby="h-a">
     <div class="section-head"><h2 id="h-a">Where the signals line up</h2><p>Coins that two or more versions point at right now.</p></div>
     <div class="card agree" id="agree"></div>
-    <div class="legend"><span class="ck" style="color:var(--good-text);font-weight:800">✓</span> marks a signal from a method with a proven record (swing picks scoring 80+, the quant desk, a radar strategy that passed).</div>
+    <div class="legend"><span class="ck" style="color:var(--good-text);font-weight:800">✓</span> marks a legacy method badge (swing picks scoring 80+ or a radar strategy that passed its paper test). Quant signals are legacy holdovers with unqualified research evidence.</div>
   </section>
 
   <section class="section" aria-labelledby="h-s">
@@ -385,7 +385,7 @@ function renderAgree() {
   $("agree").innerHTML = A.map((r) => {
     const label = r.conflict ? `<span class="pill mixed">MIXED</span>` : sidePill(r.side);
     const cnt = r.conflict ? `${r.agree} vs ${r.against}` : `${r.agree} agree`;
-    const chips = r.signals.map((s) => `<a class="chip ${esc(s.side)}" href="${esc(PAGE_OF[s.src] || "#")}"><span class="src">${esc(SRC[s.src] || s.src)}</span>${esc(s.text)}${s.proven ? ` <span class="ck" title="proven method">✓</span>` : ""}</a>`).join("");
+    const chips = r.signals.map((s) => `<a class="chip ${esc(s.side)}" href="${esc(PAGE_OF[s.src] || "#")}"><span class="src">${esc(SRC[s.src] || s.src)}</span>${esc(s.text)}${s.proven && s.src !== "quant" ? ` <span class="ck" title="proven method">✓</span>` : ""}</a>`).join("");
     return `<div class="ag"><div class="coin"><a href="analyze.html?coin=${encodeURIComponent(r.coin)}">${esc(r.coin)}</a></div><div>${label}<div class="cnt">${esc(cnt)}</div></div><div class="chips">${chips}</div></div>`;
   }).join("");
 }
