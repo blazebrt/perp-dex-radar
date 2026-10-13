@@ -5,9 +5,16 @@
 
 Runs last in the scan. Reads what the scan just wrote in site/data (latest.json from the 15-minute radar,
 quant.json from the quant desk, picks.json from the coin picks, smart.json from the smart-money engine) and the
-tested records (picks_research.json, quant_research.json), then writes site/data/dashboard.json and publishes the
-pages: the dashboard becomes the front page (index.html) and the coin picks move to picks.html. Every number comes
-from those files; nothing is fetched. If this step fails, the front page stays the coin picks page.
+tested records (picks_research.json, quant_research.json), then writes site/data/dashboard.json (the earlier engines'
+records, shown on the desk's Research page as historical, unqualified context) and publishes the pages. Every number
+comes from those files; nothing is fetched.
+
+v8 Phase 12: publish() lays out the Perp Decision Desk. Its five surfaces read the governed Phase 11 decision
+(v8.decision/1) and the audit snapshot in the browser, never here: Today (today.html, the front page index.html), the
+Analyzer, Funding, Portfolio and Research, with their shared core (desk.js, desk.css). The earlier engines' pages
+(coin picks, quant desk, smart money; the 15-minute radar is radar.html) stay published as diagnostics outside the
+desk's navigation, and the committed Phase 9 research record is published for the Research page. The Scan workflow
+also runs publish() on its own, so the desk is the front page even when this step fails.
 
 Accuracy uses one unit everywhere: the average result per trade for each $100 risked, after fees (+$29 means a
 trade made 0.29 times its risk on average), next to the share of winning trades and the number of trades.
@@ -23,7 +30,15 @@ import time
 
 VERSION = "1.0.0"
 HERE = os.path.dirname(os.path.abspath(__file__))
-PAGES = ("dashboard.html", "picks.html", "quant.html", "analyze.html", "analyze.js", "smart.html")
+# source file -> published name: the desk (Today is the front page) and its shared core
+DESK_PAGES = (("today.html", "index.html"), ("analyze.html", "analyze.html"), ("analyze.js", "analyze.js"),
+              ("funding.html", "funding.html"), ("portfolio.html", "portfolio.html"), ("research.html", "research.html"),
+              ("desk.js", "desk.js"), ("desk.css", "desk.css"))
+DIAGNOSTIC_PAGES = ("picks.html", "quant.html", "smart.html")      # earlier engines, outside the desk's navigation
+PAGES = tuple(dst for _, dst in DESK_PAGES) + DIAGNOSTIC_PAGES
+# the committed, hash-bound Phase 9 research record the Research page reads (copied as is, never computed here)
+RESEARCH_EVIDENCE = ("research_phase9_summary.json", "research_multiple_testing.json", "research_matched_controls.json",
+                     "research_phase9_registration_plan.json", "research_strategy_adjudication.json")
 
 
 def load(path):
@@ -433,11 +448,18 @@ def build(data_dir, research_dir=HERE):
 
 
 def publish(out_dir, here=HERE):
-    """The dashboard becomes the front page; the coin picks keep their own page (picks.html)."""
-    for name in PAGES:
-        src = os.path.join(here, name)
-        if os.path.exists(src):
-            shutil.copyfile(src, os.path.join(out_dir, "index.html" if name == "dashboard.html" else name))
+    """The desk's pages (Today as the front page), the earlier engines' diagnostic pages and the Phase 9 research record."""
+    os.makedirs(out_dir, exist_ok=True)
+    for src, dst in DESK_PAGES + tuple((n, n) for n in DIAGNOSTIC_PAGES):
+        p = os.path.join(here, src)
+        if os.path.exists(p):
+            shutil.copyfile(p, os.path.join(out_dir, dst))
+    rdir = os.path.join(out_dir, "data", "v8", "research", "phase9")
+    for name in RESEARCH_EVIDENCE:
+        p = os.path.join(here, "research", "phase9", name)
+        if os.path.exists(p):
+            os.makedirs(rdir, exist_ok=True)
+            shutil.copyfile(p, os.path.join(rdir, name))
 
 
 def main(argv=None):

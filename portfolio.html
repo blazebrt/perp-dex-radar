@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portfolio · Perp Decision Desk</title>
+<meta name="description" content="The paper book's governed risk: state, exposure, executable and stressed risk, every limit, concentration, missing authority and positions.">
+<script>try{var t=localStorage.getItem("picks_theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="stylesheet" href="desk.css">
+<style>
+.pfhead { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.pfhead p { margin: 0; color: var(--ink-2); }
+.lim td:first-child { font-weight: 600; }
+.lim .bar { max-width: 180px; }
+tr.blocked td { background: color-mix(in srgb, var(--unavail-bg) 70%, transparent); }
+.secsub { color: var(--ink-2); font-size: 14px; margin: 0 0 10px; max-width: 80ch; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="dk-wrap abwrap">
+    <a class="ablogo" href="./" aria-label="Perp Decision Desk, Today"><i><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".45"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".75"/><path d="M12 12 L19.5 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg></i><b>Perp Decision Desk</b></a>
+    <nav class="apptabs" aria-label="Pages">
+      <a href="./">Today</a>
+      <a href="analyze.html">Analyzer</a>
+      <a href="funding.html">Funding</a>
+      <a href="portfolio.html" aria-current="page">Portfolio</a>
+      <a href="research.html">Research</a>
+    </nav>
+    <button class="iconbtn" id="theme" type="button" aria-label="Switch light or dark theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+  </div>
+</header>
+
+<main id="main" class="dk-wrap">
+  <div class="pagehead"><h1>Portfolio</h1><p>The risk already in the desk's paper book, under the governed portfolio limits. Every new directional trade is evaluated against this book.</p></div>
+  <div id="status" class="status" aria-live="polite"><span class="muted">Loading the current decision…</span></div>
+  <div id="body"><div class="skel">Loading…</div></div>
+  <p class="foot">The summary is the Phase 10 evaluation the decision carries (<code>data/v8/decision.json</code>); position detail comes from the same scan's audit snapshot (<code>data/v8/audit_latest.json</code>) and is shown only when it belongs to the same evaluation. Risk is a share of the book's equity. Stress losses are governed deterministic scenarios: not probabilities, not value-at-risk and not expected losses.</p>
+</main>
+
+<script src="desk.js"></script>
+<script>
+"use strict";
+(function () {
+  const D = window.DESK, $ = (s) => document.querySelector(s);
+  if (!D) { document.getElementById("status").outerHTML = '<div class="failclosed" role="alert"><p class="fc-t">The desk core did not load, so nothing is shown.</p></div>'; return; }
+  D.shell();
+  let RAW = {doc: null}, AUD = null, AUDSTATE = "idle", LAST = "";
+  async function refresh() {
+    RAW = await D.loadDecision(); render(true);
+    AUDSTATE = "loading"; render(true);
+    const r = await D.loadAudit();
+    AUD = r.status === "OK" && r.data && typeof r.data === "object" ? r.data : null;
+    AUDSTATE = AUD ? "loaded" : "unavailable"; render(true);
+  }
+  // the whole console comes from DESK.views.portfolio (desk.js): this page only places it
+  function render(force) {
+    const now = D.nowS(), A = D.authority(RAW.doc, now), key = D.timeKey(RAW.doc, now) + "|" + AUDSTATE;
+    if (!force && key === LAST) return;
+    LAST = key;
+    const v = D.views.portfolio(RAW.doc, now, AUD, AUDSTATE), st = $("#status");
+    st.classList.toggle("bad", v.statusBad); st.innerHTML = v.statusHtml;
+    $("#body").innerHTML = v.body;
+  }
+  refresh();
+  setInterval(() => render(false), 30000);
+  setInterval(refresh, 5 * 60000);
+})();
+</script>
+</body>
+</html>

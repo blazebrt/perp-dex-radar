@@ -1,0 +1,181 @@
+{
+ "schema": "v8.delta/2",
+ "phase": "v8 Phase 12: final production UX - the Perp Decision Desk (Today, Analyzer, Funding, Portfolio, Research) presenting the governed Phase 11 decision; published pages only, no engine change",
+ "base": {
+  "sha": "0efcf72aecc3f8712c78039c5573cdc445c0ec40",
+  "tree": "d69eb9e3438b22370951a9826f45b0752dee3f10",
+  "golden": "tests/fixtures/v8/legacy_parity_golden_phase11.json"
+ },
+ "head_golden": "tests/fixtures/v8/legacy_parity_golden_phase12.json",
+ "counterfactual_projection": null,
+ "rules": {
+  "DESK_TODAY_FRONT_PAGE": "Today (today.html) replaces the retired dashboard as the published front page index.html. It renders decision.json (v8.decision/1) through desk.js: Best Trades Now, Emerging, Avoided summary, Portfolio, Funding and System. Presentation only; no engine output changes.",
+  "DESK_ANALYZER_PRESENTATION": "The Analyzer shows the desk's decision panel first (the same cards as Today, from desk.js), labels price, chart and CoinGecko data as context, prioritises discovery assets in search and fails closed with the desk's wording. Its call is unchanged: the Phase 11 decision alone.",
+  "DESK_ANALYZER_SHARED_CORE": "analyze.js delegates its Phase 11 authority reading (authority, asset decision, code wording) to desk.js, so TODAY and the Analyzer read one object one way; without a live price no plan is placed. Exports and the call semantics are unchanged.",
+  "DESK_SHARED_PRESENTATION_CORE": "desk.js (new): the shared presentation core. Reads decision.json and the audit snapshot, validates their shape, labels and escapes; decides nothing (no state, rank, section, authority, identity or portfolio verdict of its own).",
+  "DESK_DESIGN_SYSTEM": "desk.css (new): the desk's one state visual language (TRADE, WATCH, AVOID, MISSING/DEGRADED), responsive layout, focus, reduced motion and dark theme.",
+  "DESK_FUNDING_PAGE": "funding.html (new): qualified funding_opportunities separated from the evaluated market; never risk-free; no degraded leg is shown.",
+  "DESK_PORTFOLIO_CONSOLE": "portfolio.html (new): the Phase 10 summary the decision carries, with the audit snapshot's detail only when it is the same evaluation; stress labelled deterministic.",
+  "DESK_RESEARCH_PAGE": "research.html (new): the committed Phase 9 record (strategy matrix, qualification truth, transparency) and the earlier engines' records as historical, unqualified context.",
+  "LEGACY_PAGE_DEMOTED_TO_DIAGNOSTIC": "picks.html, quant.html, smart.html and the 15-minute radar (radar.html) keep running unchanged as diagnostics: the desk's five-link navigation with no tab current, the desk brand and a note that their scores and calls are not desk decisions and not trade-ready. No number, signal or call on them changes."
+ },
+ "universe": [],
+ "dex_status": [],
+ "notes": {
+  "removed": [],
+  "added": []
+ },
+ "code": [],
+ "decisions": [],
+ "files": [
+  {
+   "file": "analyze.html",
+   "base_sha256": "1f0b7150298f615c3dab247d6795884e148ba519d615d8c0a860fa317e73b11f",
+   "head_sha256": "22b90124b4f8429908d1bd65a83c5c24ff8d0a83677d2cb49d93b00d8c9d735f",
+   "rule": "DESK_ANALYZER_PRESENTATION"
+  },
+  {
+   "file": "analyze.js",
+   "base_sha256": "e085376639b46d5af99b6192999a199bd05185fa52810a7b82623444709bfa52",
+   "head_sha256": "3b4cf260e796a2c2fb47745888f530454e85f5e23d3dfa2c784bde9a8fd7f134",
+   "rule": "DESK_ANALYZER_SHARED_CORE"
+  },
+  {
+   "file": "desk.css",
+   "base_sha256": null,
+   "head_sha256": "3cab76b9106aa5ef9756efcb1546a866f6e72574181b824da59ff9a6eb0aca7d",
+   "rule": "DESK_DESIGN_SYSTEM"
+  },
+  {
+   "file": "desk.js",
+   "base_sha256": null,
+   "head_sha256": "9fd2efaafe832091671c22a90b51c5cd873233e27a7f717af0f09a225510ab7a",
+   "rule": "DESK_SHARED_PRESENTATION_CORE"
+  },
+  {
+   "file": "funding.html",
+   "base_sha256": null,
+   "head_sha256": "babfdea3ee2ca3d1f991b0947d047a42cb42cc4e4a89116b6591d5e305df03a1",
+   "rule": "DESK_FUNDING_PAGE"
+  },
+  {
+   "file": "index.html",
+   "base_sha256": "74c29f980c4c4299e05c3e4dd2decaaec604baf442591bfdfaf76f82f5d8e39d",
+   "head_sha256": "99ff267701d1804d4be6d7a050c24abc49b9ec13b60d41b3da0ffc6151293e7c",
+   "rule": "DESK_TODAY_FRONT_PAGE"
+  },
+  {
+   "file": "picks.html",
+   "base_sha256": "9a9c55e6f886d9d81ab539a538331fa855d96f53a1e9f6a40301d5e378fbc5d6",
+   "head_sha256": "13b9dd80832cb70bcc8228ead21c7ad8558a8c5cac07581caa29c207e2c5618d",
+   "rule": "LEGACY_PAGE_DEMOTED_TO_DIAGNOSTIC"
+  },
+  {
+   "file": "portfolio.html",
+   "base_sha256": null,
+   "head_sha256": "3b31b17ebe1a7010cf7a6118339746c0d2a48016963ca7b6882251619a574dcc",
+   "rule": "DESK_PORTFOLIO_CONSOLE"
+  },
+  {
+   "file": "quant.html",
+   "base_sha256": "76812ca088a3a6b726cffd0468f357d3a1fc93e089c712f9daf52fdd2d261027",
+   "head_sha256": "8b7a6ec2bf09f3b7c373e4d4f3ed467b70ab1b2bd04a356dfac6ccea9cce3519",
+   "rule": "LEGACY_PAGE_DEMOTED_TO_DIAGNOSTIC"
+  },
+  {
+   "file": "radar.html",
+   "base_sha256": "b242f2fe3ef4278c1288c19759ba329ac8f0118c43793fdd2277370bc71f112e",
+   "head_sha256": "87a764163d7d68cf0b4ec27863de8aa5fe373b4aa1bb1878f06c150ef0692ad4",
+   "rule": "LEGACY_PAGE_DEMOTED_TO_DIAGNOSTIC"
+  },
+  {
+   "file": "research.html",
+   "base_sha256": null,
+   "head_sha256": "37ff2e1306bea7219c6c53457804feb9d823a724d68aab89efcac1b0636c6637",
+   "rule": "DESK_RESEARCH_PAGE"
+  },
+  {
+   "file": "smart.html",
+   "base_sha256": "a8024e696f8c3117281162d7adbcd3bb904e59aacd280ebb4df69c93e3fdafad",
+   "head_sha256": "4e0b9eb0d99916116f441275c9f3225f26a105d9a032526f60fc358d8880e2ab",
+   "rule": "LEGACY_PAGE_DEMOTED_TO_DIAGNOSTIC"
+  }
+ ],
+ "identity_states": {
+  "AAPL": "VERIFIED_TRADFI",
+  "ACME": "VERIFIED_TRADFI",
+  "ADBE": "VERIFIED_TRADFI",
+  "ASTS": "VERIFIED_TRADFI",
+  "BB": "VERIFIED_CRYPTO",
+  "BTC": "VERIFIED_CRYPTO",
+  "BYD": "VERIFIED_TRADFI",
+  "ETH": "VERIFIED_CRYPTO",
+  "EURUSD": "VERIFIED_TRADFI",
+  "EXTONLY": "UNVERIFIED",
+  "FAKE00": "VERIFIED_CRYPTO",
+  "FAKE01": "VERIFIED_CRYPTO",
+  "FAKE02": "VERIFIED_CRYPTO",
+  "FAKE03": "VERIFIED_CRYPTO",
+  "FAKE04": "VERIFIED_CRYPTO",
+  "FAKE05": "VERIFIED_CRYPTO",
+  "FAKE06": "VERIFIED_CRYPTO",
+  "FAKE07": "UNVERIFIED",
+  "FAKE08": "VERIFIED_CRYPTO",
+  "FAKE09": "VERIFIED_CRYPTO",
+  "FAKE10": "VERIFIED_CRYPTO",
+  "FAKE11": "VERIFIED_CRYPTO",
+  "FAKE12": "VERIFIED_CRYPTO",
+  "FAKE13": "VERIFIED_CRYPTO",
+  "FAKE14": "VERIFIED_CRYPTO",
+  "FAKE15": "VERIFIED_CRYPTO",
+  "FAKE16": "VERIFIED_CRYPTO",
+  "FAKE17": "VERIFIED_CRYPTO",
+  "FAKE18": "VERIFIED_CRYPTO",
+  "FAKE19": "VERIFIED_CRYPTO",
+  "FAKE20": "VERIFIED_CRYPTO",
+  "FAKE21": "VERIFIED_CRYPTO",
+  "FAKE22": "VERIFIED_CRYPTO",
+  "FAKE23": "VERIFIED_CRYPTO",
+  "FAKE24": "VERIFIED_CRYPTO",
+  "FAKE25": "VERIFIED_CRYPTO",
+  "FAKE26": "VERIFIED_CRYPTO",
+  "FAKE27": "VERIFIED_CRYPTO",
+  "HYUNDAI": "UNVERIFIED",
+  "HYUNDAIUSD": "VERIFIED_TRADFI",
+  "KIOXIA": "VERIFIED_TRADFI",
+  "KORU": "VERIFIED_TRADFI",
+  "LONLY": "VERIFIED_CRYPTO",
+  "MOONX": "UNVERIFIED",
+  "NEW10": "VERIFIED_CRYPTO",
+  "NEW40": "VERIFIED_CRYPTO",
+  "NEWCOIN": "UNVERIFIED",
+  "NOCAND": "VERIFIED_CRYPTO",
+  "ONDS": "VERIFIED_TRADFI",
+  "PRLX": "UNVERIFIED",
+  "PURR": "VERIFIED_CRYPTO",
+  "QNT": "VERIFIED_CRYPTO",
+  "SAMSUNGUSD": "VERIFIED_TRADFI",
+  "SCALEX": "VERIFIED_CRYPTO",
+  "SECT": "AMBIGUOUS",
+  "SKHYNIX": "VERIFIED_TRADFI",
+  "SKHYNIXUSD": "VERIFIED_TRADFI",
+  "THINREF": "VERIFIED_CRYPTO",
+  "TINY": "VERIFIED_CRYPTO",
+  "US100S": "VERIFIED_TRADFI",
+  "US10Y": "VERIFIED_TRADFI",
+  "VANA": "VERIFIED_CRYPTO",
+  "XIAOMI": "VERIFIED_TRADFI",
+  "ZEROV": "VERIFIED_CRYPTO"
+ },
+ "audit_files_added": [
+  "data/v8/research/phase9/research_matched_controls.json",
+  "data/v8/research/phase9/research_multiple_testing.json",
+  "data/v8/research/phase9/research_phase9_registration_plan.json",
+  "data/v8/research/phase9/research_phase9_summary.json",
+  "data/v8/research/phase9/research_strategy_adjudication.json"
+ ],
+ "removed_sources": [
+  "dashboard.html"
+ ],
+ "not_allowed": "Any difference at all in any other legacy published file (data/*.json included), universe, identity, DEX status, decision, signal, ranking, stop, size or journal, and any change to the engine (v8/decision.py, v8/decision_policy.json, v8/portfolio_risk*.py/json, quant, identity, discovery). Phase 12 changes published pages only: the twelve files above, each pinned to its exact base and head digest. The Phase 9 research record is published unchanged as audit files under data/v8/research/phase9/ (never digested as legacy files). dashboard.html is retired: it is no longer published (Today is index.html); dashboard.py still writes data/dashboard.json byte-identical."
+}

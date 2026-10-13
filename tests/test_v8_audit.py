@@ -55,9 +55,13 @@ from v8 import taxonomy as T  # noqa: E402
 # manifests and their goldens are kept for the record and still checked for consistency below: the Phase 3, closure
 # and Phase 4 identity states are the v8.identity/2 states (this run's contracts replayed under the /2 rules), the
 # Phase 5 states are the v8.identity/3 states, which this run's audit records per asset as `previous`.
-GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase11.json")
+GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase12.json")
+PHASE11_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase11.json")
 PHASE9_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase9.json")
 ANALYZER_CUTOVER = ("analyze.html", "analyze.js")     # Phase 11 correction: the only legacy files that changed
+# v8 Phase 12: the published desk pages, each pinned to its base and head digest in the Phase 12 manifest
+with open(os.path.join(HERE, "fixtures", "v8", "phase12_expected_deltas.json")) as _fh:
+    PHASE12_FILES = sorted(e["file"] for e in json.load(_fh)["files"])
 PHASE7_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase7.json")
 PHASE6_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase6.json")
 PHASE7_MANIFEST = os.path.join(HERE, "fixtures", "v8", "phase7_expected_deltas.json")
@@ -129,11 +133,18 @@ class PipelineAudit(unittest.TestCase):
         self.assertEqual(diffs, [], "legacy outputs changed:\n" + "\n".join(diffs))
         self.assertEqual(self.summary["combined"], golden["combined"])
         self.assertGreaterEqual(len(golden["files"]), 20)
+        with open(PHASE11_GOLDEN) as fh:                      # historical: Phase 11 -> Phase 12 is the desk's pages only
+            p11 = json.load(fh)
+        changed = lambda a, b: sorted(f for f in set(a["files"]) | set(b["files"]) if a["files"].get(f) != b["files"].get(f))
+        self.assertEqual(changed(p11, golden), PHASE12_FILES)
+        self.assertEqual(p11["decisions"], golden["decisions"])
+        self.assertEqual(sorted(set(golden["audit_files"]) - set(p11["audit_files"])),
+                         sorted("data/v8/research/phase9/" + f for f in ("research_matched_controls.json", "research_multiple_testing.json",
+                                "research_phase9_registration_plan.json", "research_phase9_summary.json", "research_strategy_adjudication.json")))
         with open(PHASE9_GOLDEN) as fh:                       # historical: Phase 9 -> Phase 11 is the Analyzer cutover only
             p9 = json.load(fh)
-        self.assertEqual(sorted(f for f in set(p9["files"]) | set(golden["files"])
-                                if p9["files"].get(f) != golden["files"].get(f)), list(ANALYZER_CUTOVER))
-        self.assertEqual((p9["decisions"], p9["audit_files"]), (golden["decisions"], golden["audit_files"]))
+        self.assertEqual(changed(p9, p11), list(ANALYZER_CUTOVER))
+        self.assertEqual((p9["decisions"], p9["audit_files"]), (p11["decisions"], p11["audit_files"]))
 
     def test_base_golden_and_manifest_are_the_phase_base(self):
         with open(BASE_GOLDEN) as fh:

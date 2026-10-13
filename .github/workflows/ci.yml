@@ -42,26 +42,32 @@ jobs:
       - name: All unit tests
         run: python -m unittest discover -s tests -v
 
-      - name: v8 tests (Phase 1 audit; Phase 2 identity, liquidity and the delta validator; Phase 3 identity coverage, smart-money identity and journal provenance; Phase 3 closure quant and radar evidence; Phase 4 candidate identity evidence; Phase 5 economic exposure; Phase 6 exposure-local ticker authority; Phase 7 full-universe discovery; Phase 8 point-in-time history and research; Phase 8 post-merge hotfix; Phase 9 strategy authority; Phase 10 portfolio and risk realism; Phase 11 unified decision engine)
-        run: python -m unittest tests.test_v8_units tests.test_v8_audit tests.test_v8_identity tests.test_v8_delta tests.test_v8_phase3 tests.test_v8_phase3_smart tests.test_v8_phase3_journal tests.test_v8_phase3_closure tests.test_v8_phase4 tests.test_v8_phase5 tests.test_v8_phase6 tests.test_v8_phase7 tests.test_v8_phase8 tests.test_v8_phase8_hotfix tests.test_v8_phase9 tests.test_v8_phase10 tests.test_v8_phase11 -v
+      - name: v8 tests (Phase 1 audit; Phase 2 identity, liquidity and the delta validator; Phase 3 identity coverage, smart-money identity and journal provenance; Phase 3 closure quant and radar evidence; Phase 4 candidate identity evidence; Phase 5 economic exposure; Phase 6 exposure-local ticker authority; Phase 7 full-universe discovery; Phase 8 point-in-time history and research; Phase 8 post-merge hotfix; Phase 9 strategy authority; Phase 10 portfolio and risk realism; Phase 11 unified decision engine; Phase 12 production desk)
+        run: python -m unittest tests.test_v8_units tests.test_v8_audit tests.test_v8_identity tests.test_v8_delta tests.test_v8_phase3 tests.test_v8_phase3_smart tests.test_v8_phase3_journal tests.test_v8_phase3_closure tests.test_v8_phase4 tests.test_v8_phase5 tests.test_v8_phase6 tests.test_v8_phase7 tests.test_v8_phase8 tests.test_v8_phase8_hotfix tests.test_v8_phase9 tests.test_v8_phase10 tests.test_v8_phase11 tests.test_v8_phase12 -v
 
       - name: Shadow experiment ledger is append-only and valid (v8 Phase 8)
         run: python tools/v8/ledger_guard.py
 
       - name: Legacy parity against this branch's committed golden digests
-        run: python tools/v8/legacy_parity.py --out "$RUNNER_TEMP/parity_head" --check tests/fixtures/v8/legacy_parity_golden_phase11.json
+        run: python tools/v8/legacy_parity.py --out "$RUNNER_TEMP/parity_head" --check tests/fixtures/v8/legacy_parity_golden_phase12.json
 
       - name: Differential parity against the phase base (approved deltas only)
-        # Phase 11 adds an audit-only decision engine (data/v8/decision.json): no universe, identity, decision,
-        # signal, ranking, stop, size or journal may change. The one approved legacy delta is the Analyzer
-        # authority cutover (analyze.js and analyze.html, pinned to their exact base and head digests in the
-        # manifest). Both the frozen base and this branch must reproduce their respective golden digests.
+        # Phase 12 changes published pages only (the Perp Decision Desk): no universe, identity, decision, signal,
+        # ranking, stop, size or journal may change. Every changed or new page (Today as index.html, the Analyzer,
+        # Funding, Portfolio, Research, the shared desk.js / desk.css and the four demoted diagnostic pages) is pinned
+        # to its exact base and head digest in the manifest. Both the frozen base and this branch must reproduce their
+        # respective golden digests.
         run: |
-          MANIFEST=tests/fixtures/v8/phase11_expected_deltas.json
+          MANIFEST=tests/fixtures/v8/phase12_expected_deltas.json
           BASE_SHA=$(python -c "import json; print(json.load(open('$MANIFEST'))['base']['sha'])")
           git merge-base --is-ancestor "$BASE_SHA" HEAD
           git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA"
           python tools/v8/delta_parity.py --base-root "$RUNNER_TEMP/base" --manifest "$MANIFEST" --work "$RUNNER_TEMP/delta" --write-report "$RUNNER_TEMP/delta/report.json"
+
+      - name: The desk renders a decision built by the engine truthfully (v8 Phase 12)
+        run: |
+          python -c "import json, sys; sys.path[:0] = ['.', 'tests']; import test_v8_phase12 as T; json.dump(T.mixed(book=T.SMALL), open('$RUNNER_TEMP/desk_decision.json', 'w'))"
+          node tools/v8/desk_check.js "$RUNNER_TEMP/desk_decision.json"
 
       - name: Workflow files parse
         run: |

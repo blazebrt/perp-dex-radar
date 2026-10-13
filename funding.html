@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Funding · Perp Decision Desk</title>
+<meta name="description" content="Funding spreads between perp venues: the ones that clear the desk's gates, and every evaluated spread with the gate that rejected it.">
+<script>try{var t=localStorage.getItem("picks_theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="stylesheet" href="desk.css">
+<style>
+.legs { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 10px 0 0; }
+.legs th { text-align: left; color: var(--muted); font-weight: 650; font-size: 12.5px; padding: 4px 10px 4px 0; border-bottom: 1px solid var(--line); }
+.legs td { padding: 6px 10px 6px 0; border-bottom: 1px solid var(--line); }
+.notrf { margin: 10px 0 0; font-size: 13.5px; padding: 8px 10px; border-radius: 8px; background: var(--surface-2); }
+.flist { display: grid; border-top: 1px solid var(--line); }
+.frow > summary, .frow > .fsum { list-style: none; cursor: pointer; display: grid; grid-template-columns: 90px minmax(0, 1fr) minmax(0, 1fr) 110px 110px 74px minmax(0, 1.5fr); gap: 4px 12px;
+  padding: 9px 4px; border-bottom: 1px solid var(--line); font-size: 13.5px; align-items: baseline; }
+.frow > summary::-webkit-details-marker { display: none; }
+.frow > summary:hover { background: var(--surface-2); }
+.frow.head > .fsum { cursor: default; color: var(--muted); font-size: 12.5px; font-weight: 650; }
+.frow .tr-body { padding: 4px 4px 14px; border-bottom: 1px solid var(--line); }
+.frow .fl { display: none; color: var(--muted); font-size: 12px; margin-right: 4px; }
+@media (max-width: 900px) {
+  .frow.head { display: none; }
+  .frow > summary { grid-template-columns: minmax(0, 1fr) auto; }
+  .frow > summary > span:nth-child(n+2):not(.fstate) { grid-column: 1 / -1; }
+  .frow > summary .fstate { grid-column: 2; grid-row: 1; }
+  .frow .fl { display: inline; }
+}
+.controls { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin: 0 0 10px; font-size: 14px; }
+.controls select { font: inherit; padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); }
+.btn { border: 1px solid var(--border); background: var(--surface); border-radius: 8px; padding: 6px 12px; cursor: pointer; font-weight: 600; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="dk-wrap abwrap">
+    <a class="ablogo" href="./" aria-label="Perp Decision Desk, Today"><i><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".45"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".75"/><path d="M12 12 L19.5 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg></i><b>Perp Decision Desk</b></a>
+    <nav class="apptabs" aria-label="Pages">
+      <a href="./">Today</a>
+      <a href="analyze.html">Analyzer</a>
+      <a href="funding.html" aria-current="page">Funding</a>
+      <a href="portfolio.html">Portfolio</a>
+      <a href="research.html">Research</a>
+    </nav>
+    <button class="iconbtn" id="theme" type="button" aria-label="Switch light or dark theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+  </div>
+</header>
+
+<main id="main" class="dk-wrap">
+  <div class="pagehead"><h1>Funding</h1><p>Long one venue's perp and short another's to collect the funding difference. Only a spread that clears the desk's gates is an opportunity, and none is risk-free: rates change, and the carry below is a projection at current rates.</p></div>
+  <div id="status" class="status" aria-live="polite"><span class="muted">Loading the current decision…</span></div>
+
+  <section class="sec" aria-labelledby="q-h">
+    <div class="sechead"><h2 id="q-h">Qualified funding opportunities</h2><span class="n" id="q-n"></span></div>
+    <div id="qualified"><div class="skel">Loading…</div></div>
+  </section>
+
+  <section class="sec" aria-labelledby="m-h" id="m-sec">
+    <div class="sechead"><h2 id="m-h">Evaluated spreads that did not qualify</h2><span class="n" id="m-n"></span></div>
+    <p class="small ink2" style="margin:0 0 10px;max-width:80ch">Every spread the desk evaluated this scan, with the gate that rejected it. These are observations for research, not opportunities: a large raw funding difference can still lose money after costs, basis and liquidity. Only healthy contracts on trade venues are ever paired; an unavailable or degraded venue is not a leg.</p>
+    <div id="market"></div>
+  </section>
+
+  <p class="foot">Every spread, state and reason here is the desk's governed decision (<code>data/v8/decision.json</code>). Rates are venue-reported and normalised to 8 hours; each venue's own settlement interval is shown. Nothing here places an order.</p>
+</main>
+
+<script src="desk.js"></script>
+<script>
+"use strict";
+(function () {
+  const D = window.DESK, $ = (s) => document.querySelector(s);
+  if (!D) { document.getElementById("status").outerHTML = '<div class="failclosed" role="alert"><p class="fc-t">The desk core did not load, so nothing is shown.</p></div>'; return; }
+  D.shell();
+  let RAW = {doc: null}, LAST = "";
+  const M = {sort: "asset", filter: "", shown: 40, open: false};
+  const getDoc = () => { const A = D.authority(RAW.doc, D.nowS()); return A.status === "AVAILABLE" ? A.doc : null; };
+  D.bindTraces(document.getElementById("main"), getDoc);
+  async function refresh() { RAW = await D.loadDecision(); render(true); }
+  // the qualified section and the evaluated list come from DESK.views (desk.js): this page only places them
+  function render(force) {
+    const now = D.nowS(), A = D.authority(RAW.doc, now), key = D.timeKey(RAW.doc, now);
+    if (!force && key === LAST) return;
+    LAST = key;
+    const v = D.views.funding(RAW.doc, now), st = $("#status");
+    st.classList.toggle("bad", v.statusBad); st.innerHTML = v.statusHtml;
+    $("#q-n").textContent = v.qN; $("#qualified").innerHTML = v.qualified;
+    $("#m-sec").hidden = v.marketHidden;
+    if (!v.marketHidden) market();
+  }
+  function market() {
+    const doc = getDoc();
+    if (!doc) return;
+    const prev = $("#mkt");
+    if (prev) M.open = prev.open;
+    const v = D.views.fundingMarket(doc, M);
+    $("#m-n").textContent = v.count + " spread" + (v.count === 1 ? "" : "s");
+    $("#market").innerHTML = v.html;
+    const so = $("#sort"), fi = $("#filter"), mo = $("#moreRows");
+    if (so) so.addEventListener("change", (e) => { M.sort = e.target.value; market(); });
+    if (fi) fi.addEventListener("change", (e) => { M.filter = e.target.value; M.shown = 40; market(); });
+    if (mo) mo.addEventListener("click", () => { M.shown += 40; market(); });
+  }
+  refresh();
+  setInterval(() => render(false), 30000);
+  setInterval(refresh, 5 * 60000);
+})();
+</script>
+</body>
+</html>

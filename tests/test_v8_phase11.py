@@ -921,16 +921,22 @@ class LiveIntegration(unittest.TestCase):
     def test_legacy_outputs_unchanged(self):
         sys.path.insert(0, str(ROOT / "tools" / "v8"))
         import legacy_parity as LP
-        golden = json.loads((ROOT / "tests/fixtures/v8/legacy_parity_golden_phase11.json").read_text())
+        golden = json.loads((ROOT / "tests/fixtures/v8/legacy_parity_golden_phase12.json").read_text())
         self.assertEqual(LP.compare(golden, self.summary), [])
+        # historical: against the Phase 11 golden only the Phase 12 desk pages differ, each pinned in its manifest
+        p11 = json.loads((ROOT / "tests/fixtures/v8/legacy_parity_golden_phase11.json").read_text())
+        p12 = sorted(e["file"] for e in json.loads((ROOT / "tests/fixtures/v8/phase12_expected_deltas.json").read_text())["files"])
+        self.assertEqual(sorted(d.split(":")[0] for d in LP.compare(p11, self.summary)), p12)
 
     def test_no_engine_reads_the_decision(self):
-        # The Analyzer (analyze.js / analyze.html) is the one page that consumes the published decision (the Phase 11
-        # correction: its call is governed by v8.decision/1). No engine and no other page reads it.
-        self.assertIn('getData("v8/decision.json", true)', (ROOT / "analyze.html").read_text(encoding="utf-8"))
-        self.assertIn('schema: "v8.decision/1"', (ROOT / "analyze.js").read_text(encoding="utf-8"))
+        # The desk pages consume the published decision: since v8 Phase 12 through their shared core (desk.js), which
+        # alone names the file, on Today, the Analyzer, Funding and Portfolio. No engine and no other page reads it.
+        self.assertIn('file: "data/v8/decision.json"', (ROOT / "desk.js").read_text(encoding="utf-8"))
+        self.assertIn('schema: "v8.decision/1"', (ROOT / "desk.js").read_text(encoding="utf-8"))
+        for page in ("today.html", "funding.html", "portfolio.html", "analyze.html"):
+            self.assertIn("D.loadDecision()", (ROOT / page).read_text(encoding="utf-8"), page)
         for name in ("scanner.py", "quant.py", "picks.py", "smart.py", "dashboard.py", "quant.html", "picks.html",
-                     "smart.html", "index.html", "dashboard.html", "tools/research/qexport.py"):
+                     "smart.html", "index.html", "research.html", "tools/research/qexport.py"):
             self.assertNotIn("decision.json", (ROOT / name).read_text(encoding="utf-8"), name)
             self.assertIsNone(re.search(r"\bimport\s+[^\n]*\bdecision\b|from\s+v8\s+import\s+decision",
                                         (ROOT / name).read_text(encoding="utf-8")), name)

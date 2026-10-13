@@ -537,8 +537,15 @@
   const DAY = 86400, HOUR = 3600;
   const SWING = {stopK: 2, trailK: 3, minStop: 0.05, maxStop: 0.25, days: 30, readyAt: 80};
   const SMART = {stopK: 1.5, minStop: 0.015, hours: 24, lateHours: 6};
-  const DECISION = {schema: "v8.decision/1", file: "data/v8/decision.json", directional: "DIRECTIONAL_STRATEGY"};
-  const STATE_ORDER = {TRADE: 0, WATCH: 1, AVOID: 2};
+  /* v8 Phase 12: the one reader of the Phase 11 object is desk.js (DESK), shared with Today, Funding and Portfolio, so
+     the Analyzer and the desk cannot interpret the same decision differently. Without it nothing is decided: every
+     call fails closed. */
+  const DESK = (function () {
+    try { if (typeof module !== "undefined" && module.exports && typeof require === "function") return require("./desk.js"); } catch (e) { /* browser */ }
+    return root.DESK || null;
+  })();
+  const NO_CORE = "the desk core (desk.js) is not loaded";
+  const DECISION = DESK ? DESK.DECISION : {schema: "v8.decision/1", file: "data/v8/decision.json", directional: "DIRECTIONAL_STRATEGY"};
   const RISK_SHARE = {TRADE: 1};   // only a current Phase 11 TRADE is sized (at the chosen risk); no legacy tier is
   const SOURCE = {swing: "Coin picks swing", quant: "Quant desk", smart: "Smart money", phase11: "Phase 11 decision"};
   const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -757,87 +764,12 @@
     return usd100(rec.per100) + " per $100 risked over " + rec.n.toLocaleString("en-US") + " trades, " + Math.round(rec.win * 100) + "% winners";
   }
 
-  // ---- the Phase 11 authority (read only)
-  const isInt = (x) => Number.isInteger(x);
-  const sideOf = (d) => d === 1 ? "long" : d === -1 ? "short" : null;
+  // ---- the Phase 11 authority (read only, through the shared desk core)
   const utcTxt = (t) => new Date(t * 1000).toISOString().slice(0, 16).replace("T", " ") + " UTC";
-  /* Plain words for the engine's codes (wording only: the code itself is always kept next to it). */
-  const CODE_TXT = {
-    STRATEGY_RESEARCH_AUTHORITY_INSUFFICIENT: "strategy authority insufficient (not requalified by Phase 9)",
-    STRATEGY_DISABLED: "strategy disabled", STRATEGY_UNGOVERNED: "strategy not governed by the Phase 9 policy",
-    STRATEGY_RESEARCH_REJECTED: "strategy research rejected", STRATEGY_RESEARCH_INVALIDATED: "strategy research invalidated",
-    FUNDING_UNKNOWN: "funding missing", PORTFOLIO_APPROACHING_LIMITS: "portfolio approaching its risk limits",
-    PORTFOLIO_LIMIT_BREACHED: "the position would breach the portfolio risk limits", PORTFOLIO_UNEVALUABLE: "portfolio risk unevaluable",
-    PORTFOLIO_INPUT_MISSING: "no portfolio input", PROPOSAL_UNQUANTIFIABLE: "the position cannot be quantified", COST_UNKNOWN: "costs unknown",
-    EXECUTION_LIQUIDITY_BELOW_GATE: "liquidity below the execution gate", EXECUTION_LIQUIDITY_UNKNOWN: "liquidity unknown",
-    NOT_ON_TRADE_DEX: "not on a trade DEX", IDENTITY_NOT_VERIFIED: "identity not verified as crypto", IDENTITY_NON_CRYPTO: "not a crypto asset",
-    ECONOMIC_EXPOSURE_CONFLICT: "conflicting economic exposure", EXPOSURE_METADATA_DEGRADED: "exposure checks degraded",
-    VENUE_DATA_DEGRADED: "venue data degraded", DISCOVERY_DEGRADED: "discovery degraded", INPUT_STALE: "an input of the scan is stale",
-    NOT_IN_DISCOVERY: "not in discovery", UNSUPPORTED_OR_INACTIVE_MARKET: "no active supported perp",
-    SIGNAL_STALE: "signal stale", SIGNAL_INVALID: "signal invalid", SIGNAL_TIMEFRAME_UNKNOWN: "signal timeframe unknown",
-    POSITION_ALREADY_OPEN: "the book already holds this position",
-  };
-  const codeTxt = (c) => (CODE_TXT[c] || String(c).toLowerCase().replace(/_/g, " ")) + " (" + c + ")";
-  /* The decision document as an authority: {status: AVAILABLE | MISSING | MALFORMED | STALE, doc, reason}. Only the
-     shape this file reads is checked; nothing in it is recomputed. Stale: past the document's own valid_until. */
-  function decisionAuthority(doc, now) {
-    if (doc == null) return {status: "MISSING", doc: null, reason: "the Phase 11 decision (" + DECISION.file + ") is not loaded"};
-    if (typeof doc !== "object" || doc.schema !== DECISION.schema || !isInt(doc.as_of) || !isInt(doc.valid_until) ||
-        !Array.isArray(doc.candidates) || !Array.isArray(doc.assets) || !doc.authority || typeof doc.authority !== "object") {
-      return {status: "MALFORMED", doc: null, reason: "the Phase 11 decision is not a valid " + DECISION.schema + " document"};
-    }
-    if (!(now <= doc.valid_until)) {
-      return {status: "STALE", doc: null, as_of: doc.as_of, valid_until: doc.valid_until,
-              reason: "the Phase 11 decision of " + utcTxt(doc.as_of) + " is stale (valid until " + utcTxt(doc.valid_until) + ")"};
-    }
-    return {status: "AVAILABLE", doc, as_of: doc.as_of, valid_until: doc.valid_until, reason: null};
-  }
-  function candidateOk(c) {
-    return !!c && typeof c === "object" && typeof c.id === "string" && STATE_ORDER[c.state] != null && !!sideOf(c.direction) &&
-      typeof c.strategy === "string" && Array.isArray(c.blockers) && Array.isArray(c.caps) && Array.isArray(c.missing_authorities) &&
-      isInt(c.valid_until) && !!c.explanation && typeof c.explanation === "object";
-  }
-  function briefOf(c, now) {
-    const codes = c.state === "WATCH" ? c.caps.concat(c.missing_authorities) : c.state === "AVOID" ? c.blockers.slice() : [];
-    const pl = c.placement && typeof c.placement === "object" ? c.placement : {};
-    return {id: c.id, strategy: c.strategy, side: sideOf(c.direction), state: c.state, blocking_step: c.blocking_step || null,
-            blockers: c.blockers.slice(), caps: c.caps.slice(), missing: c.missing_authorities.slice(), codes, reasons: codes.map(codeTxt),
-            to_become_trade: (c.explanation.to_become_trade || []).filter((x) => x && x.code).map((x) => ({step: x.step, code: x.code})),
-            valid_until: c.valid_until, expired: !(now <= c.valid_until), section: pl.section || null, rank: pl.section ? pl.rank : null};
-  }
-  /* The Phase 11 decision on one coin: {status, state (TRADE | WATCH | AVOID | NONE; null without an available
-     decision), trade (the one current TRADE when there is one and it agrees with every other TRADE), candidates
-     (every directional decision on the coin, best state first), conflict, asset, reason, as_of, valid_until, hashes}.
-     Nothing is decided here: the states, codes and reasons are the engine's. */
-  function phase11Of(coin, decision, now) {
-    const A = decisionAuthority(decision, now);
-    const out = {status: A.status, state: null, trade: null, candidates: [], conflict: false, asset: null, reason: A.reason,
-                 as_of: A.as_of || null, valid_until: A.valid_until || null, policy_hash: null, authority_hash: null};
-    if (A.status !== "AVAILABLE") return out;
-    out.policy_hash = A.doc.policy_hash || null;
-    out.authority_hash = A.doc.authority.authority_hash || null;
-    const mine = A.doc.candidates.filter((c) => c && c.type === DECISION.directional && c.asset === coin);
-    if (!mine.every(candidateOk)) {
-      return Object.assign(out, {status: "MALFORMED", reason: "a Phase 11 decision on " + coin + " is malformed"});
-    }
-    const a = A.doc.assets.find((x) => x && x.asset === coin) || null;
-    out.asset = a ? {state: a.state, identity: a.identity, blockers: Array.isArray(a.blockers) ? a.blockers.slice() : []} : null;
-    out.candidates = mine.map((c) => briefOf(c, now)).sort((x, y) => STATE_ORDER[x.state] - STATE_ORDER[y.state] || (x.id < y.id ? -1 : 1));
-    if (!mine.length) {
-      return Object.assign(out, {state: "NONE", reason: "Phase 11 has no directional decision on " + coin +
-        (a ? " (asset state " + a.state + ")" : " (not in this scan's discovery)")});
-    }
-    const trades = out.candidates.filter((c) => c.state === "TRADE");
-    if (trades.some((c) => c.expired)) {
-      return Object.assign(out, {status: "STALE", reason: "the Phase 11 TRADE " + trades.find((c) => c.expired).id + " is past its valid_until"});
-    }
-    if (new Set(trades.map((c) => c.side)).size > 1) {
-      return Object.assign(out, {state: "TRADE", conflict: true, reason: "Phase 11 TRADE decisions on " + coin + " disagree in direction"});
-    }
-    out.state = out.candidates[0].state;
-    if (trades.length) out.trade = trades.slice().sort((x, y) => (x.rank == null ? 1e9 : x.rank) - (y.rank == null ? 1e9 : y.rank) || (x.id < y.id ? -1 : 1))[0];
-    return out;
-  }
+  const codeTxt = DESK ? DESK.codeTxt : (c) => String(c);
+  const decisionAuthority = DESK ? DESK.authority : () => ({status: "MALFORMED", doc: null, reason: NO_CORE});
+  const phase11Of = DESK ? (coin, doc, now) => DESK.assetDecision(doc, coin, now) : () => ({status: "MALFORMED", state: null, trade: null, candidates: [], conflict: false, asset: null,
+                                                         reason: NO_CORE, as_of: null, valid_until: null, policy_hash: null, authority_hash: null});
 
   /* The call for one coin. inp: {coin, price (on the chart's scale), d1 (daily candles, oldest first; the last may
      still be forming), now (seconds), account, risk, src: {decision (data/v8/decision.json), picks, picksResearch,
@@ -851,7 +783,9 @@
     const src = inp.src || {};
     const T = testedSignals(inp.coin, src);
     const live = [], expired = [];
+    const priced = ctx.price > 0;            // without a live price no stop can be placed: no plan, never a guess
     for (const s of T.signals) {
+      if (!priced) { s.plan = null; s.planError = "No live price, so this signal's levels cannot be placed."; live.push(s); continue; }
       const p = s.src === "swing" ? swingPlan(s, ctx) : s.src === "quant" ? quantPlan(s, ctx) : smartPlan(s, ctx);
       if (p.expired) { s.why = p.error; expired.push(s); continue; }
       s.plan = p.error ? null : p;          // the legacy trade's levels, as context: never sized, never the call
@@ -867,7 +801,9 @@
       lead = {src: pos ? "quant" : "phase11", name: pos ? SOURCE.quant : SOURCE.phase11, side: t.side, tier: "TRADE", authority: t, rec: null,
               pos, sid: t.strategy, strategy: st.name || t.strategy, desc: st.desc || "",
               text: (st.name || t.strategy) + " " + t.side + ": a Phase 11 TRADE (decision of " + utcTxt(auth.as_of) + ")"};
-      if (pos) {
+      if (pos && !priced) {
+        lead.planError = "Live prices did not load, so the desk position's stop cannot be placed here. Use the Quant desk page.";
+      } else if (pos) {
         const p = quantPlan(lead, ctx);
         if (p.expired) stopped = p.error;
         else { plan = p.error ? null : sized(p, "TRADE", ctx); lead.planError = p.error || null; }
