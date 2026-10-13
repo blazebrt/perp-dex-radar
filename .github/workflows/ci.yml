@@ -53,7 +53,8 @@ jobs:
 
       - name: Differential parity against the phase base (approved deltas only)
         # Phase 9 preserves every numerical result and trading decision. Only user-authorized
-        # research labels may differ: seven exact dashboard strings and two pinned HTML files.
+        # research labels may differ: seven exact dashboard strings and two pinned HTML files,
+        # plus governance metadata in quant.json (per-strategy policy states, policy schema/hash/order).
         # Both the frozen base and this branch must reproduce their respective golden digests.
         run: |
           MANIFEST=tests/fixtures/v8/phase9_expected_deltas.json

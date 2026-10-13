@@ -178,7 +178,17 @@ def controls_for_trade(p, hist, G, funding, s, k, q, uni, slip, fr, fs, ls):
                    "liquidity": "UNKNOWN" if liq is None or not liqs else "high" if liq >= np.median(liqs) else "low"}
 
 
-def run(md, hist_dir, cutoff, folder, replications=5000):
+def family_tests(matrix, names, provenance, contiguous, replications=None):
+    """Family bootstrap (White RC / Hansen SPA / FDR) and CSCV PBO with every method setting read from SA.GATE."""
+    if not contiguous:
+        why = "no continuous fully qualified common daily window"
+        return MT.unavailable(why), MT.unavailable(why)
+    reps = SA.GATE["bootstrap_replications"] if replications is None else replications
+    return (MT.bootstrap_tests(matrix, provenance, reps, SA.GATE["block_days"]),
+            MT.pbo(matrix, names, SA.GATE["cscv_segments"], SA.GATE["cscv_min_segment_days"]))
+
+
+def run(md, hist_dir, cutoff, folder, replications=None):
     from qdata import Panel
     import qstrat
     from qexport import TESTED
@@ -280,8 +290,7 @@ def run(md, hist_dir, cutoff, folder, replications=5000):
     contiguous = bool(complete_days) and complete_days == list(range(complete_days[0], complete_days[-1] + 1))
     matrix = np.array([[sum(r["net_R"] for r in all_rows[c["strategy_id"]] if r["exit_time"] // 86400 == day)
                         for c in catalog] for day in complete_days], float).reshape((-1, len(catalog)))
-    statistics = MT.bootstrap_tests(matrix, provenance, replications) if contiguous else MT.unavailable("no continuous fully qualified common daily window")
-    pbo = MT.pbo(matrix, [c["strategy_id"] for c in catalog]) if contiguous else MT.unavailable("no continuous fully qualified common daily window")
+    statistics, pbo = family_tests(matrix, [c["strategy_id"] for c in catalog], provenance, contiguous, replications)
     # Historical grid return columns are absent. Do not estimate DSR dispersion from the three holdovers.
     multiple = {"schema": MT.VERSION, "provenance": provenance, "family_tests": statistics, "pbo": pbo,
                 "candidate_count": len(catalog), "known_historical_trials": trial_census["known_lower_bound"],
@@ -296,6 +305,7 @@ def run(md, hist_dir, cutoff, folder, replications=5000):
     match_hash = save(folder, "research_matched_controls.json", matched)
     import quant
     policy = SP.load(quant.STRATS)
+    runtime_implementation = SP.runtime_implementation_hash()
     deployment = {r["strategy_id"]: r["deployment_state"] for r in policy["strategies"]}
     results = []
     for i, c in enumerate(catalog):
@@ -312,7 +322,9 @@ def run(md, hist_dir, cutoff, folder, replications=5000):
                     "pit_integrity_ok": True, "prospective_registration_valid": False, "full_feature_authority": False,
                     "robustness_slices_complete": False, "pit_calendar_days": overlap_days,
                     "qualified_closed_trades": len(rows), "mean_R": agg["mean_R"], "mean_R_lower_95": agg["lower_95"],
-                    "full_matched_fraction": 0, "both_sides": c["params"].get("sides", "both") == "both",
+                    "full_matched_fraction": 0,
+                    # Informational only: the gate derives the required sides from the definition c itself.
+                    "both_sides": SA.required_sides(c) == SA.SIDE_VALUES["both"],
                     "sides": robust["sides"], "oos_mean_R": robust["oos"]["mean_R"],
                     "stress_1_5_mean_R": robust["cost_stress"]["1.5"], **robust["concentration"]}
         dsr = MT.dsr(matrix[:, i], trial_census["known_lower_bound"], None, False)
@@ -321,8 +333,9 @@ def run(md, hist_dir, cutoff, folder, replications=5000):
                             by_q=statistics["fdr"]["by_q"][i])
         if pbo["status"] == "AVAILABLE":
             evidence["pbo"] = pbo["pbo"]
-        verdict = SA.adjudicate(evidence)
+        verdict = SA.adjudicate(evidence, c)
         bindings = {"runtime_definition_hash": SP.digest(quant.STRATS[sid]) if sid in quant.STRATS else None,
+                    "runtime_implementation_hash": runtime_implementation if sid in quant.STRATS else None,
                     "adjudicated_definition_hash": SP.adjudicated_definition_hash(c)}
         results.append({**c, **verdict, **bindings, "dataset_provenance": provenance, "pit_version": PIT.VERSION,
                         "cost_model": PC.VERSION, "trial_census_version": census.VERSION, "trial_census_hash": chash,
@@ -347,6 +360,8 @@ def run(md, hist_dir, cutoff, folder, replications=5000):
               "pit_overlap_calendar_days": overlap_days, "common_complete_days": len(complete_days),
               "market_data_start": start, "market_data_end": end, "history_window": {k: v for k, v in hist.window().items() if k != "observations_in_store"},
               "runtime_policy_schema": SP.VERSION, "runtime_policy_hash": SP.digest(policy),
+              "runtime_implementation_files": list(SP.RUNTIME_IMPLEMENTATION_FILES),
+              "runtime_implementation_hash": runtime_implementation,
               "runtime_order": policy["runtime_order"], "shadow_ledger": SL.summary(str(ROOT / SL.DIR)),
               "promotion": "NONE: reviewed main-branch policy change required"}
     ahash = save(folder, "research_strategy_adjudication.json", report)
@@ -384,7 +399,7 @@ def main():
              "research_multiple_testing.json", "research_matched_controls.json", "research_phase9_summary.json",
              "research_phase9_registration_plan.json"]
     save(Path(args.out), "research_phase9_compute.json", {"wall_seconds": time.perf_counter() - start,
-         "python_peak_bytes": peak, "process_peak_rss_bytes": rss, "bootstrap_replications_planned": 5000,
+         "python_peak_bytes": peak, "process_peak_rss_bytes": rss, "bootstrap_replications_planned": SA.GATE["bootstrap_replications"],
          "bootstrap_replications_executed": mult["family_tests"].get("replications", 0),
          "cscv_splits_executed": mult["pbo"].get("combinations", 0),
          "control_matches": sum(m["control_count"] for rows in matched["strategies"].values() for m in rows),

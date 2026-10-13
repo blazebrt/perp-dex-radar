@@ -18,11 +18,12 @@ from qdata import Panel
 
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from v8 import strategy_policy
 
 def legacy_portfolio_ids():
-    # Composition only, never a research verdict.
-    return json.loads(strategy_policy.PATH.read_text())["runtime_order"]
+    """The deployment-enabled strategies, in runtime order, from the validated policy quant.py loads (composition
+    only, never a research verdict). Empty when the reviewed policy enables no strategy."""
+    import quant
+    return list(quant.RUNTIME_ORDER)
 
 TESTED = {
     # id: (function, kwargs, name, family, timeframe, description)
@@ -119,63 +120,31 @@ def verdict(sid, one, ins, oos, three):
 
 
 
-def main():
-    md, out_path = sys.argv[1], sys.argv[2]
-    t0 = time.time()
-    p1 = Panel(md)
-    F1 = qstrat.Feat(p1)
-    p4 = Panel(md, folder="h4", bar=14400, min_hours=24 * 60)
-    F4 = qstrat.Feat(p4)
-    end1 = int(p1.t[-1]) + 3600
-    w0 = end1 - 365 * 86400
-    oos0 = end1 - 122 * 86400
-    end4 = int(p4.t[-1]) + 14400
-    s4 = int(p4.t[0]) + 90 * 86400
-    res = {"generated": int(time.time()), "window_1y": [w0, end1], "oos_from": oos0, "window_3y": [s4, end4],
-           "coins_1y": p1.N, "coins_3y": p4.N,
-           "costs": {"taker": qsim.FEE_T, "maker": qsim.FEE_M, "slippage": "0.05% ($1M+ a day on your DEXs), 0.1%, 0.2%",
-                     "funding": "MEXC funding history (longs pay positive rates)"},
-           "strategies": {}}
-    finals_3y = []
-    for sid, (fn, kw, name, fam, tf, desc) in TESTED.items():
-        sig = fn(F1, **kw)
-        keep = p1.t[sig["i"]] + 3600 >= w0
-        sig = {k: v[keep] for k, v in sig.items()}
-        s, r, tw = qsim.run(p1, sig, elig=F1.elig)
-        d1 = qstats.table(p1, s, r, tw, sid)
-        one, ins, oos = (qstats.stats(d1, w0, end1), qstats.stats(d1, w0, oos0), qstats.stats(d1, oos0, end1))
-        lon = qstats.stats(d1[d1.d > 0], w0, end1)
-        sho = qstats.stats(d1[d1.d < 0], w0, end1)
-        three, curve3 = None, None
-        if sid in FOUR_H_OK:
-            sig4 = fn(F4, **kw)
-            keep = p4.t[sig4["i"]] >= s4
-            sig4 = {k: v[keep] for k, v in sig4.items()}
-            s_, r_, tw_ = qsim.run(p4, sig4, elig=F4.elig)
-            d4 = qstats.table(p4, s_, r_, tw_, sid)
-            d4["t_exit"] = p4.t[r_[:, qsim.R_EXIT].astype(int)] + 14400
-            three = qstats.stats(d4, s4, end4)
-            curve3 = weekly_curve(d4, s4, end4)
-            years = []
-            for k in range(3):
-                a, b = end4 - (k + 1) * 365 * 86400, end4 - k * 365 * 86400
-                if a >= s4 - 120 * 86400:
-                    years.append({"from": max(a, s4), "to": b, **slim(qstats.stats(d4, max(a, s4), b))})
-            if sid in legacy_portfolio_ids():
-                finals_3y.append(d4)
-        v, why = verdict(sid, one, ins, oos, three)
-        res["strategies"][sid] = {
-            "name": name, "family": fam, "tf": tf, "desc": desc, "params": kw, "verdict": v, "why": why,
-            "one_year": slim(one), "in_sample": slim(ins), "out_of_sample": slim(oos), "long": slim(lon),
-            "short": slim(sho), "three_year": slim(three) if three else None,
-            "years": years if three else None,
-            "curve_1y": weekly_curve(d1, w0, end1), "curve_3y": curve3,
-            "months": {k: round(v_, 2) for k, v_ in (one.get("months") or {}).items()},
-        }
-        print(f"{sid:12s} {v:8s} 1y n={one.get('n')} avg={one.get('avg', 0):+.3f}  3y={three.get('avg') if three else None}")
-    # combined account and growth planner for the legacy holdovers (diagnostic only) (3 years, 4h bars)
+PORTFOLIO_LABEL = "LEGACY_DIAGNOSTIC / NOT STRATEGY AUTHORITY"
+NO_ENABLED_STRATEGIES = "NO_ENABLED_STRATEGIES"
+NO_PORTFOLIO_TRADES = "NO_PORTFOLIO_TRADES"
+
+
+def empty_portfolio(status, ids):
+    """Deterministic diagnostic when there is nothing to combine: no placeholder strategy, no account simulation and
+    no growth planner on an empty portfolio."""
+    return {"label": PORTFOLIO_LABEL, "status": status, "strategies": list(ids), "all_trades": {"n": 0},
+            "taken": {"n": 0}, "max_open": None, "max_per_strategy": None, "daily_r_mean": None, "daily_r_sd": None,
+            "sharpe": None, "kelly": None, "accounts": [], "planner": {}, "start": None, "planner_days": None}
+
+
+def portfolio(finals_3y, ids, s4, end4):
+    """Combined account and growth planner for the deployment-enabled strategies (diagnostic only; 3 years, 4h
+    bars). `finals_3y` holds the 3-year trade tables of `ids` in TESTED order. A non-empty portfolio is computed
+    exactly as before; an empty one is a diagnostic (NO_ENABLED_STRATEGIES when the policy enables none)."""
+    if not ids:
+        return empty_portfolio(NO_ENABLED_STRATEGIES, ids)
+    if not finals_3y:
+        return empty_portfolio(NO_PORTFOLIO_TRADES, ids)
     T = pd.concat(finals_3y, ignore_index=True)
     T = T[T.reason != "end"]
+    if not len(T):
+        return empty_portfolio(NO_PORTFOLIO_TRADES, ids)
     comb = qstats.stats(T, s4, end4)
     accounts = []
     for f in (0.0025, 0.005, 0.0075, 0.01, 0.02):
@@ -202,14 +171,73 @@ def main():
         planners[f"{hc:.1f}"] = [{k: (round(float(v), 4) if isinstance(v, (float, np.floating)) else v)
                                   for k, v in row.items()} for row in gp.to_dict("records")]
     sharpe = float(daily.mean() / daily.std() * math.sqrt(365)) if daily.std() > 0 else None
-    res["portfolio"] = {
-        "label": "LEGACY_DIAGNOSTIC / NOT STRATEGY AUTHORITY",
-        "strategies": list(legacy_portfolio_ids()), "all_trades": slim(comb), "taken": slim(qstats.stats(TK, s4, end4)),
+    return {
+        "label": PORTFOLIO_LABEL,
+        "strategies": list(ids), "all_trades": slim(comb), "taken": slim(qstats.stats(TK, s4, end4)),
         "max_open": 60, "max_per_strategy": 20,
         "daily_r_mean": round(float(daily.mean()), 4), "daily_r_sd": round(float(daily.std()), 4),
         "sharpe": round(sharpe, 3) if sharpe else None, "kelly": round(qport.kelly(daily), 4),
         "accounts": accounts, "planner": planners, "start": 500, "planner_days": 730,
     }
+
+
+def main():
+    md, out_path = sys.argv[1], sys.argv[2]
+    t0 = time.time()
+    p1 = Panel(md)
+    F1 = qstrat.Feat(p1)
+    p4 = Panel(md, folder="h4", bar=14400, min_hours=24 * 60)
+    F4 = qstrat.Feat(p4)
+    end1 = int(p1.t[-1]) + 3600
+    w0 = end1 - 365 * 86400
+    oos0 = end1 - 122 * 86400
+    end4 = int(p4.t[-1]) + 14400
+    s4 = int(p4.t[0]) + 90 * 86400
+    res = {"generated": int(time.time()), "window_1y": [w0, end1], "oos_from": oos0, "window_3y": [s4, end4],
+           "coins_1y": p1.N, "coins_3y": p4.N,
+           "costs": {"taker": qsim.FEE_T, "maker": qsim.FEE_M, "slippage": "0.05% ($1M+ a day on your DEXs), 0.1%, 0.2%",
+                     "funding": "MEXC funding history (longs pay positive rates)"},
+           "strategies": {}}
+    finals_3y = []
+    ids = legacy_portfolio_ids()
+    for sid, (fn, kw, name, fam, tf, desc) in TESTED.items():
+        sig = fn(F1, **kw)
+        keep = p1.t[sig["i"]] + 3600 >= w0
+        sig = {k: v[keep] for k, v in sig.items()}
+        s, r, tw = qsim.run(p1, sig, elig=F1.elig)
+        d1 = qstats.table(p1, s, r, tw, sid)
+        one, ins, oos = (qstats.stats(d1, w0, end1), qstats.stats(d1, w0, oos0), qstats.stats(d1, oos0, end1))
+        lon = qstats.stats(d1[d1.d > 0], w0, end1)
+        sho = qstats.stats(d1[d1.d < 0], w0, end1)
+        three, curve3 = None, None
+        if sid in FOUR_H_OK:
+            sig4 = fn(F4, **kw)
+            keep = p4.t[sig4["i"]] >= s4
+            sig4 = {k: v[keep] for k, v in sig4.items()}
+            s_, r_, tw_ = qsim.run(p4, sig4, elig=F4.elig)
+            d4 = qstats.table(p4, s_, r_, tw_, sid)
+            d4["t_exit"] = p4.t[r_[:, qsim.R_EXIT].astype(int)] + 14400
+            three = qstats.stats(d4, s4, end4)
+            curve3 = weekly_curve(d4, s4, end4)
+            years = []
+            for k in range(3):
+                a, b = end4 - (k + 1) * 365 * 86400, end4 - k * 365 * 86400
+                if a >= s4 - 120 * 86400:
+                    years.append({"from": max(a, s4), "to": b, **slim(qstats.stats(d4, max(a, s4), b))})
+            if sid in ids:
+                finals_3y.append(d4)
+        v, why = verdict(sid, one, ins, oos, three)
+        res["strategies"][sid] = {
+            "name": name, "family": fam, "tf": tf, "desc": desc, "params": kw, "verdict": v, "why": why,
+            "one_year": slim(one), "in_sample": slim(ins), "out_of_sample": slim(oos), "long": slim(lon),
+            "short": slim(sho), "three_year": slim(three) if three else None,
+            "years": years if three else None,
+            "curve_1y": weekly_curve(d1, w0, end1), "curve_3y": curve3,
+            "months": {k: round(v_, 2) for k, v_ in (one.get("months") or {}).items()},
+        }
+        print(f"{sid:12s} {v:8s} 1y n={one.get('n')} avg={one.get('avg', 0):+.3f}  3y={three.get('avg') if three else None}")
+    # combined account and growth planner for the deployment-enabled strategies (diagnostic only)
+    res["portfolio"] = portfolio(finals_3y, ids, s4, end4)
     with open(out_path, "w") as fh:
         json.dump(res, fh, separators=(",", ":"))
     print(f"wrote {out_path} in {time.time() - t0:.0f}s")

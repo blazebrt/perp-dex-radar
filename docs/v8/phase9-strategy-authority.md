@@ -20,7 +20,9 @@ in `v8.strategy_policy`. Every adjudication row carries `runtime_definition_hash
 hashes and the complete research definition; audit provenance exposes the bindings.
 
 ACTIVE_REQUALIFIED requires the current runtime digest, adjudication runtime hash,
-and reviewed runtime hash to agree. It also recomputes the adjudicated definition
+and reviewed runtime hash to agree, and re-runs the current gate against the exact bound
+adjudicated row as its definition (so the row's own `params["sides"]` decides the side
+requirements). It also recomputes the adjudicated definition
 hash from the row and requires both the stored and reviewed hashes to agree with it.
 The reviewed package still binds the complete artifact bytes with SHA-256. Missing
 bindings fail closed with STRATEGY_POLICY_INVALID. Same-ID evidence cannot authorize
@@ -73,9 +75,26 @@ amplified as benefits by stress; fees, slippage, and adverse funding are stresse
 
 Concentration gates use positive-profit contribution denominators: top 1 <=20%,
 top 5 <=50%, top 10 <=75%, largest month <=50%, and every leave-one-asset-out mean >0.
-Both-side strategies require at least 20 trades on each side; a mean below -.05R with
-its 95% upper bound below zero fails. Unavailable/incomplete inputs block the pass.
+Which sides need evidence comes from the adjudicated definition itself:
+`adjudicate(evidence, definition)` reads the canonical expanded `params["sides"]`
+("both", "long" or "short"; every current catalog candidate is "both"). Each required side
+needs at least `minimum_side_trades` (20) trades with available inference; a mean below
+`side_mean_floor_R` (-.05R) with its 95% upper bound below `side_upper_95_max_R` (0) fails.
+An evidence `both_sides` flag is informational: if present it must agree with the
+definition, otherwise the verdict is INSUFFICIENT_EVIDENCE
+(BOTH_SIDES_FLAG_DISAGREES_WITH_DEFINITION); a definition without a side value fails closed
+(STRATEGY_SIDE_DEFINITION_UNAVAILABLE). Runtime metadata (`quant.STRATS`, which carries no
+sides) and the strategy ID never decide sides. Unavailable/incomplete inputs block the pass.
 No strategy ID participates in the gate. No parameter tuning is performed.
+
+`GATE` is the single numerical source: `CHECKS` names, for every compared evidence key,
+its GATE field, comparison and failure kind, and adjudicate() reads `GATE[field]` at call
+time. The leave-one-asset-out floor is the named field `leave_one_asset_out_min_mean_R`
+(0) and the side upper bound `side_upper_95_max_R` (0), both with their former values.
+The method settings (`oos_fraction`, `bootstrap_replications`, `block_days`,
+`cscv_segments`, `cscv_min_segment_days`) are passed from GATE by the research job.
+No numerical standard changed. Tests tighten every GATE value and require the verdict
+(or the method call) to change, so a duplicated literal cannot hide.
 
 The gate also requires a complete historical census and trial-return universe,
 complete feature/slice authority, and valid prospective registration. The current
@@ -173,6 +192,54 @@ The registration plan freezes parameters/code, trial family, corrections and thr
 and requires evaluation to begin after authoritative main registration. It has no start
 timestamp and appends nothing. The ledger remains one genesis, zero experiments, authority NONE.
 
+## Runtime implementation binding
+
+`runtime_definition_hash` covers only the runtime metadata `STRATS[sid]`; a change to
+`sig_tsmom`, `sig_trend_ema`, `xs_scores`, `_stop` or trade management leaves it unchanged.
+A third binding, `runtime_implementation_hash`, is the digest of
+`{path: sha256(exact bytes)}` over `v8.strategy_policy.RUNTIME_IMPLEMENTATION_FILES`.
+The adjudication row (and its trace), the reviewed evidence and the code running now must
+agree three ways on both the metadata hash and the implementation hash; anything else is
+STRATEGY_POLICY_INVALID. Rows for candidates without a runtime definition carry null.
+
+Dependency manifest: `quant.py` - STRATS, indicators, `sig_tsmom`, `sig_trend_ema`,
+`xs_scores`, `trend_feats`, `daily_feats`, `_stop`, `slip_of`, `eligible`, `sim_trade` and the
+run loop's entry/exit rules all live there. Any byte change to it invalidates every promotion
+until a review is regenerated (fail closed). Excluded, with reasons:
+`scanner.py` (market-data acquisition, bar cleaning and the shared universe, identity and
+liquidity gates of every engine, versioned and hashed by the audit as `config_hash` /
+`identity_config_hash`; it decides which coins and bars exist, not how a strategy trades
+them), `v8/evidence.py` (the shared identity execution gate and entry-time proof stamps),
+and `v8/strategy_policy.py` / `v8/quant_strategy_policy.json` (the deployment authority
+itself, hashed separately as `runtime_policy_hash`). Tests alter each of those functions in
+a fixture copy of `quant.py`, prove the metadata hash is unchanged and the implementation
+hash differs, and require validation to fail.
+
+The committed `research/phase9/` snapshot predates this binding, so its rows have no
+`runtime_implementation_hash` (the audit reports null); it cannot authorize promotion.
+Exact-head Research artifacts carry the binding.
+
+## Deployment state on the published pages
+
+`quant.json` carries `deployment_state` and `research_state` for every enabled strategy and
+`strategy_authority` (`runtime_policy_schema`, `runtime_policy_hash`, `runtime_order`), all
+from the policy `quant.py` validated. The dashboard (`dashboard.quant_authority`) and
+`quant.html` (`authority()`, `stateLabel()`) derive every label from those states:
+all LEGACY_HOLDOVER keeps the exact "Legacy holdover" text; all ACTIVE_REQUALIFIED shows
+"Requalified"; a mix shows "Mixed authority" and states that the desk as a whole is not
+requalified; no enabled strategy shows "Disabled" / "No deployment-enabled strategies".
+A missing or unknown state is never shown as requalified.
+
+## Empty portfolio
+
+`qexport.portfolio()` takes the deployment-enabled order from `quant.RUNTIME_ORDER` (the
+validated policy). With no enabled strategy it emits a deterministic diagnostic -
+`status=NO_ENABLED_STRATEGIES`, `strategies=[]`, `all_trades.n=0`, `taken.n=0`, other fields
+empty or null - with no placeholder strategy, no account simulation and no growth planner
+(`NO_PORTFOLIO_TRADES` covers enabled strategies with no closed 3-year trades). A non-empty
+portfolio is computed exactly as before; a test compares it with the pre-correction code.
+The dashboard and `quant.html` render the diagnostic without the planner or account curves.
+
 ## Limits retained
 
 Short/sparse PIT history, zero current market overlap, v1 liquidity precision unqualified,
@@ -188,7 +255,9 @@ pit-cost/2, pit-research/3 and shadow-ledger/1 remain unchanged.
 
 The user explicitly authorized research-label changes to the published quant page and
  dashboard. These are the only published-file parity exceptions: `quant.html`,
-`index.html` (from `dashboard.html`), and seven string fields in `data/dashboard.json`.
+`index.html` (from `dashboard.html`), seven string fields in `data/dashboard.json`, and
+(GOVERNANCE_METADATA_ONLY) the per-strategy `deployment_state` / `research_state` and the
+`strategy_authority` object added to `data/quant.json`.
 The exact hashes/field transitions are pinned in the Phase 9 delta manifest. Historical
 numbers, signal ordering, Top N, and all other published files must remain identical.
 
@@ -211,8 +280,9 @@ that run and its hashes. Operational timing is separate from deterministic evide
 
 Local Linux differential validation reproduced the base golden and Phase 9 golden:
 `a2cebdb88441f2a5e9b7ebfc5c326667e00f7032b64aa8bcc0f117158e5c07f2`
-and `62a08ffb5df5a7d762fbf18ec1d297bd6a6efc3782ed2b31533f243a35a2ce45`.
-Zero unexpected deltas; exactly seven dashboard strings and two HTML hashes changed.
+and `c41c6c7fa6c1be028e8aefb8da335c082e45ee4e900cb1cc959cfbd16eb2f12a`.
+Zero unexpected deltas; exactly seven dashboard strings, two HTML hashes and seven
+quant.json governance metadata values changed.
 Windows system-math differences reproduce in the frozen base as well; Linux is the
 golden authority. The end-to-end synthetic test exercises qualified closed trades
 and byte-identical old-cutoff artifacts after future candle, funding and history appends.

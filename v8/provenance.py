@@ -176,6 +176,8 @@ def strategy_authority():
                    quant_runtime_order=policy["runtime_order"], deployment_states={r["strategy_id"]: r["deployment_state"] for r in policy["strategies"]},
                    research_states={r["strategy_id"]: r["research_state"] for r in policy["strategies"]},
                    runtime_definition_hashes={sid: SP.digest(q.STRATS[sid]) for sid in policy["runtime_order"]},
+                   runtime_implementation_files=list(SP.RUNTIME_IMPLEMENTATION_FILES),
+                   runtime_implementation_hash=SP.runtime_implementation_hash(),
                    health=["STRATEGY_POLICY_OK"],
                    legacy_holdover_count=sum(r["deployment_state"] == "LEGACY_HOLDOVER" for r in policy["strategies"]))
     except (OSError, ValueError, TypeError, KeyError) as e:
@@ -198,6 +200,8 @@ def strategy_authority():
         out["adjudication_provenance"] = report["provenance"]
         out["adjudicated_definition_bindings"] = {r["strategy_id"]: {
             "runtime_definition_hash": r.get("runtime_definition_hash"),
+            # None in an adjudication written before the implementation binding existed (never promotable)
+            "runtime_implementation_hash": r.get("runtime_implementation_hash"),
             "adjudicated_definition_hash": SP.adjudicated_definition_hash(r),
             "stored_definition_hash_matches": r.get("adjudicated_definition_hash") == SP.adjudicated_definition_hash(r)
         } for r in report["strategies"]}

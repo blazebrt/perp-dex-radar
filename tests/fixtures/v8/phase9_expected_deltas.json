@@ -9,7 +9,8 @@
  "head_golden": "tests/fixtures/v8/legacy_parity_golden_phase9.json",
  "counterfactual_projection": null,
  "rules": {
-  "RESEARCH_LABEL_ONLY": "User explicitly authorized research-label changes only. No numerical, signal, ranking, Top N, journal, or trading behavior changes."
+  "RESEARCH_LABEL_ONLY": "User explicitly authorized research-label changes only. No numerical, signal, ranking, Top N, journal, or trading behavior changes.",
+  "GOVERNANCE_METADATA_ONLY": "Phase 9 correction (Codex thread 4255533169): quant.json exposes the validated policy's deployment_state and research_state per enabled strategy and the runtime policy schema, hash and order. Metadata only; no signal, ranking, stop, size, journal or trade changes."
  },
  "universe": [],
  "dex_status": [],
@@ -100,6 +101,89 @@
    "base": "Three trend strategies, long and short, that passed a 3-year test",
    "head": "Legacy holdover strategies; historical results are unqualified diagnostics",
    "rule": "RESEARCH_LABEL_ONLY"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "strategies",
+    "TSMOM",
+    "deployment_state"
+   ],
+   "base": "<absent>",
+   "head": "LEGACY_HOLDOVER",
+   "rule": "GOVERNANCE_METADATA_ONLY"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "strategies",
+    "TSMOM",
+    "research_state"
+   ],
+   "base": "<absent>",
+   "head": "INSUFFICIENT_EVIDENCE",
+   "rule": "GOVERNANCE_METADATA_ONLY"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "strategies",
+    "TREND_EMA",
+    "deployment_state"
+   ],
+   "base": "<absent>",
+   "head": "LEGACY_HOLDOVER",
+   "rule": "GOVERNANCE_METADATA_ONLY"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "strategies",
+    "TREND_EMA",
+    "research_state"
+   ],
+   "base": "<absent>",
+   "head": "INSUFFICIENT_EVIDENCE",
+   "rule": "GOVERNANCE_METADATA_ONLY"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "strategies",
+    "XSMOM",
+    "deployment_state"
+   ],
+   "base": "<absent>",
+   "head": "LEGACY_HOLDOVER",
+   "rule": "GOVERNANCE_METADATA_ONLY"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "strategies",
+    "XSMOM",
+    "research_state"
+   ],
+   "base": "<absent>",
+   "head": "INSUFFICIENT_EVIDENCE",
+   "rule": "GOVERNANCE_METADATA_ONLY"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "strategy_authority"
+   ],
+   "base": "<absent>",
+   "head": {
+    "runtime_order": [
+     "TSMOM",
+     "TREND_EMA",
+     "XSMOM"
+    ],
+    "runtime_policy_hash": "f2e10f9934a919543bbc2c5fa02e8823629fb9b78789cf6348c3e8cadb96e351",
+    "runtime_policy_schema": "v8.quant-strategy-policy/1"
+   },
+   "rule": "GOVERNANCE_METADATA_ONLY"
   }
  ],
  "decisions": [],
@@ -113,7 +197,7 @@
   {
    "file": "quant.html",
    "base_sha256": "7d4f2478d81d164d8ca295bb80c5be4bcff50406672595e71c4c5af6cdfc28c7",
-   "head_sha256": "71259c59cf739c0c77cced08ccfa773ece035d10286f62c3d5e3c1e2fcdf3d20",
+   "head_sha256": "76812ca088a3a6b726cffd0468f357d3a1fc93e089c712f9daf52fdd2d261027",
    "rule": "RESEARCH_LABEL_ONLY"
   }
  ],

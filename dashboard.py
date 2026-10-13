@@ -132,6 +132,38 @@ def picks_accuracy(P, PR):
     return swing, day
 
 
+LEGACY_WHY = ("Unqualified legacy diagnostic; point-in-time evidence, full matched controls and "
+              "multiple-testing correction have not established strategy authority.")
+LEGACY_WHAT = "Legacy holdover strategies; historical results are unqualified diagnostics"
+
+
+def quant_authority(Q):
+    """The deployment authority label, from the validated policy states quant.py serialises per enabled strategy
+    (strategies[sid].deployment_state). Only ACTIVE_REQUALIFIED counts as requalified; a missing or other state is
+    an unqualified holdover. An empty enabled set is a disabled desk, never a requalified one."""
+    strats = (Q or {}).get("strategies")
+    if not isinstance(strats, dict):
+        return {"state": "LEGACY", "verdict": "Legacy holdover", "tone": "warn", "why": LEGACY_WHY, "what": LEGACY_WHAT}
+    states = [(v or {}).get("deployment_state") if isinstance(v, dict) else None for v in strats.values()]
+    req = sum(st == "ACTIVE_REQUALIFIED" for st in states)
+    legacy = len(states) - req
+    if not states:
+        return {"state": "NONE_ENABLED", "verdict": "Disabled", "tone": "muted",
+                "why": "No strategy is deployment-enabled by the reviewed policy; the desk takes no trades.",
+                "what": "No deployment-enabled strategies"}
+    if not req:
+        return {"state": "LEGACY", "verdict": "Legacy holdover", "tone": "warn", "why": LEGACY_WHY, "what": LEGACY_WHAT}
+    if not legacy:
+        return {"state": "REQUALIFIED", "verdict": "Requalified", "tone": "good",
+                "why": (f"All {req} enabled strateg{'y' if req == 1 else 'ies'} passed the governed requalification "
+                        "gate and a reviewed promotion bound to the exact definition and code."),
+                "what": "Requalified strategies under reviewed promotion"}
+    return {"state": "MIXED", "verdict": "Mixed authority", "tone": "warn",
+            "why": (f"{req} requalified and {legacy} legacy holdover strateg{'y' if legacy == 1 else 'ies'}; the "
+                    "legacy holdovers remain unqualified diagnostics, so the desk as a whole is not requalified."),
+            "what": "Mixed: requalified and legacy holdover strategies"}
+
+
 def quant_accuracy(Q, QR):
     pf = (QR or {}).get("portfolio") or {}
     a = pf.get("all_trades") or {}
@@ -143,9 +175,8 @@ def quant_accuracy(Q, QR):
         tested["vs_random"] = per100(a["edge"])
     la = (Q or {}).get("live_all") or {}
     live = rec(la.get("n"), la.get("wr"), la.get("avg"))
-    verdict, tone = "Legacy holdover", "warn"
-    why = ("Unqualified legacy diagnostic; point-in-time evidence, full matched controls and "
-           "multiple-testing correction have not established strategy authority.")
+    auth = quant_authority(Q)
+    verdict, tone, why = auth["verdict"], auth["tone"], auth["why"]
     return {"name": "Quant desk", "sub": "Trend strategies, long and short", "page": "quant.html",
             "tested": tested, "live": live, "verdict": verdict, "tone": tone, "why": why}
 
@@ -276,7 +307,7 @@ def quant_card(Q, acc):
               "text": (f"{len(op)} open: {nl} long, {len(op) - nl} short" if op else "No open positions") +
                       (f" · {len(sig)} new this scan" if sig else "")}
     return {"id": "quant", "name": "Quant desk", "page": "quant.html", "logo": "Q",
-            "what": "Legacy holdover strategies; historical results are unqualified diagnostics",
+            "what": quant_authority(Q)["what"],
             "updated": (Q or {}).get("generated"), "status": status, "items": items[:6], "open_n": len(op),
             "accuracy": [acc]}
 

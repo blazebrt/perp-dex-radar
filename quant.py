@@ -83,6 +83,7 @@ STRATS = {
 from v8 import strategy_policy as STRATEGY_POLICY
 POLICY = STRATEGY_POLICY.load(STRATS)
 RUNTIME_ORDER = tuple(POLICY["runtime_order"])
+POLICY_ROWS = {r["strategy_id"]: r for r in POLICY["strategies"]}
 
 
 def log(msg):
@@ -721,6 +722,12 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
     for sid in RUNTIME_ORDER:
         out["strategies"][sid]["open"] = sum(1 for t in actionable if t["s"] == sid)
         out["strategies"][sid]["blocked_open"] = sum(1 for t in blocked if t["s"] == sid)
+        # v8 Phase 9: the validated policy's states, which the dashboard and quant.html label from
+        out["strategies"][sid]["deployment_state"] = POLICY_ROWS[sid]["deployment_state"]
+        out["strategies"][sid]["research_state"] = POLICY_ROWS[sid]["research_state"]
+    out["strategy_authority"] = {"runtime_policy_schema": STRATEGY_POLICY.VERSION,
+                                 "runtime_policy_hash": STRATEGY_POLICY.digest(POLICY),
+                                 "runtime_order": list(RUNTIME_ORDER)}
     data_dir = os.path.join(out_dir, "data")
     os.makedirs(data_dir, exist_ok=True)
     with open(os.path.join(data_dir, "quant.json"), "w") as fh:

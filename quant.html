@@ -274,7 +274,7 @@ header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: 
   </section>
 
   <section class="section" id="strategies">
-    <div class="section-head"><h2>Legacy holdover strategies</h2><p>Historical results are unqualified diagnostics. The deployed strategies await governed requalification.</p></div>
+    <div class="section-head"><h2 id="stratTitle">Legacy holdover strategies</h2><p id="stratNote">Historical results are unqualified diagnostics. The deployed strategies await governed requalification.</p></div>
     <div class="strats" id="strats"></div>
   </section>
 
@@ -414,12 +414,52 @@ function sizeFor(entry, stopPct) {
   return { riskUsd, notional, lev: notional / A, qty: entry ? notional / entry : null };
 }
 
+// ------------------------------------------------------------------ deployment authority (v8 Phase 9)
+// Every label comes from the validated policy states quant.py serialises per enabled strategy
+// (Q.strategies[sid].deployment_state). Only ACTIVE_REQUALIFIED is requalified; a missing or other state is an
+// unqualified holdover. An empty enabled set is a disabled desk.
+function stateLabel(sid) {
+  const s = Q && Q.strategies && Q.strategies[sid];
+  if (!s) return null;
+  return s.deployment_state === "ACTIVE_REQUALIFIED" ? "Requalified" : "Legacy holdover";
+}
+function authority() {
+  const S = Q && Q.strategies;
+  if (!S || typeof S !== "object") return { state: "LEGACY", n: 0, req: 0, legacy: 0 };
+  const st = Object.values(S).map((s) => (s && s.deployment_state) || null);
+  const req = st.filter((x) => x === "ACTIVE_REQUALIFIED").length;
+  const legacy = st.length - req;
+  const state = !st.length ? "NONE_ENABLED" : !req ? "LEGACY" : !legacy ? "REQUALIFIED" : "MIXED";
+  return { state, n: st.length, req, legacy };
+}
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+// The research portfolio, or null when the reviewed policy enables no strategy (qexport's empty diagnostic).
+function portfolio() {
+  const P = R && R.portfolio;
+  return P && P.status !== "NO_ENABLED_STRATEGIES" ? P : null;
+}
+
 // ------------------------------------------------------------------ renderers
 function renderHeader() {
-  const P = R && R.portfolio;
+  const P = portfolio();
   const ok = Q && Q.strategies ? Object.keys(Q.strategies).length : 0;
   const tested = R ? Object.keys(R.strategies).length : 24;
-  $("lede").textContent = `${tested} historical strategy diagnostics; ${ok} strategies remain deployed as legacy holdovers. None is requalified by these results. Point-in-time evidence, full matched controls and multiple-testing governance are required. The planner is LEGACY_DIAGNOSTIC / NOT STRATEGY AUTHORITY.`;
+  const au = authority();
+  const lede = {
+    LEGACY: `${tested} historical strategy diagnostics; ${ok} strategies remain deployed as legacy holdovers. None is requalified by these results. Point-in-time evidence, full matched controls and multiple-testing governance are required. The planner is LEGACY_DIAGNOSTIC / NOT STRATEGY AUTHORITY.`,
+    REQUALIFIED: `${tested} historical strategy diagnostics; ${plural(ok, "deployed strategy is", "deployed strategies are")} requalified under a reviewed promotion bound to the exact definition and code. The historical figures below remain diagnostics. The planner is LEGACY_DIAGNOSTIC / NOT STRATEGY AUTHORITY.`,
+    MIXED: `${tested} historical strategy diagnostics; ${ok} deployed strategies: ${au.req} requalified under a reviewed promotion and ${plural(au.legacy, "legacy holdover that remains", "legacy holdovers that remain")} unqualified. The desk as a whole is not requalified. The planner is LEGACY_DIAGNOSTIC / NOT STRATEGY AUTHORITY.`,
+    NONE_ENABLED: `${tested} historical strategy diagnostics; no strategy is deployment-enabled by the reviewed policy, so the desk takes no trades. Historical results are unqualified diagnostics.`,
+  };
+  $("lede").textContent = lede[au.state];
+  const titles = {
+    LEGACY: ["Legacy holdover strategies", "Historical results are unqualified diagnostics. The deployed strategies await governed requalification."],
+    REQUALIFIED: ["Requalified strategies", "Every deployed strategy passed governed requalification and a reviewed promotion. Historical results below are diagnostics."],
+    MIXED: ["Mixed authority strategies", "Some deployed strategies are requalified; the legacy holdovers remain unqualified diagnostics awaiting governed requalification."],
+    NONE_ENABLED: ["No deployment-enabled strategies", "The reviewed policy enables no strategy. Historical results are unqualified diagnostics."],
+  };
+  $("stratTitle").textContent = titles[au.state][0];
+  $("stratNote").textContent = titles[au.state][1];
   const A = account(), f = risk();
   const k = P ? P.kelly : null;
   $("riskhint").textContent = `Each trade risks ${fmtUsd(A * f)} (the loss if its stop is hit). ` +
@@ -443,7 +483,7 @@ function renderMarket() {
 function renderKpis() {
   const box = $("kpis");
   box.textContent = "";
-  const P = R && R.portfolio;
+  const P = portfolio();
   const live = Q && Q.live_all;
   const tiles = [];
   tiles.push(["Backtest, 3 years", P ? sgn(P.all_trades.avg) + "R" : "–", P ? `per trade after costs · ${P.all_trades.n.toLocaleString()} trades` : ""]);
@@ -527,13 +567,14 @@ function renderStrats() {
   const box = $("strats");
   box.textContent = "";
   if (!R) return;
+  if (authority().state === "NONE_ENABLED") box.append(el("div", { class: "ink2 small", text: "No strategy is deployment-enabled by the reviewed policy." }));
   for (const [sid, s] of Object.entries(R.strategies)) {
     if (!(Q && Q.strategies && Q.strategies[sid])) continue;
     const live = (Q && Q.live && Q.live[sid]) || { n: 0 };
     const desc = (Q && Q.strategies && Q.strategies[sid] && Q.strategies[sid].desc) || s.desc;
     const y3 = s.three_year || {}, y1 = s.one_year || {};
     const card = el("div", { class: "card strat" }, [
-      el("h3", {}, [s.name, el("span", { class: "pill live" }, [el("span", { class: "dot" }), "Legacy holdover"])]),
+      el("h3", {}, [s.name, el("span", { class: "pill live" }, [el("span", { class: "dot" }), stateLabel(sid)])]),
       el("div", { class: "muted small", text: `${s.tf === "1d" ? "Daily bars" : "4-hour bars"} · long and short · ${s.family}` }),
       el("p", { text: desc }),
     ]);
@@ -555,7 +596,7 @@ function renderStrats() {
 }
 
 function plannerRows() {
-  const P = R && R.portfolio;
+  const P = portfolio();
   if (!P) return [];
   return P.planner[$("haircut").checked ? "0.5" : "0.0"] || [];
 }
@@ -565,7 +606,7 @@ function renderPlanner() {
   const A = account();
   const f = risk();
   const row = rows.find((r) => Math.abs(r.risk - f) < 1e-9) || rows[0];
-  const mult = A / ((R && R.portfolio && R.portfolio.start) || 500);
+  const mult = A / ((portfolio() && portfolio().start) || 500);
   $("plannerNote").textContent = "Thousands of two-year paths built from real 5-day stretches of the three strategies' trades.";
   $("pTitle").textContent = `Two years from now, risking ${pct(f, f < 0.01 ? 2 : 1)} per trade on ${fmtUsd(A)}`;
   const out = $("pOut");
@@ -580,7 +621,7 @@ function renderPlanner() {
   out.append(box(`Reach ${fmtUsd(200 * A)}`, prob(row.p_100000)));
   out.append(box(`Reach ${fmtUsd(2000 * A)}`, prob(row.p_1000000)));
   out.append(box("Lose 90% or more", prob(row.p_ruin), row.p_ruin > 0.05 ? "neg" : ""));
-  const k = R.portfolio.kelly;
+  const k = portfolio().kelly;
   const c = $("pCallout");
   c.textContent = "";
   c.append(el("b", { text: "The honest read: " }));
@@ -733,7 +774,7 @@ function renderPlannerChart() {
 }
 
 function renderAccount() {
-  const P = R && R.portfolio;
+  const P = portfolio();
   if (!P) return;
   const A = account();
   const mult = A / (P.start || 500);
@@ -793,7 +834,7 @@ function renderAll_tested() {
   const entries = Object.entries(R.strategies).sort((a, b) => (Q && Q.strategies && Q.strategies[a[0]] ? -1 : 0) - (Q && Q.strategies && Q.strategies[b[0]] ? -1 : 0) || ((b[1].three_year || b[1].one_year || {}).avg || -9) - ((a[1].three_year || a[1].one_year || {}).avg || -9));
   for (const [sid, s] of entries) {
     const y1 = s.one_year || {}, y3 = s.three_year || {};
-    const v = Q && Q.strategies && Q.strategies[sid] ? el("span", { class: "pill live" }, [el("span", { class: "dot" }), "Legacy holdover"]) : el("span", { class: "pill rej" }, [el("span", { class: "dot" }), "Unqualified diagnostic"]);
+    const v = Q && Q.strategies && Q.strategies[sid] ? el("span", { class: "pill live" }, [el("span", { class: "dot" }), stateLabel(sid)]) : el("span", { class: "pill rej" }, [el("span", { class: "dot" }), "Unqualified diagnostic"]);
     tb.append(el("tr", {}, [
       el("td", {}, [el("b", { text: s.name }), el("div", { class: "why", text: s.desc })]),
       el("td", { class: "ink2", text: s.tf }),
@@ -817,7 +858,12 @@ function renderMethod() {
     ["Costs", `Every trade pays a 0.045% taker fee each way, slippage by liquidity (0.05% for coins with $1M+ a day on your DEXs, more for thinner ones) and funding while it is held (longs pay positive funding, shorts receive it).`],
     ["No peeking", `Signals use closed bars only and are entered at the open of the next hour. A bar that touches both the stop and the target counts as a loss, trailing stops move only at the close of a bar, and gaps through a stop exit at the open. The live desk runs the same code: its signals match the research engine trade for trade.`],
     ["Legacy comparator", `Historical random twins are descriptive diagnostics. They are not full point-in-time controls matched on beta, volatility, liquidity, market cap, listing age, funding, trend and regime.`],
-    ["Research authority", `Historical splits and parameter variants do not establish requalification. The historical trial family is incompletely recoverable. The deployed strategies remain legacy holdovers pending qualified point-in-time data, multiple-testing correction and prospective evidence.`],
+    ["Research authority", {
+      LEGACY: `Historical splits and parameter variants do not establish requalification. The historical trial family is incompletely recoverable. The deployed strategies remain legacy holdovers pending qualified point-in-time data, multiple-testing correction and prospective evidence.`,
+      REQUALIFIED: `Historical splits and parameter variants do not establish requalification; the deployed strategies are requalified by the governed point-in-time gate and a reviewed promotion, not by the historical figures on this page.`,
+      MIXED: `Historical splits and parameter variants do not establish requalification. Only the strategies marked Requalified passed the governed gate and a reviewed promotion; the legacy holdovers await qualified point-in-time data, multiple-testing correction and prospective evidence.`,
+      NONE_ENABLED: `Historical splits and parameter variants do not establish requalification. The reviewed policy enables no strategy, so nothing is deployed.`,
+    }[authority().state]],
     ["What can still go wrong", `Today's coin list is used for the past, so coins that were delisted are missing. Trend strategies lose in sideways markets (2025 was flat to slightly negative) and rely on a few big winners. Live results usually fall short of backtests; the planner's 'half as good' switch shows that case. This is research and paper trading, not financial advice.`],
   ];
   for (const [h, p] of items) { b.append(el("h3", { text: h })); b.append(el("p", { text: p })); }
