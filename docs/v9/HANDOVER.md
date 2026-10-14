@@ -16,32 +16,38 @@ This file is that plan. Keep it current.
 ## 0. How to resume
 
 1. Read `CLAUDE.md`. It covers environment facts, the results branches and the rules.
-2. Check the open PRs and branches. The v9 work is three stacked draft PRs; review and merge them in this order:
-   - `v9/data-driven-desk`: phases A and B (evidence engine, probation tier, governed book), draft PR #25. Main is
-     merged into it. PR #25 still shows the old phase-12 branch as its base; switching the base to `main` in the PR
-     page is an owner click.
-   - `v9/market-data`: phase C (live market context) and F5 (trade alerts), draft PR #26 on top of #25.
-   - `v9/research-d1`: phase D1 (pre-registered funding and taker-flow research), draft PR #27 on top of #26.
-   - PR #24 (the v8 desk) was merged into main on 2026-10-14 with the owner's accuracy fixes.
-3. Read the latest evidence:
-   - `git fetch origin evidence-results evidence-d1-results`;
+2. Check whether v9 is merged. **PR #28** (`v9/research-d1` → `main`, not a draft) carries all v9 work in one
+   merge:
+   - #25: phases A and B (evidence engine, probation tier, governed book);
+   - #26: phase C (live market context) and the alerts;
+   - #27: phase D research, the evidence run history and the test coverage.
+
+   The owner asked on 2026-10-15 to merge everything. The merge API call was blocked by the session's automatic
+   safety check, so the merge is the owner's click: **Merge pull request → Create a merge commit**, not squash. A
+   merge commit keeps the pre-registration commits in `main`'s history, and D1 and D2 rely on their order. After the
+   merge, close #25, #26 and #27 as merged through #28.
+
+   PR #24 (the v8 desk) was merged into main on 2026-10-14 with the owner's accuracy fixes.
+3. Read the latest evidence. Fetch each results branch with an explicit refspec (see `CLAUDE.md`), then:
    - `git show origin/evidence-results:REPORT.md` (phase A/B: the legacy strategies);
-   - `git show origin/evidence-d1-results:REPORT_D1.md` (phase D1).
+   - `git show origin/evidence-d1-results:REPORT_D1.md` and `origin/evidence-d2-results:REPORT_D2.md` (phase D);
+   - `research/v9/evidence_runs.jsonl` (every run, hash-chained).
 4. Pick the first unchecked item in section 6 that is not blocked, and work on it.
 
 ## 1. Where things stand
 
 | Area | State | Where |
 |---|---|---|
+| Release | **All v9 work is in PR #28** (`v9/research-d1` → `main`, carrying #25, #26 and #27). Required checks and a live Research run are green. **Waiting for the owner's merge click** (Create a merge commit); the session's safety check blocked the merge API. | PR #28 |
 | v8 desk (Today, Analyzer, Funding, Portfolio, Research) | **Merged into main** (PR #24, 2026-10-14, with the owner's accuracy fixes). | `today.html`, `desk.js`, `desk.css` |
 | Data-source survey | **Done.** 102 sources probed from the Actions runner; 81 answer. | `docs/v9/data-sources.md`, branch `probe-results` |
-| Survivorship-free evidence engine | **v1 done.** 17 daily/4h strategies plus the coin-picks swing score, on 750 coins (170 delisted), 2020-01 to 2026-09. | `tools/v9/archive_fetch.py`, `tools/v9/evidence.py`, branch `evidence-results` |
-| Probation tier (first governed trades) | **Implemented** (`dada154`, PR #25, not merged). XSMOM long is CONFIRMED on (a)–(j). It trades at half size inside a 24h window. Its forward test `V9-PROBATION-XSMOM-LONG-1` starts 2026-10-15 00:00 UTC. The live check is B8. | `docs/v9/phase-b-probation.md`, `research/v9/probation_evidence.json` |
-| Live multi-venue data layer | **C1–C3 built** on the stacked branch `v9/market-data` (draft PR #26 on top of #25): `v9/market.py`, `data/v9/market.json`, an hourly history on `v9-market-history`, a Today panel and Analyzer context. 16 of 16 sources answered from Actions. | `docs/v9/market-context.md`, branch `market-results` |
-| Trade alerts | **Built** (F5, PR #26): Telegram and/or Discord on every new TRADE. Sends nothing until the owner adds the secrets. | `v9/alerts.py` |
+| Survivorship-free evidence engine | **v1 done.** 17 daily/4h strategies plus the coin-picks swing score, on 750 coins (170 delisted), 2020-01 to 2026-09. Every run is recorded, hash-chained and pinned to its dataset (A8). | `tools/v9/archive_fetch.py`, `tools/v9/evidence.py`, `research/v9/evidence_runs.jsonl`, branch `evidence-results` |
+| Probation tier (first governed trades) | **Implemented** (`dada154`, in PR #28). XSMOM long is CONFIRMED on (a)–(j). It trades at half size inside a 24h window. Its forward test `V9-PROBATION-XSMOM-LONG-1` starts 2026-10-15 00:00 UTC. The live check is B8. | `docs/v9/phase-b-probation.md`, `research/v9/probation_evidence.json` |
+| Live multi-venue data layer | **C1–C3 built** (in PR #28): `v9/market.py`, `data/v9/market.json`, an hourly history on `v9-market-history`, a Today panel and Analyzer context. 16 of 16 sources answered from Actions. | `docs/v9/market-context.md`, branch `market-results` |
+| Trade alerts | **Built** (F5, in PR #28): Telegram and/or Discord on every new TRADE, with the full plan. Sends nothing until the owner adds the secrets. | `v9/alerts.py` |
 | New signal research (positioning, funding, OI, liquidations, basis, regime) | **D1 and D2 done, D7 answered.** Four strategies (funding fade, taker flow, top-trader divergence, crowd fade) were pre-registered and each tested once on the phase B dataset. **None is confirmed.** XSMOM long remains the only tradable side. | `docs/v9/phase-d1-preregistration.md`, `docs/v9/phase-d2-preregistration.md`, branches `evidence-d1-results`, `evidence-d2-results` |
-| Decision engine v2 (expected-R ranking, regime, sizing) | Not started | section 6, phase E |
-| Pro UX (rich trade plans, market board, performance ledger, alerts) | Not started | section 6, phase F |
+| Decision engine v2 (expected-R ranking, regime, sizing) | **E4 done**: the forward test is evaluated every scan, shown on Today and demotes a side automatically. E1–E3 not started. | section 6, phase E |
+| Pro UX (rich trade plans, market board, performance ledger, alerts) | **F1 done** (full trade plan: entry, stop, trailing stop, time exit, size on the page account and in the trader's own dollars, evidence, forward test). F2 first version, F5 alerts. F3 and F4 not started. | section 6, phase F |
 
 ## 2. Diagnosis: why there are no trades, and what got worse
 
@@ -447,10 +453,11 @@ How every phase D study runs (D1 set the pattern):
   - `COINALYZE_API_KEY`: the best free liquidation history. Sign up at coinalyze.net, then API key.
   - `CRYPTOPANIC_API_KEY`: news.
   - `FRED_API_KEY`: macro.
-- Review and merge decisions on PR #25, then PR #26, then PR #27. Nothing is merged without you.
-  - Merging #25 is what turns XSMOM long's probation on in production; that merge is the review of the policy rows.
-  - Switch PR #25's base to `main` (PR #24 is merged).
-  - #26 adds live market context and the alerts. #27 adds research only; the live desk does not change.
+- **Merge PR #28 with "Create a merge commit".** It carries #25, #26 and #27, and its required checks are green.
+  - Merging is what turns XSMOM long's probation on in production; that merge is the review of the policy rows.
+  - The production site updates at the next Scan run on `main`. Scans are scheduled every 20 minutes but GitHub has
+    been running them every few hours; Actions → Scan → Run workflow publishes at once.
+  - Then close #25, #26 and #27 as merged through #28.
 - No login-only sites are needed. Every source used is a public API or public page.
 
 ## 8. Session log
@@ -485,4 +492,15 @@ How every phase D study runs (D1 set the pattern):
   - D2: Binance metrics fetched (532,738 files) and two positioning strategies pre-registered and tested once. Neither
     is confirmed (see the D2 item).
   - D7 needs no run: it already fails the gate's holdout check on phase A's numbers.
+  - The owner's instruction (2026-10-15 00:05 IST): do not start the 17 untouched items; finish the ones in progress,
+    test, merge everything, then deliver the updated handover. Done that night:
+    - A8: the evidence run history (`313e1eb`);
+    - F1: the trailing stop and the plan in the trader's own account (`bc65436`);
+    - G3: tests for every v9 module, including the gate statistics and the study runners;
+    - E4: the forward test on Today every scan (`3fa4c91`);
+    - D2 and D7, recorded above.
+  - Tested on head `3fa4c91`: the full suite, CI on push and on the pull request, and live Research run 38621408999
+    (every mandatory step green; four XSMOM shorts WATCH `STRATEGY_SIDE_NOT_CONFIRMED`, no XSMOM long signal yet).
+  - PR #28 (`v9/research-d1` → `main`) carries #25, #26 and #27. The merge API call was blocked by the session's
+    automatic safety check, so the merge is the owner's click (see section 0).
   - B8 is still pending: a check is scheduled in the session for 2026-10-15 00:40 UTC.
