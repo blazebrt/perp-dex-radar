@@ -55,6 +55,16 @@ Update its "Where things stand" table and its session log before you finish.
   only in repository secrets.
 - **Published-page or engine output changes need a pinned delta manifest and a new legacy-parity golden.** See
   `tools/v8/legacy_parity.py` and `tools/v8/delta_parity.py`. Never update a golden to hide unexplained drift.
+  - v9 uses `tests/fixtures/v8/legacy_parity_golden_v9b.json` and `tests/fixtures/v8/v9b_expected_deltas.json`, with
+    main `fe68203` as the base.
+  - `tests/test_v9_scope.py` lists every file and function v9 may change.
+- **The probation tier is bound to `quant.py`'s bytes.** Any `quant.py` edit invalidates it (fail closed) until you run
+  `python tools/v9/confirm.py --from-branch evidence-results` and put the new evidence `sha256` into
+  `v8/quant_strategy_policy.json`.
+  - Never edit a shadow-ledger record. A changed forward test is a new registration
+    (`tools/v9/register_forward_test.py`).
+- **The local clone is shallow.** `tests.test_accuracy_invariants...test_trial_census_and_candidate_count_unchanged`
+  walks git history and fails here only. CI runs it on a full clone.
 - **Run the suites before every push:** `python -m unittest discover -s tests`. The CI research-checks job runs the
   numba tests.
 - **Commit and PR attribution:** follow the session's system instructions.

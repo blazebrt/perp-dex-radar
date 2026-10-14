@@ -17,9 +17,9 @@ This file is that plan. Keep it current.
 
 1. Read `CLAUDE.md`. It covers environment facts, the results branches and the rules.
 2. Check the open PRs and branches:
-   - `v9/data-driven-desk`: all v9 work, as a draft PR.
-   - PR #24 (`v8/phase-12-final-production-experience`): the v8 desk. It is a draft, not merged, and awaits the
-     owner's review.
+   - `v9/data-driven-desk`: all v9 work, draft PR #25. Main is merged into it.
+   - PR #24 (the v8 desk) was merged into main on 2026-10-14 with the owner's accuracy fixes. PR #25 still shows
+     the old phase-12 branch as its base; switching the base to `main` in the PR page is an owner click.
 3. Read the latest evidence: `git fetch origin evidence-results && git show origin/evidence-results:REPORT.md`.
 4. Pick the first unchecked item in section 6 that is not blocked, and work on it.
 
@@ -30,7 +30,7 @@ This file is that plan. Keep it current.
 | v8 desk (Today, Analyzer, Funding, Portfolio, Research) | Built. Draft PR #24, not merged. | `today.html`, `desk.js`, `desk.css` |
 | Data-source survey | **Done.** 102 sources probed from the Actions runner; 81 answer. | `docs/v9/data-sources.md`, branch `probe-results` |
 | Survivorship-free evidence engine | **v1 done.** 17 daily/4h strategies plus the coin-picks swing score, on 750 coins (170 delisted), 2020-01 to 2026-09. | `tools/v9/archive_fetch.py`, `tools/v9/evidence.py`, branch `evidence-results` |
-| Probation tier (first governed trades) | **Designed, not implemented** (see section 6, phase B). Its gate was designed after a first look at the data; section 3 explains why this is acceptable only with a forward test. | this file |
+| Probation tier (first governed trades) | **Implemented** (`dada154`, PR #25, not merged). XSMOM long is CONFIRMED on (a)–(j). It trades at half size inside a 24h window. Its forward test `V9-PROBATION-XSMOM-LONG-1` starts 2026-10-15 00:00 UTC. The live check is B8. | `docs/v9/phase-b-probation.md`, `research/v9/probation_evidence.json` |
 | Live multi-venue data layer | Not started | section 6, phase C |
 | New signal research (positioning, funding, OI, liquidations, basis, regime) | Not started | section 6, phase D |
 | Decision engine v2 (expected-R ranking, regime, sizing) | Not started | section 6, phase E |
@@ -204,32 +204,41 @@ Added on 2026-10-14, before the evidence run that first measures them (`evidence
     the window, the signal is WATCH (`PROBATION_ENTRY_WINDOW_PASSED`).
   - If the 4h delay fails, the side is not confirmed.
 
-Expected result on today's evidence: **XSMOM long passes (a)–(h); (i) and (j) are not yet measured.**
+Result (evidence run `fd03198`, `tools/v9/confirm.py`):
 
-- [ ] B1. `tools/v9/confirm.py` writes `research/v9/probation_evidence.json`. It is hash-bound to the archive dataset
+- **XSMOM long is CONFIRMED on every check (a)–(j).**
+  - Top-80 universe: +0.19R in the holdout, +0.21R in the design window.
+  - Entered 4h, 8h, 12h or 24h late: +0.18R to +0.20R, so the TRADE window is 24h.
+- Every other side is NOT_CONFIRMED.
+
+- [x] B1 (`59faf14`). `tools/v9/confirm.py` writes `research/v9/probation_evidence.json`. It is hash-bound to the archive dataset
   hash, the research code hash and `runtime_implementation_hash`, and carries per-hypothesis statistics and verdicts.
-- [ ] B2. Register the forward test in the shadow ledger (`v8/shadow_ledger.py`) **before** any probation trade.
+- [x] B2 (`ac74168`, record 2 `V9-PROBATION-XSMOM-LONG-1`, evaluation from 2026-10-15 00:00 UTC). Register the
+  forward test in the shadow ledger (`v8/shadow_ledger.py`) **before** any probation trade.
   Primary metric: live net R of probation trades. Demotion rule: after 30 or more trades, demote if the live mean R
   falls below the archive's 5th-percentile band (bootstrap); promotion to full after the Phase 9 gate's 180 days.
-- [ ] B3. Policy changes:
+- [x] B3 (`dada154`). Policy changes:
   - `quant_strategy_policy.json`: XSMOM becomes `ACTIVE_PROBATION` / `PROBATION`, with `probation: {sides: ["long"],
     risk_multiplier: 0.5, evidence, evidence_hash}`.
   - `v8/strategy_policy.py` validates it fail-closed: the evidence file must exist, its hash must match, its verdict
     must be CONFIRMED, and the runtime hash must be equal.
-- [ ] B4. Decision engine:
+- [x] B4 (`dada154`). Decision engine (also: ENTERED signals, `strategy_tiers`, the unconfirmed side is not emerging
+  evidence):
   - `decision_policy.json` gains `probation_deployment_states` and `probation_research_states`.
   - The `v8/decision.py` STRATEGY_AUTHORITY gate passes with `tier: PROBATION` for a confirmed side, and caps the
     other side at WATCH (`STRATEGY_SIDE_NOT_CONFIRMED`).
   - PROPOSED_TRADE risk becomes `risk_per_trade × risk_multiplier`.
   - Candidates carry `authority_tier`.
-- [ ] B5. Governed book:
+- [x] B5 (`dada154`). Governed book:
   - The Phase 10 gates evaluate only the positions of trade-authorized strategy sides.
   - The legacy-holdover positions stay visible as a "legacy diagnostic book" on Portfolio.
   - Keep the audit binding consistent: compare full-book states for consistency, and gate on the governed book.
-- [ ] B6. Desk:
-  - A "Trade · probation (half size)" chip and explanation.
-  - The Research page shows the evidence tiers and the forward test.
-- [ ] B7. Tests:
+- [x] B6 (`dada154`). Desk:
+  - The TRADE card shows a probation tag, the engine's plan, the archive expectation and the forward test.
+  - Today names the authorized sides, and Portfolio separates the governed book from the legacy paper book.
+  - The Research page and its publication logic are pinned by the owner's PR #24 scope test, so they were left
+    unchanged. Showing the tiers there is a follow-up (F4).
+- [x] B7 (`dada154`; `tests/test_v9_decision.py`, `tests/test_v9_scope.py`, v9b golden and manifest). Tests:
   - New invariants: only ACTIVE_REQUALIFIED/REQUALIFIED or ACTIVE_PROBATION/PROBATION can TRADE.
   - Probation requires a bound CONFIRMED record.
   - The unconfirmed side is WATCH.
@@ -238,6 +247,14 @@ Expected result on today's evidence: **XSMOM long passes (a)–(h); (i) and (j) 
   - Update the Phase 9, 10, 11 and 12 tests and goldens, with a delta manifest that pins the decision changes.
 - [ ] B8. Live check: the Research run on the exact head shows XSMOM long TRADE candidates whenever the signal fires
   and every other gate passes.
+  - Run it after a 00:00 UTC daily close on or after 2026-10-15 (`gh workflow run research.yml --ref
+    v9/data-driven-desk`, then read the `research` branch).
+  - Before that close, XSMOM longs are WATCH with `PROBATION_NOT_YET_EFFECTIVE`, by design.
+- [ ] B9. Known follow-ups:
+  - TREND_EMA has no edge in the archive. A reviewed policy change could mark it REJECTED (AVOID).
+  - Legacy WATCH signals still feed Emerging.
+  - Forward-test trades count as "qualified" only when the journal has execution and funding proof (see
+    `quant.py` `qualified_trade`). The demotion rule uses every closed trade.
 
 ### Phase C: live multi-venue data layer
 
@@ -304,7 +321,9 @@ Expected result on today's evidence: **XSMOM long passes (a)–(h); (i) and (j) 
   - `COINALYZE_API_KEY`: the best free liquidation history. Sign up at coinalyze.net, then API key.
   - `CRYPTOPANIC_API_KEY`: news.
   - `FRED_API_KEY`: macro.
-- Review and merge decisions: PR #24 (the v8 desk) and the v9 draft PR. Nothing is merged without you.
+- Review and merge decisions on PR #25. Nothing is merged without you.
+  - Merging it is what turns XSMOM long's probation on in production; that merge is the review of the policy rows.
+  - Switch PR #25's base to `main` (PR #24 is merged).
 - No login-only sites are needed. Every source used is a public API or public page.
 
 ## 8. Session log
@@ -315,3 +334,10 @@ Expected result on today's evidence: **XSMOM long passes (a)–(h); (i) and (j) 
   - First results: XSMOM long confirmed out of sample; most legacy claims (TREND_EMA, the swing long score) do not
     survive. Diagnosis written.
   - Plan and this handover. Tests in `tests/test_v9_evidence.py`.
+- **2026-10-14 (session 2 of v9): phase B.**
+  - Merged main (PR #24 with the owner's accuracy fixes) into v9.
+  - Evidence /2 added the pre-registered deployable-universe and late-entry checks (`fd03198`).
+  - `confirm.py`: XSMOM long CONFIRMED, everything else not (`59faf14`).
+  - Forward test registered in the ledger (`ac74168`).
+  - Probation tier, governed book, entered signals, desk presentation, tests and parity (`dada154`).
+  - Next: B8 after the 2026-10-15 00:00 UTC close, then phase C.
