@@ -1,0 +1,18 @@
+/home/runner/work/perp-dex-radar/perp-dex-radar/tools/research/qdata.py:130: RuntimeWarning: All-NaN slice encountered
+  h = np.nanmax(p.h[sl].reshape(sh), axis=1)
+/home/runner/work/perp-dex-radar/perp-dex-radar/tools/research/qdata.py:131: RuntimeWarning: All-NaN slice encountered
+  l = np.nanmin(p.l[sl].reshape(sh), axis=1)
+panel 14790 x 750 (19s); taker volume known on 3494080 of 3494080 traded bars; funding settlements 2585286; dataset cd4651ebb5d6
+  XS_FUND_FADE           trades   1787 (20s)
+  XS_FUND_FADE@top80     trades   1615 (21s)
+  XS_FUND_FADE@delay1    trades   1798 (21s)
+  XS_FUND_FADE@delay2    trades   1789 (21s)
+  XS_FUND_FADE@delay3    trades   1782 (22s)
+  XS_FUND_FADE@delay6    trades   1793 (22s)
+  XS_FLOW_MOM            trades   4831 (22s)
+  XS_FLOW_MOM@top80      trades   4004 (23s)
+  XS_FLOW_MOM@delay1     trades   4832 (23s)
+  XS_FLOW_MOM@delay2     trades   4839 (23s)
+  XS_FLOW_MOM@delay3     trades   4839 (24s)
+  XS_FLOW_MOM@delay6     trades   4874 (24s)
+done in 25s; confirmed: none
