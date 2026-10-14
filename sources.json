@@ -1,0 +1,2832 @@
+{
+ "extra": {
+  "binance_archive": {
+   "delivery": 53,
+   "perpetual": 1003,
+   "sample": [
+    "0GUSDT",
+    "1000000BOBUSDT",
+    "1000000MOGUSDT",
+    "1000BONKUSDT",
+    "1000BTTCUSDT",
+    "1000CATUSDT",
+    "1000CHEEMSUSDT",
+    "1000FLOKIUSDT",
+    "1000LUNCUSDT",
+    "1000PEPEUSDT",
+    "1000RATSUSDT",
+    "1000SATSUSDT",
+    "1000SHIBUSDT",
+    "1000WHYUSDT",
+    "1000XECUSDT",
+    "1000XUSDT",
+    "1INCHUSDT",
+    "1MBABYDOGEUSDT",
+    "2ZUSDT",
+    "42USDT"
+   ],
+   "sample_first_last_month": {
+    "0GUSDT": [
+     "2025-09",
+     "2026-09"
+    ],
+    "AAOIUSDT": [
+     "2026-06",
+     "2026-09"
+    ],
+    "AIOTUSDT": [
+     "2025-04",
+     "2026-09"
+    ],
+    "ANCUSDT": [
+     "2022-03",
+     "2022-05"
+    ],
+    "ASRUSDT": [
+     "2025-05",
+     "2026-09"
+    ],
+    "B3USDT": [
+     "2025-02",
+     "2026-09"
+    ],
+    "BERAUSDT": [
+     "2025-02",
+     "2026-09"
+    ],
+    "BONDUSDT": [
+     "2023-10",
+     "2026-09"
+    ],
+    "BXUSDT": [
+     "2026-06",
+     "2026-09"
+    ],
+    "CHZUSDT": [
+     "2021-01",
+     "2026-09"
+    ],
+    "CRMLUSDT": [
+     "2026-09",
+     "2026-09"
+    ],
+    "DARUSDT": [
+     "2022-04",
+     "2026-09"
+    ],
+    "DOLOUSDT": [
+     "2025-05",
+     "2026-09"
+    ],
+    "EOSUSDT": [
+     "2020-01",
+     "2025-05"
+    ],
+    "FILUSDT": [
+     "2020-10",
+     "2026-09"
+    ],
+    "FXSUSDT": [
+     "2023-01",
+     "2026-09"
+    ],
+    "GRIFFAINUSDT": [
+     "2025-01",
+     "2026-09"
+    ],
+    "HIVEUSDT": [
+     "2024-12",
+     "2026-09"
+    ],
+    "ICXUSDT": [
+     "2020-09",
+     "2026-09"
+    ],
+    "JASMYUSDT": [
+     "2022-04",
+     "2026-09"
+    ],
+    "KNCUSDT": [
+     "2020-06",
+     "2026-09"
+    ],
+    "LLYUSDT": [
+     "2026-06",
+     "2026-09"
+    ],
+    "MATICUSDT": [
+     "2020-10",
+     "2024-09"
+    ],
+    "MITOUSDT": [
+     "2025-08",
+     "2026-09"
+    ],
+    "MVLLUSDT": [
+     "2026-06",
+     "2026-09"
+    ],
+    "NOTUSDT": [
+     "2024-05",
+     "2026-09"
+    ],
+    "ONTUSDT": [
+     "2020-02",
+     "2026-09"
+    ],
+    "PENGUSDT": [
+     "2026-07",
+     "2026-09"
+    ],
+    "POWERUSDT": [
+     "2025-12",
+     "2026-09"
+    ],
+    "RAREUSDT": [
+     "2024-08",
+     "2026-09"
+    ],
+    "ROBOUSDT": [
+     "2026-02",
+     "2026-09"
+    ],
+    "SENTUSDT": [
+     "2025-11",
+     "2026-09"
+    ],
+    "SNOWUSDT": [
+     "2026-07",
+     "2026-09"
+    ],
+    "SQQQUSDT": [
+     "2026-06",
+     "2026-09"
+    ],
+    "SWARMSUSDT": [
+     "2025-01",
+     "2026-09"
+    ],
+    "TLMUSDT": [
+     "2021-07",
+     "2026-09"
+    ],
+    "TSTUSDT": [
+     "2025-02",
+     "2026-09"
+    ],
+    "USELESSUSDT": [
+     "2025-08",
+     "2026-09"
+    ],
+    "WALUSDT": [
+     "2025-03",
+     "2026-09"
+    ],
+    "XLMUSDT": [
+     "2020-01",
+     "2026-09"
+    ]
+   },
+   "symbols": 1056,
+   "usdt_perpetual": 900
+  },
+  "hyperliquid_delisted": {
+   "delisted": 56,
+   "delisted_candles": {
+    "FTM": {
+     "first": 1662336000000,
+     "last": 1736640000000,
+     "n": 861
+    },
+    "MATIC": {
+     "first": 1662336000000,
+     "last": 1725840000000,
+     "n": 736
+    },
+    "RNDR": {
+     "first": 1675382400000,
+     "last": 1721520000000,
+     "n": 535
+    }
+   },
+   "delisted_sample": [
+    "MATIC",
+    "RNDR",
+    "FTM",
+    "MKR",
+    "FXS",
+    "HPOS",
+    "RLB",
+    "UNIBOT",
+    "OX",
+    "FRIEND",
+    "SHIA",
+    "CYBER",
+    "BLZ",
+    "FTT",
+    "LOOM"
+   ],
+   "total": 234
+  }
+ },
+ "results": [
+  {
+   "bytes": 224,
+   "content_type": "application/json",
+   "group": "Binance",
+   "id": "binance.fapi.exchangeInfo",
+   "ms": 171,
+   "ok": false,
+   "rate_headers": {
+    "server": "CloudFront"
+   },
+   "sample": "{\n  \"code\": 0,\n  \"msg\": \"Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error.\"\n}",
+   "shape": {
+    "dict_keys": [
+     "code",
+     "msg"
+    ],
+    "first": "int"
+   },
+   "status": 451,
+   "url": "https://fapi.binance.com/fapi/v1/exchangeInfo"
+  },
+  {
+   "bytes": 224,
+   "content_type": "application/json",
+   "group": "Binance",
+   "id": "binance.fapi.premiumIndex",
+   "ms": 149,
+   "ok": false,
+   "rate_headers": {
+    "server": "CloudFront"
+   },
+   "sample": "{\n  \"code\": 0,\n  \"msg\": \"Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error.\"\n}",
+   "shape": {
+    "dict_keys": [
+     "code",
+     "msg"
+    ],
+    "first": "int"
+   },
+   "status": 451,
+   "url": "https://fapi.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT"
+  },
+  {
+   "bytes": 224,
+   "content_type": "application/json",
+   "group": "Binance",
+   "id": "binance.fapi.fundingRate",
+   "ms": 150,
+   "ok": false,
+   "rate_headers": {
+    "server": "CloudFront"
+   },
+   "sample": "{\n  \"code\": 0,\n  \"msg\": \"Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error.\"\n}",
+   "shape": {
+    "dict_keys": [
+     "code",
+     "msg"
+    ],
+    "first": "int"
+   },
+   "status": 451,
+   "url": "https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT&limit=5"
+  },
+  {
+   "bytes": 224,
+   "content_type": "application/json",
+   "group": "Binance",
+   "id": "binance.futures.openInterestHist",
+   "ms": 149,
+   "ok": false,
+   "rate_headers": {
+    "server": "CloudFront"
+   },
+   "sample": "{\n  \"code\": 0,\n  \"msg\": \"Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error.\"\n}",
+   "shape": {
+    "dict_keys": [
+     "code",
+     "msg"
+    ],
+    "first": "int"
+   },
+   "status": 451,
+   "url": "https://fapi.binance.com/futures/data/openInterestHist?symbol=BTCUSDT&period=1h&limit=5"
+  },
+  {
+   "bytes": 224,
+   "content_type": "application/json",
+   "group": "Binance",
+   "id": "binance.futures.topLongShortAccountRatio",
+   "ms": 145,
+   "ok": false,
+   "rate_headers": {
+    "server": "CloudFront"
+   },
+   "sample": "{\n  \"code\": 0,\n  \"msg\": \"Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error.\"\n}",
+   "shape": {
+    "dict_keys": [
+     "code",
+     "msg"
+    ],
+    "first": "int"
+   },
+   "status": 451,
+   "url": "https://fapi.binance.com/futures/data/topLongShortAccountRatio?symbol=BTCUSDT&period=1h&limit=5"
+  },
+  {
+   "bytes": 224,
+   "content_type": "application/json",
+   "group": "Binance",
+   "id": "binance.futures.takerlongshortRatio",
+   "ms": 160,
+   "ok": false,
+   "rate_headers": {
+    "server": "CloudFront"
+   },
+   "sample": "{\n  \"code\": 0,\n  \"msg\": \"Service unavailable from a restricted location according to 'b. Eligibility' in https://www.binance.com/en/terms. Please contact customer service if you believe you received this message in error.\"\n}",
+   "shape": {
+    "dict_keys": [
+     "code",
+     "msg"
+    ],
+    "first": "int"
+   },
+   "status": 451,
+   "url": "https://fapi.binance.com/futures/data/takerlongshortRatio?symbol=BTCUSDT&period=1h&limit=5"
+  },
+  {
+   "bytes": 923,
+   "content_type": "application/json;charset=UTF-8",
+   "group": "Binance",
+   "id": "binance.spot.data-api.klines",
+   "ms": 555,
+   "ok": true,
+   "rate_headers": {
+    "server": "nginx",
+    "x-mbx-used-weight": "2",
+    "x-mbx-used-weight-1m": "2"
+   },
+   "sample": "[[1791590400000,\"82635.56000000\",\"83173.29000000\",\"82545.82000000\",\"82988.36000000\",\"7437.72181000\",1791676799999,\"616246732.05837310\",607880,\"3921.33089000\",\"324889703.86183690\",\"0\"],[1791676800000,\"82988.35000000\",\"84199.00000000\",\"82804.65000000\",\"83773.12000000\",\"6963.51092000\",1791763199999,\"580640158.58158530\",996255,\"3920.67721000\",\"326913491.27345940\",\"0\"],[1791763200000,\"83773.12000000\",\"84352.00000000\",\"81750.09000000\",\"81850.00000000\",\"13529.90112000\",1791849599999,\"1125794983.91458320\",2484237,\"6801.17717000\",\"565895951.92918480\",\"0\"],[1791849600000,\"81850.01000000\",\"84168.00000000\",\"81033.66000000\",\"83169.00000000\",\"14784.06270000\",1791935999999,\"1230595670.84139170\",3094331,\"7522.54397000\",\"626232475.31790350\",\"0\"],[1791936000000,\"83169.01000000\",\"84146.72000000\",\"83028.70000000\",\"83415.01000000\",\"6121.60707000\",1792022399999,\"511120804.91102680\",1185756,\"2592.68792000\",\"216533939.50010690\",\"0\"]]",
+   "shape": {
+    "first": {
+     "first": "int",
+     "list_len": 12
+    },
+    "list_len": 5
+   },
+   "status": 200,
+   "url": "https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=5"
+  },
+  {
+   "bytes": 90809,
+   "content_type": "application/xml",
+   "group": "Binance archive",
+   "id": "binance.vision.s3.list.um.monthly.klines",
+   "ms": 849,
+   "ok": true,
+   "rate_headers": {
+    "server": "AmazonS3"
+   },
+   "sample": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>data.binance.vision</Name><Prefix>data/futures/um/monthly/klines/</Prefix><Marker></Marker><NextMarker>data/futures/um/monthly/klines/WMTUSDT/</NextMarker><MaxKeys>1000</MaxKeys><Delimiter>/</Delimiter><IsTruncated>true</IsTruncated><CommonPrefixes><Prefix>data/futures/um/monthly/klines/0GUSDT/</Prefix></CommonPrefixes><CommonPrefixes><Prefix>data/futures/um/monthly/klines/1000000BOBUSDT/</Prefix></CommonPrefixes><CommonPrefixes><Prefix>data/futures/um/monthly/klines/1000000MOGUSDT/</Prefix></CommonPrefixes><CommonPrefixes><Prefix>data/futures/um/monthly/klines/1000BONKUSDC/</Prefix></CommonPrefixes><CommonPrefixes><Prefix>data/futures/um/monthly/klines/1000BONKUSDT/</Prefix></CommonPrefixes><CommonPrefixes><Prefix>data/futures/um/monthly/klines/1000BTTCUSDT/</Prefix></CommonPrefixes><CommonPrefixes><Prefix>data/futures/um/monthly/klines/1000CATUSDT/</Prefix></CommonPrefixes><CommonPrefixes><Prefix>data/futures/um/monthly/klines/1000CHEEMSUSDT/</Prefix></CommonPrefixes><CommonPrefixes><Prefix>data/futures/um/monthly/klines/1000FLOKIUSDT/</Prefix></CommonPrefixes><CommonPrefixes><Prefix>data/futures/um/monthly/klines/1000LUNCBUSD/</Prefix></CommonPrefixes><CommonPrefixes><Prefix>data/futures/um/monthly/klines/1000LUNCUSDT/</Prefix></CommonPrefixes><CommonPrefixes><Prefix>data/futures/um/monthly/klines/1000PEPEUSDC/</Prefix></CommonPrefixes><CommonPrefixes><Prefix>data",
+   "shape": {
+    "prefixes": 1000,
+    "sample": [
+     "data/futures/um/monthly/klines/0GUSDT/",
+     "data/futures/um/monthly/klines/1000000BOBUSDT/",
+     "data/futures/um/monthly/klines/1000000MOGUSDT/",
+     "data/futures/um/monthly/klines/1000BONKUSDC/",
+     "data/futures/um/monthly/klines/1000BONKUSDT/",
+     "data/futures/um/monthly/klines/1000BTTCUSDT/",
+     "data/futures/um/monthly/klines/1000CATUSDT/"
+    ],
+    "truncated": true
+   },
+   "status": 200,
+   "url": "https://s3-ap-northeast-1.amazonaws.com/data.binance.vision?delimiter=/&prefix=data/futures/um/monthly/klines/"
+  },
+  {
+   "bytes": 2139,
+   "content_type": "binary/octet-stream",
+   "group": "Binance archive",
+   "id": "binance.vision.um.monthly.klines.1d",
+   "ms": 477,
+   "ok": true,
+   "rate_headers": {
+    "server": "AmazonS3",
+    "x-amz-server-side-encryption": "AES256"
+   },
+   "sample": "",
+   "shape": {
+    "head": [
+     "open_time,open,high,low,close,volume,close_time,quote_volume,count,taker_buy_volume,taker_buy_quote_volume,ignore",
+     "1704067200000,42314.00,44266.00,42207.90,44230.20,206424.144,1704153599999,8897557996.51846,2197331,107259.562,4626093916.74846,0",
+     "1704153600000,44230.30,45950.00,44200.90,44979.80,459798.523,1704239999999,20799115632.46685,4584899,226772.856,10258435145.78010,0"
+    ],
+    "rows": 32,
+    "zip_files": [
+     "BTCUSDT-1d-2024-01.csv"
+    ]
+   },
+   "status": 200,
+   "url": "https://data.binance.vision/data/futures/um/monthly/klines/BTCUSDT/1d/BTCUSDT-1d-2024-01.zip"
+  },
+  {
+   "bytes": 1693,
+   "content_type": "binary/octet-stream",
+   "group": "Binance archive",
+   "id": "binance.vision.um.monthly.klines.delisted",
+   "ms": 481,
+   "ok": true,
+   "rate_headers": {
+    "server": "AmazonS3",
+    "x-amz-server-side-encryption": "AES256"
+   },
+   "sample": "",
+   "shape": {
+    "head": [
+     "open_time,open,high,low,close,volume,close_time,quote_volume,count,taker_buy_volume,taker_buy_quote_volume,ignore",
+     "1654041600000,1.1280,1.1620,1.0030,1.0250,21852093,1654127999999,23950029.1660,101986,10452903,11447833.6410,0",
+     "1654128000000,1.0260,1.1070,1.0170,1.0860,24861882,1654214399999,26274145.3870,93907,12853528,13597365.6440,0"
+    ],
+    "rows": 31,
+    "zip_files": [
+     "SRMUSDT-1d-2022-06.csv"
+    ]
+   },
+   "status": 200,
+   "url": "https://data.binance.vision/data/futures/um/monthly/klines/SRMUSDT/1d/SRMUSDT-1d-2022-06.zip"
+  },
+  {
+   "bytes": 696,
+   "content_type": "binary/octet-stream",
+   "group": "Binance archive",
+   "id": "binance.vision.um.monthly.fundingRate",
+   "ms": 471,
+   "ok": true,
+   "rate_headers": {
+    "server": "AmazonS3",
+    "x-amz-server-side-encryption": "AES256"
+   },
+   "sample": "",
+   "shape": {
+    "head": [
+     "calc_time,funding_interval_hours,last_funding_rate",
+     "1704067200000,8,0.00037409",
+     "1704096000000,8,0.00027213"
+    ],
+    "rows": 94,
+    "zip_files": [
+     "BTCUSDT-fundingRate-2024-01.csv"
+    ]
+   },
+   "status": 200,
+   "url": "https://data.binance.vision/data/futures/um/monthly/fundingRate/BTCUSDT/BTCUSDT-fundingRate-2024-01.zip"
+  },
+  {
+   "bytes": 11639,
+   "content_type": "binary/octet-stream",
+   "group": "Binance archive",
+   "id": "binance.vision.um.daily.metrics",
+   "ms": 244,
+   "ok": true,
+   "rate_headers": {
+    "server": "AmazonS3",
+    "x-amz-server-side-encryption": "AES256"
+   },
+   "sample": "",
+   "shape": {
+    "head": [
+     "create_time,symbol,sum_open_interest,sum_open_interest_value,count_toptrader_long_short_ratio,sum_toptrader_long_short_ratio,count_long_short_ratio,sum_taker_long_short_vol_ratio",
+     "2024-01-15 00:00:00,BTCUSDT,77082.01800000,3217372598.51280000,2.40274115,1.39548418,2.65375410,1.05703456",
+     "2024-01-15 00:05:00,BTCUSDT,77234.08400000,3232040965.34216900,2.41914820,1.39657500,2.67310113,1.03514150"
+    ],
+    "rows": 289,
+    "zip_files": [
+     "BTCUSDT-metrics-2024-01-15.csv"
+    ]
+   },
+   "status": 200,
+   "url": "https://data.binance.vision/data/futures/um/daily/metrics/BTCUSDT/BTCUSDT-metrics-2024-01-15.zip"
+  },
+  {
+   "bytes": 1103,
+   "content_type": "binary/octet-stream",
+   "group": "Binance archive",
+   "id": "binance.vision.um.monthly.premiumIndexKlines",
+   "ms": 344,
+   "ok": true,
+   "rate_headers": {
+    "server": "AmazonS3",
+    "x-amz-server-side-encryption": "AES256"
+   },
+   "sample": "",
+   "shape": {
+    "head": [
+     "open_time,open,high,low,close,volume,close_time,quote_volume,count,taker_buy_volume,taker_buy_quote_volume,ignore",
+     "1704067200000,0.00075030,0.00206526,-0.00000803,0.00120254,0,1704153599999,0,17280,0,0,0",
+     "1704153600000,0.00117148,0.00387592,-0.00099973,0.00070818,0,1704239999999,0,17278,0,0,0"
+    ],
+    "rows": 32,
+    "zip_files": [
+     "BTCUSDT-1d-2024-01.csv"
+    ]
+   },
+   "status": 200,
+   "url": "https://data.binance.vision/data/futures/um/monthly/premiumIndexKlines/BTCUSDT/1d/BTCUSDT-1d-2024-01.zip"
+  },
+  {
+   "bytes": 477151,
+   "content_type": "binary/octet-stream",
+   "group": "Binance archive",
+   "id": "binance.vision.um.daily.bookDepth",
+   "ms": 766,
+   "ok": true,
+   "rate_headers": {
+    "server": "AmazonS3",
+    "x-amz-server-side-encryption": "AES256"
+   },
+   "sample": "",
+   "shape": {
+    "head": [
+     "timestamp,percentage,depth,notional",
+     "2024-01-15 00:00:12,-5,12251.47300000,499565539.44126000",
+     "2024-01-15 00:00:12,-4,10416.99100000,426495460.10329000"
+    ],
+    "rows": 28801,
+    "zip_files": [
+     "BTCUSDT-bookDepth-2024-01-15.csv"
+    ]
+   },
+   "status": 200,
+   "url": "https://data.binance.vision/data/futures/um/daily/bookDepth/BTCUSDT/BTCUSDT-bookDepth-2024-01-15.zip"
+  },
+  {
+   "bytes": 96,
+   "content_type": "application/json",
+   "group": "Bybit",
+   "id": "bybit.v5.tickers",
+   "ms": 50,
+   "ok": false,
+   "rate_headers": {
+    "server": "CloudFront"
+   },
+   "sample": "{\n    error:The Amazon CloudFront distribution is configured to block access from your country\n}",
+   "shape": {
+    "cloudflare": false,
+    "items": 0,
+    "text_bytes": 96,
+    "title": null
+   },
+   "status": 403,
+   "url": "https://api.bybit.com/v5/market/tickers?category=linear&symbol=BTCUSDT"
+  },
+  {
+   "bytes": 96,
+   "content_type": "application/json",
+   "group": "Bybit",
+   "id": "bybit.v5.open-interest",
+   "ms": 49,
+   "ok": false,
+   "rate_headers": {
+    "server": "CloudFront"
+   },
+   "sample": "{\n    error:The Amazon CloudFront distribution is configured to block access from your country\n}",
+   "shape": {
+    "cloudflare": false,
+    "items": 0,
+    "text_bytes": 96,
+    "title": null
+   },
+   "status": 403,
+   "url": "https://api.bybit.com/v5/market/open-interest?category=linear&symbol=BTCUSDT&intervalTime=1h&limit=5"
+  },
+  {
+   "bytes": 96,
+   "content_type": "application/json",
+   "group": "Bybit",
+   "id": "bybit.v5.account-ratio",
+   "ms": 32,
+   "ok": false,
+   "rate_headers": {
+    "server": "CloudFront"
+   },
+   "sample": "{\n    error:The Amazon CloudFront distribution is configured to block access from your country\n}",
+   "shape": {
+    "cloudflare": false,
+    "items": 0,
+    "text_bytes": 96,
+    "title": null
+   },
+   "status": 403,
+   "url": "https://api.bybit.com/v5/market/account-ratio?category=linear&symbol=BTCUSDT&period=1h&limit=5"
+  },
+  {
+   "bytes": 96,
+   "content_type": "application/json",
+   "group": "Bybit",
+   "id": "bybit.bytick.tickers",
+   "ms": 35,
+   "ok": false,
+   "rate_headers": {
+    "server": "CloudFront"
+   },
+   "sample": "{\n    error:The Amazon CloudFront distribution is configured to block access from your country\n}",
+   "shape": {
+    "cloudflare": false,
+    "items": 0,
+    "text_bytes": 96,
+    "title": null
+   },
+   "status": 403,
+   "url": "https://api.bytick.com/v5/market/tickers?category=linear&symbol=BTCUSDT"
+  },
+  {
+   "bytes": 175089,
+   "content_type": "text/html",
+   "group": "Bybit archive",
+   "id": "bybit.public.archive",
+   "ms": 543,
+   "ok": true,
+   "rate_headers": {
+    "server": "AmazonS3"
+   },
+   "sample": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n<title>Directory listing for /trading/BTCUSDT</title>\n</head>\n<body>\n<h1>Directory listing for /trading/BTCUSDT</h1>\n<hr>\n<ul>\n<li><a href=\"BTCUSDT2020-03-25.csv.gz\">BTCUSDT2020-03-25.csv.gz</a></li>\n<li><a href=\"BTCUSDT2020-03-26.csv.gz\">BTCUSDT2020-03-26.csv.gz</a></li>\n<li><a href=\"BTCUSDT2020-03-27.csv.gz\">BTCUSDT2020-03-27.csv.gz</a></li>\n<li><a href=\"BTCUSDT2020-03-28.csv.gz\">BTCUSDT2020-03-28.csv.gz</a></li>\n<li><a href=\"BTCUSDT2020-03-29.csv.gz\">BTCUSDT2020-03-29.csv.gz</a></li>\n<li><a href=\"BTCUSDT2020-03-30.csv.gz\">BTCUSDT2020-03-30.csv.gz</a></li>\n<li><a href=\"BTCUSDT2020-03-31.csv.gz\">BTCUSDT2020-03-31.csv.gz</a></li>\n<li><a href=\"BTCUSDT2020-04-01.csv.gz\">BTCUSDT2020-04-01.csv.gz</a></li>\n<li><a href=\"BTCUSDT2020-04-02.csv.gz\">BTCUSDT2020-04-02.csv.gz</a></li>\n<li><a href=\"BTCUSDT2020-04-03.csv.gz\">BTCUSDT2020-04-03.csv.gz</a></li>\n<li><a href=\"BTCUSDT2020-04-04.csv.gz\">BTCUSDT2020-04-04.csv.gz</a></li>\n<li><a href=\"BTCUSDT2020-04-05.csv.gz\">BTCUSDT2020-04-05.csv.gz</a></li>\n<li><a href=\"BTCUSDT2020-04-06.csv.gz\">BTCUSDT2020-04-06.csv.gz</a></li>\n<li><a href=\"BTCUSDT2020-04-07.csv.gz\">BTCUSDT2020-04-07.csv.gz</a></li>\n<li><a href=\"BTCUSDT2020-04-08.csv.gz\">BTCUSDT2020-04-08.csv.gz</a></li>\n<li><a href=\"BTCUSDT2020-04-09.csv.gz\">BTCUSDT2020-04-09.csv.gz</a></li>\n<li><a href=\"BTCUSDT2020-04-10.c",
+   "shape": {
+    "cloudflare": false,
+    "items": 0,
+    "text_bytes": 175089,
+    "title": "Directory listing for /trading/BTCUSDT"
+   },
+   "status": 200,
+   "url": "https://public.bybit.com/trading/BTCUSDT/"
+  },
+  {
+   "bytes": 541147,
+   "content_type": "application/json",
+   "group": "OKX",
+   "id": "okx.instruments.swap",
+   "ms": 189,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a4f0bc82343-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "{\"code\":\"0\",\"data\":[{\"alias\":\"\",\"auctionEndTime\":\"\",\"baseCcy\":\"\",\"category\":\"1\",\"contTdSwTime\":\"1611916860000\",\"ctMult\":\"1\",\"ctType\":\"inverse\",\"ctVal\":\"100\",\"ctValCcy\":\"USD\",\"expTime\":\"\",\"floatPxLmtPct\":\"0.005\",\"freq\":\"\",\"futureSettlement\":false,\"groupId\":\"4\",\"initPxLmtPct\":\"0.02\",\"instCategory\":\"1\",\"instFamily\":\"BTC-USD\",\"instId\":\"BTC-USD-SWAP\",\"instIdCode\":10458,\"instType\":\"SWAP\",\"lever\":\"100\",\"listTime\":\"1535424203000\",\"longPosRemainingQuota\":\"\",\"lotSz\":\"0.1\",\"maxIcebergSz\":\"100000000.0000000000000000\",\"maxLmtAmt\":\"20000000\",\"maxLmtSz\":\"100000000\",\"maxMktAmt\":\"\",\"maxMktSz\":\"49000\",\"maxPlatOICoinLmt\":\"\",\"maxPlatOILmt\":\"\",\"maxPxLmtPct\":\"0.01\",\"maxStopSz\":\"49000\",\"maxTriggerSz\":\"100000000.0000000000000000\",\"maxTwapSz\":\"100000000.0000000000000000\",\"method\":\"\",\"minSz\":\"0.1\",\"openType\":\"call_auction\",\"optType\":\"\",\"posLmtAmt\":\"250000\",\"posLmtPct\":\"30\",\"preMktSwTime\":\"\",\"quoteCcy\":\"\",\"rpiMinLevel\":\"2\",\"rpiMinPxBand\":\"20\",\"ruleType\":\"normal\",\"seriesId\":\"\",\"settleCcy\":\"BTC\",\"shortPosRemainingQuota\":\"\",\"state\":\"live\",\"stk\":\"\",\"tickSz\":\"0.1\",\"tradeQuoteCcyList\":[],\"uly\":\"BTC-USD\",\"upcChg\":[]},{\"alias\":\"\",\"auctionEndTime\":\"\",\"baseCcy\":\"\",\"category\":\"1\",\"contTdSwTime\":\"1611916860000\",\"ctMult\":\"1\",\"ctType\":\"inverse\",\"ctVal\":\"10\",\"ctValCcy\":\"USD\",\"expTime\":\"\",\"floatPxLmtPct\":\"0.01\",\"freq\":\"\",\"futureSettlement\":false,\"groupId\":\"4\",\"initPxLmtPct\":\"0.02\",\"instCategory\":\"1\",\"instFamily\":\"ETH-USD\",\"instId\":\"ETH-USD-SWAP\",\"instIdCode\":10460,\"instType\":\"SWAP\",\"lever\":\"100\",\"listTime\":\"1545378827",
+   "shape": {
+    "dict_keys": [
+     "code",
+     "data",
+     "msg"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://www.okx.com/api/v5/public/instruments?instType=SWAP"
+  },
+  {
+   "bytes": 1015,
+   "content_type": "application/json;charset=UTF-8",
+   "group": "OKX",
+   "id": "okx.funding-rate-history",
+   "ms": 153,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a4f0c2ccf13-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "{\"code\":\"0\",\"data\":[{\"formulaType\":\"withRate\",\"fundingRate\":\"0.0000630585898942\",\"fundingTime\":\"1791964800000\",\"instId\":\"BTC-USDT-SWAP\",\"instType\":\"SWAP\",\"method\":\"current_period\",\"realizedRate\":\"0.0000630585898942\"},{\"formulaType\":\"withRate\",\"fundingRate\":\"-0.000030665006641\",\"fundingTime\":\"1791936000000\",\"instId\":\"BTC-USDT-SWAP\",\"instType\":\"SWAP\",\"method\":\"current_period\",\"realizedRate\":\"-0.000030665006641\"},{\"formulaType\":\"withRate\",\"fundingRate\":\"0.0000484206016569\",\"fundingTime\":\"1791907200000\",\"instId\":\"BTC-USDT-SWAP\",\"instType\":\"SWAP\",\"method\":\"current_period\",\"realizedRate\":\"0.0000484206016569\"},{\"formulaType\":\"withRate\",\"fundingRate\":\"0.0000395456528596\",\"fundingTime\":\"1791878400000\",\"instId\":\"BTC-USDT-SWAP\",\"instType\":\"SWAP\",\"method\":\"current_period\",\"realizedRate\":\"0.0000395456528596\"},{\"formulaType\":\"withRate\",\"fundingRate\":\"0.0000235736131727\",\"fundingTime\":\"1791849600000\",\"instId\":\"BTC-USDT-SWAP\",\"instType\":\"SWAP\",\"method\":\"current_period\",\"realizedRate\":\"0.0000235736131727\"}],\"msg\":\"\"}",
+   "shape": {
+    "dict_keys": [
+     "code",
+     "data",
+     "msg"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://www.okx.com/api/v5/public/funding-rate-history?instId=BTC-USDT-SWAP&limit=5"
+  },
+  {
+   "bytes": 563,
+   "content_type": "application/json",
+   "group": "OKX",
+   "id": "okx.history-candles",
+   "ms": 150,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a4f19bddc04-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "{\"code\":\"0\",\"data\":[[\"1791907200000\",\"83392.4\",\"84116.3\",\"82907.7\",\"83378.6\",\"3785914.97\",\"37859.1497\",\"3159550007.40205\",\"0\"],[\"1791820800000\",\"82684.3\",\"84130.9\",\"80961.3\",\"83392.4\",\"8400271.16\",\"84002.7116\",\"6964926318.05395\",\"1\"],[\"1791734400000\",\"83864.3\",\"84348.2\",\"82348.2\",\"82684.4\",\"6171234.67\",\"61712.3467\",\"5150733239.88342\",\"1\"],[\"1791648000000\",\"83016.7\",\"83944.6\",\"82752\",\"83864.2\",\"2154140.13\",\"21541.4013\",\"1791473604.39228\",\"1\"],[\"1791561600000\",\"82833.9\",\"83042.1\",\"82234.8\",\"83016.6\",\"2546397.53\",\"25463.9753\",\"2104955423.79852\",\"1\"]],\"msg\":\"\"}",
+   "shape": {
+    "dict_keys": [
+     "code",
+     "data",
+     "msg"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://www.okx.com/api/v5/market/history-candles?instId=BTC-USDT-SWAP&bar=1D&limit=5"
+  },
+  {
+   "bytes": 474,
+   "content_type": "application/json;charset=UTF-8",
+   "group": "OKX",
+   "id": "okx.rubik.oi-history",
+   "ms": 283,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a4f59accc90-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "{\"code\":\"0\",\"data\":[[\"1791907200000\",\"2911646.44000001056\",\"29116.4644000001056\",\"2427492457.7735089482835\"],[\"1791820800000\",\"2946600.17000000992\",\"29466.0017000000992\",\"2456966566.35127827160352\"],[\"1791734400000\",\"3022399.4700000105\",\"30223.994700000105\",\"2499022643.377988681757\"],[\"1791648000000\",\"2927584.07000001168\",\"29275.8407000001168\",\"2454603587.6508097929792\"],[\"1791561600000\",\"3020651.52000001073\",\"30206.5152000001073\",\"2507331062.64576890657599\"]],\"msg\":\"\"}",
+   "shape": {
+    "dict_keys": [
+     "code",
+     "data",
+     "msg"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://www.okx.com/api/v5/rubik/stat/contracts/open-interest-history?instId=BTC-USDT-SWAP&period=1D&limit=5"
+  },
+  {
+   "bytes": 225,
+   "content_type": "application/json;charset=UTF-8",
+   "group": "OKX",
+   "id": "okx.rubik.long-short-account-ratio-contract",
+   "ms": 228,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a4fd91de678-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "{\"code\":\"0\",\"data\":[[\"1791972000000\",\"1.3258267756382683\"],[\"1791968400000\",\"1.2846397170539739\"],[\"1791964800000\",\"1.2696846969960494\"],[\"1791961200000\",\"1.2822655061475921\"],[\"1791957600000\",\"1.2666451836795399\"]],\"msg\":\"\"}",
+   "shape": {
+    "dict_keys": [
+     "code",
+     "data",
+     "msg"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://www.okx.com/api/v5/rubik/stat/contracts/long-short-account-ratio-contract?instId=BTC-USDT-SWAP&period=1H&limit=5"
+  },
+  {
+   "bytes": 356,
+   "content_type": "application/json;charset=UTF-8",
+   "group": "OKX",
+   "id": "okx.rubik.taker-volume-contract",
+   "ms": 247,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a4fdfd115b0-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "{\"code\":\"0\",\"data\":[[\"1791972000000\",\"141818.44000000000635\",\"143690.01000000000694\"],[\"1791968400000\",\"130940.26999999999996\",\"105024.79000000000223\"],[\"1791964800000\",\"325149.25999999999287\",\"405131.93999999997665\"],[\"1791961200000\",\"88259.060000000001549\",\"96014.4199999999965\"],[\"1791957600000\",\"52244.10999999999918\",\"66937.68000000000574\"]],\"msg\":\"\"}",
+   "shape": {
+    "dict_keys": [
+     "code",
+     "data",
+     "msg"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://www.okx.com/api/v5/rubik/stat/taker-volume-contract?instId=BTC-USDT-SWAP&period=1H&limit=5"
+  },
+  {
+   "bytes": 776,
+   "content_type": "application/json;charset=UTF-8",
+   "group": "OKX",
+   "id": "okx.liquidation-orders",
+   "ms": 221,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a50190fe8d9-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "{\"code\":\"0\",\"data\":[{\"details\":[{\"bkLoss\":\"0\",\"bkPx\":\"83367.9\",\"ccy\":\"\",\"posSide\":\"long\",\"side\":\"sell\",\"sz\":\"100\",\"time\":1791974297331,\"ts\":\"1791974297331\"},{\"bkLoss\":\"0\",\"bkPx\":\"83329.8\",\"ccy\":\"\",\"posSide\":\"long\",\"side\":\"sell\",\"sz\":\"21.88\",\"time\":1791973597270,\"ts\":\"1791973597270\"},{\"bkLoss\":\"0\",\"bkPx\":\"83000.2\",\"ccy\":\"\",\"posSide\":\"long\",\"side\":\"sell\",\"sz\":\"0.38\",\"time\":1791972407579,\"ts\":\"1791972407579\"},{\"bkLoss\":\"0\",\"bkPx\":\"82999.7\",\"ccy\":\"\",\"posSide\":\"long\",\"side\":\"sell\",\"sz\":\"375.74\",\"time\":1791972407563,\"ts\":\"1791972407563\"},{\"bkLoss\":\"0\",\"bkPx\":\"83000.2\",\"ccy\":\"\",\"posSide\":\"long\",\"side\":\"sell\",\"sz\":\"7.89\",\"time\":1791972407553,\"ts\":\"1791972407553\"}],\"instFamily\":\"BTC-USDT\",\"instId\":\"BTC-USDT-SWAP\",\"instType\":\"SWAP\",\"totalLoss\":\"0\",\"uly\":\"BTC-USDT\"}],\"msg\":\"\"}",
+   "shape": {
+    "dict_keys": [
+     "code",
+     "data",
+     "msg"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://www.okx.com/api/v5/public/liquidation-orders?instType=SWAP&instFamily=BTC-USDT&state=filled&limit=5"
+  },
+  {
+   "bytes": 17628,
+   "content_type": "application/json",
+   "group": "Hyperliquid",
+   "id": "hl.meta",
+   "ms": 246,
+   "ok": true,
+   "rate_headers": {
+    "server": "nginx/1.30.3"
+   },
+   "sample": "{\"universe\":[{\"szDecimals\":5,\"name\":\"BTC\",\"maxLeverage\":40,\"marginTableId\":56},{\"szDecimals\":4,\"name\":\"ETH\",\"maxLeverage\":25,\"marginTableId\":55},{\"szDecimals\":2,\"name\":\"ATOM\",\"maxLeverage\":5,\"marginTableId\":5},{\"szDecimals\":1,\"name\":\"MATIC\",\"maxLeverage\":20,\"marginTableId\":20,\"isDelisted\":true},{\"szDecimals\":1,\"name\":\"DYDX\",\"maxLeverage\":5,\"marginTableId\":5},{\"szDecimals\":2,\"name\":\"SOL\",\"maxLeverage\":20,\"marginTableId\":54},{\"szDecimals\":2,\"name\":\"AVAX\",\"maxLeverage\":10,\"marginTableId\":52},{\"szDecimals\":3,\"name\":\"BNB\",\"maxLeverage\":10,\"marginTableId\":51},{\"szDecimals\":1,\"name\":\"APE\",\"maxLeverage\":5,\"marginTableId\":5},{\"szDecimals\":1,\"name\":\"OP\",\"maxLeverage\":5,\"marginTableId\":5},{\"szDecimals\":2,\"name\":\"LTC\",\"maxLeverage\":10,\"marginTableId\":52},{\"szDecimals\":1,\"name\":\"ARB\",\"maxLeverage\":10,\"marginTableId\":51},{\"szDecimals\":0,\"name\":\"DOGE\",\"maxLeverage\":10,\"marginTableId\":52},{\"szDecimals\":1,\"name\":\"INJ\",\"maxLeverage\":5,\"marginTableId\":5},{\"szDecimals\":1,\"name\":\"SUI\",\"maxLeverage\":10,\"marginTableId\":52},{\"szDecimals\":0,\"name\":\"kPEPE\",\"maxLeverage\":10,\"marginTableId\":52},{\"szDecimals\":1,\"name\":\"CRV\",\"maxLeverage\":10,\"marginTableId\":52},{\"szDecimals\":1,\"name\":\"LDO\",\"maxLeverage\":5,\"marginTableId\":5},{\"szDecimals\":1,\"name\":\"LINK\",\"maxLeverage\":10,\"marginTableId\":52},{\"szDecimals\":1,\"name\":\"STX\",\"maxLeverage\":5,\"marginTableId\":5},{\"szDecimals\":1,\"name\":\"RNDR\",\"maxLeverage\":20,\"marginTableId\":20,\"isDelisted\":true},{\"szDecimals\":0,\"name\":\"CFX\",\"maxLeverage\":5,\"marginTableId\":5},{\"szDe",
+   "shape": {
+    "dict_keys": [
+     "universe",
+     "marginTables",
+     "collateralToken"
+    ],
+    "first": {
+     "first": {
+      "dict_keys": [
+       "szDecimals",
+       "name",
+       "maxLeverage",
+       "marginTableId"
+      ]
+     },
+     "list_len": 234
+    }
+   },
+   "status": 200,
+   "url": "https://api.hyperliquid.xyz/info"
+  },
+  {
+   "bytes": 72271,
+   "content_type": "application/json",
+   "group": "Hyperliquid",
+   "id": "hl.metaAndAssetCtxs",
+   "ms": 249,
+   "ok": true,
+   "rate_headers": {
+    "server": "nginx/1.30.3"
+   },
+   "sample": "[{\"universe\":[{\"szDecimals\":5,\"name\":\"BTC\",\"maxLeverage\":40,\"marginTableId\":56},{\"szDecimals\":4,\"name\":\"ETH\",\"maxLeverage\":25,\"marginTableId\":55},{\"szDecimals\":2,\"name\":\"ATOM\",\"maxLeverage\":5,\"marginTableId\":5},{\"szDecimals\":1,\"name\":\"MATIC\",\"maxLeverage\":20,\"marginTableId\":20,\"isDelisted\":true},{\"szDecimals\":1,\"name\":\"DYDX\",\"maxLeverage\":5,\"marginTableId\":5},{\"szDecimals\":2,\"name\":\"SOL\",\"maxLeverage\":20,\"marginTableId\":54},{\"szDecimals\":2,\"name\":\"AVAX\",\"maxLeverage\":10,\"marginTableId\":52},{\"szDecimals\":3,\"name\":\"BNB\",\"maxLeverage\":10,\"marginTableId\":51},{\"szDecimals\":1,\"name\":\"APE\",\"maxLeverage\":5,\"marginTableId\":5},{\"szDecimals\":1,\"name\":\"OP\",\"maxLeverage\":5,\"marginTableId\":5},{\"szDecimals\":2,\"name\":\"LTC\",\"maxLeverage\":10,\"marginTableId\":52},{\"szDecimals\":1,\"name\":\"ARB\",\"maxLeverage\":10,\"marginTableId\":51},{\"szDecimals\":0,\"name\":\"DOGE\",\"maxLeverage\":10,\"marginTableId\":52},{\"szDecimals\":1,\"name\":\"INJ\",\"maxLeverage\":5,\"marginTableId\":5},{\"szDecimals\":1,\"name\":\"SUI\",\"maxLeverage\":10,\"marginTableId\":52},{\"szDecimals\":0,\"name\":\"kPEPE\",\"maxLeverage\":10,\"marginTableId\":52},{\"szDecimals\":1,\"name\":\"CRV\",\"maxLeverage\":10,\"marginTableId\":52},{\"szDecimals\":1,\"name\":\"LDO\",\"maxLeverage\":5,\"marginTableId\":5},{\"szDecimals\":1,\"name\":\"LINK\",\"maxLeverage\":10,\"marginTableId\":52},{\"szDecimals\":1,\"name\":\"STX\",\"maxLeverage\":5,\"marginTableId\":5},{\"szDecimals\":1,\"name\":\"RNDR\",\"maxLeverage\":20,\"marginTableId\":20,\"isDelisted\":true},{\"szDecimals\":0,\"name\":\"CFX\",\"maxLeverage\":5,\"marginTableId\":5},{\"szD",
+   "shape": {
+    "first": {
+     "dict_keys": [
+      "universe",
+      "marginTables",
+      "collateralToken"
+     ],
+     "first": {
+      "list_len": 234
+     }
+    },
+    "list_len": 2
+   },
+   "status": 200,
+   "url": "https://api.hyperliquid.xyz/info"
+  },
+  {
+   "bytes": 305965,
+   "content_type": "application/json",
+   "group": "Hyperliquid",
+   "id": "hl.candleSnapshot.BTC.1d",
+   "ms": 559,
+   "ok": true,
+   "rate_headers": {
+    "server": "nginx/1.22.1"
+   },
+   "sample": "[{\"t\":1597795200000,\"T\":1597881599999,\"s\":\"BTC\",\"i\":\"1d\",\"o\":\"11962.0\",\"c\":\"11763.9\",\"h\":\"12037.1\",\"l\":\"11574.8\",\"v\":\"0.0\",\"n\":0},{\"t\":1597881600000,\"T\":1597967999999,\"s\":\"BTC\",\"i\":\"1d\",\"o\":\"11763.9\",\"c\":\"11857.9\",\"h\":\"11888.0\",\"l\":\"11676.0\",\"v\":\"0.0\",\"n\":0},{\"t\":1597968000000,\"T\":1598054399999,\"s\":\"BTC\",\"i\":\"1d\",\"o\":\"11858.5\",\"c\":\"11538.5\",\"h\":\"11882.7\",\"l\":\"11491.0\",\"v\":\"0.0\",\"n\":0},{\"t\":1598054400000,\"T\":1598140799999,\"s\":\"BTC\",\"i\":\"1d\",\"o\":\"11538.5\",\"c\":\"11670.5\",\"h\":\"11689.1\",\"l\":\"11385.1\",\"v\":\"0.0\",\"n\":0},{\"t\":1598140800000,\"T\":1598227199999,\"s\":\"BTC\",\"i\":\"1d\",\"o\":\"11670.5\",\"c\":\"11654.0\",\"h\":\"11724.0\",\"l\":\"11522.2\",\"v\":\"0.0\",\"n\":0},{\"t\":1598227200000,\"T\":1598313599999,\"s\":\"BTC\",\"i\":\"1d\",\"o\":\"11654.0\",\"c\":\"11753.3\",\"h\":\"11832.0\",\"l\":\"11595.0\",\"v\":\"0.0\",\"n\":0},{\"t\":1598313600000,\"T\":1598399999999,\"s\":\"BTC\",\"i\":\"1d\",\"o\":\"11753.3\",\"c\":\"11327.2\",\"h\":\"11770.0\",\"l\":\"11130.0\",\"v\":\"0.0\",\"n\":0},{\"t\":1598400000000,\"T\":1598486399999,\"s\":\"BTC\",\"i\":\"1d\",\"o\":\"11327.2\",\"c\":\"11466.2\",\"h\":\"11548.7\",\"l\":\"11256.0\",\"v\":\"0.0\",\"n\":0},{\"t\":1598486400000,\"T\":1598572799999,\"s\":\"BTC\",\"i\":\"1d\",\"o\":\"11466.2\",\"c\":\"11335.5\",\"h\":\"11593.0\",\"l\":\"11130.8\",\"v\":\"0.0\",\"n\":0},{\"t\":1598572800000,\"T\":1598659199999,\"s\":\"BTC\",\"i\":\"1d\",\"o\":\"11335.8\",\"c\":\"11526.9\",\"h\":\"11544.9\",\"l\":\"11283.2\",\"v\":\"0.0\",\"n\":0},{\"t\":1598659200000,\"T\":1598745599999,\"s\":\"BTC\",\"i\":\"1d\",\"o\":\"11526.9\",\"c\":\"11466.7\",\"h\":\"11582.0\",\"l\":\"11419.3\",\"v\":\"0.0\",\"n\":0},{\"t\":1598745600000,\"T\":1598831999999,\"s\":\"BTC\",\"i\":\"1d\",\"o\":\"11466.3\",\"c\":\"11714",
+   "shape": {
+    "first": {
+     "dict_keys": [
+      "t",
+      "T",
+      "s",
+      "i",
+      "o",
+      "c",
+      "h",
+      "l",
+      "v",
+      "n"
+     ],
+     "first": "int"
+    },
+    "list_len": 2248
+   },
+   "status": 200,
+   "url": "https://api.hyperliquid.xyz/info"
+  },
+  {
+   "bytes": 44343,
+   "content_type": "application/json",
+   "group": "Hyperliquid",
+   "id": "hl.fundingHistory.BTC",
+   "ms": 242,
+   "ok": true,
+   "rate_headers": {
+    "server": "nginx/1.30.3"
+   },
+   "sample": "[{\"coin\":\"BTC\",\"fundingRate\":\"0.0000102144\",\"premium\":\"-0.0004182846\",\"time\":1789383600121},{\"coin\":\"BTC\",\"fundingRate\":\"0.0000125\",\"premium\":\"-0.000380891\",\"time\":1789387200046},{\"coin\":\"BTC\",\"fundingRate\":\"0.0000125\",\"premium\":\"-0.0003989232\",\"time\":1789390800014},{\"coin\":\"BTC\",\"fundingRate\":\"0.0000125\",\"premium\":\"-0.0003519769\",\"time\":1789394400028},{\"coin\":\"BTC\",\"fundingRate\":\"0.0000125\",\"premium\":\"-0.0002492985\",\"time\":1789398000030},{\"coin\":\"BTC\",\"fundingRate\":\"0.0000125\",\"premium\":\"-0.0003067124\",\"time\":1789401600030},{\"coin\":\"BTC\",\"fundingRate\":\"0.0000125\",\"premium\":\"-0.0002897363\",\"time\":1789405200041},{\"coin\":\"BTC\",\"fundingRate\":\"0.0000125\",\"premium\":\"-0.0002808916\",\"time\":1789408800060},{\"coin\":\"BTC\",\"fundingRate\":\"0.0000125\",\"premium\":\"-0.0002227599\",\"time\":1789412400016},{\"coin\":\"BTC\",\"fundingRate\":\"0.0000125\",\"premium\":\"-0.0002653787\",\"time\":1789416000079},{\"coin\":\"BTC\",\"fundingRate\":\"0.0000125\",\"premium\":\"-0.0002523354\",\"time\":1789419600027},{\"coin\":\"BTC\",\"fundingRate\":\"0.0000125\",\"premium\":\"-0.0003643979\",\"time\":1789423200047},{\"coin\":\"BTC\",\"fundingRate\":\"0.0000097039\",\"premium\":\"-0.0004223686\",\"time\":1789426800132},{\"coin\":\"BTC\",\"fundingRate\":\"0.0000125\",\"premium\":\"-0.0003060438\",\"time\":1789430400024},{\"coin\":\"BTC\",\"fundingRate\":\"0.0000125\",\"premium\":\"-0.0003530167\",\"time\":1789434000042},{\"coin\":\"BTC\",\"fundingRate\":\"0.0000125\",\"premium\":\"-0.0003355568\",\"time\":1789437600052},{\"coin\":\"BTC\",\"fundingRate\":\"0.0000125\",\"premium\":\"-0.0003003315\",\"time\":1789441200097",
+   "shape": {
+    "first": {
+     "dict_keys": [
+      "coin",
+      "fundingRate",
+      "premium",
+      "time"
+     ],
+     "first": "str"
+    },
+    "list_len": 500
+   },
+   "status": 200,
+   "url": "https://api.hyperliquid.xyz/info"
+  },
+  {
+   "bytes": 64100,
+   "content_type": "application/json",
+   "group": "Hyperliquid",
+   "id": "hl.predictedFundings",
+   "ms": 184,
+   "ok": true,
+   "rate_headers": {
+    "server": "nginx/1.30.3"
+   },
+   "sample": "[[\"0G\",[[\"BinPerp\",{\"fundingRate\":\"0.00005\",\"nextFundingTime\":1791979200000,\"fundingIntervalHours\":4}],[\"HlPerp\",{\"fundingRate\":\"0.0000125\",\"nextFundingTime\":1791972000000,\"fundingIntervalHours\":1}],[\"BybitPerp\",{\"fundingRate\":\"0.00005\",\"nextFundingTime\":1791979200000,\"fundingIntervalHours\":4}]]],[\"2Z\",[[\"BinPerp\",{\"fundingRate\":\"0.00005\",\"nextFundingTime\":1791979200000,\"fundingIntervalHours\":4}],[\"HlPerp\",{\"fundingRate\":\"0.0000125\",\"nextFundingTime\":1791972000000,\"fundingIntervalHours\":1}],[\"BybitPerp\",{\"fundingRate\":\"0.00005\",\"nextFundingTime\":1791979200000,\"fundingIntervalHours\":4}]]],[\"AAVE\",[[\"BinPerp\",{\"fundingRate\":\"0.00007736\",\"nextFundingTime\":1791993600000,\"fundingIntervalHours\":8}],[\"HlPerp\",{\"fundingRate\":\"0.0000125\",\"nextFundingTime\":1791972000000,\"fundingIntervalHours\":1}],[\"BybitPerp\",{\"fundingRate\":\"0.0001\",\"nextFundingTime\":1791993600000,\"fundingIntervalHours\":8}]]],[\"ACE\",[[\"BinPerp\",{\"fundingRate\":\"0.00005\",\"nextFundingTime\":1791979200000,\"fundingIntervalHours\":4}],[\"HlPerp\",{\"fundingRate\":\"0.0000125\",\"nextFundingTime\":1791972000000,\"fundingIntervalHours\":1}],[\"BybitPerp\",{\"fundingRate\":\"0.00005\",\"nextFundingTime\":1791979200000,\"fundingIntervalHours\":4}]]],[\"ADA\",[[\"BinPerp\",{\"fundingRate\":\"-0.00004331\",\"nextFundingTime\":1791993600000,\"fundingIntervalHours\":8}],[\"HlPerp\",{\"fundingRate\":\"-0.0000267769\",\"nextFundingTime\":1791972000000,\"fundingIntervalHours\":1}],[\"BybitPerp\",{\"fundingRate\":\"-0.00012991\",\"nextFundingTime\":1791993600000,\"fundingIntervalHours\":8}",
+   "shape": {
+    "first": {
+     "first": "str",
+     "list_len": 2
+    },
+    "list_len": 234
+   },
+   "status": 200,
+   "url": "https://api.hyperliquid.xyz/info"
+  },
+  {
+   "bytes": 53,
+   "content_type": "application/json",
+   "group": "Hyperliquid",
+   "id": "hl.perpsAtOpenInterestCap",
+   "ms": 175,
+   "ok": true,
+   "rate_headers": {
+    "server": "nginx/1.22.1"
+   },
+   "sample": "[\"CANTO\",\"FTM\",\"JELLY\",\"LOOM\",\"RLB\",\"VINE\",\"ZEREBRO\"]",
+   "shape": {
+    "first": "str",
+    "list_len": 7
+   },
+   "status": 200,
+   "url": "https://api.hyperliquid.xyz/info"
+  },
+  {
+   "bytes": 8000000,
+   "content_type": "application/json",
+   "group": "Hyperliquid",
+   "id": "hl.leaderboard",
+   "ms": 39,
+   "ok": true,
+   "rate_headers": {
+    "server": "AmazonS3",
+    "x-amz-server-side-encryption": "AES256"
+   },
+   "sample": "",
+   "shape": {
+    "cloudflare": false,
+    "items": 0,
+    "text_bytes": 7999950,
+    "title": null
+   },
+   "status": 200,
+   "url": "https://stats-data.hyperliquid.xyz/Mainnet/leaderboard"
+  },
+  {
+   "bytes": 1337676,
+   "content_type": "application/json",
+   "group": "Gate.io",
+   "id": "gate.contracts",
+   "ms": 1524,
+   "ok": true,
+   "rate_headers": {
+    "server": "openresty",
+    "x-gate-ratelimit-limit": "200",
+    "x-gate-ratelimit-requests-remain": "199",
+    "x-gate-ratelimit-reset-timestamp": "1791975207"
+   },
+   "sample": "[{\"funding_rate_indicative\":\"0.0001\",\"mark_price_round\":\"0.0001\",\"funding_offset\":0,\"in_delisting\":false,\"risk_limit_base\":\"5000\",\"interest_rate\":\"0.0003\",\"index_price\":\"0.2544\",\"order_price_round\":\"0.0001\",\"order_size_min\":1,\"enable_decimal\":false,\"ref_rebate_rate\":\"0.2\",\"name\":\"0G_USDT\",\"ref_discount_rate\":\"0\",\"order_price_deviate\":\"0.15\",\"maintenance_rate\":\"0.01\",\"mark_type\":\"index\",\"funding_interval\":28800,\"type\":\"direct\",\"risk_limit_step\":\"2495000\",\"enable_bonus\":true,\"enable_credit\":true,\"leverage_min\":\"1\",\"funding_rate\":\"0.0001\",\"last_price\":\"0.2543\",\"mark_price\":\"0.2543\",\"order_size_max\":450000,\"funding_next_apply\":1791993600,\"short_users\":145,\"config_change_time\":1789354403,\"create_time\":1758124392,\"trade_size\":968506025,\"position_size\":1201596,\"long_users\":170,\"quanto_multiplier\":\"1\",\"funding_impact_value\":\"7000\",\"leverage_max\":\"50\",\"cross_leverage_default\":\"10\",\"risk_limit_max\":\"2500000\",\"maker_fee_rate\":\"-0.0001\",\"taker_fee_rate\":\"0.00075\",\"orders_limit\":100,\"trade_id\":11063169,\"orderbook_id\":1340248980,\"funding_cap_ratio\":\"1\",\"voucher_leverage\":\"0\",\"is_pre_market\":false,\"status\":\"trading\",\"launch_time\":1758124392,\"enable_circuit_breaker\":false,\"funding_rate_limit\":\"0.02\",\"market_order_slip_ratio\":\"0.04\",\"market_order_size_max\":\"300000\",\"contract_type\":\"\"},{\"funding_rate_indicative\":\"0.0001\",\"mark_price_round\":\"0.00001\",\"funding_offset\":0,\"in_delisting\":false,\"risk_limit_base\":\"5000\",\"interest_rate\":\"0.0003\",\"index_price\":\"0.09599\",\"order_price_round\":\"0.00001\",\"o",
+   "shape": {
+    "first": {
+     "dict_keys": [
+      "funding_rate_indicative",
+      "mark_price_round",
+      "funding_offset",
+      "in_delisting",
+      "risk_limit_base",
+      "interest_rate",
+      "index_price",
+      "order_price_round",
+      "order_size_min",
+      "enable_decimal",
+      "ref_rebate_rate",
+      "name"
+     ],
+     "first": "str"
+    },
+    "list_len": 1038
+   },
+   "status": 200,
+   "url": "https://api.gateio.ws/api/v4/futures/usdt/contracts"
+  },
+  {
+   "bytes": 3265,
+   "content_type": "application/json",
+   "group": "Gate.io",
+   "id": "gate.contract_stats",
+   "ms": 589,
+   "ok": true,
+   "rate_headers": {
+    "server": "openresty",
+    "x-gate-ratelimit-limit": "200",
+    "x-gate-ratelimit-requests-remain": "199",
+    "x-gate-ratelimit-reset-timestamp": "1791975207"
+   },
+   "sample": "[{\"time\":1791957600,\"lsr_taker\":1.2080734137824085,\"lsr_account\":1.1319972356599861,\"long_liq_size\":804,\"short_liq_size\":35632,\"open_interest\":514116256,\"short_liq_usd\":297253.617504,\"mark_price\":83423.22,\"top_lsr_size\":1.2436944421018705,\"top_long_size\":29775168,\"top_short_size\":23940903,\"short_liq_amount\":3.5632,\"long_liq_amount\":0.0804,\"short_liq_usd_new\":297253.617504,\"long_liq_usd_new\":6707.226888,\"open_interest_usd\":4288923352.986432,\"top_lsr_account\":0.6081081081081081,\"top_long_account\":45,\"top_short_account\":74,\"long_liq_usd\":6707.226888,\"long_taker_size\":5585583,\"short_taker_size\":4623546,\"long_users\":18018,\"short_users\":15917,\"last_funding_rate\":\"0.000014\"},{\"time\":1791961200,\"lsr_taker\":1.2107626480525673,\"lsr_account\":1.1382389937106918,\"long_liq_size\":88,\"short_liq_size\":330,\"open_interest\":509176944,\"short_liq_usd\":2757.7572,\"mark_price\":83568.4,\"top_lsr_size\":1.347220082500921,\"top_long_size\":30239446,\"top_short_size\":22445810,\"short_liq_amount\":0.033,\"long_liq_amount\":0.0088,\"short_liq_usd_new\":2757.7572,\"long_liq_usd_new\":735.40192,\"open_interest_usd\":4255110252.69696,\"top_lsr_account\":0.5866666666666667,\"top_long_account\":44,\"top_short_account\":75,\"long_liq_usd\":735.40192,\"long_taker_size\":9443560,\"short_taker_size\":7799679,\"long_users\":18098,\"short_users\":15900,\"last_funding_rate\":\"0.000041\"},{\"time\":1791964800,\"lsr_taker\":1.032890921371118,\"lsr_account\":1.1006974716652136,\"long_liq_size\":12562,\"short_liq_size\":28130,\"open_interest\":502465920,\"short_liq_us",
+   "shape": {
+    "first": {
+     "dict_keys": [
+      "time",
+      "lsr_taker",
+      "lsr_account",
+      "long_liq_size",
+      "short_liq_size",
+      "open_interest",
+      "short_liq_usd",
+      "mark_price",
+      "top_lsr_size",
+      "top_long_size",
+      "top_short_size",
+      "short_liq_amount"
+     ],
+     "first": "int"
+    },
+    "list_len": 5
+   },
+   "status": 200,
+   "url": "https://api.gateio.ws/api/v4/futures/usdt/contract_stats?contract=BTC_USDT&interval=1h&limit=5"
+  },
+  {
+   "bytes": 652,
+   "content_type": "application/json",
+   "group": "Gate.io",
+   "id": "gate.liq_orders",
+   "ms": 470,
+   "ok": true,
+   "rate_headers": {
+    "server": "openresty",
+    "x-gate-ratelimit-limit": "200",
+    "x-gate-ratelimit-requests-remain": "199",
+    "x-gate-ratelimit-reset-timestamp": "1791975207"
+   },
+   "sample": "[{\"contract\":\"BTC_USDT\",\"left\":\"0\",\"size\":\"-535\",\"order_size\":\"535\",\"fill_price\":\"83427.5\",\"order_price\":\"83676.7\",\"time\":1791975032},{\"contract\":\"BTC_USDT\",\"left\":\"0\",\"size\":\"-6\",\"order_size\":\"6\",\"fill_price\":\"83410.6\",\"order_price\":\"83659.7\",\"time\":1791973167},{\"contract\":\"BTC_USDT\",\"left\":\"0\",\"size\":\"-17\",\"order_size\":\"17\",\"fill_price\":\"83400\",\"order_price\":\"83644.2\",\"time\":1791973162},{\"contract\":\"BTC_USDT\",\"left\":\"0\",\"size\":\"38\",\"order_size\":\"-38\",\"fill_price\":\"83020\",\"order_price\":\"82775\",\"time\":1791972409},{\"contract\":\"BTC_USDT\",\"left\":\"0\",\"size\":\"238\",\"order_size\":\"-238\",\"fill_price\":\"83008.2\",\"order_price\":\"82779.6\",\"time\":1791972409}]",
+   "shape": {
+    "first": {
+     "dict_keys": [
+      "contract",
+      "left",
+      "size",
+      "order_size",
+      "fill_price",
+      "order_price",
+      "time"
+     ],
+     "first": "str"
+    },
+    "list_len": 5
+   },
+   "status": 200,
+   "url": "https://api.gateio.ws/api/v4/futures/usdt/liq_orders?contract=BTC_USDT&limit=5"
+  },
+  {
+   "bytes": 547,
+   "content_type": "application/json",
+   "group": "Gate.io",
+   "id": "gate.candles.1d",
+   "ms": 470,
+   "ok": true,
+   "rate_headers": {
+    "server": "openresty",
+    "x-gate-ratelimit-limit": "200",
+    "x-gate-ratelimit-requests-remain": "199",
+    "x-gate-ratelimit-reset-timestamp": "1791975207"
+   },
+   "sample": "[{\"o\":\"82583.8\",\"v\":130256036,\"t\":1791590400,\"c\":\"82946\",\"l\":\"82500\",\"h\":\"83125\",\"sum\":\"1078863393.95909\"},{\"o\":\"82946\",\"v\":248863036,\"t\":1791676800,\"c\":\"83721.1\",\"l\":\"82750.1\",\"h\":\"84160.3\",\"sum\":\"2077770813.81078\"},{\"o\":\"83721.1\",\"v\":626786029,\"t\":1791763200,\"c\":\"81816.4\",\"l\":\"81718.3\",\"h\":\"84333\",\"sum\":\"5205409930.38644\"},{\"o\":\"81816.3\",\"v\":703472348,\"t\":1791849600,\"c\":\"83137.1\",\"l\":\"80986.6\",\"h\":\"84126.8\",\"sum\":\"5841805932.25768\"},{\"o\":\"83137\",\"v\":234725811,\"t\":1791936000,\"c\":\"83383.8\",\"l\":\"83004.4\",\"h\":\"84103\",\"sum\":\"1959749479.72238\"}]",
+   "shape": {
+    "first": {
+     "dict_keys": [
+      "o",
+      "v",
+      "t",
+      "c",
+      "l",
+      "h",
+      "sum"
+     ],
+     "first": "str"
+    },
+    "list_len": 5
+   },
+   "status": 200,
+   "url": "https://api.gateio.ws/api/v4/futures/usdt/candlesticks?contract=BTC_USDT&interval=1d&limit=5"
+  },
+  {
+   "bytes": 2307621,
+   "content_type": "application/json",
+   "group": "MEXC",
+   "id": "mexc.contract.detail",
+   "ms": 197,
+   "ok": true,
+   "rate_headers": {
+    "server-timing": "ak_p; desc=\"1791975206809_400031957_3940804455_10436_7464_1_5_-\";dur=1"
+   },
+   "sample": "{\"success\":true,\"code\":0,\"data\":[{\"symbol\":\"BTC_USDT\",\"displayName\":\"BTC_USDT\u6c38\u7eed\",\"displayNameEn\":\"BTC_USDT PERPETUAL\",\"positionOpenType\":3,\"baseCoin\":\"BTC\",\"quoteCoin\":\"USDT\",\"baseCoinName\":\"BTC\",\"quoteCoinName\":\"USDT\",\"futureType\":1,\"settleCoin\":\"USDT\",\"contractSize\":0.0001,\"minLeverage\":1,\"maxLeverage\":500,\"countryConfigContractMaxLeverage\":0,\"priceScale\":1,\"volScale\":0,\"amountScale\":4,\"priceUnit\":0.1,\"volUnit\":1,\"minVol\":1,\"maxVol\":400000,\"bidLimitPriceRate\":0.1,\"askLimitPriceRate\":0.1,\"takerFeeRate\":0.0004,\"makerFeeRate\":0,\"maintenanceMarginRate\":0.001,\"initialMarginRate\":0.002,\"riskBaseVol\":19000000,\"riskIncrVol\":0,\"riskLongShortSwitch\":0,\"riskIncrMmr\":0,\"riskIncrImr\":0,\"riskLevelLimit\":1,\"priceCoefficientVariation\":0.004,\"indexOrigin\":[\"BITGET\",\"BYBIT\",\"BINANCE\",\"HTX\",\"UPBIT\",\"OKX\",\"MEXC\",\"KUCOIN\"],\"state\":0,\"isNew\":false,\"isHot\":false,\"isHidden\":false,\"conceptPlate\":[\"mc-trade-zone-mainly\",\"mc-trade-zone-layer2\",\"mc-trade-zone-pow\"],\"conceptPlateId\":[50,5,12],\"riskLimitType\":\"BY_VOLUME\",\"maxNumOrders\":[200,50],\"marketOrderMaxLevel\":20,\"marketOrderPriceLimitRate1\":0.1,\"marketOrderPriceLimitRate2\":0.005,\"triggerProtect\":0.1,\"appraisal\":0,\"showAppraisalCountdown\":0,\"automaticDelivery\":0,\"apiAllowed\":true,\"depthStepList\":[\"0.1\",\"1\",\"10\",\"100\"],\"limitMaxVol\":2500000,\"threshold\":0,\"baseCoinIconUrl\":\"https://public.mocortech.com/coin/F20250612182226438Ba037qttKoGcrm.png\",\"id\":10,\"vid\":\"128f589271cb4951b03e71e6323eb7be\",\"baseCoinId\":\"febc9973be4d4d53bb374476239eb219\",\"crea",
+   "shape": {
+    "dict_keys": [
+     "success",
+     "code",
+     "data"
+    ],
+    "first": "bool"
+   },
+   "status": 200,
+   "url": "https://contract.mexc.com/api/v1/contract/detail"
+  },
+  {
+   "bytes": 558,
+   "content_type": "application/json",
+   "group": "MEXC",
+   "id": "mexc.funding.history",
+   "ms": 189,
+   "ok": true,
+   "rate_headers": {
+    "server-timing": "ak_p; desc=\"1791975206808_400031944_570986966_11897_5809_1_5_-\";dur=1"
+   },
+   "sample": "{\"success\":true,\"code\":0,\"data\":{\"pageSize\":5,\"totalCount\":1620,\"totalPage\":324,\"currentPage\":1,\"resultList\":[{\"symbol\":\"BTC_USDT\",\"fundingRate\":0.000014,\"settleTime\":1791964800000,\"collectCycle\":8},{\"symbol\":\"BTC_USDT\",\"fundingRate\":-0.000009,\"settleTime\":1791936000000,\"collectCycle\":8},{\"symbol\":\"BTC_USDT\",\"fundingRate\":0.000034,\"settleTime\":1791907200000,\"collectCycle\":8},{\"symbol\":\"BTC_USDT\",\"fundingRate\":0.000083,\"settleTime\":1791878400000,\"collectCycle\":8},{\"symbol\":\"BTC_USDT\",\"fundingRate\":0.000067,\"settleTime\":1791849600000,\"collectCycle\":8}]}}",
+   "shape": {
+    "dict_keys": [
+     "success",
+     "code",
+     "data"
+    ],
+    "first": "bool"
+   },
+   "status": 200,
+   "url": "https://contract.mexc.com/api/v1/contract/funding_rate/history?symbol=BTC_USDT&page_num=1&page_size=5"
+  },
+  {
+   "bytes": 420518,
+   "content_type": "application/json",
+   "group": "Bitget",
+   "id": "bitget.tickers",
+   "ms": 277,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a531cf1156b-SJC",
+    "server": "cloudflare",
+    "x-mbx-used-remain-limit": "19"
+   },
+   "sample": "{\"code\":\"00000\",\"msg\":\"success\",\"requestTime\":1791975206965,\"data\":[{\"symbol\":\"BTCUSDT\",\"lastPr\":\"83378.9\",\"askPr\":\"83379\",\"bidPr\":\"83378.9\",\"bidSz\":\"5.6146\",\"askSz\":\"2.7429\",\"high24h\":\"84105\",\"low24h\":\"82927\",\"ts\":\"1791975206966\",\"change24h\":\"0.00113\",\"baseVolume\":\"22346.6599\",\"quoteVolume\":\"1864001979.76141\",\"usdtVolume\":\"1864001979.76141\",\"openUtc\":\"83138.2\",\"changeUtc24h\":\"0.0029\",\"indexPrice\":\"83415.2865\",\"fundingRate\":\"0.000066\",\"holdingAmount\":\"32202.7721999999787\",\"deliveryStartTime\":null,\"deliveryTime\":null,\"deliveryStatus\":\"\",\"open24h\":\"83285\",\"markPrice\":\"83379.5\"},{\"symbol\":\"ETHUSDT\",\"lastPr\":\"2502.35\",\"askPr\":\"2502.35\",\"bidPr\":\"2502.34\",\"bidSz\":\"3.94\",\"askSz\":\"143.61\",\"high24h\":\"2529.7\",\"low24h\":\"2477.33\",\"ts\":\"1791975206966\",\"change24h\":\"0.00279\",\"baseVolume\":\"512209.66\",\"quoteVolume\":\"1283946895.4741\",\"usdtVolume\":\"1283946895.4741\",\"openUtc\":\"2496.85\",\"changeUtc24h\":\"0.0022\",\"indexPrice\":\"2503.62\",\"fundingRate\":\"0.000016\",\"holdingAmount\":\"747302.139999999645\",\"deliveryStartTime\":null,\"deliveryTime\":null,\"deliveryStatus\":\"\",\"open24h\":\"2495.38\",\"markPrice\":\"2502.35\"},{\"symbol\":\"XRPUSDT\",\"lastPr\":\"1.3715\",\"askPr\":\"1.3716\",\"bidPr\":\"1.3715\",\"bidSz\":\"23405\",\"askSz\":\"32958\",\"high24h\":\"1.3862\",\"low24h\":\"1.3484\",\"ts\":\"1791975206966\",\"change24h\":\"0.01002\",\"baseVolume\":\"97592655\",\"quoteVolume\":\"133576867.419\",\"usdtVolume\":\"133576867.419\",\"openUtc\":\"1.3654\",\"changeUtc24h\":\"0.00469\",\"indexPrice\":\"1.3723578496373252\",\"fundingRate\":\"0.00001\",\"holdingAmount\":\"177063589\",\"deliv",
+   "shape": {
+    "dict_keys": [
+     "code",
+     "msg",
+     "requestTime",
+     "data"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://api.bitget.com/api/v2/mix/market/tickers?productType=USDT-FUTURES"
+  },
+  {
+   "bytes": 449,
+   "content_type": "application/json",
+   "group": "Bitget",
+   "id": "bitget.history-fund-rate",
+   "ms": 261,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a531abd0995-SJC",
+    "server": "cloudflare",
+    "x-mbx-used-remain-limit": "19"
+   },
+   "sample": "{\"code\":\"00000\",\"msg\":\"success\",\"requestTime\":1791975206960,\"data\":[{\"symbol\":\"BTCUSDT\",\"fundingRate\":\"0.000035\",\"fundingTime\":\"1791964800000\"},{\"symbol\":\"BTCUSDT\",\"fundingRate\":\"0.000014\",\"fundingTime\":\"1791936000000\"},{\"symbol\":\"BTCUSDT\",\"fundingRate\":\"0.000037\",\"fundingTime\":\"1791907200000\"},{\"symbol\":\"BTCUSDT\",\"fundingRate\":\"0.000021\",\"fundingTime\":\"1791878400000\"},{\"symbol\":\"BTCUSDT\",\"fundingRate\":\"0.000042\",\"fundingTime\":\"1791849600000\"}]}",
+   "shape": {
+    "dict_keys": [
+     "code",
+     "msg",
+     "requestTime",
+     "data"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://api.bitget.com/api/v2/mix/market/history-fund-rate?symbol=BTCUSDT&productType=USDT-FUTURES&pageSize=5"
+  },
+  {
+   "bytes": 161,
+   "content_type": "application/json",
+   "group": "Bitget",
+   "id": "bitget.open-interest",
+   "ms": 287,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a53287d456e-SJC",
+    "server": "cloudflare",
+    "x-mbx-used-remain-limit": "19"
+   },
+   "sample": "{\"code\":\"00000\",\"msg\":\"success\",\"requestTime\":1791975206985,\"data\":{\"openInterestList\":[{\"symbol\":\"BTCUSDT\",\"size\":\"32202.7721999999787\"}],\"ts\":\"1791975206986\"}}",
+   "shape": {
+    "dict_keys": [
+     "code",
+     "msg",
+     "requestTime",
+     "data"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://api.bitget.com/api/v2/mix/market/open-interest?symbol=BTCUSDT&productType=USDT-FUTURES"
+  },
+  {
+   "bytes": 3451,
+   "content_type": "application/json",
+   "group": "Bitget",
+   "id": "bitget.account-long-short",
+   "ms": 153,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a53288f67fa-SJC",
+    "server": "cloudflare",
+    "x-mbx-used-remain-limit": "0"
+   },
+   "sample": "{\"code\":\"00000\",\"msg\":\"success\",\"requestTime\":1791975206966,\"data\":[{\"longAccountRatio\":\"0.6345\",\"shortAccountRatio\":\"0.3655\",\"longShortAccountRatio\":\"1.7359\",\"ts\":\"1791867600000\"},{\"longAccountRatio\":\"0.628\",\"shortAccountRatio\":\"0.372\",\"longShortAccountRatio\":\"1.6881\",\"ts\":\"1791871200000\"},{\"longAccountRatio\":\"0.6255\",\"shortAccountRatio\":\"0.3745\",\"longShortAccountRatio\":\"1.6702\",\"ts\":\"1791874800000\"},{\"longAccountRatio\":\"0.6158\",\"shortAccountRatio\":\"0.3842\",\"longShortAccountRatio\":\"1.6028\",\"ts\":\"1791878400000\"},{\"longAccountRatio\":\"0.6048\",\"shortAccountRatio\":\"0.3952\",\"longShortAccountRatio\":\"1.5303\",\"ts\":\"1791882000000\"},{\"longAccountRatio\":\"0.6054\",\"shortAccountRatio\":\"0.3946\",\"longShortAccountRatio\":\"1.5342\",\"ts\":\"1791885600000\"},{\"longAccountRatio\":\"0.6029\",\"shortAccountRatio\":\"0.3971\",\"longShortAccountRatio\":\"1.5182\",\"ts\":\"1791889200000\"},{\"longAccountRatio\":\"0.6081\",\"shortAccountRatio\":\"0.3919\",\"longShortAccountRatio\":\"1.5516\",\"ts\":\"1791892800000\"},{\"longAccountRatio\":\"0.6107\",\"shortAccountRatio\":\"0.3893\",\"longShortAccountRatio\":\"1.5687\",\"ts\":\"1791896400000\"},{\"longAccountRatio\":\"0.6171\",\"shortAccountRatio\":\"0.3829\",\"longShortAccountRatio\":\"1.6116\",\"ts\":\"1791900000000\"},{\"longAccountRatio\":\"0.617\",\"shortAccountRatio\":\"0.383\",\"longShortAccountRatio\":\"1.6109\",\"ts\":\"1791903600000\"},{\"longAccountRatio\":\"0.6169\",\"shortAccountRatio\":\"0.3831\",\"longShortAccountRatio\":\"1.6102\",\"ts\":\"1791907200000\"},{\"longAccountRatio\":\"0.6169\",\"shortAccountRatio\":\"0.3831\",\"longShortAccountRatio",
+   "shape": {
+    "dict_keys": [
+     "code",
+     "msg",
+     "requestTime",
+     "data"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://api.bitget.com/api/v2/mix/market/account-long-short?symbol=BTCUSDT&period=1h"
+  },
+  {
+   "bytes": 1436618,
+   "content_type": "application/json",
+   "group": "KuCoin",
+   "id": "kucoin.futures.contracts",
+   "ms": 254,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a53aec5f9fd-SJC",
+    "gw-ratelimit-limit": "2000",
+    "gw-ratelimit-remaining": "1997",
+    "gw-ratelimit-reset": "29992",
+    "server": "cloudflare"
+   },
+   "sample": "{\"code\":\"200000\",\"data\":[{\"symbol\":\"XBTUSDTM\",\"displaySymbol\":\"XBTUSDTM\",\"rootSymbol\":\"USDT\",\"type\":\"FFWCSX\",\"firstOpenDate\":1585555200000,\"expireDate\":null,\"settleDate\":null,\"baseCurrency\":\"XBT\",\"displayBaseCurrency\":\"XBT\",\"quoteCurrency\":\"USDT\",\"settleCurrency\":\"USDT\",\"maxOrderQty\":1000000,\"marketMaxOrderQty\":1000000,\"maxPrice\":1000000.0,\"lotSize\":1,\"tickSize\":0.1,\"indexPriceTickSize\":0.01,\"multiplier\":0.001,\"initialMargin\":0.008,\"maintainMargin\":0.004,\"maxRiskLimit\":250000,\"minRiskLimit\":250000,\"riskStep\":125000,\"makerFeeRate\":2.0E-4,\"takerFeeRate\":6.0E-4,\"takerFixFee\":0.0,\"makerFixFee\":0.0,\"settlementFee\":null,\"isDeleverage\":true,\"isQuanto\":true,\"isInverse\":false,\"markMethod\":\"FairPrice\",\"fairMethod\":\"FundingRate\",\"fundingBaseSymbol\":\".XBTINT8H\",\"fundingQuoteSymbol\":\".USDTINT8H\",\"fundingRateSymbol\":\".XBTUSDTMFPI8H\",\"indexSymbol\":\".KXBTUSDT\",\"settlementSymbol\":\"\",\"status\":\"Open\",\"fundingFeeRate\":8.7E-5,\"predictedFundingFeeRate\":null,\"dailyInterestRate\":3.0E-4,\"fundingRateGranularity\":28800000,\"fundingRateCap\":0.003,\"fundingRateFloor\":-0.003,\"period\":1,\"effectiveFundingRateCycleStartTime\":1750147200000,\"currentFundingRateGranularity\":28800000,\"openInterest\":\"9596938\",\"turnoverOf24h\":2.595625597472E8,\"volumeOf24h\":3111.49,\"markPrice\":83381.14,\"indexPrice\":83414.61,\"lastTradePrice\":83375.7,\"nextFundingRateTime\":18392938,\"nextFundingRateDateTime\":1791993600000,\"maxLeverage\":125,\"sourceExchanges\":[\"okex\",\"binance\",\"kucoin\",\"bybit\",\"gateio\"],\"premiumsSymbol1M\":\".XBTUSDTMPI\",\"pre",
+   "shape": {
+    "dict_keys": [
+     "code",
+     "data"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://api-futures.kucoin.com/api/v1/contracts/active"
+  },
+  {
+   "bytes": 526,
+   "content_type": "text/plain;charset=UTF-8",
+   "group": "HTX",
+   "id": "htx.linear.contract_info",
+   "ms": 442,
+   "ok": true,
+   "rate_headers": {
+    "ratelimit-interval": "3000",
+    "ratelimit-limit": "240",
+    "ratelimit-remaining": "239",
+    "ratelimit-reset": "1791975210252",
+    "server": "openresty"
+   },
+   "sample": "{\"status\":\"ok\",\"data\":[{\"symbol\":\"BTC\",\"contract_code\":\"BTC-USDT\",\"contract_size\":0.001000000000000000,\"price_tick\":0.100000000000000000,\"delivery_date\":\"\",\"delivery_time\":\"\",\"create_date\":\"20201021\",\"contract_status\":1,\"adjust\":[],\"price_estimated\":[],\"settlement_date\":\"1791993600000\",\"support_margin_mode\":\"all\",\"open_type\":0,\"settlement_period\":\"8\",\"labels\":[\"hot\",\"common\"],\"tradfi_labels\":[],\"enable_rpi\":true,\"business_type\":\"swap\",\"pair\":\"BTC-USDT\",\"contract_type\":\"swap\",\"trade_partition\":\"USDT\"}],\"ts\":1791975207252}",
+   "shape": {
+    "dict_keys": [
+     "status",
+     "data",
+     "ts"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://api.hbdm.com/linear-swap-api/v1/swap_contract_info?contract_code=BTC-USDT"
+  },
+  {
+   "bytes": 713,
+   "content_type": "text/plain;charset=UTF-8",
+   "group": "HTX",
+   "id": "htx.linear.his_open_interest",
+   "ms": 410,
+   "ok": true,
+   "rate_headers": {
+    "ratelimit-interval": "3000",
+    "ratelimit-limit": "240",
+    "ratelimit-remaining": "238",
+    "ratelimit-reset": "1791975210252",
+    "server": "openresty"
+   },
+   "sample": "{\"status\":\"ok\",\"data\":{\"symbol\":\"BTC\",\"tick\":[{\"volume\":21611.8060000000000000,\"amount_type\":2,\"ts\":1791972000000,\"value\":1802111249.21300000000000000},{\"volume\":21619.2770000000000000,\"amount_type\":2,\"ts\":1791968400000,\"value\":1802734222.28350000000000000},{\"volume\":21628.2930000000000000,\"amount_type\":2,\"ts\":1791964800000,\"value\":1803486025.95150000000000000},{\"volume\":21630.7670000000000000,\"amount_type\":2,\"ts\":1791961200000,\"value\":1803692321.67850000000000000},{\"volume\":21644.0360000000000000,\"amount_type\":2,\"ts\":1791957600000,\"value\":1804798763.87800000000000000}],\"contract_code\":\"BTC-USDT\",\"business_type\":\"swap\",\"pair\":\"BTC-USDT\",\"contract_type\":\"swap\",\"trade_partition\":\"USDT\"},\"ts\":1791975207257}",
+   "shape": {
+    "dict_keys": [
+     "status",
+     "data",
+     "ts"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://api.hbdm.com/linear-swap-api/v1/swap_his_open_interest?contract_code=BTC-USDT&period=60min&amount_type=2&size=5"
+  },
+  {
+   "bytes": 2620,
+   "content_type": "text/plain;charset=UTF-8",
+   "group": "HTX",
+   "id": "htx.linear.elite_account_ratio",
+   "ms": 414,
+   "ok": true,
+   "rate_headers": {
+    "ratelimit-interval": "3000",
+    "ratelimit-limit": "240",
+    "ratelimit-remaining": "237",
+    "ratelimit-reset": "1791975210252",
+    "server": "openresty"
+   },
+   "sample": "{\"status\":\"ok\",\"data\":{\"list\":[{\"buy_ratio\":0.3100,\"sell_ratio\":0.1700,\"locked_ratio\":0.5200,\"ts\":1791867600000},{\"buy_ratio\":0.3000,\"sell_ratio\":0.1700,\"locked_ratio\":0.5300,\"ts\":1791871200000},{\"buy_ratio\":0.3100,\"sell_ratio\":0.1600,\"locked_ratio\":0.5300,\"ts\":1791874800000},{\"buy_ratio\":0.2900,\"sell_ratio\":0.1800,\"locked_ratio\":0.5300,\"ts\":1791878400000},{\"buy_ratio\":0.2900,\"sell_ratio\":0.1800,\"locked_ratio\":0.5300,\"ts\":1791882000000},{\"buy_ratio\":0.3000,\"sell_ratio\":0.1700,\"locked_ratio\":0.5300,\"ts\":1791885600000},{\"buy_ratio\":0.2700,\"sell_ratio\":0.2000,\"locked_ratio\":0.5300,\"ts\":1791889200000},{\"buy_ratio\":0.2800,\"sell_ratio\":0.1900,\"locked_ratio\":0.5300,\"ts\":1791892800000},{\"buy_ratio\":0.2800,\"sell_ratio\":0.2000,\"locked_ratio\":0.5200,\"ts\":1791896400000},{\"buy_ratio\":0.2600,\"sell_ratio\":0.2100,\"locked_ratio\":0.5300,\"ts\":1791900000000},{\"buy_ratio\":0.2700,\"sell_ratio\":0.2000,\"locked_ratio\":0.5300,\"ts\":1791903600000},{\"buy_ratio\":0.2700,\"sell_ratio\":0.2000,\"locked_ratio\":0.5300,\"ts\":1791907200000},{\"buy_ratio\":0.2700,\"sell_ratio\":0.2000,\"locked_ratio\":0.5300,\"ts\":1791910800000},{\"buy_ratio\":0.2700,\"sell_ratio\":0.2000,\"locked_ratio\":0.5300,\"ts\":1791914400000},{\"buy_ratio\":0.2600,\"sell_ratio\":0.2100,\"locked_ratio\":0.5300,\"ts\":1791918000000},{\"buy_ratio\":0.2700,\"sell_ratio\":0.2000,\"locked_ratio\":0.5300,\"ts\":1791921600000},{\"buy_ratio\":0.2700,\"sell_ratio\":0.2000,\"locked_ratio\":0.5300,\"ts\":1791925200000},{\"buy_ratio\":0.2700,\"sell_ratio\":0.2000,\"locked_ratio\":0.5300,\"ts\":17919288",
+   "shape": {
+    "dict_keys": [
+     "status",
+     "data",
+     "ts"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://api.hbdm.com/linear-swap-api/v1/swap_elite_account_ratio?contract_code=BTC-USDT&period=60min"
+  },
+  {
+   "bytes": 134495,
+   "content_type": "application/json",
+   "group": "Kraken",
+   "id": "kraken.futures.tickers",
+   "ms": 197,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a540af84fd0-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "{\"result\":\"success\",\"serverTime\":\"2026-10-14T10:53:27.122Z\",\"tickers\":[{\"symbol\":\"PF_PENGUUSD\",\"last\":0.00773,\"lastTime\":\"2026-10-14T10:22:03.976615187Z\",\"tag\":\"perpetual\",\"pair\":\"PENGU:USD\",\"markPrice\":0.00775722242,\"bid\":0.007755,\"bidSize\":30000,\"ask\":0.007756,\"askSize\":19330,\"vol24h\":101816900,\"volumeQuote\":791594.29084,\"openInterest\":68238990.00000000000,\"open24h\":0.007746,\"high24h\":0.007917,\"low24h\":0.00762,\"vwap24h\":0.0077746846627623,\"lastSize\":258860,\"fundingRate\":0.00000001582008749,\"fundingRatePrediction\":0.000000032173138812,\"relativeFundingRate\":0.000002045683333333,\"relativeFundingRatePrediction\":0.000004146183333333,\"suspended\":false,\"indexPrice\":0.0077569,\"postOnly\":false,\"change24h\":-0.21},{\"symbol\":\"PF_CRCLXUSD\",\"last\":83.53,\"lastTime\":\"2026-10-14T10:26:10.619056965Z\",\"tag\":\"perpetual\",\"pair\":\"CRCLx:USD\",\"markPrice\":83.66252617663,\"bid\":83.62,\"bidSize\":8.79,\"ask\":83.71,\"askSize\":27.64,\"vol24h\":2508.26,\"volumeQuote\":210984.83,\"openInterest\":13208.89000000000,\"open24h\":83.5,\"high24h\":85.2,\"low24h\":82.01,\"vwap24h\":84.1160126940588296,\"lastSize\":0.1,\"fundingRate\":0.002477481755683305,\"fundingRatePrediction\":0.0049129340504125,\"relativeFundingRate\":0.000029668308333333,\"relativeFundingRatePrediction\":0.0000587271125,\"suspended\":false,\"indexPrice\":83.64,\"postOnly\":false,\"change24h\":0.04},{\"symbol\":\"FF_SOLUSD_261225\",\"last\":107.34,\"lastTime\":\"2026-10-14T10:34:01.843449324Z\",\"tag\":\"quarter\",\"pair\":\"SOL:USD\",\"markPrice\":107.50472889098,\"bid\":107.49,\"bidSize\":23.94,\"as",
+   "shape": {
+    "dict_keys": [
+     "result",
+     "serverTime",
+     "tickers"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://futures.kraken.com/derivatives/api/v3/tickers"
+  },
+  {
+   "bytes": 3017,
+   "content_type": "application/json",
+   "group": "Deribit",
+   "id": "deribit.dvol",
+   "ms": 190,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a543fb436e8-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "{\"jsonrpc\":\"2.0\",\"result\":{\"data\":[[1791712800000,36.92,36.92,36.88,36.89],[1791716400000,36.89,37.01,36.89,37.01],[1791720000000,37.01,37.07,37.0,37.05],[1791723600000,37.05,37.12,37.05,37.12],[1791727200000,37.12,37.23,37.12,37.23],[1791730800000,37.23,37.27,37.13,37.18],[1791734400000,37.19,37.43,37.13,37.27],[1791738000000,37.27,37.42,37.03,37.39],[1791741600000,37.39,37.42,37.31,37.31],[1791745200000,37.31,37.37,37.31,37.33],[1791748800000,37.33,37.38,37.33,37.37],[1791752400000,37.37,37.49,37.37,37.47],[1791756000000,37.47,37.47,37.37,37.39],[1791759600000,37.39,37.39,37.18,37.34],[1791763200000,37.34,37.59,37.26,37.54],[1791766800000,37.54,37.84,37.3,37.84],[1791770400000,37.84,37.84,37.49,37.79],[1791774000000,37.79,37.79,37.69,37.69],[1791777600000,37.69,37.7,37.38,37.38],[1791781200000,37.38,38.19,37.36,38.18],[1791784800000,38.18,38.28,37.96,38.02],[1791788400000,38.02,38.05,37.68,37.82],[1791792000000,37.82,38.0,37.8,37.84],[1791795600000,37.84,37.84,37.64,37.64],[1791799200000,37.64,37.68,37.63,37.68],[1791802800000,37.68,37.72,37.67,37.71],[1791806400000,37.71,38.01,37.7,37.9],[1791810000000,37.9,38.0,37.46,37.46],[1791813600000,37.46,37.54,37.34,37.52],[1791817200000,37.52,37.76,37.52,37.62],[1791820800000,37.62,37.62,37.42,37.47],[1791824400000,37.47,37.48,37.37,37.39],[1791828000000,37.39,37.46,37.35,37.4],[1791831600000,37.4,37.48,37.16,37.16],[1791835200000,37.16,37.22,37.13,37.19],[1791838800000,37.19,37.41,37.17,37.4],[1791842400000,37.4,37.5,37.26,37.5],",
+   "shape": {
+    "dict_keys": [
+     "jsonrpc",
+     "result",
+     "usIn",
+     "usOut",
+     "usDiff",
+     "testnet"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://www.deribit.com/api/v2/public/get_volatility_index_data?currency=BTC&start_timestamp=1791716006000&end_timestamp=1791975206000&resolution=3600"
+  },
+  {
+   "bytes": 397724,
+   "content_type": "application/json",
+   "group": "Deribit",
+   "id": "deribit.book_summary.options",
+   "ms": 252,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a543c7dad81-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "{\"jsonrpc\":\"2.0\",\"result\":[{\"high\":null,\"low\":null,\"last\":0.686,\"instrument_name\":\"BTC-26MAR27-112000-P\",\"bid_price\":0.332,\"ask_price\":0.339,\"open_interest\":0.1,\"mark_price\":0.33568155,\"interest_rate\":0.0,\"creation_timestamp\":1791975205412,\"estimated_delivery_price\":83326.39,\"price_change\":null,\"volume\":0.0,\"mark_iv\":39.4,\"underlying_price\":85352.56,\"underlying_index\":\"BTC-26MAR27\",\"base_currency\":\"BTC\",\"quote_currency\":\"BTC\",\"volume_usd\":0.0,\"mid_price\":0.3355},{\"high\":null,\"low\":null,\"last\":0.3195,\"instrument_name\":\"BTC-25DEC26-58000-C\",\"bid_price\":0.315,\"ask_price\":0.318,\"open_interest\":39.0,\"mark_price\":0.31635347,\"interest_rate\":0.0,\"creation_timestamp\":1791975205412,\"estimated_delivery_price\":83326.39,\"price_change\":null,\"volume\":0.0,\"mark_iv\":53.39,\"underlying_price\":84245.51,\"underlying_index\":\"BTC-25DEC26\",\"base_currency\":\"BTC\",\"quote_currency\":\"BTC\",\"volume_usd\":0.0,\"mid_price\":0.3165},{\"high\":null,\"low\":null,\"last\":0.072,\"instrument_name\":\"BTC-30OCT26-79000-C\",\"bid_price\":0.064,\"ask_price\":0.066,\"open_interest\":254.7,\"mark_price\":0.06496886,\"interest_rate\":0.0,\"creation_timestamp\":1791975205412,\"estimated_delivery_price\":83326.39,\"price_change\":null,\"volume\":0.0,\"mark_iv\":37.24,\"underlying_price\":83561.79,\"underlying_index\":\"BTC-30OCT26\",\"base_currency\":\"BTC\",\"quote_currency\":\"BTC\",\"volume_usd\":0.0,\"mid_price\":0.065},{\"high\":0.0016,\"low\":0.0013,\"last\":0.0016,\"instrument_name\":\"BTC-27NOV26-112000-C\",\"bid_price\":0.0014,\"ask_price\":0.0016,\"open_interest\":11.0,\"mark_pr",
+   "shape": {
+    "dict_keys": [
+     "jsonrpc",
+     "result",
+     "usIn",
+     "usOut",
+     "usDiff",
+     "testnet"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://www.deribit.com/api/v2/public/get_book_summary_by_currency?currency=BTC&kind=option"
+  },
+  {
+   "bytes": 3586,
+   "content_type": "application/json",
+   "group": "Deribit",
+   "id": "deribit.funding_rate_history",
+   "ms": 160,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a544db8dac8-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "{\"jsonrpc\":\"2.0\",\"result\":[{\"timestamp\":1791889200000,\"index_price\":83245.78,\"interest_8h\":9.48987486903234e-5,\"interest_1h\":1.1519708160073467e-5,\"prev_index_price\":83527.67},{\"timestamp\":1791892800000,\"index_price\":83256.64,\"interest_8h\":9.875589253911629e-5,\"interest_1h\":1.142431662547232e-5,\"prev_index_price\":83245.78},{\"timestamp\":1791896400000,\"index_price\":83261.48,\"interest_8h\":9.779913647888243e-5,\"interest_1h\":1.3426156300938248e-5,\"prev_index_price\":83256.64},{\"timestamp\":1791900000000,\"index_price\":83173.68,\"interest_8h\":9.357810557622016e-5,\"interest_1h\":1.1207303085211103e-5,\"prev_index_price\":83261.48},{\"timestamp\":1791903600000,\"index_price\":83427.83,\"interest_8h\":8.904290343417492e-5,\"interest_1h\":1.123937180594754e-5,\"prev_index_price\":83173.68},{\"timestamp\":1791907200000,\"index_price\":83340.38,\"interest_8h\":8.812496517615982e-5,\"interest_1h\":9.682987965786722e-6,\"prev_index_price\":83427.83},{\"timestamp\":1791910800000,\"index_price\":83294.84,\"interest_8h\":8.004181444444528e-5,\"interest_1h\":4.93684465518884e-6,\"prev_index_price\":83340.38},{\"timestamp\":1791914400000,\"index_price\":83006.89,\"interest_8h\":7.365497315829666e-5,\"interest_1h\":2.946215463018916e-8,\"prev_index_price\":83294.84},{\"timestamp\":1791918000000,\"index_price\":83052.35,\"interest_8h\":6.196016603072305e-5,\"interest_1h\":3.4496455065494966e-8,\"prev_index_price\":83006.89},{\"timestamp\":1791921600000,\"index_price\":83205.0,\"interest_8h\":5.054244216376103e-5,\"interest_1h\":0.0,\"prev_index_price\":83052.35}",
+   "shape": {
+    "dict_keys": [
+     "jsonrpc",
+     "result",
+     "usIn",
+     "usOut",
+     "usDiff",
+     "testnet"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://www.deribit.com/api/v2/public/get_funding_rate_history?instrument_name=BTC-PERPETUAL&start_timestamp=1791888806000&end_timestamp=1791975206000"
+  },
+  {
+   "bytes": 167173,
+   "content_type": "application/json; charset=utf-8",
+   "group": "dYdX",
+   "id": "dydx.perpetualMarkets",
+   "ms": 32,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a553aae6cd4-SJC",
+    "ratelimit-limit": "100",
+    "ratelimit-remaining": "99",
+    "ratelimit-reset": "1791975210418",
+    "server": "cloudflare"
+   },
+   "sample": "{\"markets\":{\"BTC-USD\":{\"clobPairId\":\"0\",\"ticker\":\"BTC-USD\",\"status\":\"ACTIVE\",\"oraclePrice\":\"83356.40999\",\"priceChange24H\":\"121.20402\",\"volume24H\":\"4017141.0643\",\"trades24H\":1268,\"nextFundingRate\":\"0.00000957547169811321\",\"initialMarginFraction\":\"0.02\",\"maintenanceMarginFraction\":\"0.012\",\"openInterest\":\"188.8481\",\"atomicResolution\":-10,\"quantumConversionExponent\":-9,\"tickSize\":\"1\",\"stepSize\":\"0.0001\",\"stepBaseQuantums\":1000000,\"subticksPerTick\":100000,\"marketType\":\"CROSS\",\"openInterestLowerCap\":\"0\",\"openInterestUpperCap\":\"0\",\"baseOpenInterest\":\"782.0931\",\"defaultFundingRate1H\":\"0\"},\"ETH-USD\":{\"clobPairId\":\"1\",\"ticker\":\"ETH-USD\",\"status\":\"ACTIVE\",\"oraclePrice\":\"2502.058147\",\"priceChange24H\":\"9.005575\",\"volume24H\":\"51738383.0314\",\"trades24H\":4275,\"nextFundingRate\":\"0.00000616037735849057\",\"initialMarginFraction\":\"0.02\",\"maintenanceMarginFraction\":\"0.012\",\"openInterest\":\"5993.541\",\"atomicResolution\":-9,\"quantumConversionExponent\":-9,\"tickSize\":\"0.1\",\"stepSize\":\"0.001\",\"stepBaseQuantums\":1000000,\"subticksPerTick\":100000,\"marketType\":\"CROSS\",\"openInterestLowerCap\":\"0\",\"openInterestUpperCap\":\"0\",\"baseOpenInterest\":\"13993.985\",\"defaultFundingRate1H\":\"0\"},\"LINK-USD\":{\"clobPairId\":\"2\",\"ticker\":\"LINK-USD\",\"status\":\"ACTIVE\",\"oraclePrice\":\"12.91497808\",\"priceChange24H\":\"0.066111833\",\"volume24H\":\"4208.899\",\"trades24H\":92,\"nextFundingRate\":\"0.00000711084905660377\",\"initialMarginFraction\":\"0.1\",\"maintenanceMarginFraction\":\"0.05\",\"openInterest\":\"26421\",\"atomicResolution\":-6,\"quantumConversion",
+   "shape": {
+    "dict_keys": [
+     "markets"
+    ],
+    "first": {
+     "dict_keys": [
+      "BTC-USD",
+      "ETH-USD",
+      "LINK-USD",
+      "MATIC-USD",
+      "CRV-USD",
+      "SOL-USD",
+      "ADA-USD",
+      "AVAX-USD",
+      "FIL-USD",
+      "LTC-USD",
+      "DOGE-USD",
+      "ATOM-USD"
+     ],
+     "first": {
+      "dict_keys": [
+       "clobPairId",
+       "ticker",
+       "status",
+       "oraclePrice",
+       "priceChange24H",
+       "volume24H",
+       "trades24H",
+       "nextFundingRate",
+       "initialMarginFraction",
+       "maintenanceMarginFraction",
+       "openInterest",
+       "atomicResolution"
+      ]
+     }
+    }
+   },
+   "status": 200,
+   "url": "https://indexer.dydx.trade/v4/perpetualMarkets"
+  },
+  {
+   "bytes": 677,
+   "content_type": "application/json; charset=utf-8",
+   "group": "dYdX",
+   "id": "dydx.historicalFunding",
+   "ms": 340,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a553f508bdb-SJC",
+    "ratelimit-limit": "100",
+    "ratelimit-remaining": "99",
+    "ratelimit-reset": "1791975217500",
+    "server": "cloudflare"
+   },
+   "sample": "{\"historicalFunding\":[{\"ticker\":\"BTC-USD\",\"rate\":\"0.00002375\",\"price\":\"83177.87495\",\"effectiveAtHeight\":\"109380670\",\"effectiveAt\":\"2026-10-14T10:00:00.086Z\"},{\"ticker\":\"BTC-USD\",\"rate\":\"0.000007625\",\"price\":\"83376.13641\",\"effectiveAtHeight\":\"109375398\",\"effectiveAt\":\"2026-10-14T09:00:00.519Z\"},{\"ticker\":\"BTC-USD\",\"rate\":\"0\",\"price\":\"83501.15884\",\"effectiveAtHeight\":\"109369861\",\"effectiveAt\":\"2026-10-14T08:00:00.498Z\"},{\"ticker\":\"BTC-USD\",\"rate\":\"0\",\"price\":\"83374.17079\",\"effectiveAtHeight\":\"109364122\",\"effectiveAt\":\"2026-10-14T07:00:00.448Z\"},{\"ticker\":\"BTC-USD\",\"rate\":\"0\",\"price\":\"83372.02797\",\"effectiveAtHeight\":\"109358435\",\"effectiveAt\":\"2026-10-14T06:00:00.291Z\"}]}",
+   "shape": {
+    "dict_keys": [
+     "historicalFunding"
+    ],
+    "first": {
+     "first": {
+      "dict_keys": [
+       "ticker",
+       "rate",
+       "price",
+       "effectiveAtHeight",
+       "effectiveAt"
+      ]
+     },
+     "list_len": 5
+    }
+   },
+   "status": 200,
+   "url": "https://indexer.dydx.trade/v4/historicalFunding/BTC-USD?limit=5"
+  },
+  {
+   "bytes": 170510,
+   "content_type": "application/json",
+   "group": "Aster",
+   "id": "aster.premiumIndex",
+   "ms": 522,
+   "ok": true,
+   "rate_headers": {
+    "x-mbx-used-weight-1m": "10"
+   },
+   "sample": "[{\"symbol\":\"SUSHIUSDT\",\"markPrice\":\"0.23588119\",\"indexPrice\":\"0.23609143\",\"estimatedSettlePrice\":\"0.23741772\",\"lastFundingRate\":\"0.00010000\",\"interestRate\":\"0.00010000\",\"nextFundingTime\":1791993600000,\"time\":1791975207000},{\"symbol\":\"KORUUSDT\",\"markPrice\":\"14.04000000\",\"indexPrice\":\"14.03313928\",\"estimatedSettlePrice\":\"14.10347355\",\"lastFundingRate\":\"0.00021324\",\"interestRate\":\"0\",\"nextFundingTime\":1791993600000,\"time\":1791975207000},{\"symbol\":\"TSLAUSDT\",\"markPrice\":\"375.81084607\",\"indexPrice\":\"375.63991884\",\"estimatedSettlePrice\":\"375.75478750\",\"lastFundingRate\":\"0\",\"interestRate\":\"0\",\"nextFundingTime\":1791993600000,\"time\":1791975207000},{\"symbol\":\"SLXUSDT\",\"markPrice\":\"0.05261752\",\"indexPrice\":\"0.05261679\",\"estimatedSettlePrice\":\"0.05246258\",\"lastFundingRate\":\"0.00005000\",\"interestRate\":\"0.00010000\",\"nextFundingTime\":1791979200000,\"time\":1791975207000},{\"symbol\":\"SQQQUSDT\",\"markPrice\":\"34.12726912\",\"indexPrice\":\"34.12726912\",\"estimatedSettlePrice\":\"34.05264959\",\"lastFundingRate\":\"0\",\"interestRate\":\"0\",\"nextFundingTime\":1791993600000,\"time\":1791975207000},{\"symbol\":\"PNUTUSDT\",\"markPrice\":\"0.04735353\",\"indexPrice\":\"0.04736730\",\"estimatedSettlePrice\":\"0.04728179\",\"lastFundingRate\":\"-0.00010070\",\"interestRate\":\"0.00010000\",\"nextFundingTime\":1791979200000,\"time\":1791975207000},{\"symbol\":\"PENDLEUSDT\",\"markPrice\":\"2.18602206\",\"indexPrice\":\"2.18689599\",\"estimatedSettlePrice\":\"2.18457811\",\"lastFundingRate\":\"0.00010000\",\"interestRate\":\"0.00010000\",\"nextFundingTime\":1791993600000,\"tim",
+   "shape": {
+    "first": {
+     "dict_keys": [
+      "symbol",
+      "markPrice",
+      "indexPrice",
+      "estimatedSettlePrice",
+      "lastFundingRate",
+      "interestRate",
+      "nextFundingTime",
+      "time"
+     ],
+     "first": "str"
+    },
+    "list_len": 784
+   },
+   "status": 200,
+   "url": "https://fapi.asterdex.com/fapi/v1/premiumIndex"
+  },
+  {
+   "bytes": 4000,
+   "content_type": "text/html",
+   "group": "Aster",
+   "id": "aster.openInterestHist",
+   "ms": 199,
+   "ok": false,
+   "rate_headers": {},
+   "sample": "<!DOCTYPE html>\n<html>\n  <head>\n    <style>\n      * {\n        box-sizing: border-box;\n      }\n\n      html,\n      body {\n        margin: 0;\n        border: 0;\n      }\n\n      .p-8 {\n        padding: 8px;\n      }\n\n      .bg-0b0d12 {\n        background-color: #0b0d12;\n      }\n\n      .minH-100p {\n        min-height: 100%;\n      }\n\n      .absolute {\n        position: absolute;\n      }\n\n      .w-100p {\n        width: 100%;\n      }\n\n      .bottom-0 {\n        bottom: 0px;\n      }\n\n      .top-0 {\n        top: 0px;\n      }\n\n      .column-toCenterX {\n        align-items: center;\n      }\n\n      .flexDirection-column {\n        flex-direction: column;\n      }\n\n      .flex {\n        display: flex;\n      }\n\n      .top-50p {\n        top: 50%;\n      }\n\n      .left-50p {\n        left: 50%;\n      }\n\n      .transform-translateX--50p-translateY--70p {\n        transform: translateX(-50%) translateY(-70%);\n      }\n\n      .w-180 {\n        width: 180px;\n      }\n\n      @media (min-width: 640px) {\n        .w-180--sm.r-sm {\n          width: 180px;\n        }\n      }\n\n      @media (min-width: 768px) {\n        .w-200--md.r-sm.r-md {\n          width: 200px;\n        }\n      }\n\n      @media (min-width: 1024px) {\n        .w-360--lg.r-sm.r-md.r-lg {\n          width: 360px;\n        }\n      }\n\n      @media (min-width: 1280px) {\n        .w-360--xl.r-sm.r-md.r-lg.r-xl {\n          width: 360px;\n        }\n      }\n\n      .mb-36 {\n        margin-bottom: 36px;\n      }\n\n      @media (min-width: 640px) {\n        .mb-36--sm.",
+   "shape": {
+    "cloudflare": false,
+    "items": 0,
+    "text_bytes": 4000,
+    "title": null
+   },
+   "status": 404,
+   "url": "https://fapi.asterdex.com/futures/data/openInterestHist?symbol=BTCUSDT&period=1h&limit=5"
+  },
+  {
+   "bytes": 198,
+   "content_type": "application/json; charset=utf-8",
+   "group": "Bitfinex",
+   "id": "bitfinex.status.deriv",
+   "ms": 115,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a55af7af3f6-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "[[\"tBTCF0:USTF0\",1791975203000,null,83464.649483155,83421.5,null,61391359.9908466,null,1791993600000,0.00018591,3322,null,0,null,null,83418.1626,null,null,9229.0602912,null,null,null,0.0005,0.0025]]",
+   "shape": {
+    "first": {
+     "first": "str",
+     "list_len": 24
+    },
+    "list_len": 1
+   },
+   "status": 200,
+   "url": "https://api-pub.bitfinex.com/v2/status/deriv?keys=tBTCF0:USTF0"
+  },
+  {
+   "bytes": 156,
+   "content_type": "application/json; charset=utf-8",
+   "group": "Bitfinex",
+   "id": "bitfinex.stats.pos.size.long",
+   "ms": 489,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a55aea95b6a-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "[[1791975180000,89613.60728305],[1791975120000,89613.60691825],[1791975060000,89613.60654265],[1791975000000,89613.60674265],[1791974940000,89613.60680506]]",
+   "shape": {
+    "first": {
+     "first": "int",
+     "list_len": 2
+    },
+    "list_len": 5
+   },
+   "status": 200,
+   "url": "https://api-pub.bitfinex.com/v2/stats1/pos.size:1m:tBTCUSD:long/hist?limit=5"
+  },
+  {
+   "bytes": 21466,
+   "content_type": "application/json; charset=utf-8",
+   "group": "Coinbase",
+   "id": "coinbase.spot.candles",
+   "ms": 47,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a556d506af7-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "[[1791936000,82935.62,84062.11,83101.99,83363.5,1660.56730747],[1791849600,80927.48,84070.33,81735.6,83101.99,5184.64684673],[1791763200,81634.08,84261.99,83678.29,81742.5,4726.89306846],[1791676800,82714.25,84110.99,82910.8,83678.29,2130.40222253],[1791590400,82458.02,83093.39,82544.71,82910.8,1612.8723611],[1791504000,81534.02,83452.99,81692.79,82544.71,4446.62213697],[1791417600,80314.7,83473.42,83275.05,81692.79,8586.66801134],[1791331200,82717.3,85601.11,85539.77,83275.06,7688.7646354],[1791244800,85100.01,86698.35,85748.96,85539.77,4698.57646281],[1791158400,84944.2,86996,86502.65,85748.96,5354.90806311],[1791072000,84700.02,86792.81,84742.22,86507.11,2622.78236607],[1790985600,84425.07,85021.57,84504.88,84742.22,1921.24898945],[1790899200,83850.02,87249.05,84848.73,84504.88,8762.22618618],[1790812800,83107.03,85244,83556.14,84848.73,6608.91869362],[1790726400,82911.86,85613.72,83638.42,83556.14,7049.23875006],[1790640000,82736,84557.01,83456.74,83638.42,4975.86563586],[1790553600,82510.37,84992,84463.08,83456.74,6680.12066817],[1790467200,84113.56,85158.5,84416.64,84462.14,2958.05456342],[1790380800,83777.77,84470.44,84093.13,84416.65,1990.34470923],[1790294400,83091.19,85250,84385.47,84093.13,7277.8815177],[1790208000,82708.96,84929.78,84378.31,84385.46,6839.37550902],[1790121600,83513,87282.81,86198.05,84378.31,7836.10064765],[1790035200,85059.28,86734,86594.94,86198.05,8943.87588877],[1789948800,80837.42,87397,81160.33,86594.94,14077.54012157],[1789862400,80085,8147",
+   "shape": {
+    "first": {
+     "first": "int",
+     "list_len": 6
+    },
+    "list_len": 350
+   },
+   "status": 200,
+   "url": "https://api.exchange.coinbase.com/products/BTC-USD/candles?granularity=86400"
+  },
+  {
+   "bytes": 447585,
+   "content_type": "application/json",
+   "group": "Coinbase",
+   "id": "coinbase.intl.instruments",
+   "ms": 1215,
+   "ok": true,
+   "rate_headers": {},
+   "sample": "[{\"instrument_id\":\"149264164756389888\",\"instrument_uuid\":\"e9360798-6a10-45d6-af05-67c30eb91e2d\",\"symbol\":\"ETH-PERP\",\"type\":\"PERP\",\"mode\":\"STANDARD\",\"base_asset_id\":\"118059611793145856\",\"base_asset_uuid\":\"d85dce9b-5b73-5c3c-8978-522ce1d1c1b4\",\"base_asset_name\":\"ETH\",\"quote_asset_id\":\"1\",\"quote_asset_uuid\":\"2b92315d-eab7-5bef-84fa-089a131333f5\",\"quote_asset_name\":\"USDC\",\"base_increment\":\"0.0001\",\"quote_increment\":\"0.01\",\"price_band_percent\":0.02,\"market_order_percent\":0.0075,\"qty_24hr\":\"0\",\"notional_24hr\":\"0.000003\",\"avg_daily_qty\":\"630019.23127\",\"avg_daily_notional\":\"1643550055.6475606\",\"avg_30day_notional\":\"49306501669.42682\",\"avg_30day_qty\":\"18900576.9381\",\"previous_day_qty\":\"0\",\"open_interest\":\"13699.4503\",\"position_limit_qty\":\"63486.177\",\"position_limit_adq_pct\":0.0255,\"position_notional_limit\":\"100000000\",\"open_interest_notional_limit\":\"600000000\",\"replacement_cost\":\"0.23\",\"base_imf\":0.02,\"min_notional_value\":\"10\",\"min_quantity\":\"0.0001\",\"funding_interval\":\"3600000000000\",\"trading_state\":\"PAUSED\",\"quote\":{\"best_bid_price\":\"2684.92\",\"best_bid_size\":\"0.0217\",\"best_ask_price\":\"2692.77\",\"best_ask_size\":\"0.1015\",\"trade_price\":\"2692.77\",\"trade_qty\":\"0.0217\",\"index_price\":\"2686.48\",\"mark_price\":\"2692.77\",\"settlement_price\":\"2692.77\",\"limit_up\":\"2713.33\",\"limit_down\":\"2659.61\",\"predicted_funding\":\"0.000039\",\"timestamp\":\"2026-10-01T09:00:29.114Z\"},\"default_imf\":0.2,\"base_asset_multiplier\":\"1.0\",\"underlying_type\":\"SPOT\",\"rfq_maker_fee_rate\":\"0\",\"execution_exchange\":\"COINBASE_INTERN",
+   "shape": {
+    "first": {
+     "dict_keys": [
+      "instrument_id",
+      "instrument_uuid",
+      "symbol",
+      "type",
+      "mode",
+      "base_asset_id",
+      "base_asset_uuid",
+      "base_asset_name",
+      "quote_asset_id",
+      "quote_asset_uuid",
+      "quote_asset_name",
+      "base_increment"
+     ],
+     "first": "str"
+    },
+    "list_len": 310
+   },
+   "status": 200,
+   "url": "https://api.international.coinbase.com/api/v1/instruments"
+  },
+  {
+   "bytes": 67455,
+   "content_type": "application/json;charset=UTF-8",
+   "group": "Korea",
+   "id": "upbit.market.all",
+   "ms": 840,
+   "ok": true,
+   "rate_headers": {
+    "limit-by-ip": "Yes",
+    "remaining-req": "group=market; min=600; sec=9"
+   },
+   "sample": "[{\"market\":\"BTC-BERA\",\"korean_name\":\"\ubca0\ub77c\uccb4\uc778\",\"english_name\":\"Berachain\"},{\"market\":\"BTC-FIL\",\"korean_name\":\"\ud30c\uc77c\ucf54\uc778\",\"english_name\":\"Filecoin\"},{\"market\":\"BTC-SIGN\",\"korean_name\":\"\uc0ac\uc778\",\"english_name\":\"Sign\"},{\"market\":\"KRW-GEOD\",\"korean_name\":\"\uc9c0\uc624\ub4dc\ub137\",\"english_name\":\"GEODNET\"},{\"market\":\"BTC-VIRTUAL\",\"korean_name\":\"\ubc84\ucd94\uc5bc\ud504\ub85c\ud1a0\ucf5c\",\"english_name\":\"Virtuals Protocol\"},{\"market\":\"BTC-BAT\",\"korean_name\":\"\ubca0\uc774\uc9c1\uc5b4\ud150\uc158\ud1a0\ud070\",\"english_name\":\"Basic Attention Token\"},{\"market\":\"KRW-WAXP\",\"korean_name\":\"\uc641\uc2a4\",\"english_name\":\"WAX\"},{\"market\":\"USDT-PEPE\",\"korean_name\":\"\ud398\ud398\",\"english_name\":\"Pepe\"},{\"market\":\"BTC-BAR\",\"korean_name\":\"FC\ubc14\ub974\uc140\ub85c\ub098\",\"english_name\":\"FC Barcelona Fan Token\"},{\"market\":\"USDT-WCT\",\"korean_name\":\"\uc6d4\ub81b\ucee4\ub125\ud2b8\",\"english_name\":\"WalletConnect\"},{\"market\":\"KRW-CARV\",\"korean_name\":\"\uce74\ube0c\",\"english_name\":\"CARV\"},{\"market\":\"KRW-LSK\",\"korean_name\":\"\ub9ac\uc2a4\ud06c\",\"english_name\":\"Lisk\"},{\"market\":\"USDT-DOGE\",\"korean_name\":\"\ub3c4\uc9c0\ucf54\uc778\",\"english_name\":\"Dogecoin\"},{\"market\":\"KRW-0G\",\"korean_name\":\"\uc81c\ub85c\uc9c0\",\"english_name\":\"0G\"},{\"market\":\"USDT-AXL\",\"korean_name\":\"\uc5d1\uc140\ub77c\",\"english_name\":\"Axelar\"},{\"market\":\"USDT-KMNO\",\"korean_name\":\"\uce74\ubbf8\ub178\ud30c\uc774\ub0b8\uc2a4\",\"english_name\":\"Kamino Finance\"},{\"market\":\"USDT-YGG\",\"korean_name\":\"\uc77c\ub4dc\uae38\ub4dc\uac8c\uc784\uc988\",\"english_name\":\"Yield Guild Games\"},{\"market\":\"BTC-SCR\",\"korean_name\":\"\uc2a4\ud06c\ub864\",\"english_name\":\"Scroll\"},{\"market\":\"BTC-WLD\",\"korean_name\":\"\uc6d4\ub4dc\ucf54\uc778\",\"english_name\":\"Worldcoin\"},{",
+   "shape": {
+    "first": {
+     "dict_keys": [
+      "market",
+      "korean_name",
+      "english_name"
+     ],
+     "first": "str"
+    },
+    "list_len": 869
+   },
+   "status": 200,
+   "url": "https://api.upbit.com/v1/market/all"
+  },
+  {
+   "bytes": 829,
+   "content_type": "application/json;charset=UTF-8",
+   "group": "Korea",
+   "id": "upbit.ticker.btc",
+   "ms": 582,
+   "ok": true,
+   "rate_headers": {
+    "limit-by-ip": "Yes",
+    "remaining-req": "group=ticker; min=600; sec=9"
+   },
+   "sample": "[{\"market\":\"KRW-BTC\",\"trade_date\":\"20261014\",\"trade_time\":\"105326\",\"trade_date_kst\":\"20261014\",\"trade_time_kst\":\"195326\",\"trade_timestamp\":1791975206433,\"opening_price\":112593000.00000000,\"high_price\":113212000.00000000,\"low_price\":112055000.00000000,\"trade_price\":112597000.00000000,\"prev_closing_price\":112593000.00000000,\"change\":\"RISE\",\"change_price\":4000.00000000,\"change_rate\":0.0000355262,\"signed_change_price\":4000.00000000,\"signed_change_rate\":0.0000355262,\"trade_volume\":0.00013321,\"acc_trade_price\":32977038762.5306800000000000,\"acc_trade_price_24h\":59067907574.64255,\"acc_trade_volume\":292.47152136,\"acc_trade_volume_24h\":523.92590221,\"highest_52_week_price\":171500000.00000000,\"highest_52_week_date\":\"2025-10-27\",\"lowest_52_week_price\":88342000.00000000,\"lowest_52_week_date\":\"2026-08-14\",\"timestamp\":1791975206585}]",
+   "shape": {
+    "first": {
+     "dict_keys": [
+      "market",
+      "trade_date",
+      "trade_time",
+      "trade_date_kst",
+      "trade_time_kst",
+      "trade_timestamp",
+      "opening_price",
+      "high_price",
+      "low_price",
+      "trade_price",
+      "prev_closing_price",
+      "change"
+     ],
+     "first": "str"
+    },
+    "list_len": 1
+   },
+   "status": 200,
+   "url": "https://api.upbit.com/v1/ticker?markets=KRW-BTC"
+  },
+  {
+   "bytes": 170653,
+   "content_type": "application/json",
+   "group": "Korea",
+   "id": "bithumb.ticker.all",
+   "ms": 910,
+   "ok": true,
+   "rate_headers": {
+    "server": "nginx",
+    "x-ratelimit-burst-capacity": "150",
+    "x-ratelimit-remaining": "149",
+    "x-ratelimit-replenish-rate": "150",
+    "x-ratelimit-requested-tokens": "1"
+   },
+   "sample": "",
+   "shape": {
+    "dict_keys": [
+     "status",
+     "data"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://api.bithumb.com/public/ticker/ALL_KRW"
+  },
+  {
+   "bytes": 3358,
+   "content_type": "application/json; charset=utf-8",
+   "group": "CoinGecko",
+   "id": "coingecko.global",
+   "ms": 118,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a565bdfc132-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "{\"data\":{\"active_cryptocurrencies\":22255,\"upcoming_icos\":0,\"ongoing_icos\":49,\"ended_icos\":3376,\"markets\":1510,\"total_market_cap\":{\"btc\":33572313.88517651,\"eth\":0.0,\"ltc\":0.0,\"bch\":0.0,\"bnb\":0.0,\"eos\":0.0,\"xrp\":0.0,\"xlm\":0.0,\"link\":0.0,\"dot\":0.0,\"yfi\":0.0,\"sol\":0.0,\"usd\":2794578744689.9126,\"aed\":10263090439873.703,\"ars\":4228898800522880.5,\"aud\":3987327309553.525,\"bdt\":343562559797023.44,\"bhd\":1053396895759.6494,\"bmd\":2794578744689.9126,\"brl\":14049744638928.537,\"cad\":3971163466094.236,\"chf\":2329622322305.894,\"clp\":2739553489206968.5,\"cny\":18703277164586.184,\"czk\":60819535052184.414,\"dkk\":18664918776736.566,\"eur\":2496900216805.5435,\"gbp\":2106433290861.2346,\"gel\":7251931842470.323,\"hkd\":21931733821440.414,\"huf\":907748350482951.0,\"idr\":5.003742640459011e+16,\"ils\":8589883924329.278,\"inr\":265751002285406.22,\"jpy\":442764206799996.3,\"krw\":3.733084091902562e+15,\"kwd\":871089756771.0585,\"lkr\":922811141095144.6,\"mmk\":5.868475634911582e+15,\"mxn\":51362037827042.48,\"myr\":11409147183071.037,\"ngn\":3717292754611626.5,\"nok\":26520868074505.418,\"nzd\":4975303116899.984,\"php\":175572218186782.22,\"pkr\":772289009778695.0,\"pln\":10905835167416.15,\"rub\":234562827206610.62,\"sar\":10494956638320.625,\"sek\":27842740150267.434,\"sgd\":3583130618236.5527,\"thb\":93861516297900.08,\"try\":138031135631419.17,\"twd\":89753482748627.19,\"uah\":125829110566904.72,\"vef\":2.4472206048093238e+20,\"vnd\":7.237029111914646e+16,\"zar\":46082209464333.64,\"xdr\":2048191475243.1519,\"xag\":47691917561.64123,\"xau\":674387742.6685697,\"bits\":33572",
+   "shape": {
+    "dict_keys": [
+     "data"
+    ],
+    "first": {
+     "dict_keys": [
+      "active_cryptocurrencies",
+      "upcoming_icos",
+      "ongoing_icos",
+      "ended_icos",
+      "markets",
+      "total_market_cap",
+      "total_volume",
+      "market_cap_percentage",
+      "market_cap_change_percentage_24h_usd",
+      "volume_change_percentage_24h_usd",
+      "updated_at"
+     ],
+     "first": "int"
+    }
+   },
+   "status": 200,
+   "url": "https://api.coingecko.com/api/v3/global"
+  },
+  {
+   "bytes": 3925,
+   "content_type": "application/json; charset=utf-8",
+   "group": "CoinGecko",
+   "id": "coingecko.markets",
+   "ms": 330,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a564b0de0ce-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "[{\"id\":\"bitcoin\",\"symbol\":\"btc\",\"name\":\"Bitcoin\",\"image\":\"https://coin-images.coingecko.com/coins/images/1/large/bitcoin.png?1696501400\",\"current_price\":83361,\"market_cap\":1675389170643,\"market_cap_rank\":1,\"fully_diluted_valuation\":1675391254665,\"total_volume\":27115569082,\"high_24h\":84025,\"low_24h\":82919,\"price_change_24h\":94.34,\"price_change_percentage_24h\":0.1133,\"market_cap_change_24h\":1950701252,\"market_cap_change_percentage_24h\":0.11657,\"circulating_supply\":20098025.0,\"total_supply\":20098050.0,\"max_supply\":21000000.0,\"ath\":126080,\"ath_change_percentage\":-33.88249,\"ath_date\":\"2025-10-06T10:57:42.000Z\",\"atl\":67.81,\"atl_change_percentage\":122834.84068,\"atl_date\":\"2013-07-05T16:00:00.000Z\",\"roi\":null,\"last_updated\":\"2026-10-14T10:52:47.000Z\"},{\"id\":\"ethereum\",\"symbol\":\"eth\",\"name\":\"Ethereum\",\"image\":\"https://coin-images.coingecko.com/coins/images/279/large/ethereum.png?1696501628\",\"current_price\":2501.7,\"market_cap\":305541650359,\"market_cap_rank\":2,\"fully_diluted_valuation\":305541650359,\"total_volume\":9277163851,\"high_24h\":2525.16,\"low_24h\":2487.48,\"price_change_24h\":7.1,\"price_change_percentage_24h\":0.28478,\"market_cap_change_24h\":874966898,\"market_cap_change_percentage_24h\":0.28719,\"circulating_supply\":122133648.4596395,\"total_supply\":122133648.4596395,\"max_supply\":null,\"ath\":4946.05,\"ath_change_percentage\":-49.42021,\"ath_date\":\"2025-08-24T11:21:03.000Z\",\"atl\":0.432979,\"atl_change_percentage\":577688.22819,\"atl_date\":\"2015-10-19T16:00:00.000Z\",\"roi\":{\"times\":43.309089628863",
+   "shape": {
+    "first": {
+     "dict_keys": [
+      "id",
+      "symbol",
+      "name",
+      "image",
+      "current_price",
+      "market_cap",
+      "market_cap_rank",
+      "fully_diluted_valuation",
+      "total_volume",
+      "high_24h",
+      "low_24h",
+      "price_change_24h"
+     ],
+     "first": "str"
+    },
+    "list_len": 5
+   },
+   "status": 200,
+   "url": "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&per_page=5"
+  },
+  {
+   "bytes": 8000000,
+   "content_type": "application/json; charset=utf-8",
+   "group": "CoinGecko",
+   "id": "coingecko.derivatives",
+   "ms": 149,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a567ff8ed35-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "",
+   "shape": {
+    "cloudflare": false,
+    "items": 0,
+    "text_bytes": 7999576,
+    "title": null
+   },
+   "status": 200,
+   "url": "https://api.coingecko.com/api/v3/derivatives?include_tickers=unexpired"
+  },
+  {
+   "bytes": 455,
+   "content_type": "application/json",
+   "group": "CoinPaprika",
+   "id": "coinpaprika.global",
+   "ms": 116,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a5709c6eb20-SJC",
+    "ratelimit-limit": "20000",
+    "ratelimit-remaining": "19580",
+    "ratelimit-reset": "1516168",
+    "server": "cloudflare"
+   },
+   "sample": "{\"market_cap_usd\":2926378178820,\"volume_24h_usd\":123625718733,\"bitcoin_dominance_percentage\":57.24,\"cryptocurrencies_number\":11165,\"market_cap_ath_value\":4823580636226,\"market_cap_ath_date\":\"2025-10-05T10:10:00Z\",\"volume_24h_ath_value\":2461621335224,\"volume_24h_ath_date\":\"2022-03-26T03:05:00Z\",\"volume_24h_percent_from_ath\":-94.98,\"volume_24h_percent_to_ath\":1891.19,\"market_cap_change_24h\":0.17,\"volume_24h_change_24h\":-17.49,\"last_updated\":1791974964}\n",
+   "shape": {
+    "dict_keys": [
+     "market_cap_usd",
+     "volume_24h_usd",
+     "bitcoin_dominance_percentage",
+     "cryptocurrencies_number",
+     "market_cap_ath_value",
+     "market_cap_ath_date",
+     "volume_24h_ath_value",
+     "volume_24h_ath_date",
+     "volume_24h_percent_from_ath",
+     "volume_24h_percent_to_ath",
+     "market_cap_change_24h",
+     "volume_24h_change_24h"
+    ],
+    "first": "int"
+   },
+   "status": 200,
+   "url": "https://api.coinpaprika.com/v1/global"
+  },
+  {
+   "bytes": 4054,
+   "content_type": "application/json",
+   "group": "CoinPaprika",
+   "id": "coinpaprika.tickers",
+   "ms": 214,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a5719a7ce4c-SJC",
+    "ratelimit-limit": "20000",
+    "ratelimit-remaining": "15838",
+    "ratelimit-reset": "1516129",
+    "server": "cloudflare"
+   },
+   "sample": "[{\"id\":\"btc-bitcoin\",\"name\":\"Bitcoin\",\"symbol\":\"BTC\",\"rank\":1,\"total_supply\":20098088,\"max_supply\":21000000,\"beta_value\":1.0461,\"first_data_at\":\"2010-07-17T00:00:00Z\",\"last_updated\":\"2026-10-14T10:50:14Z\",\"quotes\":{\"USD\":{\"price\":83356.10934004883,\"volume_24h\":20549134194.916237,\"volume_24h_change_24h\":-17.020000457763672,\"market_cap\":1675299171058,\"market_cap_change_24h\":-0.009999999776482582,\"percent_change_15m\":0.05000000074505806,\"percent_change_30m\":0.07999999821186066,\"percent_change_1h\":0.2199999988079071,\"percent_change_6h\":-0.25999999046325684,\"percent_change_12h\":0.10000000149011612,\"percent_change_24h\":-0.009999999776482582,\"percent_change_7d\":-0.2800000011920929,\"percent_change_30d\":0,\"percent_change_1y\":0,\"ath_price\":126173.1777846797,\"ath_date\":\"2025-10-06T19:00:40Z\",\"percent_from_price_ath\":-33.95}}},{\"id\":\"eth-ethereum\",\"name\":\"Ethereum\",\"symbol\":\"ETH\",\"rank\":2,\"total_supply\":120232214,\"max_supply\":0,\"beta_value\":1.38924,\"first_data_at\":\"2015-08-07T00:00:00Z\",\"last_updated\":\"2026-10-14T10:50:14Z\",\"quotes\":{\"USD\":{\"price\":2502.024643168393,\"volume_24h\":6600883303.845941,\"volume_24h_change_24h\":-40.13999938964844,\"market_cap\":305581397056,\"market_cap_change_24h\":0.05000000074505806,\"percent_change_15m\":0.03999999910593033,\"percent_change_30m\":0.10999999940395355,\"percent_change_1h\":0.25,\"percent_change_6h\":-0.30000001192092896,\"percent_change_12h\":-0.029999999329447746,\"percent_change_24h\":0.05000000074505806,\"percent_change_7d\":-2.8399999141693115,\"percent_chan",
+   "shape": {
+    "first": {
+     "dict_keys": [
+      "id",
+      "name",
+      "symbol",
+      "rank",
+      "total_supply",
+      "max_supply",
+      "beta_value",
+      "first_data_at",
+      "last_updated",
+      "quotes"
+     ],
+     "first": "str"
+    },
+    "list_len": 5
+   },
+   "status": 200,
+   "url": "https://api.coinpaprika.com/v1/tickers?limit=5"
+  },
+  {
+   "bytes": 1886,
+   "content_type": "application/json",
+   "group": "CoinLore",
+   "id": "coinlore.tickers",
+   "ms": 564,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a5859db17f0-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "{\"data\":[{\"id\":\"90\",\"symbol\":\"BTC\",\"name\":\"Bitcoin\",\"nameid\":\"bitcoin\",\"rank\":1,\"price_usd\":\"83408.55\",\"percent_change_24h\":\"0.17\",\"percent_change_1h\":\"0.19\",\"percent_change_7d\":\"-2.54\",\"price_btc\":\"1.00\",\"market_cap_usd\":\"1665739860139.50\",\"volume24\":22358309316.37796,\"volume24a\":29734098207.643093,\"csupply\":\"19970852.00\",\"tsupply\":\"19970852\",\"msupply\":\"21000000\"},{\"id\":\"80\",\"symbol\":\"ETH\",\"name\":\"Ethereum\",\"nameid\":\"ethereum\",\"rank\":2,\"price_usd\":\"2503.27\",\"percent_change_24h\":\"0.33\",\"percent_change_1h\":\"0.25\",\"percent_change_7d\":\"-7.19\",\"price_btc\":\"0.031590\",\"market_cap_usd\":\"306336892062.27\",\"volume24\":7330207016.529333,\"volume24a\":12369341566.211143,\"csupply\":\"122374665.72\",\"tsupply\":\"122374665.71823000\",\"msupply\":\"\"},{\"id\":\"518\",\"symbol\":\"USDT\",\"name\":\"Tether\",\"nameid\":\"tether\",\"rank\":3,\"price_usd\":\"0.999830\",\"percent_change_24h\":\"0.16\",\"percent_change_1h\":\"0.03\",\"percent_change_7d\":\"-0.06\",\"price_btc\":\"0.000013\",\"market_cap_usd\":\"183214763268.68\",\"volume24\":44588554369.05727,\"volume24a\":57910399824.86254,\"csupply\":\"183245941051.28\",\"tsupply\":\"188712883627.4062\",\"msupply\":\"\"},{\"id\":\"2710\",\"symbol\":\"BNB\",\"name\":\"Binance Coin\",\"nameid\":\"binance-coin\",\"rank\":4,\"price_usd\":\"741.97\",\"percent_change_24h\":\"0.29\",\"percent_change_1h\":\"0.10\",\"percent_change_7d\":\"-4.83\",\"price_btc\":\"0.009363\",\"market_cap_usd\":\"103272323357.93\",\"volume24\":409681847.49509656,\"volume24a\":625665719.8126357,\"csupply\":\"139186427.32\",\"tsupply\":\"139186427.32\",\"msupply\":\"200000000\"},{\"id\":\"58\",\"symbol\":\"X",
+   "shape": {
+    "dict_keys": [
+     "data",
+     "info"
+    ],
+    "first": {
+     "first": {
+      "dict_keys": [
+       "id",
+       "symbol",
+       "name",
+       "nameid",
+       "rank",
+       "price_usd",
+       "percent_change_24h",
+       "percent_change_1h",
+       "percent_change_7d",
+       "price_btc",
+       "market_cap_usd",
+       "volume24"
+      ]
+     },
+     "list_len": 5
+    }
+   },
+   "status": 200,
+   "url": "https://api.coinlore.net/api/tickers/?start=0&limit=5"
+  },
+  {
+   "bytes": 273,
+   "content_type": "application/json",
+   "group": "CryptoCompare",
+   "id": "cryptocompare.histoday",
+   "ms": 191,
+   "ok": false,
+   "rate_headers": {
+    "cf-ray": "a4a60a586fa1f7d6-LAX",
+    "server": "cloudflare"
+   },
+   "sample": "{\"Data\":{},\"Err\":{\"type\":2,\"message\":\"API key required, please refer to the documentation at https://developers.coindesk.com/\",\"http_status_code\":401,\"frontend\":{\"type\":2,\"message\":\"API key required, please refer to the documentation at https://developers.coindesk.com/\"}}}",
+   "shape": {
+    "dict_keys": [
+     "Data",
+     "Err"
+    ],
+    "first": {
+     "dict_keys": []
+    }
+   },
+   "status": 401,
+   "url": "https://min-api.cryptocompare.com/data/v2/histoday?fsym=BTC&tsym=USD&limit=5"
+  },
+  {
+   "bytes": 1070208,
+   "content_type": "application/json",
+   "group": "DefiLlama",
+   "id": "defillama.oi.overview",
+   "ms": 110,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a58bd78c4f3-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "",
+   "shape": {
+    "dict_keys": [
+     "totalDataChart",
+     "totalDataChartBreakdown",
+     "breakdown24h",
+     "breakdown30d",
+     "chain",
+     "allChains",
+     "total24h",
+     "total48hto24h",
+     "total7d",
+     "total14dto7d",
+     "total30d",
+     "total60dto30d"
+    ],
+    "first": {
+     "first": {
+      "list_len": 2
+     },
+     "list_len": 2058
+    }
+   },
+   "status": 200,
+   "url": "https://api.llama.fi/overview/open-interest"
+  },
+  {
+   "bytes": 66,
+   "content_type": "text/plain",
+   "group": "DefiLlama",
+   "id": "defillama.derivatives.overview",
+   "ms": 77,
+   "ok": false,
+   "rate_headers": {
+    "cf-ray": "a4a60a58aab01986-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "",
+   "shape": {
+    "cloudflare": false,
+    "items": 0,
+    "text_bytes": 66,
+    "title": null
+   },
+   "status": 402,
+   "url": "https://api.llama.fi/overview/derivatives"
+  },
+  {
+   "bytes": 2222024,
+   "content_type": "application/json",
+   "group": "DefiLlama",
+   "id": "defillama.dexs.overview",
+   "ms": 138,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a58b837720c-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "",
+   "shape": {
+    "dict_keys": [
+     "totalDataChart",
+     "totalDataChartBreakdown",
+     "breakdown24h",
+     "breakdown30d",
+     "chain",
+     "allChains",
+     "total24h",
+     "total48hto24h",
+     "total7d",
+     "total14dto7d",
+     "total30d",
+     "total60dto30d"
+    ],
+    "first": {
+     "list_len": 0
+    }
+   },
+   "status": 200,
+   "url": "https://api.llama.fi/overview/dexs?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true"
+  },
+  {
+   "bytes": 1316562,
+   "content_type": "application/json",
+   "group": "DefiLlama",
+   "id": "defillama.stablecoincharts.all",
+   "ms": 39,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a585cb57803-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "",
+   "shape": {
+    "first": {
+     "dict_keys": [
+      "date",
+      "totalCirculating",
+      "totalCirculatingUSD"
+     ],
+     "first": "str"
+    },
+    "list_len": 3242
+   },
+   "status": 200,
+   "url": "https://stablecoins.llama.fi/stablecoincharts/all"
+  },
+  {
+   "bytes": 221,
+   "content_type": "application/json; charset=utf-8",
+   "group": "DefiLlama",
+   "id": "defillama.coins.current",
+   "ms": 46,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a58afd05a2e-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "{\"coins\":{\"coingecko:bitcoin\":{\"price\":83351.91290338569,\"symbol\":\"BTC\",\"timestamp\":1791975007,\"confidence\":0.99},\"coingecko:ethereum\":{\"price\":2501.4320545693595,\"symbol\":\"ETH\",\"timestamp\":1791975007,\"confidence\":0.99}}}",
+   "shape": {
+    "dict_keys": [
+     "coins"
+    ],
+    "first": {
+     "dict_keys": [
+      "coingecko:bitcoin",
+      "coingecko:ethereum"
+     ],
+     "first": {
+      "dict_keys": [
+       "price",
+       "symbol",
+       "timestamp",
+       "confidence"
+      ]
+     }
+    }
+   },
+   "status": 200,
+   "url": "https://coins.llama.fi/prices/current/coingecko:bitcoin,coingecko:ethereum"
+  },
+  {
+   "bytes": 66,
+   "content_type": "text/plain",
+   "group": "DefiLlama",
+   "id": "defillama.emissions",
+   "ms": 43,
+   "ok": false,
+   "rate_headers": {
+    "cf-ray": "a4a60a58bc2fba62-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "",
+   "shape": {
+    "cloudflare": false,
+    "items": 0,
+    "text_bytes": 66,
+    "title": null
+   },
+   "status": 402,
+   "url": "https://api.llama.fi/emissions"
+  },
+  {
+   "bytes": 22975,
+   "content_type": "application/json; charset=utf-8",
+   "group": "DEX",
+   "id": "dexscreener.boosts",
+   "ms": 38,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a58cd7f9203-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "[{\"url\":\"https://dexscreener.com/solana/fvse99ekoity8wv34v2rpwvnxnrle7o9gyknd4hddtjq\",\"chainId\":\"solana\",\"tokenAddress\":\"FvSE99EkoiTY8Wv34V2RpWVNxnrLe7o9gyKnd4HddtjQ\",\"description\":\"A fleet of AI agents hunting dips in starlight & waves in spacetime. Every discovery proven.\",\"icon\":\"fQtQnmQbYJpR3YPz\",\"header\":\"https://cdn.dexscreener.com/cms/images/2pOXZNxU4SDWZ3JM?width=900&height=300&fit=crop&quality=95&format=auto\",\"openGraph\":\"https://cdn.dexscreener.com/token-images/og/solana/FvSE99EkoiTY8Wv34V2RpWVNxnrLe7o9gyKnd4HddtjQ?timestamp=1791975000000\",\"links\":[{\"url\":\"https://spacedatarig.app/\"},{\"type\":\"twitter\",\"url\":\"https://x.com/SpaceDataRig\"}],\"totalAmount\":50,\"amount\":50},{\"url\":\"https://dexscreener.com/solana/988dh6xjk6kmxvrue2zdqlarxzv14tv6wxigyjkmpump\",\"chainId\":\"solana\",\"tokenAddress\":\"988dH6xJK6kmxVRUe2ZDqLARxZv14tV6WxiGyjkmpump\",\"icon\":\"P_pO0RgChyvnCAjb\",\"header\":\"https://cdn.dexscreener.com/cms/images/9a7fIyZGR2LM9Zav?width=900&height=300&fit=crop&quality=95&format=auto\",\"openGraph\":\"https://cdn.dexscreener.com/token-images/og/solana/988dH6xJK6kmxVRUe2ZDqLARxZv14tV6WxiGyjkmpump?timestamp=1791975000000\",\"links\":[{\"type\":\"twitter\",\"url\":\"https://x.com/NikolaiHauckx/status/2110306074569875668?s=20\"},{\"type\":\"instagram\",\"url\":\"https://www.instagram.com/p/DeTLl2ggTwZ/\"}],\"totalAmount\":10,\"amount\":10},{\"url\":\"https://dexscreener.com/robinhood/0x38bb87cf3e7344a82be7cd671c191f015b97eee6\",\"chainId\":\"robinhood\",\"tokenAddress\":\"0x38bb87Cf3E7344A82be7CD671c191f015b97eEe6\",\"de",
+   "shape": {
+    "first": {
+     "dict_keys": [
+      "url",
+      "chainId",
+      "tokenAddress",
+      "description",
+      "icon",
+      "header",
+      "openGraph",
+      "links",
+      "totalAmount",
+      "amount"
+     ],
+     "first": "str"
+    },
+    "list_len": 30
+   },
+   "status": 200,
+   "url": "https://api.dexscreener.com/token-boosts/latest/v1"
+  },
+  {
+   "bytes": 31644,
+   "content_type": "application/json; charset=utf-8",
+   "group": "DEX",
+   "id": "geckoterminal.trending",
+   "ms": 47,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a58c934cce4-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "{\"data\":[{\"id\":\"robinhood_0xe96c99be1ffcc204714ebce32870ab12b8b362308fa50b9352c03b2486a5d448\",\"type\":\"pool\",\"attributes\":{\"base_token_price_usd\":\"0.0007120863608811\",\"base_token_price_native_currency\":\"0.000000000659191315384667\",\"quote_token_price_usd\":\"2501.8\",\"quote_token_price_native_currency\":\"0.999999999999993\",\"base_token_price_quote_token\":\"0.0000000006591913154\",\"quote_token_price_base_token\":\"1517010277.07935\",\"address\":\"0xe96c99be1ffcc204714ebce32870ab12b8b362308fa50b9352c03b2486a5d448\",\"name\":\"GIGATENEV / WETH\",\"pool_created_at\":\"2026-10-09T18:01:40Z\",\"fdv_usd\":\"712086.3609\",\"market_cap_usd\":null,\"price_change_percentage\":{\"m5\":\"1.405\",\"m15\":\"1.26\",\"m30\":\"1.605\",\"h1\":\"4.162\",\"h6\":\"-12.256\",\"h24\":\"45.847\"},\"transactions\":{\"m5\":{\"buys\":3,\"sells\":1,\"buyers\":2,\"sellers\":1},\"m15\":{\"buys\":6,\"sells\":5,\"buyers\":5,\"sellers\":5},\"m30\":{\"buys\":7,\"sells\":6,\"buyers\":6,\"sellers\":5},\"h1\":{\"buys\":14,\"sells\":13,\"buyers\":11,\"sellers\":11},\"h6\":{\"buys\":1418,\"sells\":1310,\"buyers\":910,\"sellers\":871},\"h24\":{\"buys\":12836,\"sells\":12356,\"buyers\":6591,\"sellers\":6394}},\"volume_usd\":{\"m5\":\"556.1577130721\",\"m15\":\"1045.0410613184\",\"m30\":\"1208.8675333383\",\"h1\":\"2213.1566891246\",\"h6\":\"156426.23963843\",\"h24\":\"1579673.38959463\"},\"reserve_in_usd\":\"32784.5879\"},\"relationships\":{\"base_token\":{\"data\":{\"id\":\"robinhood_0xc9675fe679c7d4e1b94416f66d61c96127eb964a\",\"type\":\"token\"}},\"quote_token\":{\"data\":{\"id\":\"robinhood_0x0000000000000000000000000000000000000000\",\"type\":\"token\"}},\"network\":{\"data\":{\"id\":\"rob",
+   "shape": {
+    "dict_keys": [
+     "data"
+    ],
+    "first": {
+     "first": {
+      "dict_keys": [
+       "id",
+       "type",
+       "attributes",
+       "relationships"
+      ]
+     },
+     "list_len": 20
+    }
+   },
+   "status": 200,
+   "url": "https://api.geckoterminal.com/api/v2/networks/trending_pools"
+  },
+  {
+   "bytes": 28708,
+   "content_type": "application/json",
+   "group": "Prediction",
+   "id": "polymarket.markets",
+   "ms": 46,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a58eb24a230-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "[{\"id\":\"559651\",\"question\":\"Xi Jinping out before 2027?\",\"conditionId\":\"0xa467b14d51f01b957109d9cbb1d6c124fab2a089d52ed8f471d23c2812e743b7\",\"slug\":\"xi-jinping-out-before-2027\",\"resolutionSource\":\"\",\"endDate\":\"2027-01-01T04:59:00Z\",\"liquidity\":\"646141.94704\",\"startDate\":\"2025-07-03T20:37:00.228Z\",\"image\":\"https://polymarket-upload.s3.us-east-2.amazonaws.com/xi-jinping-out-in-2025-EjF4SM20eaa3.jpg\",\"icon\":\"https://polymarket-upload.s3.us-east-2.amazonaws.com/xi-jinping-out-in-2025-EjF4SM20eaa3.jpg\",\"description\":\"This market will resolve to \\\"Yes\\\" if China's General Secretary of the Communist Party, Xi Jinping, is removed from power for any length of time between July 3, 2025, and December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to \\\"No\\\".\\n\\nCCP General Secretary Xi Jinping will be considered removed from power if he announces his resignation from his role as General Secretary, or is otherwise dismissed, detained, disqualified, or otherwise loses his position or is prevented from fulfilling his duties as General Secretary within this market's timeframe.\\n\\nThe primary resolution source for this market will be a consensus of credible reporting.\",\"outcomes\":\"[\\\"Yes\\\", \\\"No\\\"]\",\"outcomePrices\":\"[\\\"0.0275\\\", \\\"0.9725\\\"]\",\"volume\":\"14813937.710336998\",\"active\":true,\"closed\":false,\"marketMakerAddress\":\"\",\"createdAt\":\"2025-07-03T20:25:56.889606Z\",\"updatedAt\":\"2026-10-14T10:46:45.627377Z\",\"new\":false,\"featured\":false,\"submitted_by\":\"0x91430CaD2d3975766499717fA0D66A",
+   "shape": {
+    "first": {
+     "dict_keys": [
+      "id",
+      "question",
+      "conditionId",
+      "slug",
+      "resolutionSource",
+      "endDate",
+      "liquidity",
+      "startDate",
+      "image",
+      "icon",
+      "description",
+      "outcomes"
+     ],
+     "first": "str"
+    },
+    "list_len": 5
+   },
+   "status": 200,
+   "url": "https://gamma-api.polymarket.com/markets?limit=5&active=true"
+  },
+  {
+   "bytes": 577,
+   "content_type": "application/json",
+   "group": "Sentiment",
+   "id": "alternative.fng",
+   "ms": 226,
+   "ok": true,
+   "rate_headers": {
+    "server": "nginx/1.14.2"
+   },
+   "sample": "{\n\t\"name\": \"Fear and Greed Index\",\n\t\"data\": [\n\t\t{\n\t\t\t\"value\": \"62\",\n\t\t\t\"value_classification\": \"Greed\",\n\t\t\t\"timestamp\": \"1791936000\",\n\t\t\t\"time_until_update\": \"47193\"\n\t\t},\n\t\t{\n\t\t\t\"value\": \"57\",\n\t\t\t\"value_classification\": \"Greed\",\n\t\t\t\"timestamp\": \"1791849600\"\n\t\t},\n\t\t{\n\t\t\t\"value\": \"69\",\n\t\t\t\"value_classification\": \"Greed\",\n\t\t\t\"timestamp\": \"1791763200\"\n\t\t},\n\t\t{\n\t\t\t\"value\": \"61\",\n\t\t\t\"value_classification\": \"Greed\",\n\t\t\t\"timestamp\": \"1791676800\"\n\t\t},\n\t\t{\n\t\t\t\"value\": \"64\",\n\t\t\t\"value_classification\": \"Greed\",\n\t\t\t\"timestamp\": \"1791590400\"\n\t\t}\n\t],\n\t\"metadata\": {\n\t\t\"error\": null\n\t}\n}",
+   "shape": {
+    "dict_keys": [
+     "name",
+     "data",
+     "metadata"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://api.alternative.me/fng/?limit=5"
+  },
+  {
+   "bytes": 27,
+   "content_type": null,
+   "group": "Sentiment",
+   "id": "cnn.fear-greed",
+   "ms": 184,
+   "ok": false,
+   "rate_headers": {
+    "retry-after": "0",
+    "server": "Varnish"
+   },
+   "sample": "I'm a teapot. You're a bot.",
+   "shape": {
+    "cloudflare": false,
+    "items": 0,
+    "text_bytes": 27,
+    "title": null
+   },
+   "status": 418,
+   "url": "https://production.dataviz.cnn.io/index/fearandgreed/graphdata"
+  },
+  {
+   "bytes": 10374,
+   "content_type": "application/json",
+   "group": "Sentiment",
+   "id": "apewisdom.crypto",
+   "ms": 579,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a5a0b4288fa-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "{\"count\":90,\"pages\":1,\"current_page\":1,\"results\":[{\"rank\":1,\"ticker\":\"BTC.X\",\"name\":\"Bitcoin\",\"mentions\":5,\"upvotes\":14,\"rank_24h_ago\":1,\"mentions_24h_ago\":61},{\"rank\":2,\"ticker\":\"ETH.X\",\"name\":\"Ethereum\",\"mentions\":3,\"upvotes\":14,\"rank_24h_ago\":2,\"mentions_24h_ago\":20},{\"rank\":3,\"ticker\":\"IT.X\",\"name\":\"IDCM Token\",\"mentions\":1,\"upvotes\":1,\"rank_24h_ago\":103,\"mentions_24h_ago\":1},{\"rank\":4,\"ticker\":\"ATX.X\",\"name\":\"Aston\",\"mentions\":1,\"upvotes\":1,\"rank_24h_ago\":10,\"mentions_24h_ago\":1},{\"rank\":5,\"ticker\":\"MSTR.X\",\"name\":\"MicroStrategy tokenized stock FTX\",\"mentions\":1,\"upvotes\":1,\"rank_24h_ago\":11,\"mentions_24h_ago\":3},{\"rank\":6,\"ticker\":\"SEEN.X\",\"name\":\"SEEN\",\"mentions\":1,\"upvotes\":1,\"rank_24h_ago\":100,\"mentions_24h_ago\":1},{\"rank\":7,\"ticker\":\"LOT.X\",\"name\":\"Lukki Operating Token\",\"mentions\":1,\"upvotes\":5,\"rank_24h_ago\":98,\"mentions_24h_ago\":1},{\"rank\":8,\"ticker\":\"BUT.X\",\"name\":\"BitUP Token\",\"mentions\":1,\"upvotes\":1,\"rank_24h_ago\":97,\"mentions_24h_ago\":1},{\"rank\":9,\"ticker\":\"MSB.X\",\"name\":\"Misbloc\",\"mentions\":1,\"upvotes\":1,\"rank_24h_ago\":94,\"mentions_24h_ago\":1},{\"rank\":10,\"ticker\":\"SPI.X\",\"name\":\"Shopping\",\"mentions\":1,\"upvotes\":2,\"rank_24h_ago\":92,\"mentions_24h_ago\":1},{\"rank\":11,\"ticker\":\"VALUE.X\",\"name\":\"Value Liquidity\",\"mentions\":1,\"upvotes\":1,\"rank_24h_ago\":89,\"mentions_24h_ago\":1},{\"rank\":12,\"ticker\":\"IRA.X\",\"name\":\"Diligence\",\"mentions\":1,\"upvotes\":1,\"rank_24h_ago\":88,\"mentions_24h_ago\":1},{\"rank\":13,\"ticker\":\"SIM.X\",\"name\":\"Simmitri\",\"mentions\":1,\"upvotes\":6,\"rank_2",
+   "shape": {
+    "dict_keys": [
+     "count",
+     "pages",
+     "current_page",
+     "results"
+    ],
+    "first": "int"
+   },
+   "status": 200,
+   "url": "https://apewisdom.io/api/v1.0/filter/all-crypto"
+  },
+  {
+   "bytes": 90933,
+   "content_type": "application/json; charset=utf-8",
+   "group": "Sentiment",
+   "id": "stocktwits.btc",
+   "ms": 146,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a594d7624d4-LAX",
+    "server": "cloudflare"
+   },
+   "sample": "{\"symbol\":{\"id\":11418,\"symbol\":\"BTC.X\",\"symbol_mic\":\"BTC.X\",\"symbol_display\":\"BTC\",\"exchange\":\"CRYPTO\",\"region\":\"X\",\"logo_url\":\"https://logos.stocktwits-cdn.com/BTC.X.webp\",\"title\":\"Bitcoin\",\"aliases\":[\"BTCUSD\"],\"deeplink\":\"coins/bitcoin\",\"external_id\":\"bitcoin\",\"is_following\":false,\"watchlist_count\":683845,\"has_pricing\":true,\"instrument_class\":\"CRYPTO\",\"live_event\":false},\"cursor\":{\"more\":true,\"since\":666443940,\"max\":666440439},\"regions\":[],\"filters\":[],\"messages\":[{\"id\":666443940,\"body\":\"$BTC.X $HOOD $COIN  and every other exchange sell more bitcoin than they have in custody\\n\\nOne day there will be a bank run and you will be left broke\\n\\nBuy paper bitcoin and convert into real bitcoin by going self custody\",\"tokenized_body\":[{\"type\":\"cashTag\",\"data\":{\"text\":\"$BTC\",\"symbol\":\"BTC.X\",\"symbol_display\":\"BTC\",\"logo_url\":\"https://logos.stocktwits-cdn.com/BTC.X.webp\",\"deeplink\":\"coins/bitcoin\"}},{\"type\":\"text\",\"data\":{\"text\":\" \"}},{\"type\":\"cashTag\",\"data\":{\"text\":\"$HOOD\",\"symbol\":\"HOOD\",\"symbol_display\":\"HOOD\",\"logo_url\":\"https://logos.stocktwits-cdn.com/HOOD.png\",\"deeplink\":\"symbol/HOOD\"}},{\"type\":\"text\",\"data\":{\"text\":\" \"}},{\"type\":\"cashTag\",\"data\":{\"text\":\"$COIN\",\"symbol\":\"COIN\",\"symbol_display\":\"COIN\",\"logo_url\":\"https://logos.stocktwits-cdn.com/COIN.png\",\"deeplink\":\"symbol/COIN\"}},{\"type\":\"text\",\"data\":{\"text\":\"  and every other exchange sell more bitcoin than they have in custody\\n\\nOne day there will be a bank run and you will be left broke\\n\\nBuy paper bitcoin and convert",
+   "shape": {
+    "dict_keys": [
+     "symbol",
+     "cursor",
+     "regions",
+     "filters",
+     "messages",
+     "response"
+    ],
+    "first": {
+     "dict_keys": [
+      "id",
+      "symbol",
+      "symbol_mic",
+      "symbol_display",
+      "exchange",
+      "region",
+      "logo_url",
+      "title",
+      "aliases",
+      "deeplink",
+      "external_id",
+      "is_following"
+     ],
+     "first": "int"
+    }
+   },
+   "status": 200,
+   "url": "https://api.stocktwits.com/api/2/streams/symbol/BTC.X.json"
+  },
+  {
+   "bytes": 4000,
+   "content_type": "text/html",
+   "group": "Sentiment",
+   "id": "reddit.cryptocurrency",
+   "ms": 14,
+   "ok": false,
+   "rate_headers": {
+    "retry-after": "0",
+    "server": "snooserv",
+    "server-timing": "reddit-ct;desc=\"dn=FT,p=SJC,cs=MISS\""
+   },
+   "sample": "<body class=theme-beta><div><style>.theme-light,:root{--rem360:22.5rem;--rem320:20rem;--rem192:12rem;--rem144:9rem;--rem128:8rem;--rem96:6rem;--rem90:5.625rem;--rem88:5.5rem;--rem64:4rem;--rem56:3.5rem;--rem48:3rem;--rem40:2.5rem;--rem36:2.25rem;--rem32:2rem;--rem28:1.75rem;--rem26:1.625rem;--rem24:1.5rem;--rem22:1.375rem;--rem20:1.25rem;--rem18:1.125rem;--rem16:1rem;--rem15:0.9375rem;--rem14:0.875rem;--rem12:0.75rem;--rem10:0.625rem;--rem8:0.5rem;--rem6:0.375rem;--rem4:0.25rem;--rem2:0.125rem;--rem1:0.0625rem;--spacer-4xs:0.125rem;--spacer-2xs:0.25rem;--spacer-xs:0.5rem;--spacer-sm:0.75rem;--spacer-md:1rem;--spacer-lg:1.5rem;--spacer-xl:2rem;--spacer-2xl:3rem;--spacer-a-px:0px;--spacer-button-lg-px:var(--spacer-lg);--spacer-button-md-px:var(--spacer-lg);--spacer-button-sm-px:var(--spacer-md);--spacer-input-padding-left:0px;--spacer-input-padding-top:0px;--spacer-label-default:0px;--spacer-switch-input-active-pl:0px;--size-2xs:0.25rem;--size-xs:0.5rem;--size-sm:0.75rem;--size-md:1rem;--size-lg:1.5rem;--size-xl:2rem;--size-2xl:3rem;--size-3xl:4rem;--size-4xl:6rem;--size-5xl:8rem;--size-button-lg-h:3.375rem;--size-button-md-h:2.75rem;--size-button-sm-h:2.125rem;--size-button-xs-h:1.375rem;--size-switch-input-h:1.25rem;--size-switch-input-w:2rem;--line-sm:0.0625rem;--line-md:0.125rem;--line-lg:0.25rem;--line-a-focus:0px;--line-a-outline-moz:0.0625rem;--line-a-outline-wb:0.3125rem;--line-button-lg-border:0.0625rem;--line-button-md-border:0.0625rem;--line-button-sm-border:0.0625re",
+   "shape": {
+    "cloudflare": false,
+    "items": 0,
+    "text_bytes": 4000,
+    "title": null
+   },
+   "status": 403,
+   "url": "https://www.reddit.com/r/CryptoCurrency/hot.json?limit=5"
+  },
+  {
+   "group": "News",
+   "id": "cryptopanic.posts",
+   "note": "set CRYPTOPANIC_API_KEY to probe",
+   "ok": false,
+   "status": "NEEDS_KEY",
+   "url": "https://cryptopanic.com/api/developer/v2/posts/?public=true"
+  },
+  {
+   "bytes": 30261,
+   "content_type": "application/xml",
+   "group": "News",
+   "id": "rss.coindesk",
+   "ms": 118,
+   "ok": true,
+   "rate_headers": {
+    "server": "Vercel"
+   },
+   "sample": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<rss xmlns:content=\"http://purl.org/rss/1.0/modules/content/\" xmlns:wfw=\"http://wellformedweb.org/CommentAPI/\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:atom=\"http://www.w3.org/2005/Atom\" xmlns:sy=\"http://purl.org/rss/1.0/modules/syndication/\" xmlns:slash=\"http://purl.org/rss/1.0/modules/slash/\" xmlns:media=\"http://search.yahoo.com/mrss/\" version=\"2.0\">\n  <channel>\n    <title>CoinDesk: Bitcoin, Ethereum, Crypto News and Price Data</title>\n    <link>https://www.coindesk.com/</link>\n    <atom:link rel=\"self\" type=\"application/rss+xml\" href=\"https://www.coindesk.com/arc/outboundfeeds/rss\"/>\n    <atom:link rel=\"hub\" href=\"true\"/>\n    <description>Leader in cryptocurrency, Bitcoin, Ethereum, XRP, blockchain, DeFi, digital finance and Web 3.0 news with analysis, video and live price updates.</description>\n    <lastBuildDate>Wed, 14 Oct 2026 10:53:18 +0000</lastBuildDate>\n    <language>en-US</language>\n    <copyright>\u00a9 2026 CoinDesk, Inc.</copyright>\n    <generator>CoinDesk</generator>\n    <ttl>5</ttl>\n    <sy:updatePeriod>hourly</sy:updatePeriod>\n    <sy:updateFrequency>1</sy:updateFrequency>\n    <image>\n      <url>https://downloads.coindesk.com/arc/failsafe/feeds/coindesk-feed-logo.png</url>\n      <title>CoinDesk: Bitcoin, Ethereum, Crypto News and Price Data</title>\n      <link>https://www.coindesk.com/</link>\n    </image>\n    <item>\n      <title><![CDATA[Bitcoin holds above $83,000 ahead of U.S. inflation data as altcoins lag]]></t",
+   "shape": {
+    "cloudflare": false,
+    "items": 25,
+    "text_bytes": 30242,
+    "title": "CoinDesk: Bitcoin, Ethereum, Crypto News and Price Data"
+   },
+   "status": 200,
+   "url": "https://www.coindesk.com/arc/outboundfeeds/rss/"
+  },
+  {
+   "bytes": 52041,
+   "content_type": "application/xml; charset=utf-8",
+   "group": "News",
+   "id": "rss.cointelegraph",
+   "ms": 43,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a597e6c6cb7-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<rss version=\"2.0\" xmlns:content=\"http://purl.org/rss/1.0/modules/content/\" xmlns:media=\"http://search.yahoo.com/mrss/\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:wfw=\"http://wellformedweb.org/CommentAPI/\" xmlns:atom=\"http://www.w3.org/2005/Atom\" xmlns:sy=\"http://purl.org/rss/1.0/modules/syndication/\" xmlns:slash=\"http://purl.org/rss/1.0/modules/slash/\">\n  <channel>\n    <title>Cointelegraph.com News</title>\n    <link>https://cointelegraph.com</link>\n    <atom:link href=\"https://cointelegraph.com/rss\" rel=\"self\" type=\"application/rss+xml\"/>\n    <description>Cointelegraph covers fintech, blockchain and Bitcoin bringing you the latest crypto news and analyses on the future of money.</description>\n    <generator>cointelegraph.com</generator>\n    <lastBuildDate>Wed, 14 Oct 2026 10:50:40 +0000</lastBuildDate>\n    <language>en</language>\n    <sy:updatePeriod>hourly</sy:updatePeriod>\n    <sy:updateFrequency>1</sy:updateFrequency>\n    <image>\n      <title>Cointelegraph.com News</title>\n      <link>https://cointelegraph.com</link>\n      <url>https://s3.cointelegraph.com/storage/uploads/view/b9ea15d46738b4df64e6e100ab59b373.png</url>\n      <description>Cointelegraph covers fintech, blockchain and Bitcoin bringing you the latest crypto news and analyses on the future of money.</description>\n    </image>\n    <item>\n      <title>CryptoQuant\u2019s 3 charts keeping Bitcoin\u2019s \u2018Uptober\u2019 thesis valid</title>\n      <pubDate>Wed, 14 Oct 2026 10:38",
+   "shape": {
+    "cloudflare": false,
+    "items": 30,
+    "text_bytes": 51913,
+    "title": "Cointelegraph.com News"
+   },
+   "status": 200,
+   "url": "https://cointelegraph.com/rss"
+  },
+  {
+   "bytes": 32674,
+   "content_type": "text/xml; charset=UTF-8",
+   "group": "News",
+   "id": "rss.theblock",
+   "ms": 48,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a59784e679d-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><rss version=\"2.0\"\n    xmlns:content=\"http://purl.org/rss/1.0/modules/content/\"\n    xmlns:wfw=\"http://wellformedweb.org/CommentAPI/\"\n    xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n    xmlns:atom=\"http://www.w3.org/2005/Atom\"\n    xmlns:sy=\"http://purl.org/rss/1.0/modules/syndication/\"\n    xmlns:slash=\"http://purl.org/rss/1.0/modules/slash/\"\n    xmlns:media=\"http://search.yahoo.com/mrss/\"\n    >\n\n<channel>\n    <title>The Block</title>\n    <link>https://www.theblock.co</link>\n    <atom:link href=\"https://www.theblock.co/rss.xml\" rel=\"self\" type=\"application/rss+xml\" />\n    <atom:link href=\"https://www.theblock.co/rss.xml?paged=2\" rel=\"next\" type=\"application/rss+xml\" />\n    <atom:link href=\"https://pubsubhubbub.appspot.com/\" rel=\"hub\"/>\n    <description>The Block features breaking Crypto news about Bitcoin, Blockchain, Web3, and DeFi from the web&#039;s most reliable source.</description>\n    <lastBuildDate>Wed, 14 Oct 2026 02:49:34 +0000</lastBuildDate>\n    <language>en-US</language>\n    <copyright>\u00a9 2026 THE BLOCK</copyright>\n    <generator>TheBlock</generator>\n    <ttl>5</ttl>\n    <sy:updatePeriod>hourly</sy:updatePeriod>\n    <sy:updateFrequency>1</sy:updateFrequency>\n    <image>\n        <url>https://www.tbstat.com/wp/uploads/2024/03/the-block-logo-wordmark-black.png</url>\n        <title>The Block</title>\n        <link>https://www.theblock.co</link>\n    </image>\n        <item>\n        <title><![CDATA[Coinbase lays out flexible designs as",
+   "shape": {
+    "cloudflare": false,
+    "items": 19,
+    "text_bytes": 32655,
+    "title": "The Block"
+   },
+   "status": 200,
+   "url": "https://www.theblock.co/rss.xml"
+  },
+  {
+   "bytes": 36526,
+   "content_type": "application/xml",
+   "group": "News",
+   "id": "rss.decrypt",
+   "ms": 49,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a59d957a724-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "<?xml version='1.0' encoding='utf-8' ?>\n<rss\n  version=\"2.0\"\n  xmlns:content=\"http://purl.org/rss/1.0/modules/content/\"\n  xmlns:wfw=\"http://wellformedweb.org/CommentAPI/\"\n  xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n  xmlns:atom=\"http://www.w3.org/2005/Atom\"\n  xmlns:sy=\"http://purl.org/rss/1.0/modules/syndication/\"\n  xmlns:slash=\"http://purl.org/rss/1.0/modules/slash/\"\n  xmlns:media=\"http://search.yahoo.com/mrss/\"\n  xmlns:snf=\"http://www.smartnews.be/snf\"\n>\n  <channel>\n    <title>Decrypt</title>\n    <description>What&amp;#039;s new in crypto and the advent of the decentralized web.</description>\n    <language>en</language>\n    \n    <atom:link\n      href=\"https://decrypt.co/feed\"\n      rel=\"self\"\n      type=\"application/rss+xml\"\n    />\n    \n    \n      \n        <link>https://decrypt.co/feed</link>\n      \n    \n    \n      <copyright>Decrypt Media</copyright>\n    \n    \n    \n    \n      <lastBuildDate>Wed, 14 Oct 2026 10:21:34 +0000</lastBuildDate>\n    \n    \n      <sy:updatePeriod>hourly</sy:updatePeriod>\n    \n    \n      <sy:updateFrequency>1</sy:updateFrequency>\n    \n    \n    \n    \n    \n      <item>\n  <title>Kraken Owner Payward to Buy Lithuania&#39;s Saldo Bank in EU Push</title>\n  <link>https://decrypt.co/380912/kraken-owner-payward-to-buy-lithuanias-saldo-bank-in-eu-push</link>\n  <pubDate>Wed, 14 Oct 2026 10:21:34 +0000</pubDate>\n  \n    <description>Co-CEO Arjun Sethi says customers want cash, crypto, tokenized stocks and credit in one place, starting with lending and cards.</d",
+   "shape": {
+    "cloudflare": false,
+    "items": 33,
+    "text_bytes": 36500,
+    "title": "Decrypt"
+   },
+   "status": 200,
+   "url": "https://decrypt.co/feed"
+  },
+  {
+   "bytes": 74,
+   "content_type": "application/json; charset=utf-8",
+   "group": "On-chain",
+   "id": "mempool.fees",
+   "ms": 320,
+   "ok": true,
+   "rate_headers": {
+    "server": "nginx"
+   },
+   "sample": "{\"fastestFee\":2,\"halfHourFee\":1,\"hourFee\":1,\"economyFee\":1,\"minimumFee\":1}",
+   "shape": {
+    "dict_keys": [
+     "fastestFee",
+     "halfHourFee",
+     "hourFee",
+     "economyFee",
+     "minimumFee"
+    ],
+    "first": "int"
+   },
+   "status": 200,
+   "url": "https://mempool.space/api/v1/fees/recommended"
+  },
+  {
+   "bytes": 2132,
+   "content_type": "application/json; charset=utf-8",
+   "group": "On-chain",
+   "id": "mempool.hashrate",
+   "ms": 278,
+   "ok": true,
+   "rate_headers": {
+    "server": "nginx"
+   },
+   "sample": "",
+   "shape": {
+    "dict_keys": [
+     "hashrates",
+     "difficulty",
+     "currentHashrate",
+     "currentDifficulty"
+    ],
+    "first": {
+     "first": {
+      "dict_keys": [
+       "timestamp",
+       "avgHashrate"
+      ]
+     },
+     "list_len": 30
+    }
+   },
+   "status": 200,
+   "url": "https://mempool.space/api/v1/mining/hashrate/1m"
+  },
+  {
+   "bytes": 1457,
+   "content_type": "application/json; charset=utf-8",
+   "group": "On-chain",
+   "id": "blockchain.charts.hashrate",
+   "ms": 197,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a5ad9aff037-SJC",
+    "server": "cloudflare",
+    "x-blockchain-server": "BlockchainFE/1.0"
+   },
+   "sample": "{\"status\":\"ok\",\"name\":\"Hash Rate\",\"unit\":\"Hash Rate TH/s\",\"period\":\"day\",\"description\":\"The estimated number of tera hashes per second (trillions of hashes per second) the Bitcoin network is performing.\",\"values\":[{\"x\":1789344000,\"y\":9.503419681925676E8},{\"x\":1789430400,\"y\":1.0327049387692567E9},{\"x\":1789516800,\"y\":8.616433844945945E8},{\"x\":1789603200,\"y\":9.059926763435813E8},{\"x\":1789689600,\"y\":9.630131944351349E8},{\"x\":1789776000,\"y\":8.257250100135053E8},{\"x\":1789862400,\"y\":1.0163060471278474E9},{\"x\":1789948800,\"y\":9.833090975457743E8},{\"x\":1790035200,\"y\":9.173151983816285E8},{\"x\":1790121600,\"y\":8.513212992174826E8},{\"x\":1790208000,\"y\":9.239145882980429E8},{\"x\":1790294400,\"y\":8.843182487995554E8},{\"x\":1790380800,\"y\":1.0163060471278474E9},{\"x\":1790467200,\"y\":9.635109277965306E8},{\"x\":1790553600,\"y\":1.0888993362084079E9},{\"x\":1790640000,\"y\":1.0493029967099203E9},{\"x\":1790726400,\"y\":9.305139782144575E8},{\"x\":1790812800,\"y\":8.975170286323848E8},{\"x\":1790899200,\"y\":9.305139782144575E8},{\"x\":1790985600,\"y\":8.841447080911338E8},{\"x\":1791072000,\"y\":9.434208013260603E8},{\"x\":1791158400,\"y\":1.1611332939397662E9},{\"x\":1791244800,\"y\":1.0291863287193384E9},{\"x\":1791331200,\"y\":1.0159916321972954E9},{\"x\":1791417600,\"y\":9.170314082819744E8},{\"x\":1791504000,\"y\":9.632128461091242E8},{\"x\":1791590400,\"y\":1.0225889804583167E9},{\"x\":1791676800,\"y\":1.0291863287193384E9},{\"x\":1791763200,\"y\":1.0027969356752524E9},{\"x\":1791849600,\"y\":1.0753677665464878E9}]}",
+   "shape": {
+    "dict_keys": [
+     "status",
+     "name",
+     "unit",
+     "period",
+     "description",
+     "values"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://api.blockchain.info/charts/hash-rate?timespan=30days&format=json"
+  },
+  {
+   "bytes": 828522,
+   "content_type": "text/html; charset=UTF-8",
+   "group": "ETF flows",
+   "id": "farside.btc.etf",
+   "ms": 1364,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a5a2a1c0db8-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "\n<!DOCTYPE html>\n<html class=\"no-js\" lang=\"en-US\">\n<head>\n    <link rel=\"shortcut icon\" type=\"image/jpg\" href=\"/wp-content/themes/twentytwenty/assets/images/favicon.ico\"/>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" >\n    <link rel=\"profile\" href=\"https://gmpg.org/xfn/11\">\n    <title>Bitcoin ETF Flow &#8211; All Data (US$m) &#8211; Farside Investors</title>\n<meta name='robots' content='max-image-preview:large' />\n\r\n\t\t<!-- Meta Tag Manager -->\r\n\t\t<meta name=\"twitter:card\" content=\"summary\" />\r\n\t\t<meta name=\"twitter:site\" content=\"@FarsideUK\" />\r\n\t\t<meta name=\"twitter:title\" content=\"Farside Investors\" />\r\n\t\t<meta name=\"twitter:description\" content=\"Founded in 2023, Farside Investors is a London based investment management boutique, specialising in global equities &amp; cryptocurrency\" />\r\n\t\t<meta name=\"twitter:image\" content=\"https://farside.co.uk/wp-content/uploads/2024/05/twitterbit.jpg\" />\r\n\t\t<meta name=\"og:image\" content=\"https://farside.co.uk/wp-content/uploads/2024/05/twitterbit.jpg\" />\r\n\t\t<!-- / Meta Tag Manager -->\r\n<link rel='dns-prefetch' href='//s.w.org' />\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"Farside Investors &raquo; Feed\" href=\"https://farside.co.uk/feed/\" />\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"Farside Investors &raquo; Comments Feed\" href=\"https://farside.co.uk/comments/feed/\" />\n<script>\nwindow._wpemojiSettings = {\"baseUrl\":\"https:\\/\\/s.w.org\\/images\\/core\\/emoji\\/14",
+   "shape": {
+    "cloudflare": false,
+    "items": 0,
+    "text_bytes": 828522,
+    "title": "Bitcoin ETF Flow &#8211; All Data (US$m) &#8211; Farside Investors"
+   },
+   "status": 200,
+   "url": "https://farside.co.uk/bitcoin-etf-flow-all-data/"
+  },
+  {
+   "bytes": 3754,
+   "content_type": "application/json;charset=utf-8",
+   "group": "Macro",
+   "id": "yahoo.dxy",
+   "ms": 58,
+   "ok": true,
+   "rate_headers": {
+    "server": "ATS"
+   },
+   "sample": "{\"chart\":{\"result\":[{\"meta\":{\"currency\":\"USD\",\"symbol\":\"DX-Y.NYB\",\"exchangeName\":\"NYB\",\"fullExchangeName\":\"ICE Futures\",\"instrumentType\":\"INDEX\",\"firstTradeDate\":31813200,\"regularMarketTime\":1791974606,\"hasPrePostMarketData\":false,\"gmtoffset\":-14400,\"timezone\":\"EDT\",\"exchangeTimezoneName\":\"America/New_York\",\"regularMarketPrice\":102.233,\"regularMarketChangePercent\":0.052,\"fulldayPrice\":102.233,\"fulldayChange\":0.053,\"fulldayChangePercent\":0.052,\"fiftyTwoWeekHigh\":102.61,\"fiftyTwoWeekLow\":95.55,\"regularMarketDayHigh\":102.26,\"regularMarketDayLow\":102.075,\"longName\":\"US Dollar Index\",\"shortName\":\"ICE US Dollar Index - Index - C\",\"chartPreviousClose\":99.46,\"priceHint\":2,\"currentTradingPeriod\":{\"pre\":{\"timezone\":\"EDT\",\"start\":1791950400,\"end\":1791950400,\"gmtoffset\":-14400},\"regular\":{\"timezone\":\"EDT\",\"start\":1791950400,\"end\":1792036740,\"gmtoffset\":-14400},\"post\":{\"timezone\":\"EDT\",\"start\":1792036740,\"end\":1792036740,\"gmtoffset\":-14400}},\"dataGranularity\":\"1d\",\"range\":\"1mo\",\"validRanges\":[\"1d\",\"5d\",\"1mo\",\"3mo\",\"6mo\",\"1y\",\"2y\",\"5y\",\"10y\",\"ytd\",\"max\"]},\"timestamp\":[1789358400,1789444800,1789531200,1789617600,1789704000,1789876800,1789963200,1790049600,1790136000,1790222400,1790308800,1790481600,1790568000,1790654400,1790740800,1790827200,1790913600,1791086400,1791172800,1791259200,1791345600,1791432000,1791518400,1791691200,1791777600,1791864000,1791950400],\"indicators\":{\"quote\":[{\"open\":[99.0999984741211,99.4800033569336,99.69999694824219,100.2699966430664,100.23999786376953,null,100.2",
+   "shape": {
+    "dict_keys": [
+     "chart"
+    ],
+    "first": {
+     "dict_keys": [
+      "result",
+      "error"
+     ],
+     "first": {
+      "list_len": 1
+     }
+    }
+   },
+   "status": 200,
+   "url": "https://query1.finance.yahoo.com/v8/finance/chart/DX-Y.NYB?range=1mo&interval=1d"
+  },
+  {
+   "bytes": 3423,
+   "content_type": "application/json;charset=utf-8",
+   "group": "Macro",
+   "id": "yahoo.spx",
+   "ms": 109,
+   "ok": true,
+   "rate_headers": {
+    "server": "ATS"
+   },
+   "sample": "{\"chart\":{\"result\":[{\"meta\":{\"currency\":\"USD\",\"symbol\":\"^GSPC\",\"exchangeName\":\"SNP\",\"fullExchangeName\":\"SNP\",\"instrumentType\":\"INDEX\",\"firstTradeDate\":-1325583000,\"regularMarketTime\":1791923582,\"hasPrePostMarketData\":false,\"gmtoffset\":-14400,\"timezone\":\"EDT\",\"exchangeTimezoneName\":\"America/New_York\",\"regularMarketPrice\":7805.45,\"regularMarketChangePercent\":-0.023,\"fulldayPrice\":7805.45,\"fulldayChange\":-1.79,\"fulldayChangePercent\":-0.023,\"fiftyTwoWeekHigh\":7844.52,\"fiftyTwoWeekLow\":6316.91,\"regularMarketDayHigh\":7814.15,\"regularMarketDayLow\":7786.11,\"regularMarketVolume\":2640232000,\"longName\":\"S&P 500\",\"shortName\":\"S&P 500\",\"chartPreviousClose\":7656.98,\"priceHint\":2,\"currentTradingPeriod\":{\"pre\":{\"timezone\":\"EDT\",\"end\":1791984600,\"start\":1791964800,\"gmtoffset\":-14400},\"regular\":{\"timezone\":\"EDT\",\"end\":1792008000,\"start\":1791984600,\"gmtoffset\":-14400},\"post\":{\"timezone\":\"EDT\",\"end\":1792022400,\"start\":1792008000,\"gmtoffset\":-14400}},\"dataGranularity\":\"1d\",\"range\":\"1mo\",\"validRanges\":[\"1d\",\"5d\",\"1mo\",\"3mo\",\"6mo\",\"1y\",\"2y\",\"5y\",\"10y\",\"ytd\",\"max\"]},\"timestamp\":[1789392600,1789479000,1789565400,1789651800,1789738200,1789997400,1790083800,1790170200,1790256600,1790343000,1790602200,1790688600,1790775000,1790861400,1790947800,1791207000,1791293400,1791379800,1791466200,1791552600,1791811800,1791898200],\"indicators\":{\"quote\":[{\"volume\":[4963750000,5154930000,5307920000,5058210000,8858350000,4828050000,5286270000,5110910000,5316390000,4499180000,5129710000,5023590000,4276550000,57838000",
+   "shape": {
+    "dict_keys": [
+     "chart"
+    ],
+    "first": {
+     "dict_keys": [
+      "result",
+      "error"
+     ],
+     "first": {
+      "list_len": 1
+     }
+    }
+   },
+   "status": 200,
+   "url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?range=1mo&interval=1d"
+  },
+  {
+   "bytes": 2963,
+   "content_type": "application/json",
+   "group": "Macro",
+   "id": "fx.open-er-api",
+   "ms": 47,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a5a9843306f-SJC",
+    "server": "cloudflare"
+   },
+   "sample": "{\"result\":\"success\",\"provider\":\"https://www.exchangerate-api.com\",\"documentation\":\"https://www.exchangerate-api.com/docs/free\",\"terms_of_use\":\"https://www.exchangerate-api.com/terms\",\"time_last_update_unix\":1791936152,\"time_last_update_utc\":\"Wed, 14 Oct 2026 00:02:32 +0000\",\"time_next_update_unix\":1792023502,\"time_next_update_utc\":\"Thu, 15 Oct 2026 00:18:22 +0000\",\"time_eol_unix\":0,\"base_code\":\"USD\",\"rates\":{\"USD\":1,\"AED\":3.6725,\"AFN\":64.935182,\"ALL\":81.824637,\"AMD\":362.156057,\"ANG\":1.79,\"AOA\":927.767723,\"ARS\":1515.8543,\"AUD\":1.432809,\"AWG\":1.79,\"AZN\":1.699191,\"BAM\":1.747378,\"BBD\":2,\"BDT\":123.180412,\"BGN\":1.747378,\"BHD\":0.376,\"BIF\":2998.354817,\"BMD\":1,\"BND\":1.279837,\"BOB\":11.757007,\"BRL\":5.015062,\"BSD\":1,\"BTN\":95.313853,\"BWP\":13.976641,\"BYN\":3.011735,\"BZD\":2,\"CAD\":1.422113,\"CDF\":2311.605348,\"CHF\":0.832849,\"CLF\":0.024695,\"CLP\":976.093305,\"CNH\":6.692706,\"CNY\":6.705025,\"COP\":3185.263924,\"CRC\":454.983109,\"CUP\":24,\"CVE\":98.512957,\"CZK\":21.762908,\"DJF\":177.721,\"DKK\":6.680485,\"DOP\":61.231482,\"DZD\":134.555902,\"EGP\":52.804385,\"ERN\":15,\"ETB\":161.491679,\"EUR\":0.893421,\"FJD\":2.252088,\"FKP\":0.754716,\"FOK\":6.680483,\"GBP\":0.754721,\"GEL\":2.59592,\"GGP\":0.754716,\"GHS\":11.737927,\"GIP\":0.754716,\"GMD\":74.554464,\"GNF\":8802.71876,\"GTQ\":7.641305,\"GYD\":209.151526,\"HKD\":7.848254,\"HNL\":26.825376,\"HRK\":6.731473,\"HTG\":130.805453,\"HUF\":325.446176,\"IDR\":17917.900437,\"ILS\":3.072127,\"IMP\":0.754716,\"INR\":95.319179,\"IQD\":1515.690533,\"IRR\":1717307.61591,\"ISK\":121.712128,\"JEP\":0.754716,\"JMD\":158.668875,\"JOD\":0.7",
+   "shape": {
+    "dict_keys": [
+     "result",
+     "provider",
+     "documentation",
+     "terms_of_use",
+     "time_last_update_unix",
+     "time_last_update_utc",
+     "time_next_update_unix",
+     "time_next_update_utc",
+     "time_eol_unix",
+     "base_code",
+     "rates"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://open.er-api.com/v6/latest/USD"
+  },
+  {
+   "bytes": 1721805,
+   "content_type": "text/csv",
+   "group": "Tardis (free 1st of month)",
+   "id": "tardis.free.derivative_ticker",
+   "ms": 981,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a5b0ad7f9fd-SJC",
+    "server": "cloudflare",
+    "server-timing": "auth;dur=182, origin;dur=125;desc=\"primary\", total;dur=690"
+   },
+   "sample": "",
+   "shape": {
+    "head": [
+     "exchange,symbol,timestamp,local_timestamp,funding_timestamp,funding_rate,predicted_funding_rate,open_interest,last_price,index_price,mark_price",
+     "binance-futures,BTCUSDT,1704067200000000,1704067200028250,1704067200000000,0.00037499,,,,42282.17553191,42313.9",
+     "binance-futures,BTCUSDT,1704067201000000,1704067201033019,1704096000000000,0.00037409,,,,42283.3712766,42313.9"
+    ],
+    "rows": 107024
+   },
+   "status": 200,
+   "url": "https://datasets.tardis.dev/v1/binance-futures/derivative_ticker/2024/01/01/BTCUSDT.csv.gz"
+  },
+  {
+   "bytes": 20106,
+   "content_type": "text/csv",
+   "group": "Tardis (free 1st of month)",
+   "id": "tardis.free.liquidations",
+   "ms": 781,
+   "ok": true,
+   "rate_headers": {
+    "cf-ray": "a4a60a5b0e6bd56a-SJC",
+    "server": "cloudflare",
+    "server-timing": "auth;dur=183, origin;dur=149;desc=\"primary\", total;dur=714"
+   },
+   "sample": "",
+   "shape": {
+    "head": [
+     "exchange,symbol,timestamp,local_timestamp,id,side,price,amount",
+     "binance-futures,BTCUSDT,1704067303193000,1704067303198088,,buy,42514.93,0.141",
+     "binance-futures,BTCUSDT,1704067334948000,1704067334952920,,buy,42525.27,0.043"
+    ],
+    "rows": 1207
+   },
+   "status": 200,
+   "url": "https://datasets.tardis.dev/v1/binance-futures/liquidations/2024/01/01/BTCUSDT.csv.gz"
+  },
+  {
+   "group": "Coinalyze (free key)",
+   "id": "coinalyze.future-markets",
+   "note": "set COINALYZE_API_KEY to probe",
+   "ok": false,
+   "status": "NEEDS_KEY",
+   "url": "https://api.coinalyze.net/v1/future-markets"
+  },
+  {
+   "group": "CoinMarketCap (free key)",
+   "id": "cmc.global-metrics",
+   "note": "set CMC_API_KEY to probe",
+   "ok": false,
+   "status": "NEEDS_KEY",
+   "url": "https://pro-api.coinmarketcap.com/v1/global-metrics/quotes/latest"
+  },
+  {
+   "group": "FRED (free key)",
+   "id": "fred.dgs10",
+   "note": "set FRED_API_KEY to probe",
+   "ok": false,
+   "status": "NEEDS_KEY",
+   "url": "https://api.stlouisfed.org/fred/series/observations?series_id=DGS10&file_type=json&limit=5&sort_order=desc"
+  },
+  {
+   "group": "Etherscan (free key)",
+   "id": "etherscan.ethsupply",
+   "note": "set ETHERSCAN_API_KEY to probe",
+   "ok": false,
+   "status": "NEEDS_KEY",
+   "url": "https://api.etherscan.io/v2/api?chainid=1&module=stats&action=ethsupply"
+  },
+  {
+   "bytes": 268,
+   "content_type": "application/json",
+   "group": "Runner",
+   "id": "ipinfo",
+   "ms": 92,
+   "ok": true,
+   "rate_headers": {},
+   "sample": "{\n  \"ip\": \"52.157.33.133\",\n  \"city\": \"San Jose\",\n  \"region\": \"California\",\n  \"country\": \"US\",\n  \"loc\": \"37.3394,-121.8950\",\n  \"org\": \"AS8075 Microsoft Corporation\",\n  \"postal\": \"95110\",\n  \"timezone\": \"America/Los_Angeles\",\n  \"readme\": \"https://ipinfo.io/missingauth\"\n}",
+   "shape": {
+    "dict_keys": [
+     "ip",
+     "city",
+     "region",
+     "country",
+     "loc",
+     "org",
+     "postal",
+     "timezone",
+     "readme"
+    ],
+    "first": "str"
+   },
+   "status": 200,
+   "url": "https://ipinfo.io/json"
+  }
+ ],
+ "run_at": 1791975206,
+ "runner": "GitHub Actions 1000008292",
+ "schema": "v9.probe/1"
+}

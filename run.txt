@@ -1,0 +1,333 @@
+81/102 sources answered 2xx
+      451    171 binance.fapi.exchangeInfo
+      451    149 binance.fapi.premiumIndex
+      451    150 binance.fapi.fundingRate
+      451    149 binance.futures.openInterestHist
+      451    145 binance.futures.topLongShortAccountRatio
+      451    160 binance.futures.takerlongshortRatio
+      200    555 binance.spot.data-api.klines
+      200    849 binance.vision.s3.list.um.monthly.klines
+      200    477 binance.vision.um.monthly.klines.1d
+      200    481 binance.vision.um.monthly.klines.delisted
+      200    471 binance.vision.um.monthly.fundingRate
+      200    244 binance.vision.um.daily.metrics
+      200    344 binance.vision.um.monthly.premiumIndexKlines
+      200    766 binance.vision.um.daily.bookDepth
+      403     50 bybit.v5.tickers
+      403     49 bybit.v5.open-interest
+      403     32 bybit.v5.account-ratio
+      403     35 bybit.bytick.tickers
+      200    543 bybit.public.archive
+      200    189 okx.instruments.swap
+      200    153 okx.funding-rate-history
+      200    150 okx.history-candles
+      200    283 okx.rubik.oi-history
+      200    228 okx.rubik.long-short-account-ratio-contract
+      200    247 okx.rubik.taker-volume-contract
+      200    221 okx.liquidation-orders
+      200    246 hl.meta
+      200    249 hl.metaAndAssetCtxs
+      200    559 hl.candleSnapshot.BTC.1d
+      200    242 hl.fundingHistory.BTC
+      200    184 hl.predictedFundings
+      200    175 hl.perpsAtOpenInterestCap
+      200     39 hl.leaderboard
+      200   1524 gate.contracts
+      200    589 gate.contract_stats
+      200    470 gate.liq_orders
+      200    470 gate.candles.1d
+      200    197 mexc.contract.detail
+      200    189 mexc.funding.history
+      200    277 bitget.tickers
+      200    261 bitget.history-fund-rate
+      200    287 bitget.open-interest
+      200    153 bitget.account-long-short
+      200    254 kucoin.futures.contracts
+      200    442 htx.linear.contract_info
+      200    410 htx.linear.his_open_interest
+      200    414 htx.linear.elite_account_ratio
+      200    197 kraken.futures.tickers
+      200    190 deribit.dvol
+      200    252 deribit.book_summary.options
+      200    160 deribit.funding_rate_history
+      200     32 dydx.perpetualMarkets
+      200    340 dydx.historicalFunding
+      200    522 aster.premiumIndex
+      404    199 aster.openInterestHist
+      200    115 bitfinex.status.deriv
+      200    489 bitfinex.stats.pos.size.long
+      200     47 coinbase.spot.candles
+      200   1215 coinbase.intl.instruments
+      200    840 upbit.market.all
+      200    582 upbit.ticker.btc
+      200    910 bithumb.ticker.all
+      200    118 coingecko.global
+      200    330 coingecko.markets
+      200    149 coingecko.derivatives
+      200    116 coinpaprika.global
+      200    214 coinpaprika.tickers
+      200    564 coinlore.tickers
+      401    191 cryptocompare.histoday
+      200    110 defillama.oi.overview
+      402     77 defillama.derivatives.overview
+      200    138 defillama.dexs.overview
+      200     39 defillama.stablecoincharts.all
+      200     46 defillama.coins.current
+      402     43 defillama.emissions
+      200     38 dexscreener.boosts
+      200     47 geckoterminal.trending
+      200     46 polymarket.markets
+      200    226 alternative.fng
+      418    184 cnn.fear-greed
+      200    579 apewisdom.crypto
+      200    146 stocktwits.btc
+      403     14 reddit.cryptocurrency
+NEEDS_KEY        cryptopanic.posts
+      200    118 rss.coindesk
+      200     43 rss.cointelegraph
+      200     48 rss.theblock
+      200     49 rss.decrypt
+      200    320 mempool.fees
+      200    278 mempool.hashrate
+      200    197 blockchain.charts.hashrate
+      200   1364 farside.btc.etf
+      200     58 yahoo.dxy
+      200    109 yahoo.spx
+      200     47 fx.open-er-api
+      200    981 tardis.free.derivative_ticker
+      200    781 tardis.free.liquidations
+NEEDS_KEY        coinalyze.future-markets
+NEEDS_KEY        cmc.global-metrics
+NEEDS_KEY        fred.dgs10
+NEEDS_KEY        etherscan.ethsupply
+      200     92 ipinfo
+{
+ "hyperliquid_delisted": {
+  "delisted": 56,
+  "total": 234,
+  "delisted_sample": [
+   "MATIC",
+   "RNDR",
+   "FTM",
+   "MKR",
+   "FXS",
+   "HPOS",
+   "RLB",
+   "UNIBOT",
+   "OX",
+   "FRIEND",
+   "SHIA",
+   "CYBER",
+   "BLZ",
+   "FTT",
+   "LOOM"
+  ],
+  "delisted_candles": {
+   "MATIC": {
+    "n": 736,
+    "first": 1662336000000,
+    "last": 1725840000000
+   },
+   "RNDR": {
+    "n": 535,
+    "first": 1675382400000,
+    "last": 1721520000000
+   },
+   "FTM": {
+    "n": 861,
+    "first": 1662336000000,
+    "last": 1736640000000
+   }
+  }
+ },
+ "binance_archive": {
+  "symbols": 1056,
+  "perpetual": 1003,
+  "usdt_perpetual": 900,
+  "delivery": 53,
+  "sample": [
+   "0GUSDT",
+   "1000000BOBUSDT",
+   "1000000MOGUSDT",
+   "1000BONKUSDT",
+   "1000BTTCUSDT",
+   "1000CATUSDT",
+   "1000CHEEMSUSDT",
+   "1000FLOKIUSDT",
+   "1000LUNCUSDT",
+   "1000PEPEUSDT",
+   "1000RATSUSDT",
+   "1000SATSUSDT",
+   "1000SHIBUSDT",
+   "1000WHYUSDT",
+   "1000XECUSDT",
+   "1000XUSDT",
+   "1INCHUSDT",
+   "1MBABYDOGEUSDT",
+   "2ZUSDT",
+   "42USDT"
+  ],
+  "sample_first_last_month": {
+   "0GUSDT": [
+    "2025-09",
+    "2026-09"
+   ],
+   "AAOIUSDT": [
+    "2026-06",
+    "2026-09"
+   ],
+   "AIOTUSDT": [
+    "2025-04",
+    "2026-09"
+   ],
+   "ANCUSDT": [
+    "2022-03",
+    "2022-05"
+   ],
+   "ASRUSDT": [
+    "2025-05",
+    "2026-09"
+   ],
+   "B3USDT": [
+    "2025-02",
+    "2026-09"
+   ],
+   "BERAUSDT": [
+    "2025-02",
+    "2026-09"
+   ],
+   "BONDUSDT": [
+    "2023-10",
+    "2026-09"
+   ],
+   "BXUSDT": [
+    "2026-06",
+    "2026-09"
+   ],
+   "CHZUSDT": [
+    "2021-01",
+    "2026-09"
+   ],
+   "CRMLUSDT": [
+    "2026-09",
+    "2026-09"
+   ],
+   "DARUSDT": [
+    "2022-04",
+    "2026-09"
+   ],
+   "DOLOUSDT": [
+    "2025-05",
+    "2026-09"
+   ],
+   "EOSUSDT": [
+    "2020-01",
+    "2025-05"
+   ],
+   "FILUSDT": [
+    "2020-10",
+    "2026-09"
+   ],
+   "FXSUSDT": [
+    "2023-01",
+    "2026-09"
+   ],
+   "GRIFFAINUSDT": [
+    "2025-01",
+    "2026-09"
+   ],
+   "HIVEUSDT": [
+    "2024-12",
+    "2026-09"
+   ],
+   "ICXUSDT": [
+    "2020-09",
+    "2026-09"
+   ],
+   "JASMYUSDT": [
+    "2022-04",
+    "2026-09"
+   ],
+   "KNCUSDT": [
+    "2020-06",
+    "2026-09"
+   ],
+   "LLYUSDT": [
+    "2026-06",
+    "2026-09"
+   ],
+   "MATICUSDT": [
+    "2020-10",
+    "2024-09"
+   ],
+   "MITOUSDT": [
+    "2025-08",
+    "2026-09"
+   ],
+   "MVLLUSDT": [
+    "2026-06",
+    "2026-09"
+   ],
+   "NOTUSDT": [
+    "2024-05",
+    "2026-09"
+   ],
+   "ONTUSDT": [
+    "2020-02",
+    "2026-09"
+   ],
+   "PENGUSDT": [
+    "2026-07",
+    "2026-09"
+   ],
+   "POWERUSDT": [
+    "2025-12",
+    "2026-09"
+   ],
+   "RAREUSDT": [
+    "2024-08",
+    "2026-09"
+   ],
+   "ROBOUSDT": [
+    "2026-02",
+    "2026-09"
+   ],
+   "SENTUSDT": [
+    "2025-11",
+    "2026-09"
+   ],
+   "SNOWUSDT": [
+    "2026-07",
+    "2026-09"
+   ],
+   "SQQQUSDT": [
+    "2026-06",
+    "2026-09"
+   ],
+   "SWARMSUSDT": [
+    "2025-01",
+    "2026-09"
+   ],
+   "TLMUSDT": [
+    "2021-07",
+    "2026-09"
+   ],
+   "TSTUSDT": [
+    "2025-02",
+    "2026-09"
+   ],
+   "USELESSUSDT": [
+    "2025-08",
+    "2026-09"
+   ],
+   "WALUSDT": [
+    "2025-03",
+    "2026-09"
+   ],
+   "XLMUSDT": [
+    "2020-01",
+    "2026-09"
+   ]
+  }
+ }
+}
