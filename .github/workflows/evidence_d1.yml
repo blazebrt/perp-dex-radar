@@ -1,0 +1,80 @@
+name: Phase D1 evidence
+
+# v9 phase D1: tests the two pre-registered strategies (docs/v9/phase-d1-preregistration.md: XS_FUND_FADE and
+# XS_FLOW_MOM) once, on the survivorship-free Binance archive saved on the "archive-data" branch, the dataset phase B
+# was tested on.
+# Research only: nothing is published to the site and no strategy is promoted. Results replace the
+# "evidence-d1-results" branch (one commit, no history). Runs when the D1 tools change on a v9 branch, or from the
+# Actions tab.
+
+on:
+  push:
+    branches: ["v9/**"]
+    paths: ["tools/v9/d1.py", "tools/v9/evidence_d1.py", ".github/workflows/evidence_d1.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: evidence-d1
+  cancel-in-progress: true
+
+jobs:
+  d1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    defaults:
+      run:
+        shell: bash          # bash -eo pipefail: a failed run fails its step even when piped to tee
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install the research libraries
+        run: python -m pip install --disable-pip-version-check --quiet numpy pandas numba
+
+      - name: The D1 definitions (rankings, settlement counts, no look-ahead) on the synthetic archive
+        run: python -m unittest tests.test_v9_d1 -v
+
+      - name: Check out the research dataset (archive-data) and phase B's evidence
+        run: |
+          mkdir -p evidence_d1 md_bn
+          git fetch --no-tags --depth=1 origin \
+            +refs/heads/archive-data:refs/remotes/origin/archive-data \
+            +refs/heads/evidence-results:refs/remotes/origin/evidence-results
+          git archive origin/archive-data | tar -x -C md_bn
+          git show origin/evidence-results:evidence.json > phase_b_evidence.json
+          {
+            echo "archive-data $(git rev-parse origin/archive-data)"
+            echo "evidence-results $(git rev-parse origin/evidence-results)"
+          } > evidence_d1/dataset_ref.txt
+          cat evidence_d1/dataset_ref.txt
+          echo "h4 files: $(ls md_bn/h4 | wc -l); funding files: $(ls md_bn/fund_bn | wc -l); $(du -sh md_bn | cut -f1)"
+
+      - name: Test the pre-registered hypotheses
+        run: |
+          python tools/v9/evidence_d1.py --md md_bn --out evidence_d1 --phase-b-evidence phase_b_evidence.json 2>&1 \
+            | tee evidence_d1/run.txt
+
+      - name: Save the results on the evidence-d1-results branch
+        if: always()
+        env:
+          GIT_AUTHOR_NAME: perp-dex-radar
+          GIT_AUTHOR_EMAIL: actions@users.noreply.github.com
+          GIT_COMMITTER_NAME: perp-dex-radar
+          GIT_COMMITTER_EMAIL: actions@users.noreply.github.com
+        run: |
+          mkdir -p evidence_d1
+          echo "$GITHUB_REF_NAME $GITHUB_SHA $(date -u +%Y-%m-%dT%H:%MZ)" > evidence_d1/run_meta.txt
+          export GIT_INDEX_FILE="$RUNNER_TEMP/d1.index"
+          rm -f "$GIT_INDEX_FILE"
+          git read-tree --empty
+          for f in evidence_d1/*; do
+            [ -f "$f" ] && git update-index --add --cacheinfo "100644,$(git hash-object -w "$f"),$(basename "$f")"
+          done
+          commit=$(git commit-tree "$(git write-tree)" -m "Phase D1 evidence $GITHUB_REF_NAME ${GITHUB_SHA::7}")
+          git push --force origin "$commit:refs/heads/evidence-d1-results"
