@@ -454,6 +454,8 @@ class Desk(unittest.TestCase):
         docs["trail"] = DE.build(snap({"HI": [trailing]}, book=[own] + GovernedBook.BIG,
                                       contracts=[P.contract(a) for a in ("HI", "ALPHA")],
                                       recs=[P.rec("HI"), P.rec("ALPHA")]))
+        docs["ft_ok"] = DE.build(snap({}, recs=[P.rec("HI")], book=GovernedBook.BIG, ft=forward(40, 0.2)))
+        docs["ft_failed"] = DE.build(snap({}, recs=[P.rec("HI")], book=GovernedBook.BIG, ft=forward(40, -2.0)))
         cls.docs = docs
         with tempfile.TemporaryDirectory() as d:
             f = Path(d) / "in.json"
@@ -514,8 +516,19 @@ class Desk(unittest.TestCase):
     def test_empty_state_says_what_can_trade(self):
         best = self.out["empty"]["today"]["best"]
         self.assertIn("No trade currently clears every desk gate.", best)
-        self.assertIn("Authorized to trade: REQ (requalified); REQ4H (requalified); PROB long (probation, 0.5× size)", best)
+        self.assertIn("Authorized to trade: REQ (requalified); REQ4H (requalified); PROB long (probation, 0.5× size; "
+                      "live forward test: no closed trade yet, checked against the archive band from 30 trades)", best)
         self.assertIn("Daily strategies decide at the 00:00 UTC close.", best)
+
+    def test_the_forward_test_is_monitored_on_today_every_scan(self):
+        band = [b for b in REAL_TERMS["sides"]["long"]["demotion_band"]["table"] if b["trades"] <= 40][-1]
+        ok = self.out["ft_ok"]["today"]["best"]
+        self.assertIn(f"live forward test: 40 closed, mean +0.20R, demoted below {band['p05_mean_R']:.2f}R at "
+                      f"{band['trades']} trades", ok)
+        self.assertNotIn("demoted by its forward test", ok)
+        failed = self.out["ft_failed"]["today"]["best"]
+        self.assertIn("40 closed, mean -2.00R", failed)
+        self.assertIn("demoted by its forward test: long", failed)
 
     def test_governed_and_legacy_books_are_told_apart(self):
         pf = self.out["trade"]["today"]["pf"]

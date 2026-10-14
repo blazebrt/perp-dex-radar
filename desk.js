@@ -786,7 +786,18 @@
     for (const x of t.PROBATION || []) {
       const sides = Object.keys(x.sides || {}).sort();
       const failed = sides.filter((s) => (x.sides[s] || {}).forward_test_state === "FAILED");
+      /* The live forward test against the archive band, as the engine evaluates it every scan (E4: monitored and
+         demoted automatically), whether or not a signal is current. */
+      const live = sides.map((s) => {
+        const f = (x.sides[s] || {}).forward_test || {};
+        if (!isInt(f.closed)) return "";
+        const rec = f.closed ? f.closed + " closed, mean " + (isNum(f.mean_R) ? (f.mean_R >= 0 ? "+" : "") + f.mean_R.toFixed(2) + "R" : "–") : "no closed trade yet";
+        const band = isNum(f.band_p05_mean_R) && isInt(f.band_trades) ? ", demoted below " + f.band_p05_mean_R.toFixed(2) + "R at " + f.band_trades + " trades"
+          : isInt(f.min_trades) ? ", checked against the archive band from " + f.min_trades + " trades" : "";
+        return (sides.length > 1 ? s + ": " : "") + rec + band;
+      }).filter(Boolean);
       rows.push(esc(x.strategy) + " " + esc(sides.join(" and ")) + " (probation, " + esc(String(x.risk_multiplier)) + "× size" +
+                (live.length ? "; live forward test: " + esc(live.join("; ")) : "") +
                 (failed.length ? "; demoted by its forward test: " + esc(failed.join(", ")) : "") + ")");
     }
     if (!rows.length) return '<p class="e-d">No strategy side is authorized to trade yet, so this section stays empty until one is.</p>';

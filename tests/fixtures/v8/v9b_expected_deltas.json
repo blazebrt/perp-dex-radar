@@ -11,7 +11,7 @@
  "rules": {
   "V9_XSMOM_LONG_PROBATION": "The reviewed strategy policy (v8.quant-strategy-policy/2) puts XSMOM on ACTIVE_PROBATION / PROBATION: its archive-confirmed long side may trade at half size inside its 24h entry window, bound to research/v9/probation_evidence.json and to the forward-test registration V9-PROBATION-XSMOM-LONG-1. quant.json publishes the new states, schema and policy hash; quant.py, its signals, universe and journal are unchanged.",
   "V9_PROBATION_LABEL": "The Analyzer's and the Quant desk page's strategy label read ACTIVE_PROBATION as 'Probation (confirmed side only)' instead of 'Legacy holdover'. Wording only; the call still comes from the decision alone.",
-  "V9_DESK_PROBATION_PRESENTATION": "desk.js and desk.css show a TRADE's tier (Probation, reduced size), the engine's own proposal as a plan (entry near the mark, stop, the signal's trailing stop and the strategy's time exit, risk, size on the page account and, as a labelled unit conversion of the same fractions, on the account the trader saved in the Analyzer, entry window left), the bound archive evidence and the live forward test, which strategy sides may trade, and the governed book (the legacy paper book as a diagnostic on Portfolio). Presentation only: nothing is decided in the page. With the market branch, desk.js and desk.css also render the market context (V9_MARKET_CONTEXT_PRESENTATION).",
+  "V9_DESK_PROBATION_PRESENTATION": "desk.js and desk.css show a TRADE's tier (Probation, reduced size), the engine's own proposal as a plan (entry near the mark, stop, the signal's trailing stop and the strategy's time exit, risk, size on the page account and, as a labelled unit conversion of the same fractions, on the account the trader saved in the Analyzer, entry window left), the bound archive evidence and the live forward test, which strategy sides may trade with each probation side's live forward test against its archive band (every scan), and the governed book (the legacy paper book as a diagnostic on Portfolio). Presentation only: nothing is decided in the page. With the market branch, desk.js and desk.css also render the market context (V9_MARKET_CONTEXT_PRESENTATION).",
   "V9_MARKET_CONTEXT_PRESENTATION": "Today (published as index.html) gains a Market context panel and the Analyzer a per-coin market context block. Both read data/v9/market.json (v9.market/1, written by the Scan workflow's new context-only step) through desk.js, label it context, show a missing value as missing and never change a decision region. analyze.html also carries phase B's governed-plan time exit (The Analyzer's exact governed proposal card and its copied plan text state the strategy's time exit as the decision engine now publishes it (proposal.time_exit_hours, quant.py's hold), and the signal's trailing stop (proposal.trailing_stop_pct) when it has one: exit at the stop, or N days after you enter, whichever comes first; the engine states no profit target. The legacy Analyzer stated every plan's exit and the governed card had dropped it. Presentation only: the call and the proposal still come from the decision alone.)."
  },
  "universe": [],
@@ -87,7 +87,7 @@
   {
    "file": "desk.js",
    "base_sha256": "4ee60cecc35844b053ad2b9a4a3f40c51a2eb3a8546f4268c3a27e3846833fb1",
-   "head_sha256": "6280facb0b77d64fa5453bc8aa4c06edc2534a5598d979d60e879e43e2c53c0a",
+   "head_sha256": "a0d27cc71df29fb2826f882bb8039b8759d2bc669ba5ce4d72eb9bbaed21f9c7",
    "rule": "V9_DESK_PROBATION_PRESENTATION"
   },
   {

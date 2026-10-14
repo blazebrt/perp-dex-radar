@@ -14,7 +14,7 @@
   "data/v8/research/phase9/research_phase9_summary.json",
   "data/v8/research/phase9/research_strategy_adjudication.json"
  ],
- "combined": "f28fef8040c6fcf9c5ea47b5598828525b6b66283cabe7cc3eb8e05a3de8ee4e",
+ "combined": "204285fd05a4948759b78cf6bb8b11bb7ad5516d7ff3fe247dfabfd6c196b8c0",
  "decisions": {
   "picks": {
    "daytrade_all": [
@@ -507,7 +507,7 @@
   "data/smart_journal.json": "ca2b3cd169042a0649e1a0ce92650a878082831d6e08553268910702554ff3d1",
   "data/smart_research.json": "55138a1057b0be42f3b23763967ec6ada6a8b878bb131acb1af60f5127cc6cc2",
   "desk.css": "5042c8811dcd21751df30ef679b5d0a39f1bfa509ee82666d5fc9985d5723818",
-  "desk.js": "6280facb0b77d64fa5453bc8aa4c06edc2534a5598d979d60e879e43e2c53c0a",
+  "desk.js": "a0d27cc71df29fb2826f882bb8039b8759d2bc669ba5ce4d72eb9bbaed21f9c7",
   "funding.html": "babfdea3ee2ca3d1f991b0947d047a42cb42cc4e4a89116b6591d5e305df03a1",
   "index.html": "42bffca57286fa0d137994b11ec31391a8002a7abea70d48d9b32afbab928bc8",
   "picks.html": "4a3b9572d960a2ec1ed92d603ff6c89fb97e4af225bc2f4f5d48f121a7af3864",

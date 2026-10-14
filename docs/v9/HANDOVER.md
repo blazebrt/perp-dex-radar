@@ -390,7 +390,15 @@ How every phase D study runs (D1 set the pattern):
   scores.
 - [ ] E2. Size by tier and volatility (risk parity across open trades), within the Phase 10 limits.
 - [ ] E3. Regime-aware gating from D5, only where it is confirmed.
-- [ ] E4. Monitor live tiers against archive expectation and demote automatically (B2's rule, then generalised).
+- [x] E4. Monitor live tiers against archive expectation and demote automatically (B2's rule, then generalised).
+  - Every scan, the engine evaluates each probation side's live forward test against its archive demotion band
+    (`strategy_tiers`, `_forward_test`). A side below the band is capped at WATCH automatically
+    (`PROBATION_FORWARD_TEST_FAILED`).
+  - Today's "Authorized to trade" note shows the live record against the band on every scan, signal or not, e.g.
+    "live forward test: 40 closed, mean +0.20R, demoted below …R at 30 trades". TRADE cards show the same.
+  - "Generalised": the rule applies to every probation side that is registered. A full-tier (ACTIVE_REQUALIFIED)
+    side is governed by Phase 9's requalification, which carries its own 180-day prospective registration. No
+    full-tier side exists today.
 
 ### Phase F: product UX
 
@@ -418,7 +426,18 @@ How every phase D study runs (D1 set the pattern):
 
 - [ ] G1. Freshness monitors and failure alerts for every source.
 - [ ] G2. Keep the published artifacts small (gzip, compact JSON); trim the 9.8 MB audit or load it lazily.
-- [ ] G3. CI covers every v9 module; parity manifests for every published change.
+- [x] G3. CI covers every v9 module; parity manifests for every published change.
+  - Every module in `v9/` and `tools/v9/` has tests in CI:
+    - main job: market, alerts, metrics_fetch, record_run (`test_v9_evidence_runs`), and register_forward_test with
+      the probe tools (`test_v9_tools`);
+    - research-checks job (numba): evidence and archive_fetch (`test_v9_evidence`), d1, d2, and confirm with the D1
+      and D2 runners (`test_v9_research_tools`).
+  - `test_v9_tools` proves the committed forward-test registration is exactly what the tool computes from the bound
+    evidence, and that a probe never keeps an API key.
+  - `test_v9_research_tools` checks the gate statistics (Holm, clustering, concentration, demotion band, every check
+    (b)–(j)) on hand-checked values.
+  - Every published change (desk.js, desk.css, analyze.js, analyze.html, quant.html, index.html and four quant.json
+    leaves) is pinned in `v9b_expected_deltas.json`, and CI proves differential parity against main.
 
 ## 7. Owner actions (only these need you)
 
