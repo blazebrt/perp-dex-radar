@@ -1,0 +1,6169 @@
+{
+ "files_in_life": 532738,
+ "files_listed": 556770,
+ "first_day_overall": 1598918400,
+ "first_day_quartiles": [
+  1683072000,
+  1734652800,
+  1759276800
+ ],
+ "list_failed": {},
+ "per_symbol": {
+  "0GUSDT": {
+   "files": 392,
+   "files_in_life": 379,
+   "first_bar": 1758110400,
+   "first_day": 1758067200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "1000000BOBUSDT": {
+   "files": 496,
+   "files_in_life": 483,
+   "first_bar": 1749110400,
+   "first_day": 1749081600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "1000000MOGUSDT": {
+   "files": 706,
+   "files_in_life": 693,
+   "first_bar": 1730980800,
+   "first_day": 1730937600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "1000BONKUSDT": {
+   "files": 1057,
+   "files_in_life": 1044,
+   "first_bar": 1700654400,
+   "first_day": 1700611200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "1000BTTCUSDT": {
+   "files": 95,
+   "files_in_life": 76,
+   "first_bar": 1643155200,
+   "first_day": 1643155200,
+   "last_bar": 1649664000,
+   "last_day": 1712534400
+  },
+  "1000CATUSDT": {
+   "files": 723,
+   "files_in_life": 710,
+   "first_bar": 1729512000,
+   "first_day": 1729468800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "1000CHEEMSUSDT": {
+   "files": 688,
+   "files_in_life": 675,
+   "first_bar": 1732521600,
+   "first_day": 1732492800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "1000FLOKIUSDT": {
+   "files": 1257,
+   "files_in_life": 1244,
+   "first_bar": 1683388800,
+   "first_day": 1683331200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "1000LUNCUSDT": {
+   "files": 1496,
+   "files_in_life": 1483,
+   "first_bar": 1662724800,
+   "first_day": 1662681600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "1000PEPEUSDT": {
+   "files": 1258,
+   "files_in_life": 1245,
+   "first_bar": 1683302400,
+   "first_day": 1683244800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "1000RATSUSDT": {
+   "files": 1034,
+   "files_in_life": 1021,
+   "first_bar": 1702641600,
+   "first_day": 1702598400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "1000SATSUSDT": {
+   "files": 1037,
+   "files_in_life": 1024,
+   "first_bar": 1702382400,
+   "first_day": 1702339200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "1000SHIBUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1620662400,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "1000WHYUSDT": {
+   "files": 678,
+   "files_in_life": 478,
+   "first_bar": 1732521600,
+   "first_day": 1732492800,
+   "last_bar": 1773734400,
+   "last_day": 1791590400
+  },
+  "1000XECUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1631836800,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "1000XUSDT": {
+   "files": 437,
+   "files_in_life": 367,
+   "first_bar": 1731499200,
+   "first_day": 1731456000,
+   "last_bar": 1763107200,
+   "last_day": 1769126400
+  },
+  "1INCHUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1608883200,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "1MBABYDOGEUSDT": {
+   "files": 758,
+   "files_in_life": 745,
+   "first_bar": 1726473600,
+   "first_day": 1726444800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "2ZUSDT": {
+   "files": 377,
+   "files_in_life": 364,
+   "first_bar": 1759406400,
+   "first_day": 1759363200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "42USDT": {
+   "files": 214,
+   "files_in_life": 96,
+   "first_bar": 1761552000,
+   "first_day": 1761523200,
+   "last_bar": 1769760000,
+   "last_day": 1790985600
+  },
+  "4USDT": {
+   "files": 371,
+   "files_in_life": 358,
+   "first_bar": 1759910400,
+   "first_day": 1759881600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "A2ZUSDT": {
+   "files": 436,
+   "files_in_life": 238,
+   "first_bar": 1753862400,
+   "first_day": 1753833600,
+   "last_bar": 1774339200,
+   "last_day": 1791849600
+  },
+  "AAVEUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1602820800,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ACEUSDT": {
+   "files": 1031,
+   "files_in_life": 1018,
+   "first_bar": 1702886400,
+   "first_day": 1702857600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ACHUSDT": {
+   "files": 1330,
+   "files_in_life": 1317,
+   "first_bar": 1677067200,
+   "first_day": 1677024000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ACNUSDT": {
+   "files": 15,
+   "files_in_life": 2,
+   "first_bar": 1790668800,
+   "first_day": 1790640000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ACTUSDT": {
+   "files": 702,
+   "files_in_life": 689,
+   "first_bar": 1731326400,
+   "first_day": 1731283200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ACUUSDT": {
+   "files": 266,
+   "files_in_life": 253,
+   "first_bar": 1768996800,
+   "first_day": 1768953600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ACXUSDT": {
+   "files": 664,
+   "files_in_life": 610,
+   "first_bar": 1733486400,
+   "first_day": 1733443200,
+   "last_bar": 1786089600,
+   "last_day": 1791676800
+  },
+  "ADAUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1580457600,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ADBEUSDT": {
+   "files": 125,
+   "files_in_life": 112,
+   "first_bar": 1781164800,
+   "first_day": 1781136000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AERGOUSDT": {
+   "files": 663,
+   "files_in_life": 640,
+   "first_bar": 1725969600,
+   "first_day": 1725926400,
+   "last_bar": 1782849600,
+   "last_day": 1784764800
+  },
+  "AEROUSDT": {
+   "files": 679,
+   "files_in_life": 666,
+   "first_bar": 1733313600,
+   "first_day": 1733270400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AEVOUSDT": {
+   "files": 945,
+   "files_in_life": 932,
+   "first_bar": 1710331200,
+   "first_day": 1710288000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AGIXUSDT": {
+   "files": 515,
+   "files_in_life": 496,
+   "first_bar": 1676548800,
+   "first_day": 1676505600,
+   "last_bar": 1719302400,
+   "last_day": 1760140800
+  },
+  "AGLDUSDT": {
+   "files": 1173,
+   "files_in_life": 1160,
+   "first_bar": 1690588800,
+   "first_day": 1690588800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AGPUUSDT": {
+   "files": 26,
+   "files_in_life": 13,
+   "first_bar": 1789718400,
+   "first_day": 1789689600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AGTUSDT": {
+   "files": 512,
+   "files_in_life": 499,
+   "first_bar": 1747728000,
+   "first_day": 1747699200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AI16ZUSDT": {
+   "files": 401,
+   "files_in_life": 309,
+   "first_bar": 1735819200,
+   "first_day": 1735776000,
+   "last_bar": 1762416000,
+   "last_day": 1790899200
+  },
+  "AIAUSDT": {
+   "files": 391,
+   "files_in_life": 339,
+   "first_bar": 1758182400,
+   "first_day": 1758153600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AIGENSYNUSDT": {
+   "files": 168,
+   "files_in_life": 155,
+   "first_bar": 1777464000,
+   "first_day": 1777420800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AINUSDT": {
+   "files": 461,
+   "files_in_life": 448,
+   "first_bar": 1752134400,
+   "first_day": 1752105600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AIOTUSDT": {
+   "files": 532,
+   "files_in_life": 519,
+   "first_bar": 1746014400,
+   "first_day": 1745971200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AIOUSDT": {
+   "files": 427,
+   "files_in_life": 414,
+   "first_bar": 1755072000,
+   "first_day": 1755043200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AIUSDT": {
+   "files": 996,
+   "files_in_life": 842,
+   "first_bar": 1704715200,
+   "first_day": 1704672000,
+   "last_bar": 1777363200,
+   "last_day": 1790640000
+  },
+  "AIXBTUSDT": {
+   "files": 663,
+   "files_in_life": 650,
+   "first_bar": 1734710400,
+   "first_day": 1734652800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AKEUSDT": {
+   "files": 383,
+   "files_in_life": 370,
+   "first_bar": 1758888000,
+   "first_day": 1758844800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AKROUSDT": {
+   "files": 224,
+   "files_in_life": 178,
+   "first_bar": 1611028800,
+   "first_day": 1638316800,
+   "last_bar": 1653624000,
+   "last_day": 1707264000
+  },
+  "AKTUSDT": {
+   "files": 695,
+   "files_in_life": 682,
+   "first_bar": 1731916800,
+   "first_day": 1731888000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ALCHUSDT": {
+   "files": 645,
+   "files_in_life": 632,
+   "first_bar": 1736236800,
+   "first_day": 1736208000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ALGOUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1592294400,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ALICEUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1615852800,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ALLOUSDT": {
+   "files": 337,
+   "files_in_life": 324,
+   "first_bar": 1762862400,
+   "first_day": 1762819200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ALPACAUSDT": {
+   "files": 584,
+   "files_in_life": 252,
+   "first_bar": 1724313600,
+   "first_day": 1724284800,
+   "last_bar": 1746000000,
+   "last_day": 1791417600
+  },
+  "ALPHAUSDT": {
+   "files": 1515,
+   "files_in_life": 1393,
+   "first_bar": 1606104000,
+   "first_day": 1638316800,
+   "last_bar": 1758614400,
+   "last_day": 1769126400
+  },
+  "ALPINEUSDT": {
+   "files": 526,
+   "files_in_life": 513,
+   "first_bar": 1746518400,
+   "first_day": 1746489600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ALTUSDT": {
+   "files": 993,
+   "files_in_life": 980,
+   "first_bar": 1706184000,
+   "first_day": 1706140800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AMBUSDT": {
+   "files": 799,
+   "files_in_life": 695,
+   "first_bar": 1680177600,
+   "first_day": 1680134400,
+   "last_bar": 1740124800,
+   "last_day": 1749081600
+  },
+  "AMCUSDT": {
+   "files": 26,
+   "files_in_life": 13,
+   "first_bar": 1789718400,
+   "first_day": 1789689600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ANCUSDT": {
+   "files": 68,
+   "files_in_life": 67,
+   "first_bar": 1646697600,
+   "first_day": 1646697600,
+   "last_bar": 1652414400,
+   "last_day": 1654646400
+  },
+  "ANETUSDT": {
+   "files": 26,
+   "files_in_life": 13,
+   "first_bar": 1789718400,
+   "first_day": 1789689600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ANIMEUSDT": {
+   "files": 629,
+   "files_in_life": 616,
+   "first_bar": 1737648000,
+   "first_day": 1737590400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ANKRUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1611633600,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ANTUSDT": {
+   "files": 912,
+   "files_in_life": 827,
+   "first_bar": 1640577600,
+   "first_day": 1640563200,
+   "last_bar": 1711958400,
+   "last_day": 1719273600
+  },
+  "APEUSDT": {
+   "files": 1672,
+   "files_in_life": 1659,
+   "first_bar": 1647518400,
+   "first_day": 1647475200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "API3USDT": {
+   "files": 1695,
+   "files_in_life": 1682,
+   "first_bar": 1645488000,
+   "first_day": 1645488000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "APLDUSDT": {
+   "files": 26,
+   "files_in_life": 13,
+   "first_bar": 1789718400,
+   "first_day": 1789689600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "APPUSDT": {
+   "files": 96,
+   "files_in_life": 83,
+   "first_bar": 1783670400,
+   "first_day": 1783641600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "APRUSDT": {
+   "files": 356,
+   "files_in_life": 343,
+   "first_bar": 1761206400,
+   "first_day": 1761177600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "APTUSDT": {
+   "files": 1456,
+   "files_in_life": 1443,
+   "first_bar": 1666137600,
+   "first_day": 1666137600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ARBUSDT": {
+   "files": 1301,
+   "files_in_life": 1288,
+   "first_bar": 1679572800,
+   "first_day": 1679529600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ARCUSDT": {
+   "files": 635,
+   "files_in_life": 622,
+   "first_bar": 1737115200,
+   "first_day": 1737072000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ARIAUSDT": {
+   "files": 406,
+   "files_in_life": 393,
+   "first_bar": 1756886400,
+   "first_day": 1756857600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ARKMUSDT": {
+   "files": 1174,
+   "files_in_life": 1161,
+   "first_bar": 1690502400,
+   "first_day": 1690502400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ARKUSDT": {
+   "files": 1121,
+   "files_in_life": 1108,
+   "first_bar": 1695139200,
+   "first_day": 1695081600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ARPAUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1634601600,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ARUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1632787200,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ARXUSDT": {
+   "files": 113,
+   "files_in_life": 100,
+   "first_bar": 1782187200,
+   "first_day": 1782172800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ASRUSDT": {
+   "files": 526,
+   "files_in_life": 513,
+   "first_bar": 1746518400,
+   "first_day": 1746489600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ASTERUSDT": {
+   "files": 390,
+   "files_in_life": 377,
+   "first_bar": 1758283200,
+   "first_day": 1758240000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ASTRUSDT": {
+   "files": 1338,
+   "files_in_life": 1325,
+   "first_bar": 1676332800,
+   "first_day": 1676332800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ASTSUSDT": {
+   "files": 135,
+   "files_in_life": 122,
+   "first_bar": 1780315200,
+   "first_day": 1780272000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ATAUSDT": {
+   "files": 1764,
+   "files_in_life": 1631,
+   "first_bar": 1630368000,
+   "first_day": 1638316800,
+   "last_bar": 1779177600,
+   "last_day": 1790640000
+  },
+  "ATHUSDT": {
+   "files": 560,
+   "files_in_life": 547,
+   "first_bar": 1743595200,
+   "first_day": 1743552000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ATOMUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1581076800,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ATUSDT": {
+   "files": 350,
+   "files_in_life": 337,
+   "first_bar": 1761724800,
+   "first_day": 1761696000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AUCTIONUSDT": {
+   "files": 1034,
+   "files_in_life": 1021,
+   "first_bar": 1702641600,
+   "first_day": 1702598400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AUDIOUSDT": {
+   "files": 938,
+   "files_in_life": 898,
+   "first_bar": 1629331200,
+   "first_day": 1638316800,
+   "last_bar": 1715846400,
+   "last_day": 1719273600
+  },
+  "AUSDT": {
+   "files": 504,
+   "files_in_life": 491,
+   "first_bar": 1748419200,
+   "first_day": 1748390400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AVAAIUSDT": {
+   "files": 635,
+   "files_in_life": 622,
+   "first_bar": 1737115200,
+   "first_day": 1737072000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AVAUSDT": {
+   "files": 670,
+   "files_in_life": 657,
+   "first_bar": 1734091200,
+   "first_day": 1734048000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AVAXUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1600833600,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AVNTUSDT": {
+   "files": 400,
+   "files_in_life": 387,
+   "first_bar": 1757419200,
+   "first_day": 1757376000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AWEUSDT": {
+   "files": 511,
+   "files_in_life": 498,
+   "first_bar": 1747814400,
+   "first_day": 1747785600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AXLUSDT": {
+   "files": 957,
+   "files_in_life": 944,
+   "first_bar": 1709294400,
+   "first_day": 1709251200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AXSUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1605844800,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "AZTECUSDT": {
+   "files": 245,
+   "files_in_life": 232,
+   "first_bar": 1770782400,
+   "first_day": 1770768000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "B2USDT": {
+   "files": 526,
+   "files_in_life": 513,
+   "first_bar": 1746532800,
+   "first_day": 1746489600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "B3USDT": {
+   "files": 596,
+   "files_in_life": 440,
+   "first_bar": 1739433600,
+   "first_day": 1739404800,
+   "last_bar": 1777363200,
+   "last_day": 1791417600
+  },
+  "BABYUSDT": {
+   "files": 557,
+   "files_in_life": 544,
+   "first_bar": 1743854400,
+   "first_day": 1743811200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BADGERUSDT": {
+   "files": 575,
+   "files_in_life": 523,
+   "first_bar": 1699531200,
+   "first_day": 1699488000,
+   "last_bar": 1744617600,
+   "last_day": 1749081600
+  },
+  "BAKEUSDT": {
+   "files": 1515,
+   "files_in_life": 1403,
+   "first_bar": 1621396800,
+   "first_day": 1638316800,
+   "last_bar": 1759478400,
+   "last_day": 1769126400
+  },
+  "BALUSDT": {
+   "files": 1283,
+   "files_in_life": 1231,
+   "first_bar": 1598932800,
+   "first_day": 1638316800,
+   "last_bar": 1744617600,
+   "last_day": 1749081600
+  },
+  "BANANAS31USDT": {
+   "files": 571,
+   "files_in_life": 558,
+   "first_bar": 1742630400,
+   "first_day": 1742601600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BANANAUSDT": {
+   "files": 790,
+   "files_in_life": 777,
+   "first_bar": 1723680000,
+   "first_day": 1723680000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BANDUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1595995200,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BANKUSDT": {
+   "files": 544,
+   "files_in_life": 531,
+   "first_bar": 1744992000,
+   "first_day": 1744934400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BANUSDT": {
+   "files": 695,
+   "files_in_life": 682,
+   "first_bar": 1731916800,
+   "first_day": 1731888000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BARDUSDT": {
+   "files": 391,
+   "files_in_life": 378,
+   "first_bar": 1758182400,
+   "first_day": 1758153600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BASEDUSDT": {
+   "files": 198,
+   "files_in_life": 185,
+   "first_bar": 1774857600,
+   "first_day": 1774828800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BASUSDT": {
+   "files": 414,
+   "files_in_life": 401,
+   "first_bar": 1756209600,
+   "first_day": 1756166400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BATUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1581580800,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BBUSDT": {
+   "files": 884,
+   "files_in_life": 871,
+   "first_bar": 1715601600,
+   "first_day": 1715558400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BCHUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1577836800,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BDXNUSDT": {
+   "files": 329,
+   "files_in_life": 288,
+   "first_bar": 1748937600,
+   "first_day": 1748908800,
+   "last_bar": 1773734400,
+   "last_day": 1777248000
+  },
+  "BEAMXUSDT": {
+   "files": 1062,
+   "files_in_life": 1049,
+   "first_bar": 1700222400,
+   "first_day": 1700179200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BEATUSDT": {
+   "files": 336,
+   "files_in_life": 323,
+   "first_bar": 1762948800,
+   "first_day": 1762905600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BELUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1605672000,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BERAUSDT": {
+   "files": 615,
+   "files_in_life": 602,
+   "first_bar": 1738843200,
+   "first_day": 1738800000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BICOUSDT": {
+   "files": 1112,
+   "files_in_life": 1099,
+   "first_bar": 1695902400,
+   "first_day": 1695859200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BIDUSDT": {
+   "files": 309,
+   "files_in_life": 308,
+   "first_bar": 1742457600,
+   "first_day": 1742428800,
+   "last_bar": 1768982400,
+   "last_day": 1786147200
+  },
+  "BIGTIMEUSDT": {
+   "files": 1098,
+   "files_in_life": 1085,
+   "first_bar": 1697112000,
+   "first_day": 1697068800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BILLUSDT": {
+   "files": 160,
+   "files_in_life": 147,
+   "first_bar": 1778140800,
+   "first_day": 1778112000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BIOUSDT": {
+   "files": 649,
+   "files_in_life": 636,
+   "first_bar": 1735905600,
+   "first_day": 1735862400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BIRBUSDT": {
+   "files": 258,
+   "files_in_life": 245,
+   "first_bar": 1769659200,
+   "first_day": 1769644800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BITOUSDT": {
+   "files": 79,
+   "files_in_life": 66,
+   "first_bar": 1785153600,
+   "first_day": 1785110400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BLESSUSDT": {
+   "files": 386,
+   "files_in_life": 373,
+   "first_bar": 1758614400,
+   "first_day": 1758585600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BLUAIUSDT": {
+   "files": 358,
+   "files_in_life": 345,
+   "first_bar": 1761033600,
+   "first_day": 1761004800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BLURUSDT": {
+   "files": 1265,
+   "files_in_life": 1252,
+   "first_bar": 1682683200,
+   "first_day": 1682640000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BLZUSDT": {
+   "files": 1197,
+   "files_in_life": 1119,
+   "first_bar": 1600315200,
+   "first_day": 1638316800,
+   "last_bar": 1734940800,
+   "last_day": 1757376000
+  },
+  "BMTUSDT": {
+   "files": 576,
+   "files_in_life": 563,
+   "first_bar": 1742212800,
+   "first_day": 1742169600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BNBUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1581321600,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BNTUSDT": {
+   "files": 1161,
+   "files_in_life": 1148,
+   "first_bar": 1691668800,
+   "first_day": 1691625600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BNXUSDT": {
+   "files": 1167,
+   "files_in_life": 1060,
+   "first_bar": 1648771200,
+   "first_day": 1648771200,
+   "last_bar": 1742198400,
+   "last_day": 1760140800
+  },
+  "BOBUSDT": {
+   "files": 317,
+   "files_in_life": 159,
+   "first_bar": 1763712000,
+   "first_day": 1763683200,
+   "last_bar": 1777363200,
+   "last_day": 1791849600
+  },
+  "BOMEUSDT": {
+   "files": 942,
+   "files_in_life": 929,
+   "first_bar": 1710590400,
+   "first_day": 1710547200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BONDUSDT": {
+   "files": 532,
+   "files_in_life": 429,
+   "first_bar": 1697371200,
+   "first_day": 1697328000,
+   "last_bar": 1734336000,
+   "last_day": 1778025600
+  },
+  "BRETTUSDT": {
+   "files": 785,
+   "files_in_life": 772,
+   "first_bar": 1724140800,
+   "first_day": 1724112000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BREVUSDT": {
+   "files": 288,
+   "files_in_life": 275,
+   "first_bar": 1767081600,
+   "first_day": 1767052800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BROCCOLI714USDT": {
+   "files": 572,
+   "files_in_life": 559,
+   "first_bar": 1742544000,
+   "first_day": 1742515200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BROCCOLIF3BUSDT": {
+   "files": 572,
+   "files_in_life": 559,
+   "first_bar": 1742544000,
+   "first_day": 1742515200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BRUSDT": {
+   "files": 572,
+   "files_in_life": 559,
+   "first_bar": 1742558400,
+   "first_day": 1742515200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BSBUSDT": {
+   "files": 203,
+   "files_in_life": 190,
+   "first_bar": 1774425600,
+   "first_day": 1774396800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BSPUSDT": {
+   "files": 104,
+   "files_in_life": 91,
+   "first_bar": 1782979200,
+   "first_day": 1782950400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BSVUSDT": {
+   "files": 1090,
+   "files_in_life": 1077,
+   "first_bar": 1697803200,
+   "first_day": 1697760000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BSWUSDT": {
+   "files": 506,
+   "files_in_life": 376,
+   "first_bar": 1725508800,
+   "first_day": 1725494400,
+   "last_bar": 1757923200,
+   "last_day": 1769126400
+  },
+  "BTCSTUSDT": {
+   "files": 85,
+   "files_in_life": 0,
+   "first_bar": 1614830400,
+   "first_day": 1638316800,
+   "last_bar": 1615507200,
+   "last_day": 1721001600
+  },
+  "BTCUSDT": {
+   "files": 2234,
+   "files_in_life": 2221,
+   "first_bar": 1577836800,
+   "first_day": 1598918400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BTRUSDT": {
+   "files": 413,
+   "files_in_life": 400,
+   "first_bar": 1756281600,
+   "first_day": 1756252800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BTSUSDT": {
+   "files": 303,
+   "files_in_life": 261,
+   "first_bar": 1612152000,
+   "first_day": 1638316800,
+   "last_bar": 1660809600,
+   "last_day": 1683158400
+  },
+  "BTTUSDT": {
+   "files": 45,
+   "files_in_life": 45,
+   "first_bar": 1617681600,
+   "first_day": 1638316800,
+   "last_bar": 1642118400,
+   "last_day": 1642118400
+  },
+  "BTWUSDT": {
+   "files": 132,
+   "files_in_life": 119,
+   "first_bar": 1780574400,
+   "first_day": 1780531200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BULLAUSDT": {
+   "files": 467,
+   "files_in_life": 454,
+   "first_bar": 1751616000,
+   "first_day": 1751587200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BUSDT": {
+   "files": 510,
+   "files_in_life": 497,
+   "first_bar": 1747929600,
+   "first_day": 1747872000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BWETUSDT": {
+   "files": 15,
+   "files_in_life": 2,
+   "first_bar": 1790668800,
+   "first_day": 1790640000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BYDUSDT": {
+   "files": 37,
+   "files_in_life": 24,
+   "first_bar": 1788739200,
+   "first_day": 1788739200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "BZRXUSDT": {
+   "files": 31,
+   "files_in_life": 19,
+   "first_bar": 1599264000,
+   "first_day": 1638316800,
+   "last_bar": 1639872000,
+   "last_day": 1640908800
+  },
+  "C98USDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1629763200,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CAKEUSDT": {
+   "files": 1077,
+   "files_in_life": 1064,
+   "first_bar": 1698926400,
+   "first_day": 1698883200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CAPUSDT": {
+   "files": 109,
+   "files_in_life": 96,
+   "first_bar": 1782547200,
+   "first_day": 1782518400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CARVUSDT": {
+   "files": 433,
+   "files_in_life": 420,
+   "first_bar": 1754582400,
+   "first_day": 1754524800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CATIUSDT": {
+   "files": 754,
+   "files_in_life": 741,
+   "first_bar": 1726819200,
+   "first_day": 1726790400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CCUSDT": {
+   "files": 348,
+   "files_in_life": 335,
+   "first_bar": 1761912000,
+   "first_day": 1761868800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CELOUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1632700800,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CELRUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1616990400,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CETUSUSDT": {
+   "files": 707,
+   "files_in_life": 694,
+   "first_bar": 1730894400,
+   "first_day": 1730851200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CFGUSDT": {
+   "files": 212,
+   "files_in_life": 199,
+   "first_bar": 1773662400,
+   "first_day": 1773619200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CFXUSDT": {
+   "files": 1332,
+   "files_in_life": 1319,
+   "first_bar": 1676894400,
+   "first_day": 1676851200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CGPTUSDT": {
+   "files": 663,
+   "files_in_life": 650,
+   "first_bar": 1734710400,
+   "first_day": 1734652800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CHESSUSDT": {
+   "files": 658,
+   "files_in_life": 527,
+   "first_bar": 1724904000,
+   "first_day": 1724889600,
+   "last_bar": 1770364800,
+   "last_day": 1791676800
+  },
+  "CHILLGUYUSDT": {
+   "files": 686,
+   "files_in_life": 673,
+   "first_bar": 1732708800,
+   "first_day": 1732665600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CHIPUSDT": {
+   "files": 181,
+   "files_in_life": 168,
+   "first_bar": 1776312000,
+   "first_day": 1776297600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CHRUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1615521600,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CHZUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1611201600,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CKBUSDT": {
+   "files": 1324,
+   "files_in_life": 1311,
+   "first_bar": 1677585600,
+   "first_day": 1677542400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CLANKERUSDT": {
+   "files": 336,
+   "files_in_life": 323,
+   "first_bar": 1762948800,
+   "first_day": 1762905600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CLOUSDT": {
+   "files": 365,
+   "files_in_life": 352,
+   "first_bar": 1760428800,
+   "first_day": 1760400000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "COAIUSDT": {
+   "files": 384,
+   "files_in_life": 371,
+   "first_bar": 1758772800,
+   "first_day": 1758758400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "COCOSUSDT": {
+   "files": 113,
+   "files_in_life": 94,
+   "first_bar": 1676980800,
+   "first_day": 1676937600,
+   "last_bar": 1685001600,
+   "last_day": 1686614400
+  },
+  "COHRUSDT": {
+   "files": 141,
+   "files_in_life": 128,
+   "first_bar": 1779796800,
+   "first_day": 1779753600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "COLLECTUSDT": {
+   "files": 287,
+   "files_in_life": 274,
+   "first_bar": 1767182400,
+   "first_day": 1767139200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "COMBOUSDT": {
+   "files": 735,
+   "files_in_life": 665,
+   "first_bar": 1685707200,
+   "first_day": 1685664000,
+   "last_bar": 1743062400,
+   "last_day": 1749081600
+  },
+  "COMMONUSDT": {
+   "files": 216,
+   "files_in_life": 96,
+   "first_bar": 1761566400,
+   "first_day": 1761523200,
+   "last_bar": 1769760000,
+   "last_day": 1791849600
+  },
+  "COMPUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1593504000,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "COOKIEUSDT": {
+   "files": 645,
+   "files_in_life": 632,
+   "first_bar": 1736236800,
+   "first_day": 1736208000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "COSUSDT": {
+   "files": 732,
+   "files_in_life": 620,
+   "first_bar": 1727697600,
+   "first_day": 1727654400,
+   "last_bar": 1781164800,
+   "last_day": 1791331200
+  },
+  "COTIUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1615348800,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "COWUSDT": {
+   "files": 707,
+   "files_in_life": 694,
+   "first_bar": 1730894400,
+   "first_day": 1730851200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CRMLUSDT": {
+   "files": 15,
+   "files_in_life": 2,
+   "first_bar": 1790668800,
+   "first_day": 1790640000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CROSSUSDT": {
+   "files": 461,
+   "files_in_life": 448,
+   "first_bar": 1752134400,
+   "first_day": 1752105600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CRVUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1598932800,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CSOPSAMSUNG2LUSDT": {
+   "files": 64,
+   "files_in_life": 51,
+   "first_bar": 1786406400,
+   "first_day": 1786406400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CSOPSKHYNIX2LUSDT": {
+   "files": 64,
+   "files_in_life": 51,
+   "first_bar": 1786406400,
+   "first_day": 1786406400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CTKUSDT": {
+   "files": 1477,
+   "files_in_life": 1372,
+   "first_bar": 1605758400,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CTRUSDT": {
+   "files": 139,
+   "files_in_life": 126,
+   "first_bar": 1779955200,
+   "first_day": 1779926400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CTSIUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1635206400,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CUDISUSDT": {
+   "files": 281,
+   "files_in_life": 164,
+   "first_bar": 1755676800,
+   "first_day": 1755648000,
+   "last_bar": 1769760000,
+   "last_day": 1791417600
+  },
+  "CUSDT": {
+   "files": 456,
+   "files_in_life": 443,
+   "first_bar": 1752566400,
+   "first_day": 1752537600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CVCUSDT": {
+   "files": 915,
+   "files_in_life": 867,
+   "first_bar": 1605067200,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CVNAUSDT": {
+   "files": 16,
+   "files_in_life": 3,
+   "first_bar": 1790582400,
+   "first_day": 1790553600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CVXUSDT": {
+   "files": 1098,
+   "files_in_life": 1036,
+   "first_bar": 1663848000,
+   "first_day": 1663804800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CXMTUSDT": {
+   "files": 57,
+   "files_in_life": 44,
+   "first_bar": 1787025600,
+   "first_day": 1787011200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CYBERUSDT": {
+   "files": 1150,
+   "files_in_life": 1137,
+   "first_bar": 1692619200,
+   "first_day": 1692576000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CYPHUSDT": {
+   "files": 26,
+   "files_in_life": 13,
+   "first_bar": 1789718400,
+   "first_day": 1789689600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "CYSUSDT": {
+   "files": 306,
+   "files_in_life": 293,
+   "first_bar": 1765526400,
+   "first_day": 1765497600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "DAMUSDT": {
+   "files": 408,
+   "files_in_life": 255,
+   "first_bar": 1755518400,
+   "first_day": 1755475200,
+   "last_bar": 1777449600,
+   "last_day": 1790640000
+  },
+  "DARUSDT": {
+   "files": 1047,
+   "files_in_life": 973,
+   "first_bar": 1651190400,
+   "first_day": 1651190400,
+   "last_bar": 1735200000,
+   "last_day": 1741564800
+  },
+  "DASHUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1580803200,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "DATAIPUSDT": {
+   "files": 103,
+   "files_in_life": 90,
+   "first_bar": 1783051200,
+   "first_day": 1783036800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "DDOGUSDT": {
+   "files": 42,
+   "files_in_life": 29,
+   "first_bar": 1788336000,
+   "first_day": 1788307200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "DEEPUSDT": {
+   "files": 540,
+   "files_in_life": 527,
+   "first_bar": 1745308800,
+   "first_day": 1745280000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "DEGENUSDT": {
+   "files": 691,
+   "files_in_life": 530,
+   "first_bar": 1731657600,
+   "first_day": 1731628800,
+   "last_bar": 1777363200,
+   "last_day": 1791676800
+  },
+  "DEGOUSDT": {
+   "files": 660,
+   "files_in_life": 495,
+   "first_bar": 1734091200,
+   "first_day": 1734048000,
+   "last_bar": 1776758400,
+   "last_day": 1791849600
+  },
+  "DENTUSDT": {
+   "files": 1764,
+   "files_in_life": 1603,
+   "first_bar": 1616558400,
+   "first_day": 1638316800,
+   "last_bar": 1776758400,
+   "last_day": 1790640000
+  },
+  "DEXEUSDT": {
+   "files": 659,
+   "files_in_life": 646,
+   "first_bar": 1735027200,
+   "first_day": 1734998400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "DFUSDT": {
+   "files": 517,
+   "files_in_life": 404,
+   "first_bar": 1735545600,
+   "first_day": 1735516800,
+   "last_bar": 1770364800,
+   "last_day": 1791849600
+  },
+  "DGBUSDT": {
+   "files": 945,
+   "files_in_life": 853,
+   "first_bar": 1618963200,
+   "first_day": 1638316800,
+   "last_bar": 1711958400,
+   "last_day": 1721001600
+  },
+  "DIAUSDT": {
+   "files": 742,
+   "files_in_life": 729,
+   "first_bar": 1727870400,
+   "first_day": 1727827200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "DJTUSDT": {
+   "files": 50,
+   "files_in_life": 37,
+   "first_bar": 1787644800,
+   "first_day": 1787616000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "DMCUSDT": {
+   "files": 235,
+   "files_in_life": 212,
+   "first_bar": 1750766400,
+   "first_day": 1750723200,
+   "last_bar": 1768982400,
+   "last_day": 1790208000
+  },
+  "DODOUSDT": {
+   "files": 208,
+   "files_in_life": 178,
+   "first_bar": 1613736000,
+   "first_day": 1638316800,
+   "last_bar": 1653638400,
+   "last_day": 1712275200
+  },
+  "DODOXUSDT": {
+   "files": 1163,
+   "files_in_life": 1150,
+   "first_bar": 1691496000,
+   "first_day": 1691452800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "DOGEUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1594368000,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "DOGSUSDT": {
+   "files": 779,
+   "files_in_life": 766,
+   "first_bar": 1724673600,
+   "first_day": 1724630400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "DOLOUSDT": {
+   "files": 531,
+   "files_in_life": 518,
+   "first_bar": 1746057600,
+   "first_day": 1746057600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "DOODUSDT": {
+   "files": 523,
+   "files_in_life": 510,
+   "first_bar": 1746792000,
+   "first_day": 1746748800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "DOSUSDT": {
+   "files": 64,
+   "files_in_life": 51,
+   "first_bar": 1786449600,
+   "first_day": 1786406400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "DOTECOUSDT": {
+   "files": 0,
+   "files_in_life": 0,
+   "first_bar": 1611115200,
+   "first_day": null,
+   "last_bar": 1613721600,
+   "last_day": null
+  },
+  "DOTUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1598068800,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "DRIFTUSDT": {
+   "files": 705,
+   "files_in_life": 692,
+   "first_bar": 1731067200,
+   "first_day": 1731024000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "DUSDT": {
+   "files": 633,
+   "files_in_life": 519,
+   "first_bar": 1736409600,
+   "first_day": 1736380800,
+   "last_bar": 1781164800,
+   "last_day": 1791331200
+  },
+  "DUSKUSDT": {
+   "files": 1741,
+   "files_in_life": 1728,
+   "first_bar": 1641513600,
+   "first_day": 1641513600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "DYDXUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1631232000,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "DYMUSDT": {
+   "files": 980,
+   "files_in_life": 967,
+   "first_bar": 1707278400,
+   "first_day": 1707264000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "EDENUSDT": {
+   "files": 379,
+   "files_in_life": 366,
+   "first_bar": 1759219200,
+   "first_day": 1759190400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "EDGEUSDT": {
+   "files": 209,
+   "files_in_life": 196,
+   "first_bar": 1773921600,
+   "first_day": 1773878400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "EDUUSDT": {
+   "files": 1262,
+   "files_in_life": 1249,
+   "first_bar": 1682856000,
+   "first_day": 1682812800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "EGLDUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1600056000,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "EIGENUSDT": {
+   "files": 743,
+   "files_in_life": 730,
+   "first_bar": 1727755200,
+   "first_day": 1727740800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ELSAUSDT": {
+   "files": 265,
+   "files_in_life": 252,
+   "first_bar": 1769054400,
+   "first_day": 1769040000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ENAUSDT": {
+   "files": 925,
+   "files_in_life": 912,
+   "first_bar": 1712059200,
+   "first_day": 1712016000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ENJUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1601352000,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ENSOUSDT": {
+   "files": 365,
+   "files_in_life": 352,
+   "first_bar": 1760428800,
+   "first_day": 1760400000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ENSUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1638230400,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "EOSUSDT": {
+   "files": 1332,
+   "files_in_life": 1267,
+   "first_bar": 1578470400,
+   "first_day": 1638316800,
+   "last_bar": 1747814400,
+   "last_day": 1777939200
+  },
+  "EPICUSDT": {
+   "files": 580,
+   "files_in_life": 567,
+   "first_bar": 1741852800,
+   "first_day": 1741824000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "EPTUSDT": {
+   "files": 406,
+   "files_in_life": 285,
+   "first_bar": 1745236800,
+   "first_day": 1745193600,
+   "last_bar": 1769760000,
+   "last_day": 1791763200
+  },
+  "ERAUSDT": {
+   "files": 454,
+   "files_in_life": 441,
+   "first_bar": 1752753600,
+   "first_day": 1752710400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ESPORTSUSDT": {
+   "files": 442,
+   "files_in_life": 429,
+   "first_bar": 1753776000,
+   "first_day": 1753747200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ESPUSDT": {
+   "files": 246,
+   "files_in_life": 233,
+   "first_bar": 1770710400,
+   "first_day": 1770681600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ETCUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1579161600,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ETHFIUSDT": {
+   "files": 940,
+   "files_in_life": 927,
+   "first_bar": 1710763200,
+   "first_day": 1710720000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ETHUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1577836800,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ETHWUSDT": {
+   "files": 1051,
+   "files_in_life": 1038,
+   "first_bar": 1701172800,
+   "first_day": 1701129600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "EULUSDT": {
+   "files": 366,
+   "files_in_life": 353,
+   "first_bar": 1760356800,
+   "first_day": 1760313600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "EVAAUSDT": {
+   "files": 376,
+   "files_in_life": 363,
+   "first_bar": 1759478400,
+   "first_day": 1759449600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "FARTCOINUSDT": {
+   "files": 663,
+   "files_in_life": 650,
+   "first_bar": 1734710400,
+   "first_day": 1734652800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "FETUSDT": {
+   "files": 1366,
+   "files_in_life": 1353,
+   "first_bar": 1673913600,
+   "first_day": 1673913600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "FFUSDT": {
+   "files": 380,
+   "files_in_life": 367,
+   "first_bar": 1759147200,
+   "first_day": 1759104000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "FHEUSDT": {
+   "files": 550,
+   "files_in_life": 537,
+   "first_bar": 1744459200,
+   "first_day": 1744416000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "FIDAUSDT": {
+   "files": 755,
+   "files_in_life": 742,
+   "first_bar": 1726747200,
+   "first_day": 1726704000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "FIGHTUSDT": {
+   "files": 264,
+   "files_in_life": 251,
+   "first_bar": 1769169600,
+   "first_day": 1769126400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "FILUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1602820800,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "FIOUSDT": {
+   "files": 740,
+   "files_in_life": 573,
+   "first_bar": 1726819200,
+   "first_day": 1726790400,
+   "last_bar": 1776240000,
+   "last_day": 1790640000
+  },
+  "FISUSDT": {
+   "files": 307,
+   "files_in_life": 230,
+   "first_bar": 1745553600,
+   "first_day": 1745539200,
+   "last_bar": 1765353600,
+   "last_day": 1771977600
+  },
+  "FLEXUSDT": {
+   "files": 104,
+   "files_in_life": 91,
+   "first_bar": 1782979200,
+   "first_day": 1782950400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "FLMUSDT": {
+   "files": 1548,
+   "files_in_life": 1452,
+   "first_bar": 1601352000,
+   "first_day": 1638316800,
+   "last_bar": 1763712000,
+   "last_day": 1771977600
+  },
+  "FLNCUSDT": {
+   "files": 149,
+   "files_in_life": 136,
+   "first_bar": 1779105600,
+   "first_day": 1779062400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "FLOCKUSDT": {
+   "files": 400,
+   "files_in_life": 387,
+   "first_bar": 1757390400,
+   "first_day": 1757376000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "FLOWUSDT": {
+   "files": 1707,
+   "files_in_life": 1694,
+   "first_bar": 1644451200,
+   "first_day": 1644451200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "FLUIDUSDT": {
+   "files": 385,
+   "files_in_life": 372,
+   "first_bar": 1758700800,
+   "first_day": 1758672000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "FLUXUSDT": {
+   "files": 771,
+   "files_in_life": 758,
+   "first_bar": 1725336000,
+   "first_day": 1725321600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "FOGOUSDT": {
+   "files": 277,
+   "files_in_life": 264,
+   "first_bar": 1768046400,
+   "first_day": 1768003200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "FOLKSUSDT": {
+   "files": 342,
+   "files_in_life": 329,
+   "first_bar": 1762430400,
+   "first_day": 1762387200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "FORMUSDT": {
+   "files": 574,
+   "files_in_life": 561,
+   "first_bar": 1742371200,
+   "first_day": 1742342400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "FORTHUSDT": {
+   "files": 540,
+   "files_in_life": 351,
+   "first_bar": 1744099200,
+   "first_day": 1744070400,
+   "last_bar": 1774339200,
+   "last_day": 1790640000
+  },
+  "FRAXUSDT": {
+   "files": 272,
+   "files_in_life": 259,
+   "first_bar": 1768464000,
+   "first_day": 1768435200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "FRONTUSDT": {
+   "files": 535,
+   "files_in_life": 336,
+   "first_bar": 1695384000,
+   "first_day": 1695340800,
+   "last_bar": 1724400000,
+   "last_day": 1741564800
+  },
+  "FTMUSDT": {
+   "files": 1196,
+   "files_in_life": 1133,
+   "first_bar": 1600920000,
+   "first_day": 1638316800,
+   "last_bar": 1736150400,
+   "last_day": 1741564800
+  },
+  "FTTUSDT": {
+   "files": 275,
+   "files_in_life": 214,
+   "first_bar": 1649980800,
+   "first_day": 1649980800,
+   "last_bar": 1668398400,
+   "last_day": 1721001600
+  },
+  "FUNUSDT": {
+   "files": 552,
+   "files_in_life": 381,
+   "first_bar": 1743408000,
+   "first_day": 1743379200,
+   "last_bar": 1776240000,
+   "last_day": 1791849600
+  },
+  "FUSDT": {
+   "files": 483,
+   "files_in_life": 470,
+   "first_bar": 1750248000,
+   "first_day": 1750204800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "FXSUSDT": {
+   "files": 1095,
+   "files_in_life": 1082,
+   "first_bar": 1674172800,
+   "first_day": 1674172800,
+   "last_bar": 1767686400,
+   "last_day": 1791244800
+  },
+  "GALAUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1631923200,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "GALUSDT": {
+   "files": 1041,
+   "files_in_life": 799,
+   "first_bar": 1651752000,
+   "first_day": 1651708800,
+   "last_bar": 1720684800,
+   "last_day": 1741564800
+  },
+  "GASUSDT": {
+   "files": 1085,
+   "files_in_life": 1072,
+   "first_bar": 1698192000,
+   "first_day": 1698192000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "GDXUSDT": {
+   "files": 58,
+   "files_in_life": 45,
+   "first_bar": 1786968000,
+   "first_day": 1786924800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "GENIUSUSDT": {
+   "files": 181,
+   "files_in_life": 168,
+   "first_bar": 1776297600,
+   "first_day": 1776297600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "GHSTUSDT": {
+   "files": 584,
+   "files_in_life": 502,
+   "first_bar": 1727092800,
+   "first_day": 1727049600,
+   "last_bar": 1770364800,
+   "last_day": 1782432000
+  },
+  "GIGADEVUSDT": {
+   "files": 72,
+   "files_in_life": 59,
+   "first_bar": 1785729600,
+   "first_day": 1785715200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "GIGGLEUSDT": {
+   "files": 370,
+   "files_in_life": 357,
+   "first_bar": 1759996800,
+   "first_day": 1759968000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "GLMRUSDT": {
+   "files": 281,
+   "files_in_life": 233,
+   "first_bar": 1695686400,
+   "first_day": 1695686400,
+   "last_bar": 1715760000,
+   "last_day": 1721001600
+  },
+  "GLMUSDT": {
+   "files": 965,
+   "files_in_life": 952,
+   "first_bar": 1708588800,
+   "first_day": 1708560000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "GLWUSDT": {
+   "files": 125,
+   "files_in_life": 112,
+   "first_bar": 1781164800,
+   "first_day": 1781136000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "GMTUSDT": {
+   "files": 1674,
+   "files_in_life": 1661,
+   "first_bar": 1647316800,
+   "first_day": 1647302400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "GMXUSDT": {
+   "files": 1335,
+   "files_in_life": 1322,
+   "first_bar": 1676635200,
+   "first_day": 1676592000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "GOATUSDT": {
+   "files": 720,
+   "files_in_life": 707,
+   "first_bar": 1729771200,
+   "first_day": 1729728000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "GPSUSDT": {
+   "files": 604,
+   "files_in_life": 591,
+   "first_bar": 1739808000,
+   "first_day": 1739750400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "GRAMUSDT": {
+   "files": 104,
+   "files_in_life": 91,
+   "first_bar": 1782979200,
+   "first_day": 1782950400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "GRASSUSDT": {
+   "files": 705,
+   "files_in_life": 692,
+   "first_bar": 1731067200,
+   "first_day": 1731024000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "GRIFFAINUSDT": {
+   "files": 650,
+   "files_in_life": 637,
+   "first_bar": 1735819200,
+   "first_day": 1735776000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "GRTUSDT": {
+   "files": 1777,
+   "files_in_life": 1764,
+   "first_bar": 1608350400,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "GRVTUSDT": {
+   "files": 75,
+   "files_in_life": 62,
+   "first_bar": 1785499200,
+   "first_day": 1785456000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "GSUSDT": {
+   "files": 77,
+   "files_in_life": 64,
+   "first_bar": 1785312000,
+   "first_day": 1785283200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "GTCUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1623369600,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "GTLBUSDT": {
+   "files": 42,
+   "files_in_life": 29,
+   "first_bar": 1788336000,
+   "first_day": 1788307200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "GUAUSDT": {
+   "files": 297,
+   "files_in_life": 284,
+   "first_bar": 1766304000,
+   "first_day": 1766275200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "GUNUSDT": {
+   "files": 562,
+   "files_in_life": 549,
+   "first_bar": 1743422400,
+   "first_day": 1743379200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "GUSDT": {
+   "files": 790,
+   "files_in_life": 777,
+   "first_bar": 1723723200,
+   "first_day": 1723680000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "GWEIUSDT": {
+   "files": 258,
+   "files_in_life": 245,
+   "first_bar": 1769659200,
+   "first_day": 1769644800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "HAEDALUSDT": {
+   "files": 531,
+   "files_in_life": 518,
+   "first_bar": 1746057600,
+   "first_day": 1746057600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "HANAUSDT": {
+   "files": 383,
+   "files_in_life": 370,
+   "first_bar": 1758873600,
+   "first_day": 1758844800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "HANMIUSDT": {
+   "files": 61,
+   "files_in_life": 48,
+   "first_bar": 1786665600,
+   "first_day": 1786665600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "HBARUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1615953600,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "HEIUSDT": {
+   "files": 608,
+   "files_in_life": 595,
+   "first_bar": 1739433600,
+   "first_day": 1739404800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "HEMIUSDT": {
+   "files": 411,
+   "files_in_life": 398,
+   "first_bar": 1756440000,
+   "first_day": 1756425600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "HFTUSDT": {
+   "files": 1273,
+   "files_in_life": 1220,
+   "first_bar": 1680782400,
+   "first_day": 1680739200,
+   "last_bar": 1786089600,
+   "last_day": 1790640000
+  },
+  "HIFIUSDT": {
+   "files": 861,
+   "files_in_life": 749,
+   "first_bar": 1694865600,
+   "first_day": 1694822400,
+   "last_bar": 1759478400,
+   "last_day": 1769126400
+  },
+  "HIGHUSDT": {
+   "files": 1337,
+   "files_in_life": 1221,
+   "first_bar": 1675728000,
+   "first_day": 1675728000,
+   "last_bar": 1781164800,
+   "last_day": 1791849600
+  },
+  "HIPPOUSDT": {
+   "files": 686,
+   "files_in_life": 512,
+   "first_bar": 1731499200,
+   "first_day": 1731456000,
+   "last_bar": 1775635200,
+   "last_day": 1790640000
+  },
+  "HIVEUSDT": {
+   "files": 660,
+   "files_in_life": 647,
+   "first_bar": 1734940800,
+   "first_day": 1734912000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "HK0625USDT": {
+   "files": 43,
+   "files_in_life": 30,
+   "first_bar": 1788220800,
+   "first_day": 1788220800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "HK0700USDT": {
+   "files": 84,
+   "files_in_life": 71,
+   "first_bar": 1784678400,
+   "first_day": 1784678400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "HK0992USDT": {
+   "files": 37,
+   "files_in_life": 24,
+   "first_bar": 1788739200,
+   "first_day": 1788739200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "HK1810USDT": {
+   "files": 84,
+   "files_in_life": 71,
+   "first_bar": 1784678400,
+   "first_day": 1784678400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "HMSTRUSDT": {
+   "files": 748,
+   "files_in_life": 735,
+   "first_bar": 1727352000,
+   "first_day": 1727308800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "HNTUSDT": {
+   "files": 498,
+   "files_in_life": 475,
+   "first_bar": 1601265600,
+   "first_day": 1638316800,
+   "last_bar": 1679299200,
+   "last_day": 1686873600
+  },
+  "HOLOUSDT": {
+   "files": 398,
+   "files_in_life": 385,
+   "first_bar": 1757592000,
+   "first_day": 1757548800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "HOMEUSDT": {
+   "files": 491,
+   "files_in_life": 478,
+   "first_bar": 1749542400,
+   "first_day": 1749513600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "HOOKUSDT": {
+   "files": 1346,
+   "files_in_life": 1157,
+   "first_bar": 1674432000,
+   "first_day": 1674432000,
+   "last_bar": 1774339200,
+   "last_day": 1790640000
+  },
+  "HOTUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1617076800,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "HUMAUSDT": {
+   "files": 506,
+   "files_in_life": 493,
+   "first_bar": 1748260800,
+   "first_day": 1748217600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "HUSDT": {
+   "files": 476,
+   "files_in_life": 463,
+   "first_bar": 1750838400,
+   "first_day": 1750809600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "HUTUSDT": {
+   "files": 26,
+   "files_in_life": 13,
+   "first_bar": 1789718400,
+   "first_day": 1789689600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "HYPERUSDT": {
+   "files": 540,
+   "files_in_life": 527,
+   "first_bar": 1745323200,
+   "first_day": 1745280000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "HYPEUSDT": {
+   "files": 502,
+   "files_in_life": 489,
+   "first_bar": 1748592000,
+   "first_day": 1748563200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "HYUNDAIUSDT": {
+   "files": 134,
+   "files_in_life": 121,
+   "first_bar": 1780358400,
+   "first_day": 1780358400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ICNTUSDT": {
+   "files": 468,
+   "files_in_life": 455,
+   "first_bar": 1751544000,
+   "first_day": 1751500800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ICPUSDT": {
+   "files": 1482,
+   "files_in_life": 1464,
+   "first_bar": 1620691200,
+   "first_day": 1640217600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ICXUSDT": {
+   "files": 1769,
+   "files_in_life": 1730,
+   "first_bar": 1600142400,
+   "first_day": 1638316800,
+   "last_bar": 1787731200,
+   "last_day": 1791849600
+  },
+  "IDEXUSDT": {
+   "files": 427,
+   "files_in_life": 379,
+   "first_bar": 1683115200,
+   "first_day": 1683072000,
+   "last_bar": 1715760000,
+   "last_day": 1721001600
+  },
+  "IDOLUSDT": {
+   "files": 467,
+   "files_in_life": 454,
+   "first_bar": 1751616000,
+   "first_day": 1751587200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "IDUSDT": {
+   "files": 1301,
+   "files_in_life": 1288,
+   "first_bar": 1679572800,
+   "first_day": 1679529600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ILVUSDT": {
+   "files": 1069,
+   "files_in_life": 1056,
+   "first_bar": 1699632000,
+   "first_day": 1699574400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "IMXUSDT": {
+   "files": 1706,
+   "files_in_life": 1693,
+   "first_bar": 1644537600,
+   "first_day": 1644537600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "INITUSDT": {
+   "files": 546,
+   "files_in_life": 533,
+   "first_bar": 1744776000,
+   "first_day": 1744761600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "INJUSDT": {
+   "files": 1519,
+   "files_in_life": 1506,
+   "first_bar": 1660694400,
+   "first_day": 1660694400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "INTWUSDT": {
+   "files": 97,
+   "files_in_life": 84,
+   "first_bar": 1783598400,
+   "first_day": 1783555200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "INUSDT": {
+   "files": 433,
+   "files_in_life": 420,
+   "first_bar": 1754553600,
+   "first_day": 1754524800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "INXUSDT": {
+   "files": 257,
+   "files_in_life": 244,
+   "first_bar": 1769788800,
+   "first_day": 1769731200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "IONQUSDT": {
+   "files": 47,
+   "files_in_life": 34,
+   "first_bar": 1787904000,
+   "first_day": 1787875200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "IOSTUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1582272000,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "IOTAUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1581494400,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "IOTXUSDT": {
+   "files": 1777,
+   "files_in_life": 1764,
+   "first_bar": 1628726400,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "IOUSDT": {
+   "files": 855,
+   "files_in_life": 842,
+   "first_bar": 1718107200,
+   "first_day": 1718064000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "IPUSDT": {
+   "files": 554,
+   "files_in_life": 501,
+   "first_bar": 1739462400,
+   "first_day": 1739404800,
+   "last_bar": 1782633600,
+   "last_day": 1791763200
+  },
+  "IRUSDT": {
+   "files": 293,
+   "files_in_life": 130,
+   "first_bar": 1766304000,
+   "first_day": 1766275200,
+   "last_bar": 1777449600,
+   "last_day": 1791849600
+  },
+  "IRYSUSDT": {
+   "files": 322,
+   "files_in_life": 309,
+   "first_bar": 1764172800,
+   "first_day": 1764115200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "JASMYUSDT": {
+   "files": 1638,
+   "files_in_life": 1625,
+   "first_bar": 1650412800,
+   "first_day": 1650412800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "JCTUSDT": {
+   "files": 338,
+   "files_in_life": 325,
+   "first_bar": 1762761600,
+   "first_day": 1762732800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "JELLYJELLYUSDT": {
+   "files": 567,
+   "files_in_life": 554,
+   "first_bar": 1743004800,
+   "first_day": 1742947200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "JOEUSDT": {
+   "files": 1295,
+   "files_in_life": 1282,
+   "first_bar": 1680091200,
+   "first_day": 1680048000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "JSTUSDT": {
+   "files": 534,
+   "files_in_life": 521,
+   "first_bar": 1745827200,
+   "first_day": 1745798400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "JTOUSDT": {
+   "files": 1041,
+   "files_in_life": 1028,
+   "first_bar": 1702022400,
+   "first_day": 1701993600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "JUPUSDT": {
+   "files": 987,
+   "files_in_life": 974,
+   "first_bar": 1706716800,
+   "first_day": 1706659200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "KAIAUSDT": {
+   "files": 679,
+   "files_in_life": 666,
+   "first_bar": 1733313600,
+   "first_day": 1733270400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "KAITOUSDT": {
+   "files": 601,
+   "files_in_life": 588,
+   "first_bar": 1740052800,
+   "first_day": 1740009600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "KASUSDT": {
+   "files": 1062,
+   "files_in_life": 1049,
+   "first_bar": 1700179200,
+   "first_day": 1700179200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "KATUSDT": {
+   "files": 226,
+   "files_in_life": 213,
+   "first_bar": 1772424000,
+   "first_day": 1772409600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "KAVAUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1595908800,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "KDAUSDT": {
+   "files": 493,
+   "files_in_life": 415,
+   "first_bar": 1726660800,
+   "first_day": 1726617600,
+   "last_bar": 1762416000,
+   "last_day": 1769126400
+  },
+  "KEEPUSDT": {
+   "files": 241,
+   "files_in_life": 77,
+   "first_bar": 1624320000,
+   "first_day": 1638316800,
+   "last_bar": 1644883200,
+   "last_day": 1716249600
+  },
+  "KERNELUSDT": {
+   "files": 548,
+   "files_in_life": 535,
+   "first_bar": 1744632000,
+   "first_day": 1744588800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "KEYUSDT": {
+   "files": 657,
+   "files_in_life": 560,
+   "first_bar": 1684929600,
+   "first_day": 1684886400,
+   "last_bar": 1733212800,
+   "last_day": 1741564800
+  },
+  "KGENUSDT": {
+   "files": 372,
+   "files_in_life": 359,
+   "first_bar": 1759838400,
+   "first_day": 1759795200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "KITEUSDT": {
+   "files": 350,
+   "files_in_life": 337,
+   "first_bar": 1761724800,
+   "first_day": 1761696000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "KLAYUSDT": {
+   "files": 1196,
+   "files_in_life": 1057,
+   "first_bar": 1633996800,
+   "first_day": 1638316800,
+   "last_bar": 1729584000,
+   "last_day": 1741564800
+  },
+  "KMNOUSDT": {
+   "files": 663,
+   "files_in_life": 650,
+   "first_bar": 1734710400,
+   "first_day": 1734652800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "KNCUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1592812800,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "KODEX200USDT": {
+   "files": 61,
+   "files_in_life": 48,
+   "first_bar": 1786665600,
+   "first_day": 1786665600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "KOMAUSDT": {
+   "files": 673,
+   "files_in_life": 660,
+   "first_bar": 1733832000,
+   "first_day": 1733788800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "KORUUSDT": {
+   "files": 114,
+   "files_in_life": 101,
+   "first_bar": 1782129600,
+   "first_day": 1782086400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "KOUSDT": {
+   "files": 69,
+   "files_in_life": 56,
+   "first_bar": 1786003200,
+   "first_day": 1785974400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "KSMUSDT": {
+   "files": 1777,
+   "files_in_life": 1764,
+   "first_bar": 1602648000,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "KUAISHOUUSDT": {
+   "files": 64,
+   "files_in_life": 51,
+   "first_bar": 1786406400,
+   "first_day": 1786406400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "LABUSDT": {
+   "files": 362,
+   "files_in_life": 349,
+   "first_bar": 1760702400,
+   "first_day": 1760659200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "LAUSDT": {
+   "files": 496,
+   "files_in_life": 483,
+   "first_bar": 1749110400,
+   "first_day": 1749081600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "LAYERUSDT": {
+   "files": 610,
+   "files_in_life": 597,
+   "first_bar": 1739275200,
+   "first_day": 1739232000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "LDOUSDT": {
+   "files": 1483,
+   "files_in_life": 1470,
+   "first_bar": 1663848000,
+   "first_day": 1663804800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "LENDUSDT": {
+   "files": 0,
+   "files_in_life": 0,
+   "first_bar": 1595491200,
+   "first_day": null,
+   "last_bar": 1602273600,
+   "last_day": null
+  },
+  "LEVERUSDT": {
+   "files": 1031,
+   "files_in_life": 889,
+   "first_bar": 1680177600,
+   "first_day": 1680134400,
+   "last_bar": 1756886400,
+   "last_day": 1769126400
+  },
+  "LGELECTRONICSUSDT": {
+   "files": 61,
+   "files_in_life": 48,
+   "first_bar": 1786665600,
+   "first_day": 1786665600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "LIGHTUSDT": {
+   "files": 382,
+   "files_in_life": 369,
+   "first_bar": 1758960000,
+   "first_day": 1758931200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "LINAUSDT": {
+   "files": 1283,
+   "files_in_life": 1213,
+   "first_bar": 1616126400,
+   "first_day": 1638316800,
+   "last_bar": 1743062400,
+   "last_day": 1749081600
+  },
+  "LINEAUSDT": {
+   "files": 408,
+   "files_in_life": 395,
+   "first_bar": 1756713600,
+   "first_day": 1756684800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "LINKUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1579248000,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "LISTAUSDT": {
+   "files": 846,
+   "files_in_life": 833,
+   "first_bar": 1718884800,
+   "first_day": 1718841600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "LITUSDT": {
+   "files": 1578,
+   "files_in_life": 1440,
+   "first_bar": 1613620800,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "LOKAUSDT": {
+   "files": 308,
+   "files_in_life": 301,
+   "first_bar": 1727164800,
+   "first_day": 1727136000,
+   "last_bar": 1753084800,
+   "last_day": 1753660800
+  },
+  "LOOMUSDT": {
+   "files": 516,
+   "files_in_life": 425,
+   "first_bar": 1697025600,
+   "first_day": 1696982400,
+   "last_bar": 1733731200,
+   "last_day": 1741564800
+  },
+  "LPTUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1636588800,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "LQTYUSDT": {
+   "files": 1314,
+   "files_in_life": 1301,
+   "first_bar": 1678449600,
+   "first_day": 1678406400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "LRCUSDT": {
+   "files": 1768,
+   "files_in_life": 1575,
+   "first_bar": 1603080000,
+   "first_day": 1638316800,
+   "last_bar": 1774339200,
+   "last_day": 1791849600
+  },
+  "LRCXUSDT": {
+   "files": 114,
+   "files_in_life": 101,
+   "first_bar": 1782129600,
+   "first_day": 1782086400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "LSKUSDT": {
+   "files": 993,
+   "files_in_life": 980,
+   "first_bar": 1706184000,
+   "first_day": 1706140800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "LTCUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1578556800,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "LUMIAUSDT": {
+   "files": 665,
+   "files_in_life": 652,
+   "first_bar": 1734508800,
+   "first_day": 1734480000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "LUNA2USDT": {
+   "files": 1495,
+   "files_in_life": 1482,
+   "first_bar": 1662768000,
+   "first_day": 1662768000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "LUNAUSDT": {
+   "files": 195,
+   "files_in_life": 163,
+   "first_bar": 1611806400,
+   "first_day": 1638316800,
+   "last_bar": 1652356800,
+   "last_day": 1718841600
+  },
+  "LYNUSDT": {
+   "files": 373,
+   "files_in_life": 360,
+   "first_bar": 1759723200,
+   "first_day": 1759708800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "LYTEUSDT": {
+   "files": 58,
+   "files_in_life": 45,
+   "first_bar": 1786968000,
+   "first_day": 1786924800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MAGICUSDT": {
+   "files": 1358,
+   "files_in_life": 1345,
+   "first_bar": 1674604800,
+   "first_day": 1674604800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MAGMAUSDT": {
+   "files": 287,
+   "files_in_life": 274,
+   "first_bar": 1767182400,
+   "first_day": 1767139200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MANAUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1615780800,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MANTAUSDT": {
+   "files": 1000,
+   "files_in_life": 987,
+   "first_bar": 1705579200,
+   "first_day": 1705536000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MANTRAUSDT": {
+   "files": 224,
+   "files_in_life": 211,
+   "first_bar": 1772611200,
+   "first_day": 1772582400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MARAUSDT": {
+   "files": 47,
+   "files_in_life": 34,
+   "first_bar": 1787904000,
+   "first_day": 1787875200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MARSCOINUSDT": {
+   "files": 43,
+   "files_in_life": 30,
+   "first_bar": 1788249600,
+   "first_day": 1788220800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MASKUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1630022400,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MATICUSDT": {
+   "files": 1038,
+   "files_in_life": 1009,
+   "first_bar": 1603339200,
+   "first_day": 1638316800,
+   "last_bar": 1725436800,
+   "last_day": 1737504000
+  },
+  "MAVIAUSDT": {
+   "files": 951,
+   "files_in_life": 854,
+   "first_bar": 1708502400,
+   "first_day": 1708473600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MAVUSDT": {
+   "files": 1203,
+   "files_in_life": 1190,
+   "first_bar": 1688040000,
+   "first_day": 1687996800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MBLUSDT": {
+   "files": 225,
+   "files_in_life": 182,
+   "first_bar": 1699963200,
+   "first_day": 1699920000,
+   "last_bar": 1715587200,
+   "last_day": 1719273600
+  },
+  "MBOXUSDT": {
+   "files": 766,
+   "files_in_life": 653,
+   "first_bar": 1724832000,
+   "first_day": 1724803200,
+   "last_bar": 1781164800,
+   "last_day": 1791244800
+  },
+  "MDBUSDT": {
+   "files": 42,
+   "files_in_life": 29,
+   "first_bar": 1788336000,
+   "first_day": 1788307200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MDTUSDT": {
+   "files": 369,
+   "files_in_life": 322,
+   "first_bar": 1688126400,
+   "first_day": 1688083200,
+   "last_bar": 1715846400,
+   "last_day": 1721001600
+  },
+  "MEGAUSDT": {
+   "files": 257,
+   "files_in_life": 244,
+   "first_bar": 1769774400,
+   "first_day": 1769731200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MEITUANUSDT": {
+   "files": 64,
+   "files_in_life": 51,
+   "first_bar": 1786406400,
+   "first_day": 1786406400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MELANIAUSDT": {
+   "files": 632,
+   "files_in_life": 619,
+   "first_bar": 1737360000,
+   "first_day": 1737331200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MEMEFIUSDT": {
+   "files": 231,
+   "files_in_life": 109,
+   "first_bar": 1745553600,
+   "first_day": 1745539200,
+   "last_bar": 1754899200,
+   "last_day": 1769126400
+  },
+  "MEMEUSDT": {
+   "files": 1076,
+   "files_in_life": 1063,
+   "first_bar": 1699012800,
+   "first_day": 1698969600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MERLUSDT": {
+   "files": 503,
+   "files_in_life": 490,
+   "first_bar": 1748505600,
+   "first_day": 1748476800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "METISUSDT": {
+   "files": 946,
+   "files_in_life": 933,
+   "first_bar": 1710230400,
+   "first_day": 1710201600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "METUSDT": {
+   "files": 368,
+   "files_in_life": 355,
+   "first_bar": 1760184000,
+   "first_day": 1760140800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MEUSDT": {
+   "files": 673,
+   "files_in_life": 660,
+   "first_bar": 1733846400,
+   "first_day": 1733788800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MEWUSDT": {
+   "files": 849,
+   "files_in_life": 836,
+   "first_bar": 1718625600,
+   "first_day": 1718582400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MILKUSDT": {
+   "files": 304,
+   "files_in_life": 214,
+   "first_bar": 1746532800,
+   "first_day": 1746489600,
+   "last_bar": 1764921600,
+   "last_day": 1788652800
+  },
+  "MINAUSDT": {
+   "files": 1346,
+   "files_in_life": 1332,
+   "first_bar": 1675756800,
+   "first_day": 1675641600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MINIMAXUSDT": {
+   "files": 89,
+   "files_in_life": 76,
+   "first_bar": 1784246400,
+   "first_day": 1784246400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MIRAUSDT": {
+   "files": 383,
+   "files_in_life": 370,
+   "first_bar": 1758888000,
+   "first_day": 1758844800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MITOUSDT": {
+   "files": 412,
+   "files_in_life": 399,
+   "first_bar": 1756396800,
+   "first_day": 1756339200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MKRUSDT": {
+   "files": 1515,
+   "files_in_life": 1378,
+   "first_bar": 1597291200,
+   "first_day": 1638316800,
+   "last_bar": 1757318400,
+   "last_day": 1769126400
+  },
+  "MLNUSDT": {
+   "files": 548,
+   "files_in_life": 415,
+   "first_bar": 1743408000,
+   "first_day": 1743379200,
+   "last_bar": 1779177600,
+   "last_day": 1790640000
+  },
+  "MMTUSDT": {
+   "files": 344,
+   "files_in_life": 331,
+   "first_bar": 1762257600,
+   "first_day": 1762214400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MOCAUSDT": {
+   "files": 667,
+   "files_in_life": 654,
+   "first_bar": 1734336000,
+   "first_day": 1734307200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MONUSDT": {
+   "files": 369,
+   "files_in_life": 356,
+   "first_bar": 1760068800,
+   "first_day": 1760054400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MOODENGUSDT": {
+   "files": 719,
+   "files_in_life": 706,
+   "first_bar": 1729843200,
+   "first_day": 1729814400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MOONSHOTUSDT": {
+   "files": 22,
+   "files_in_life": 9,
+   "first_bar": 1790064000,
+   "first_day": 1790035200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MORPHOUSDT": {
+   "files": 686,
+   "files_in_life": 673,
+   "first_bar": 1732708800,
+   "first_day": 1732665600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MOVEUSDT": {
+   "files": 674,
+   "files_in_life": 661,
+   "first_bar": 1733745600,
+   "first_day": 1733702400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MOVRUSDT": {
+   "files": 1023,
+   "files_in_life": 1010,
+   "first_bar": 1703592000,
+   "first_day": 1703548800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MPUSDT": {
+   "files": 15,
+   "files_in_life": 2,
+   "first_bar": 1790668800,
+   "first_day": 1790640000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MRKUSDT": {
+   "files": 47,
+   "files_in_life": 34,
+   "first_bar": 1787904000,
+   "first_day": 1787875200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MTLUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1617163200,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MUBARAKUSDT": {
+   "files": 576,
+   "files_in_life": 563,
+   "first_bar": 1742212800,
+   "first_day": 1742169600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MUSDT": {
+   "files": 464,
+   "files_in_life": 451,
+   "first_bar": 1751875200,
+   "first_day": 1751846400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MUUUSDT": {
+   "files": 90,
+   "files_in_life": 77,
+   "first_bar": 1784188800,
+   "first_day": 1784160000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MVLLUSDT": {
+   "files": 107,
+   "files_in_life": 94,
+   "first_bar": 1782734400,
+   "first_day": 1782691200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "MYROUSDT": {
+   "files": 690,
+   "files_in_life": 620,
+   "first_bar": 1709625600,
+   "first_day": 1709596800,
+   "last_bar": 1763107200,
+   "last_day": 1769126400
+  },
+  "MYXUSDT": {
+   "files": 483,
+   "files_in_life": 470,
+   "first_bar": 1750248000,
+   "first_day": 1750204800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "NAORISUSDT": {
+   "files": 440,
+   "files_in_life": 427,
+   "first_bar": 1753963200,
+   "first_day": 1753920000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "NAVERUSDT": {
+   "files": 61,
+   "files_in_life": 48,
+   "first_bar": 1786665600,
+   "first_day": 1786665600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "NEARUSDT": {
+   "files": 1777,
+   "files_in_life": 1764,
+   "first_bar": 1602748800,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "NEIROETHUSDT": {
+   "files": 505,
+   "files_in_life": 386,
+   "first_bar": 1725624000,
+   "first_day": 1725580800,
+   "last_bar": 1758873600,
+   "last_day": 1769126400
+  },
+  "NEIROUSDT": {
+   "files": 758,
+   "files_in_life": 745,
+   "first_bar": 1726473600,
+   "first_day": 1726444800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "NEOUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1581926400,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "NETUSDT": {
+   "files": 58,
+   "files_in_life": 45,
+   "first_bar": 1786968000,
+   "first_day": 1786924800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "NEWTUSDT": {
+   "files": 482,
+   "files_in_life": 469,
+   "first_bar": 1750334400,
+   "first_day": 1750291200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "NFPUSDT": {
+   "files": 1007,
+   "files_in_life": 918,
+   "first_bar": 1703678400,
+   "first_day": 1703635200,
+   "last_bar": 1782979200,
+   "last_day": 1790640000
+  },
+  "NIGHTUSDT": {
+   "files": 308,
+   "files_in_life": 295,
+   "first_bar": 1765353600,
+   "first_day": 1765324800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "NILUSDT": {
+   "files": 569,
+   "files_in_life": 556,
+   "first_bar": 1742817600,
+   "first_day": 1742774400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "NKEUSDT": {
+   "files": 15,
+   "files_in_life": 2,
+   "first_bar": 1790668800,
+   "first_day": 1790640000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "NKNUSDT": {
+   "files": 1649,
+   "files_in_life": 1529,
+   "first_bar": 1617940800,
+   "first_day": 1638316800,
+   "last_bar": 1770364800,
+   "last_day": 1791849600
+  },
+  "NMRUSDT": {
+   "files": 1210,
+   "files_in_life": 1197,
+   "first_bar": 1687435200,
+   "first_day": 1687392000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "NOMUSDT": {
+   "files": 378,
+   "files_in_life": 365,
+   "first_bar": 1759305600,
+   "first_day": 1759276800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "NOTUSDT": {
+   "files": 881,
+   "files_in_life": 868,
+   "first_bar": 1715860800,
+   "first_day": 1715817600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "NOWUSDT": {
+   "files": 133,
+   "files_in_life": 120,
+   "first_bar": 1780473600,
+   "first_day": 1780444800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "NTRNUSDT": {
+   "files": 1055,
+   "files_in_life": 862,
+   "first_bar": 1699963200,
+   "first_day": 1699920000,
+   "last_bar": 1774339200,
+   "last_day": 1791849600
+  },
+  "NULSUSDT": {
+   "files": 284,
+   "files_in_life": 232,
+   "first_bar": 1724659200,
+   "first_day": 1724630400,
+   "last_bar": 1744617600,
+   "last_day": 1749081600
+  },
+  "NUUSDT": {
+   "files": 201,
+   "files_in_life": 77,
+   "first_bar": 1634774400,
+   "first_day": 1638316800,
+   "last_bar": 1644883200,
+   "last_day": 1715126400
+  },
+  "NXPCUSDT": {
+   "files": 517,
+   "files_in_life": 504,
+   "first_bar": 1747281600,
+   "first_day": 1747267200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "OBOLUSDT": {
+   "files": 295,
+   "files_in_life": 213,
+   "first_bar": 1746604800,
+   "first_day": 1746576000,
+   "last_bar": 1764921600,
+   "last_day": 1771977600
+  },
+  "OCEANUSDT": {
+   "files": 1217,
+   "files_in_life": 937,
+   "first_bar": 1604376000,
+   "first_day": 1638316800,
+   "last_bar": 1719302400,
+   "last_day": 1769040000
+  },
+  "OGNUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1617249600,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "OGUSDT": {
+   "files": 520,
+   "files_in_life": 507,
+   "first_bar": 1747036800,
+   "first_day": 1747008000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "OKLOUSDT": {
+   "files": 16,
+   "files_in_life": 3,
+   "first_bar": 1790582400,
+   "first_day": 1790553600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "OLUSDT": {
+   "files": 462,
+   "files_in_life": 288,
+   "first_bar": 1750838400,
+   "first_day": 1750809600,
+   "last_bar": 1775635200,
+   "last_day": 1790640000
+  },
+  "OMGUSDT": {
+   "files": 1283,
+   "files_in_life": 1158,
+   "first_bar": 1593676800,
+   "first_day": 1638316800,
+   "last_bar": 1738310400,
+   "last_day": 1749081600
+  },
+  "OMNIUSDT": {
+   "files": 647,
+   "files_in_life": 524,
+   "first_bar": 1713355200,
+   "first_day": 1713312000,
+   "last_bar": 1758528000,
+   "last_day": 1769126400
+  },
+  "OMUSDT": {
+   "files": 879,
+   "files_in_life": 742,
+   "first_bar": 1707825600,
+   "first_day": 1707782400,
+   "last_bar": 1771833600,
+   "last_day": 1791849600
+  },
+  "ONDOUSDT": {
+   "files": 998,
+   "files_in_life": 985,
+   "first_bar": 1705752000,
+   "first_day": 1705708800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ONDSUSDT": {
+   "files": 133,
+   "files_in_life": 120,
+   "first_bar": 1780473600,
+   "first_day": 1780444800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ONEUSDT": {
+   "files": 1777,
+   "files_in_life": 1764,
+   "first_bar": 1616040000,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ONGUSDT": {
+   "files": 1051,
+   "files_in_life": 1038,
+   "first_bar": 1701086400,
+   "first_day": 1701043200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ONTUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1581408000,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ONUSDT": {
+   "files": 355,
+   "files_in_life": 342,
+   "first_bar": 1761292800,
+   "first_day": 1761264000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "OPENUSDT": {
+   "files": 401,
+   "files_in_life": 388,
+   "first_bar": 1757332800,
+   "first_day": 1757289600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "OPGUSDT": {
+   "files": 175,
+   "files_in_life": 162,
+   "first_bar": 1776859200,
+   "first_day": 1776816000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "OPNUSDT": {
+   "files": 235,
+   "files_in_life": 222,
+   "first_bar": 1771675200,
+   "first_day": 1771632000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "OPUSDT": {
+   "files": 1596,
+   "files_in_life": 1583,
+   "first_bar": 1654084800,
+   "first_day": 1654041600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ORBSUSDT": {
+   "files": 511,
+   "files_in_life": 420,
+   "first_bar": 1697515200,
+   "first_day": 1697500800,
+   "last_bar": 1733731200,
+   "last_day": 1741564800
+  },
+  "ORCAUSDT": {
+   "files": 677,
+   "files_in_life": 664,
+   "first_bar": 1733486400,
+   "first_day": 1733443200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ORDERUSDT": {
+   "files": 383,
+   "files_in_life": 370,
+   "first_bar": 1758888000,
+   "first_day": 1758844800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ORDIUSDT": {
+   "files": 1072,
+   "files_in_life": 1059,
+   "first_bar": 1699358400,
+   "first_day": 1699315200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "OUSDT": {
+   "files": 112,
+   "files_in_life": 99,
+   "first_bar": 1782288000,
+   "first_day": 1782259200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "OXTUSDT": {
+   "files": 1148,
+   "files_in_life": 979,
+   "first_bar": 1691755200,
+   "first_day": 1691712000,
+   "last_bar": 1776240000,
+   "last_day": 1791763200
+  },
+  "PANWUSDT": {
+   "files": 85,
+   "files_in_life": 72,
+   "first_bar": 1784620800,
+   "first_day": 1784592000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PARTIUSDT": {
+   "files": 568,
+   "files_in_life": 555,
+   "first_bar": 1742904000,
+   "first_day": 1742860800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PATHUSDT": {
+   "files": 26,
+   "files_in_life": 13,
+   "first_bar": 1789718400,
+   "first_day": 1789689600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PDDUSDT": {
+   "files": 47,
+   "files_in_life": 34,
+   "first_bar": 1787904000,
+   "first_day": 1787875200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PENDLEUSDT": {
+   "files": 1173,
+   "files_in_life": 1160,
+   "first_bar": 1690502400,
+   "first_day": 1690502400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PENGUSDT": {
+   "files": 85,
+   "files_in_life": 72,
+   "first_bar": 1784620800,
+   "first_day": 1784592000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PENGUUSDT": {
+   "files": 666,
+   "files_in_life": 653,
+   "first_bar": 1734451200,
+   "first_day": 1734393600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PEOPLEUSDT": {
+   "files": 1756,
+   "files_in_life": 1742,
+   "first_bar": 1640318400,
+   "first_day": 1640217600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PERPUSDT": {
+   "files": 1088,
+   "files_in_life": 992,
+   "first_bar": 1678104000,
+   "first_day": 1678060800,
+   "last_bar": 1763712000,
+   "last_day": 1771977600
+  },
+  "PHAROSUSDT": {
+   "files": 153,
+   "files_in_life": 140,
+   "first_bar": 1778731200,
+   "first_day": 1778716800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PHAUSDT": {
+   "files": 653,
+   "files_in_life": 640,
+   "first_bar": 1735545600,
+   "first_day": 1735516800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PHBUSDT": {
+   "files": 1323,
+   "files_in_life": 1188,
+   "first_bar": 1676548800,
+   "first_day": 1676505600,
+   "last_bar": 1779177600,
+   "last_day": 1791849600
+  },
+  "PIEVERSEUSDT": {
+   "files": 334,
+   "files_in_life": 321,
+   "first_bar": 1763107200,
+   "first_day": 1763078400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PIPPINUSDT": {
+   "files": 628,
+   "files_in_life": 615,
+   "first_bar": 1737705600,
+   "first_day": 1737676800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PIXELUSDT": {
+   "files": 968,
+   "files_in_life": 955,
+   "first_bar": 1708344000,
+   "first_day": 1708300800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PLAYUSDT": {
+   "files": 440,
+   "files_in_life": 427,
+   "first_bar": 1753948800,
+   "first_day": 1753920000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PLUMEUSDT": {
+   "files": 572,
+   "files_in_life": 559,
+   "first_bar": 1742558400,
+   "first_day": 1742515200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PNUTUSDT": {
+   "files": 702,
+   "files_in_life": 689,
+   "first_bar": 1731326400,
+   "first_day": 1731283200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "POLUSDT": {
+   "files": 761,
+   "files_in_life": 748,
+   "first_bar": 1726228800,
+   "first_day": 1726185600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "POLYXUSDT": {
+   "files": 1085,
+   "files_in_life": 1072,
+   "first_bar": 1698192000,
+   "first_day": 1698192000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PONKEUSDT": {
+   "files": 479,
+   "files_in_life": 390,
+   "first_bar": 1730721600,
+   "first_day": 1730678400,
+   "last_bar": 1764316800,
+   "last_day": 1771977600
+  },
+  "PONSUSDT": {
+   "files": 38,
+   "files_in_life": 25,
+   "first_bar": 1788667200,
+   "first_day": 1788652800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "POPCATUSDT": {
+   "files": 783,
+   "files_in_life": 770,
+   "first_bar": 1724328000,
+   "first_day": 1724284800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "POPMARTUSDT": {
+   "files": 83,
+   "files_in_life": 70,
+   "first_bar": 1784764800,
+   "first_day": 1784764800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PORT3USDT": {
+   "files": 328,
+   "files_in_life": 173,
+   "first_bar": 1749024000,
+   "first_day": 1748995200,
+   "last_bar": 1763870400,
+   "last_day": 1791763200
+  },
+  "PORTALUSDT": {
+   "files": 958,
+   "files_in_life": 945,
+   "first_bar": 1709208000,
+   "first_day": 1709164800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "POWERUSDT": {
+   "files": 312,
+   "files_in_life": 299,
+   "first_bar": 1765008000,
+   "first_day": 1764979200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "POWRUSDT": {
+   "files": 1083,
+   "files_in_life": 1070,
+   "first_bar": 1698364800,
+   "first_day": 1698364800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PRLUSDT": {
+   "files": 196,
+   "files_in_life": 183,
+   "first_bar": 1775030400,
+   "first_day": 1775001600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PROMPTUSDT": {
+   "files": 551,
+   "files_in_life": 538,
+   "first_bar": 1744344000,
+   "first_day": 1744329600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PROMUSDT": {
+   "files": 637,
+   "files_in_life": 624,
+   "first_bar": 1736942400,
+   "first_day": 1736899200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PROVEUSDT": {
+   "files": 435,
+   "files_in_life": 422,
+   "first_bar": 1754409600,
+   "first_day": 1754352000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PTBUSDT": {
+   "files": 406,
+   "files_in_life": 393,
+   "first_bar": 1756900800,
+   "first_day": 1756857600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PUFFERUSDT": {
+   "files": 483,
+   "files_in_life": 309,
+   "first_bar": 1749024000,
+   "first_day": 1748995200,
+   "last_bar": 1775635200,
+   "last_day": 1790640000
+  },
+  "PUMPBTCUSDT": {
+   "files": 488,
+   "files_in_life": 475,
+   "first_bar": 1749801600,
+   "first_day": 1749772800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PUMPUSDT": {
+   "files": 550,
+   "files_in_life": 511,
+   "first_bar": 1744459200,
+   "first_day": 1744416000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PUNDIXUSDT": {
+   "files": 532,
+   "files_in_life": 519,
+   "first_bar": 1746000000,
+   "first_day": 1745971200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PYPLUSDT": {
+   "files": 77,
+   "files_in_life": 64,
+   "first_bar": 1785312000,
+   "first_day": 1785283200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "PYTHUSDT": {
+   "files": 1057,
+   "files_in_life": 1044,
+   "first_bar": 1700654400,
+   "first_day": 1700611200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "QNTUSDT": {
+   "files": 1455,
+   "files_in_life": 1442,
+   "first_bar": 1666224000,
+   "first_day": 1666224000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "QTUMUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1582185600,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "QUICKUSDT": {
+   "files": 538,
+   "files_in_life": 449,
+   "first_bar": 1725595200,
+   "first_day": 1725580800,
+   "last_bar": 1764316800,
+   "last_day": 1771977600
+  },
+  "QUSDT": {
+   "files": 407,
+   "files_in_life": 394,
+   "first_bar": 1756785600,
+   "first_day": 1756771200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "RADUSDT": {
+   "files": 419,
+   "files_in_life": 370,
+   "first_bar": 1683720000,
+   "first_day": 1683676800,
+   "last_bar": 1715673600,
+   "last_day": 1721001600
+  },
+  "RAMUSDT": {
+   "files": 50,
+   "files_in_life": 37,
+   "first_bar": 1787644800,
+   "first_day": 1787616000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "RAREUSDT": {
+   "files": 790,
+   "files_in_life": 777,
+   "first_bar": 1723723200,
+   "first_day": 1723680000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "RAVEUSDT": {
+   "files": 304,
+   "files_in_life": 291,
+   "first_bar": 1765713600,
+   "first_day": 1765670400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "RAYSOLUSDT": {
+   "files": 673,
+   "files_in_life": 660,
+   "first_bar": 1733832000,
+   "first_day": 1733788800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "RAYUSDT": {
+   "files": 388,
+   "files_in_life": 350,
+   "first_bar": 1629417600,
+   "first_day": 1638316800,
+   "last_bar": 1668484800,
+   "last_day": 1721001600
+  },
+  "RDNTUSDT": {
+   "files": 1277,
+   "files_in_life": 1085,
+   "first_bar": 1680696000,
+   "first_day": 1680652800,
+   "last_bar": 1774339200,
+   "last_day": 1791504000
+  },
+  "RECALLUSDT": {
+   "files": 364,
+   "files_in_life": 351,
+   "first_bar": 1760529600,
+   "first_day": 1760486400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "REDUSDT": {
+   "files": 587,
+   "files_in_life": 574,
+   "first_bar": 1741276800,
+   "first_day": 1741219200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "REEFUSDT": {
+   "files": 1282,
+   "files_in_life": 1148,
+   "first_bar": 1613966400,
+   "first_day": 1638316800,
+   "last_bar": 1737532800,
+   "last_day": 1749081600
+  },
+  "REIUSDT": {
+   "files": 517,
+   "files_in_life": 440,
+   "first_bar": 1727424000,
+   "first_day": 1727395200,
+   "last_bar": 1765353600,
+   "last_day": 1771977600
+  },
+  "RENDERUSDT": {
+   "files": 810,
+   "files_in_life": 797,
+   "first_bar": 1721980800,
+   "first_day": 1721952000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "RENUSDT": {
+   "files": 1195,
+   "files_in_life": 1098,
+   "first_bar": 1602561600,
+   "first_day": 1638316800,
+   "last_bar": 1733212800,
+   "last_day": 1741564800
+  },
+  "RESOLVUSDT": {
+   "files": 491,
+   "files_in_life": 478,
+   "first_bar": 1749556800,
+   "first_day": 1749513600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "REUSDT": {
+   "files": 118,
+   "files_in_life": 105,
+   "first_bar": 1781784000,
+   "first_day": 1781740800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "REZUSDT": {
+   "files": 897,
+   "files_in_life": 884,
+   "first_bar": 1714478400,
+   "first_day": 1714435200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "RIFUSDT": {
+   "files": 1089,
+   "files_in_life": 1076,
+   "first_bar": 1697889600,
+   "first_day": 1697846400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "RIVERUSDT": {
+   "files": 362,
+   "files_in_life": 349,
+   "first_bar": 1760702400,
+   "first_day": 1760659200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "RLCUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1596168000,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "RLSUSDT": {
+   "files": 302,
+   "files_in_life": 128,
+   "first_bar": 1764662400,
+   "first_day": 1764633600,
+   "last_bar": 1775635200,
+   "last_day": 1790640000
+  },
+  "RNDRUSDT": {
+   "files": 637,
+   "files_in_life": 528,
+   "first_bar": 1675382400,
+   "first_day": 1675382400,
+   "last_bar": 1721116800,
+   "last_day": 1751155200
+  },
+  "ROBOUSDT": {
+   "files": 229,
+   "files_in_life": 216,
+   "first_bar": 1772179200,
+   "first_day": 1772150400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "RONINUSDT": {
+   "files": 981,
+   "files_in_life": 968,
+   "first_bar": 1707192000,
+   "first_day": 1707177600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ROSEUSDT": {
+   "files": 1749,
+   "files_in_life": 1735,
+   "first_bar": 1640908800,
+   "first_day": 1640822400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "RPLUSDT": {
+   "files": 765,
+   "files_in_life": 752,
+   "first_bar": 1725883200,
+   "first_day": 1725840000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "RSRUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1603080000,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "RUMUSDT": {
+   "files": 16,
+   "files_in_life": 3,
+   "first_bar": 1790582400,
+   "first_day": 1790553600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "RUNEUSDT": {
+   "files": 1777,
+   "files_in_life": 1764,
+   "first_bar": 1599192000,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "RVNUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1614052800,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "RVVUSDT": {
+   "files": 298,
+   "files_in_life": 116,
+   "first_bar": 1760788800,
+   "first_day": 1760745600,
+   "last_bar": 1770710400,
+   "last_day": 1791849600
+  },
+  "SAFEUSDT": {
+   "files": 719,
+   "files_in_life": 706,
+   "first_bar": 1729857600,
+   "first_day": 1729814400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SAGAUSDT": {
+   "files": 918,
+   "files_in_life": 905,
+   "first_bar": 1712649600,
+   "first_day": 1712620800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SAHARAUSDT": {
+   "files": 475,
+   "files_in_life": 462,
+   "first_bar": 1750939200,
+   "first_day": 1750896000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SAMSUNGEMUSDT": {
+   "files": 61,
+   "files_in_life": 48,
+   "first_bar": 1786665600,
+   "first_day": 1786665600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SANDUSDT": {
+   "files": 1776,
+   "files_in_life": 1763,
+   "first_bar": 1611547200,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SANTOSUSDT": {
+   "files": 716,
+   "files_in_life": 703,
+   "first_bar": 1730116800,
+   "first_day": 1730073600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SAPIENUSDT": {
+   "files": 420,
+   "files_in_life": 407,
+   "first_bar": 1755705600,
+   "first_day": 1755648000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SCRTUSDT": {
+   "files": 679,
+   "files_in_life": 644,
+   "first_bar": 1732176000,
+   "first_day": 1732147200,
+   "last_bar": 1787731200,
+   "last_day": 1791331200
+  },
+  "SCRUSDT": {
+   "files": 722,
+   "files_in_life": 709,
+   "first_bar": 1729584000,
+   "first_day": 1729555200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SCUSDT": {
+   "files": 242,
+   "files_in_life": 199,
+   "first_bar": 1618200000,
+   "first_day": 1638316800,
+   "last_bar": 1655452800,
+   "last_day": 1721001600
+  },
+  "SECZUSDT": {
+   "files": 15,
+   "files_in_life": 2,
+   "first_bar": 1790668800,
+   "first_day": 1790640000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SEIUSDT": {
+   "files": 1154,
+   "files_in_life": 1141,
+   "first_bar": 1692230400,
+   "first_day": 1692230400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SENTUSDT": {
+   "files": 334,
+   "files_in_life": 321,
+   "first_bar": 1763121600,
+   "first_day": 1763078400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SFPUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1614139200,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SHELLUSDT": {
+   "files": 604,
+   "files_in_life": 591,
+   "first_bar": 1739808000,
+   "first_day": 1739750400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SIGNUSDT": {
+   "files": 534,
+   "files_in_life": 521,
+   "first_bar": 1745827200,
+   "first_day": 1745798400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SIRENUSDT": {
+   "files": 571,
+   "files_in_life": 558,
+   "first_bar": 1742630400,
+   "first_day": 1742601600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SKATEUSDT": {
+   "files": 262,
+   "files_in_life": 185,
+   "first_bar": 1749456000,
+   "first_day": 1749427200,
+   "last_bar": 1765353600,
+   "last_day": 1771977600
+  },
+  "SKDDUSDT": {
+   "files": 50,
+   "files_in_life": 37,
+   "first_bar": 1787644800,
+   "first_day": 1787616000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SKHYNIXUSDT": {
+   "files": 134,
+   "files_in_life": 121,
+   "first_bar": 1780358400,
+   "first_day": 1780358400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SKLUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1607400000,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SKRUSDT": {
+   "files": 265,
+   "files_in_life": 252,
+   "first_bar": 1769068800,
+   "first_day": 1769040000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SKUUUSDT": {
+   "files": 50,
+   "files_in_life": 37,
+   "first_bar": 1787644800,
+   "first_day": 1787616000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SKYAIUSDT": {
+   "files": 519,
+   "files_in_life": 506,
+   "first_bar": 1747123200,
+   "first_day": 1747094400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SKYUSDT": {
+   "files": 400,
+   "files_in_life": 387,
+   "first_bar": 1757390400,
+   "first_day": 1757376000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SLERFUSDT": {
+   "files": 429,
+   "files_in_life": 334,
+   "first_bar": 1732176000,
+   "first_day": 1732147200,
+   "last_bar": 1760947200,
+   "last_day": 1769126400
+  },
+  "SLPUSDT": {
+   "files": 718,
+   "files_in_life": 633,
+   "first_bar": 1698753600,
+   "first_day": 1698710400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SLXUSDT": {
+   "files": 135,
+   "files_in_life": 122,
+   "first_bar": 1780286400,
+   "first_day": 1780272000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SMHUSDT": {
+   "files": 77,
+   "files_in_life": 64,
+   "first_bar": 1785312000,
+   "first_day": 1785283200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SNTUSDT": {
+   "files": 244,
+   "files_in_life": 194,
+   "first_bar": 1698926400,
+   "first_day": 1698883200,
+   "last_bar": 1715587200,
+   "last_day": 1721001600
+  },
+  "SNXUSDT": {
+   "files": 1777,
+   "files_in_life": 1764,
+   "first_bar": 1597377600,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SNXXUSDT": {
+   "files": 97,
+   "files_in_life": 84,
+   "first_bar": 1783598400,
+   "first_day": 1783555200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SOFIUSDT": {
+   "files": 85,
+   "files_in_life": 72,
+   "first_bar": 1784620800,
+   "first_day": 1784592000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SOLUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1600056000,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SOLVUSDT": {
+   "files": 635,
+   "files_in_life": 622,
+   "first_bar": 1737115200,
+   "first_day": 1737072000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SOMIUSDT": {
+   "files": 415,
+   "files_in_life": 402,
+   "first_bar": 1756108800,
+   "first_day": 1756080000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SONICUSDT": {
+   "files": 644,
+   "files_in_life": 631,
+   "first_bar": 1736308800,
+   "first_day": 1736294400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SOONUSDT": {
+   "files": 509,
+   "files_in_life": 496,
+   "first_bar": 1747987200,
+   "first_day": 1747958400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SOPHUSDT": {
+   "files": 504,
+   "files_in_life": 491,
+   "first_bar": 1748433600,
+   "first_day": 1748390400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SPACEUSDT": {
+   "files": 264,
+   "files_in_life": 251,
+   "first_bar": 1769155200,
+   "first_day": 1769126400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SPELLUSDT": {
+   "files": 1498,
+   "files_in_life": 1485,
+   "first_bar": 1662465600,
+   "first_day": 1662422400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SPKUSDT": {
+   "files": 484,
+   "files_in_life": 471,
+   "first_bar": 1750147200,
+   "first_day": 1750118400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SPORTFUNUSDT": {
+   "files": 271,
+   "files_in_life": 258,
+   "first_bar": 1768564800,
+   "first_day": 1768521600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SPXUSDT": {
+   "files": 673,
+   "files_in_life": 660,
+   "first_bar": 1733832000,
+   "first_day": 1733788800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SQDUSDT": {
+   "files": 490,
+   "files_in_life": 477,
+   "first_bar": 1749643200,
+   "first_day": 1749600000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SQQQUSDT": {
+   "files": 107,
+   "files_in_life": 94,
+   "first_bar": 1782734400,
+   "first_day": 1782691200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SRMUSDT": {
+   "files": 377,
+   "files_in_life": 350,
+   "first_bar": 1599264000,
+   "first_day": 1638316800,
+   "last_bar": 1668484800,
+   "last_day": 1686873600
+  },
+  "SSVUSDT": {
+   "files": 1328,
+   "files_in_life": 1315,
+   "first_bar": 1677240000,
+   "first_day": 1677196800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "STABLEUSDT": {
+   "files": 342,
+   "files_in_life": 329,
+   "first_bar": 1762430400,
+   "first_day": 1762387200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "STARUSDT": {
+   "files": 153,
+   "files_in_life": 140,
+   "first_bar": 1778731200,
+   "first_day": 1778716800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "STBLUSDT": {
+   "files": 392,
+   "files_in_life": 379,
+   "first_bar": 1758081600,
+   "first_day": 1758067200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "STEEMUSDT": {
+   "files": 1071,
+   "files_in_life": 1058,
+   "first_bar": 1699444800,
+   "first_day": 1699401600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "STGUSDT": {
+   "files": 1510,
+   "files_in_life": 1491,
+   "first_bar": 1661428800,
+   "first_day": 1661385600,
+   "last_bar": 1790236800,
+   "last_day": 1791849600
+  },
+  "STMXUSDT": {
+   "files": 1283,
+   "files_in_life": 1179,
+   "first_bar": 1616385600,
+   "first_day": 1638316800,
+   "last_bar": 1740124800,
+   "last_day": 1749081600
+  },
+  "STORJUSDT": {
+   "files": 1771,
+   "files_in_life": 1730,
+   "first_bar": 1600228800,
+   "first_day": 1638316800,
+   "last_bar": 1787731200,
+   "last_day": 1791849600
+  },
+  "STOUSDT": {
+   "files": 550,
+   "files_in_life": 537,
+   "first_bar": 1744459200,
+   "first_day": 1744416000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "STPTUSDT": {
+   "files": 259,
+   "files_in_life": 209,
+   "first_bar": 1697630400,
+   "first_day": 1697587200,
+   "last_bar": 1715587200,
+   "last_day": 1721001600
+  },
+  "STRAXUSDT": {
+   "files": 266,
+   "files_in_life": 157,
+   "first_bar": 1696982400,
+   "first_day": 1696982400,
+   "last_bar": 1710489600,
+   "last_day": 1721001600
+  },
+  "STRKUSDT": {
+   "files": 967,
+   "files_in_life": 954,
+   "first_bar": 1708444800,
+   "first_day": 1708387200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "STXUSDT": {
+   "files": 1330,
+   "files_in_life": 1317,
+   "first_bar": 1676980800,
+   "first_day": 1676937600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SUIUSDT": {
+   "files": 1259,
+   "files_in_life": 1246,
+   "first_bar": 1683129600,
+   "first_day": 1683072000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SUNUSDT": {
+   "files": 783,
+   "files_in_life": 770,
+   "first_bar": 1724328000,
+   "first_day": 1724284800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SUPERUSDT": {
+   "files": 1052,
+   "files_in_life": 1039,
+   "first_bar": 1701000000,
+   "first_day": 1700956800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SUSDT": {
+   "files": 636,
+   "files_in_life": 623,
+   "first_bar": 1737014400,
+   "first_day": 1736985600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SUSHIUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1599192000,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SWARMSUSDT": {
+   "files": 645,
+   "files_in_life": 632,
+   "first_bar": 1736251200,
+   "first_day": 1736208000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SWELLUSDT": {
+   "files": 475,
+   "files_in_life": 386,
+   "first_bar": 1731081600,
+   "first_day": 1731024000,
+   "last_bar": 1764316800,
+   "last_day": 1771977600
+  },
+  "SXPUSDT": {
+   "files": 1548,
+   "files_in_life": 1466,
+   "first_bar": 1595318400,
+   "first_day": 1638316800,
+   "last_bar": 1764921600,
+   "last_day": 1771977600
+  },
+  "SXTUSDT": {
+   "files": 530,
+   "files_in_life": 517,
+   "first_bar": 1746172800,
+   "first_day": 1746144000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SYNUSDT": {
+   "files": 789,
+   "files_in_life": 776,
+   "first_bar": 1723809600,
+   "first_day": 1723766400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SYRUPUSDT": {
+   "files": 525,
+   "files_in_life": 512,
+   "first_bar": 1746604800,
+   "first_day": 1746576000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "SYSUSDT": {
+   "files": 772,
+   "files_in_life": 639,
+   "first_bar": 1724068800,
+   "first_day": 1724025600,
+   "last_bar": 1779177600,
+   "last_day": 1790640000
+  },
+  "TACUSDT": {
+   "files": 456,
+   "files_in_life": 443,
+   "first_bar": 1752566400,
+   "first_day": 1752537600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TAGUSDT": {
+   "files": 446,
+   "files_in_life": 433,
+   "first_bar": 1753430400,
+   "first_day": 1753401600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TAIKOUSDT": {
+   "files": 490,
+   "files_in_life": 477,
+   "first_bar": 1749643200,
+   "first_day": 1749600000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TAKEUSDT": {
+   "files": 406,
+   "files_in_life": 393,
+   "first_bar": 1756886400,
+   "first_day": 1756857600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TANSSIUSDT": {
+   "files": 225,
+   "files_in_life": 197,
+   "first_bar": 1752048000,
+   "first_day": 1752019200,
+   "last_bar": 1768982400,
+   "last_day": 1791676800
+  },
+  "TAOUSDT": {
+   "files": 916,
+   "files_in_life": 903,
+   "first_bar": 1712836800,
+   "first_day": 1712793600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TAUSDT": {
+   "files": 450,
+   "files_in_life": 437,
+   "first_bar": 1753070400,
+   "first_day": 1753056000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TBTUSDT": {
+   "files": 79,
+   "files_in_life": 66,
+   "first_bar": 1785153600,
+   "first_day": 1785110400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TEAMUSDT": {
+   "files": 42,
+   "files_in_life": 29,
+   "first_bar": 1788336000,
+   "first_day": 1788307200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TEMUSDT": {
+   "files": 47,
+   "files_in_life": 34,
+   "first_bar": 1787904000,
+   "first_day": 1787875200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TENCENTUSDT": {
+   "files": 84,
+   "files_in_life": 71,
+   "first_bar": 1784678400,
+   "first_day": 1784678400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "THETAUSDT": {
+   "files": 1777,
+   "files_in_life": 1764,
+   "first_bar": 1590566400,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "THEUSDT": {
+   "files": 686,
+   "files_in_life": 673,
+   "first_bar": 1732708800,
+   "first_day": 1732665600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TIAUSDT": {
+   "files": 1079,
+   "files_in_life": 1066,
+   "first_bar": 1698768000,
+   "first_day": 1698710400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TLMUSDT": {
+   "files": 1502,
+   "files_in_life": 1470,
+   "first_bar": 1626393600,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TNSRUSDT": {
+   "files": 919,
+   "files_in_life": 906,
+   "first_bar": 1712592000,
+   "first_day": 1712534400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TOKENUSDT": {
+   "files": 845,
+   "files_in_life": 763,
+   "first_bar": 1699012800,
+   "first_day": 1698969600,
+   "last_bar": 1764921600,
+   "last_day": 1771977600
+  },
+  "TOMOUSDT": {
+   "files": 732,
+   "files_in_life": 714,
+   "first_bar": 1602475200,
+   "first_day": 1638316800,
+   "last_bar": 1699948800,
+   "last_day": 1702339200
+  },
+  "TONUSDT": {
+   "files": 954,
+   "files_in_life": 845,
+   "first_bar": 1709294400,
+   "first_day": 1709251200,
+   "last_bar": 1782201600,
+   "last_day": 1791849600
+  },
+  "TOSHIUSDT": {
+   "files": 392,
+   "files_in_life": 379,
+   "first_bar": 1758081600,
+   "first_day": 1758067200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TOWNSUSDT": {
+   "files": 435,
+   "files_in_life": 422,
+   "first_bar": 1754395200,
+   "first_day": 1754352000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TQQQUSDT": {
+   "files": 107,
+   "files_in_life": 94,
+   "first_bar": 1782734400,
+   "first_day": 1782691200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TRADOORUSDT": {
+   "files": 390,
+   "files_in_life": 377,
+   "first_bar": 1758283200,
+   "first_day": 1758240000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TRBUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1599105600,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TREEUSDT": {
+   "files": 442,
+   "files_in_life": 429,
+   "first_bar": 1753790400,
+   "first_day": 1753747200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TRIAUSDT": {
+   "files": 250,
+   "files_in_life": 237,
+   "first_bar": 1770379200,
+   "first_day": 1770336000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TROYUSDT": {
+   "files": 218,
+   "files_in_life": 166,
+   "first_bar": 1730376000,
+   "first_day": 1730332800,
+   "last_bar": 1744617600,
+   "last_day": 1749081600
+  },
+  "TRUMPUSDT": {
+   "files": 634,
+   "files_in_life": 621,
+   "first_bar": 1737201600,
+   "first_day": 1737158400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TRUSTUSDT": {
+   "files": 343,
+   "files_in_life": 330,
+   "first_bar": 1762329600,
+   "first_day": 1762300800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TRUTHUSDT": {
+   "files": 378,
+   "files_in_life": 365,
+   "first_bar": 1759320000,
+   "first_day": 1759276800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TRUUSDT": {
+   "files": 1303,
+   "files_in_life": 1142,
+   "first_bar": 1678190400,
+   "first_day": 1678147200,
+   "last_bar": 1776758400,
+   "last_day": 1790640000
+  },
+  "TRXUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1579075200,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TSTUSDT": {
+   "files": 612,
+   "files_in_life": 599,
+   "first_bar": 1739102400,
+   "first_day": 1739059200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TURBOUSDT": {
+   "files": 867,
+   "files_in_life": 854,
+   "first_bar": 1717070400,
+   "first_day": 1717027200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TURTLEUSDT": {
+   "files": 357,
+   "files_in_life": 344,
+   "first_bar": 1761134400,
+   "first_day": 1761091200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TUSDT": {
+   "files": 1351,
+   "files_in_life": 1338,
+   "first_bar": 1675252800,
+   "first_day": 1675209600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TUTUSDT": {
+   "files": 573,
+   "files_in_life": 560,
+   "first_bar": 1742457600,
+   "first_day": 1742428800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TWSTUSDT": {
+   "files": 16,
+   "files_in_life": 3,
+   "first_bar": 1790582400,
+   "first_day": 1790553600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "TWTUSDT": {
+   "files": 1076,
+   "files_in_life": 1063,
+   "first_bar": 1699012800,
+   "first_day": 1698969600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "UAIUSDT": {
+   "files": 342,
+   "files_in_life": 329,
+   "first_bar": 1762416000,
+   "first_day": 1762387200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "UBUSDT": {
+   "files": 397,
+   "files_in_life": 384,
+   "first_bar": 1757664000,
+   "first_day": 1757635200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "UMAUSDT": {
+   "files": 1252,
+   "files_in_life": 1239,
+   "first_bar": 1683720000,
+   "first_day": 1683676800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "UNFIUSDT": {
+   "files": 1196,
+   "files_in_life": 1065,
+   "first_bar": 1613707200,
+   "first_day": 1638316800,
+   "last_bar": 1730275200,
+   "last_day": 1741564800
+  },
+  "UNHUSDT": {
+   "files": 15,
+   "files_in_life": 2,
+   "first_bar": 1790668800,
+   "first_day": 1790640000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "UNIUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1600401600,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "USELESSUSDT": {
+   "files": 425,
+   "files_in_life": 412,
+   "first_bar": 1755259200,
+   "first_day": 1755216000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "USTCUSDT": {
+   "files": 1052,
+   "files_in_life": 1039,
+   "first_bar": 1701086400,
+   "first_day": 1701043200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "USUALUSDT": {
+   "files": 665,
+   "files_in_life": 652,
+   "first_bar": 1734523200,
+   "first_day": 1734480000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "USUSDT": {
+   "files": 306,
+   "files_in_life": 293,
+   "first_bar": 1765526400,
+   "first_day": 1765497600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "UXLINKUSDT": {
+   "files": 496,
+   "files_in_life": 377,
+   "first_bar": 1726401600,
+   "first_day": 1726358400,
+   "last_bar": 1758873600,
+   "last_day": 1769126400
+  },
+  "VANAUSDT": {
+   "files": 667,
+   "files_in_life": 654,
+   "first_bar": 1734350400,
+   "first_day": 1734307200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "VANRYUSDT": {
+   "files": 931,
+   "files_in_life": 878,
+   "first_bar": 1710345600,
+   "first_day": 1710288000,
+   "last_bar": 1786089600,
+   "last_day": 1790640000
+  },
+  "VELODROMEUSDT": {
+   "files": 670,
+   "files_in_life": 657,
+   "first_bar": 1734105600,
+   "first_day": 1734048000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "VELVETUSDT": {
+   "files": 456,
+   "files_in_life": 443,
+   "first_bar": 1752566400,
+   "first_day": 1752537600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "VETUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1581667200,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "VFYUSDT": {
+   "files": 365,
+   "files_in_life": 169,
+   "first_bar": 1759233600,
+   "first_day": 1759190400,
+   "last_bar": 1773734400,
+   "last_day": 1790640000
+  },
+  "VICUSDT": {
+   "files": 568,
+   "files_in_life": 514,
+   "first_bar": 1741795200,
+   "first_day": 1741737600,
+   "last_bar": 1786089600,
+   "last_day": 1791676800
+  },
+  "VIDTUSDT": {
+   "files": 289,
+   "files_in_life": 235,
+   "first_bar": 1724400000,
+   "first_day": 1724371200,
+   "last_bar": 1744617600,
+   "last_day": 1767398400
+  },
+  "VINEUSDT": {
+   "files": 618,
+   "files_in_life": 460,
+   "first_bar": 1737705600,
+   "first_day": 1737676800,
+   "last_bar": 1777363200,
+   "last_day": 1791849600
+  },
+  "VIRTUALUSDT": {
+   "files": 673,
+   "files_in_life": 660,
+   "first_bar": 1733832000,
+   "first_day": 1733788800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "VOXELUSDT": {
+   "files": 555,
+   "files_in_life": 478,
+   "first_bar": 1724140800,
+   "first_day": 1724112000,
+   "last_bar": 1765353600,
+   "last_day": 1771977600
+  },
+  "VRTUSDT": {
+   "files": 96,
+   "files_in_life": 83,
+   "first_bar": 1783670400,
+   "first_day": 1783641600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "VSTUSDT": {
+   "files": 58,
+   "files_in_life": 45,
+   "first_bar": 1786968000,
+   "first_day": 1786924800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "VTHOUSDT": {
+   "files": 630,
+   "files_in_life": 617,
+   "first_bar": 1737532800,
+   "first_day": 1737504000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "VUSDT": {
+   "files": 149,
+   "files_in_life": 136,
+   "first_bar": 1779105600,
+   "first_day": 1779062400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "VVVUSDT": {
+   "files": 623,
+   "files_in_life": 610,
+   "first_bar": 1738137600,
+   "first_day": 1738108800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "WALUSDT": {
+   "files": 566,
+   "files_in_life": 553,
+   "first_bar": 1743076800,
+   "first_day": 1743033600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "WAVESUSDT": {
+   "files": 945,
+   "files_in_life": 924,
+   "first_bar": 1597204800,
+   "first_day": 1638316800,
+   "last_bar": 1718092800,
+   "last_day": 1721001600
+  },
+  "WAXPUSDT": {
+   "files": 1091,
+   "files_in_life": 1078,
+   "first_bar": 1697630400,
+   "first_day": 1697587200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "WCTUSDT": {
+   "files": 547,
+   "files_in_life": 534,
+   "first_bar": 1744704000,
+   "first_day": 1744675200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "WETUSDT": {
+   "files": 308,
+   "files_in_life": 295,
+   "first_bar": 1765339200,
+   "first_day": 1765324800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "WIFUSDT": {
+   "files": 1000,
+   "files_in_life": 987,
+   "first_bar": 1705579200,
+   "first_day": 1705536000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "WLDUSDT": {
+   "files": 1177,
+   "files_in_life": 1164,
+   "first_bar": 1690200000,
+   "first_day": 1690156800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "WLFIUSDT": {
+   "files": 417,
+   "files_in_life": 404,
+   "first_bar": 1755936000,
+   "first_day": 1755907200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "WOOUSDT": {
+   "files": 1650,
+   "files_in_life": 1637,
+   "first_bar": 1649376000,
+   "first_day": 1649376000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "WUSDT": {
+   "files": 924,
+   "files_in_life": 911,
+   "first_bar": 1712145600,
+   "first_day": 1712102400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "XAIUSDT": {
+   "files": 1009,
+   "files_in_life": 996,
+   "first_bar": 1704801600,
+   "first_day": 1704758400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "XANUSDT": {
+   "files": 380,
+   "files_in_life": 367,
+   "first_bar": 1759132800,
+   "first_day": 1759104000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "XCNUSDT": {
+   "files": 321,
+   "files_in_life": 225,
+   "first_bar": 1744372800,
+   "first_day": 1744329600,
+   "last_bar": 1763712000,
+   "last_day": 1771977600
+  },
+  "XEMUSDT": {
+   "files": 1194,
+   "files_in_life": 1103,
+   "first_bar": 1614744000,
+   "first_day": 1638316800,
+   "last_bar": 1733731200,
+   "last_day": 1741564800
+  },
+  "XLMUSDT": {
+   "files": 1777,
+   "files_in_life": 1764,
+   "first_bar": 1579507200,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "XMRUSDT": {
+   "files": 1776,
+   "files_in_life": 1763,
+   "first_bar": 1580716800,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "XNYUSDT": {
+   "files": 427,
+   "files_in_life": 414,
+   "first_bar": 1755072000,
+   "first_day": 1755043200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "XOMUSDT": {
+   "files": 16,
+   "files_in_life": 3,
+   "first_bar": 1790582400,
+   "first_day": 1790553600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "XPINUSDT": {
+   "files": 397,
+   "files_in_life": 384,
+   "first_bar": 1757664000,
+   "first_day": 1757635200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "XPLUSDT": {
+   "files": 418,
+   "files_in_life": 405,
+   "first_bar": 1755849600,
+   "first_day": 1755820800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "XRPUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1578297600,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "XTZUSDT": {
+   "files": 1777,
+   "files_in_life": 1764,
+   "first_bar": 1580976000,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "XVGUSDT": {
+   "files": 1197,
+   "files_in_life": 1184,
+   "first_bar": 1688558400,
+   "first_day": 1688515200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "XVSUSDT": {
+   "files": 1279,
+   "files_in_life": 1266,
+   "first_bar": 1681344000,
+   "first_day": 1681344000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "YALAUSDT": {
+   "files": 432,
+   "files_in_life": 188,
+   "first_bar": 1754582400,
+   "first_day": 1754524800,
+   "last_bar": 1770710400,
+   "last_day": 1791849600
+  },
+  "YBUSDT": {
+   "files": 369,
+   "files_in_life": 356,
+   "first_bar": 1760097600,
+   "first_day": 1760054400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "YFIIUSDT": {
+   "files": 144,
+   "files_in_life": 133,
+   "first_bar": 1599105600,
+   "first_day": 1638316800,
+   "last_bar": 1649750400,
+   "last_day": 1707264000
+  },
+  "YFIUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1598846400,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "YGGUSDT": {
+   "files": 1164,
+   "files_in_life": 1151,
+   "first_bar": 1691193600,
+   "first_day": 1691193600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ZAMAUSDT": {
+   "files": 278,
+   "files_in_life": 265,
+   "first_bar": 1767945600,
+   "first_day": 1767916800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ZBTUSDT": {
+   "files": 362,
+   "files_in_life": 349,
+   "first_bar": 1760688000,
+   "first_day": 1760659200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ZECUSDT": {
+   "files": 1777,
+   "files_in_life": 1764,
+   "first_bar": 1580889600,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ZENUSDT": {
+   "files": 1776,
+   "files_in_life": 1763,
+   "first_bar": 1606190400,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ZEREBROUSDT": {
+   "files": 650,
+   "files_in_life": 637,
+   "first_bar": 1735819200,
+   "first_day": 1735776000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ZESTUSDT": {
+   "files": 132,
+   "files_in_life": 119,
+   "first_bar": 1780574400,
+   "first_day": 1780531200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ZETAUSDT": {
+   "files": 985,
+   "files_in_life": 972,
+   "first_bar": 1706860800,
+   "first_day": 1706832000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ZHONGJIUSDT": {
+   "files": 61,
+   "files_in_life": 48,
+   "first_bar": 1786665600,
+   "first_day": 1786665600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ZILUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1592467200,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ZKCUSDT": {
+   "files": 394,
+   "files_in_life": 381,
+   "first_bar": 1757937600,
+   "first_day": 1757894400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ZKJUSDT": {
+   "files": 506,
+   "files_in_life": 352,
+   "first_bar": 1747123200,
+   "first_day": 1747094400,
+   "last_bar": 1777449600,
+   "last_day": 1790985600
+  },
+  "ZKPUSDT": {
+   "files": 297,
+   "files_in_life": 284,
+   "first_bar": 1766304000,
+   "first_day": 1766275200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ZKUSDT": {
+   "files": 849,
+   "files_in_life": 836,
+   "first_bar": 1718611200,
+   "first_day": 1718582400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ZORAUSDT": {
+   "files": 446,
+   "files_in_life": 433,
+   "first_bar": 1753430400,
+   "first_day": 1753401600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ZRCUSDT": {
+   "files": 229,
+   "files_in_life": 177,
+   "first_bar": 1753776000,
+   "first_day": 1753747200,
+   "last_bar": 1768982400,
+   "last_day": 1790985600
+  },
+  "ZROUSDT": {
+   "files": 846,
+   "files_in_life": 833,
+   "first_bar": 1718884800,
+   "first_day": 1718841600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ZRXUSDT": {
+   "files": 1778,
+   "files_in_life": 1765,
+   "first_bar": 1592985600,
+   "first_day": 1638316800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "ZSUSDT": {
+   "files": 42,
+   "files_in_life": 29,
+   "first_bar": 1788336000,
+   "first_day": 1788307200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "\u54c8\u57fa\u7c73USDT": {
+   "files": 38,
+   "files_in_life": 25,
+   "first_bar": 1788667200,
+   "first_day": 1788652800,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "\u5e01\u5b89\u4eba\u751fUSDT": {
+   "files": 359,
+   "files_in_life": 346,
+   "first_bar": 1760947200,
+   "first_day": 1760918400,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "\u6211\u8e0f\u9a6c\u6765\u4e86USDT": {
+   "files": 266,
+   "files_in_life": 253,
+   "first_bar": 1768996800,
+   "first_day": 1768953600,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "\u725b\u6765USDT": {
+   "files": 45,
+   "files_in_life": 32,
+   "first_bar": 1788076800,
+   "first_day": 1788048000,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  },
+  "\u9f99\u867eUSDT": {
+   "files": 217,
+   "files_in_life": 204,
+   "first_bar": 1773216000,
+   "first_day": 1773187200,
+   "last_bar": 1790798400,
+   "last_day": 1791849600
+  }
+ },
+ "schema": "v9.binance-metrics/1",
+ "symbols": 769,
+ "symbols_with_files": 767,
+ "time": 1791993492
+}
