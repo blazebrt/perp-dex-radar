@@ -1,0 +1,175 @@
+{
+ "schema": "v8.delta/2",
+ "phase": "v9 phase B: the probation tier (XSMOM long), the governed book and entered signals",
+ "base": {
+  "sha": "fe68203d6f5b76eb68250192ffb638cd9079eeb2",
+  "tree": "bfb8cb9d437738fea500b4aeb6a6ea0593022dbf",
+  "golden": "tests/fixtures/v8/legacy_parity_golden_phase12.json"
+ },
+ "head_golden": "tests/fixtures/v8/legacy_parity_golden_v9b.json",
+ "counterfactual_projection": null,
+ "rules": {
+  "V9_XSMOM_LONG_PROBATION": "The reviewed strategy policy (v8.quant-strategy-policy/2) puts XSMOM on ACTIVE_PROBATION / PROBATION: its archive-confirmed long side may trade at half size inside its 24h entry window, bound to research/v9/probation_evidence.json and to the forward-test registration V9-PROBATION-XSMOM-LONG-1. quant.json publishes the new states, schema and policy hash; quant.py, its signals, universe and journal are unchanged.",
+  "V9_PROBATION_LABEL": "The Analyzer's and the Quant desk page's strategy label read ACTIVE_PROBATION as 'Probation (confirmed side only)' instead of 'Legacy holdover'. Wording only; the call still comes from the decision alone.",
+  "V9_DESK_PROBATION_PRESENTATION": "desk.js and desk.css show a TRADE's tier (Probation, reduced size), the engine's own proposal as a plan (entry near the mark, stop, the signal's trailing stop and the strategy's time exit, risk, size on the page account and, as a labelled unit conversion of the same fractions, on the account the trader saved in the Analyzer, entry window left), the bound archive evidence and the live forward test, which strategy sides may trade with each probation side's live forward test against its archive band (every scan), and the governed book (the legacy paper book as a diagnostic on Portfolio). Presentation only: nothing is decided in the page. With the market branch, desk.js and desk.css also render the market context (V9_MARKET_CONTEXT_PRESENTATION).",
+  "V9_MARKET_CONTEXT_PRESENTATION": "Today (published as index.html) gains a Market context panel and the Analyzer a per-coin market context block. Both read data/v9/market.json (v9.market/1, written by the Scan workflow's new context-only step) through desk.js, label it context, show a missing value as missing and never change a decision region. analyze.html also carries phase B's governed-plan time exit (The Analyzer's exact governed proposal card and its copied plan text state the strategy's time exit as the decision engine now publishes it (proposal.time_exit_hours, quant.py's hold), and the signal's trailing stop (proposal.trailing_stop_pct) when it has one: exit at the stop, or N days after you enter, whichever comes first; the engine states no profit target. The legacy Analyzer stated every plan's exit and the governed card had dropped it. Presentation only: the call and the proposal still come from the decision alone.)."
+ },
+ "universe": [],
+ "dex_status": [],
+ "notes": {
+  "removed": [],
+  "added": []
+ },
+ "code": [
+  {
+   "file": "data/quant.json",
+   "path": [
+    "strategies",
+    "XSMOM",
+    "deployment_state"
+   ],
+   "base": "LEGACY_HOLDOVER",
+   "head": "ACTIVE_PROBATION",
+   "rule": "V9_XSMOM_LONG_PROBATION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "strategies",
+    "XSMOM",
+    "research_state"
+   ],
+   "base": "INSUFFICIENT_EVIDENCE",
+   "head": "PROBATION",
+   "rule": "V9_XSMOM_LONG_PROBATION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "strategy_authority",
+    "runtime_policy_hash"
+   ],
+   "base": "f2e10f9934a919543bbc2c5fa02e8823629fb9b78789cf6348c3e8cadb96e351",
+   "head": "67aa8122ae4a033af7352f0cf900e10d4bc1a2b744c545cc69c4c09b18ccf49e",
+   "rule": "V9_XSMOM_LONG_PROBATION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "strategy_authority",
+    "runtime_policy_schema"
+   ],
+   "base": "v8.quant-strategy-policy/1",
+   "head": "v8.quant-strategy-policy/2",
+   "rule": "V9_XSMOM_LONG_PROBATION"
+  }
+ ],
+ "decisions": [],
+ "files": [
+  {
+   "file": "analyze.html",
+   "base_sha256": "d89addb637899b76b9e2ecc13963908d893ac8612fb59b47e49135b66df35c49",
+   "head_sha256": "bc238d2c5b35e7a508aa2a0bd91992786f4bdc5a4c24d0cdcaa2418ede72ce36",
+   "rule": "V9_MARKET_CONTEXT_PRESENTATION"
+  },
+  {
+   "file": "analyze.js",
+   "base_sha256": "70776f17b73789252c1968616ccb3d6db78325583c35c9b21fcc8dc40ec7a1dd",
+   "head_sha256": "14b29b44c2270833374c21100be82d13ab542d0951a570e4b6a4153e12f9b491",
+   "rule": "V9_PROBATION_LABEL"
+  },
+  {
+   "file": "desk.css",
+   "base_sha256": "3cab76b9106aa5ef9756efcb1546a866f6e72574181b824da59ff9a6eb0aca7d",
+   "head_sha256": "5042c8811dcd21751df30ef679b5d0a39f1bfa509ee82666d5fc9985d5723818",
+   "rule": "V9_DESK_PROBATION_PRESENTATION"
+  },
+  {
+   "file": "desk.js",
+   "base_sha256": "4ee60cecc35844b053ad2b9a4a3f40c51a2eb3a8546f4268c3a27e3846833fb1",
+   "head_sha256": "a0d27cc71df29fb2826f882bb8039b8759d2bc669ba5ce4d72eb9bbaed21f9c7",
+   "rule": "V9_DESK_PROBATION_PRESENTATION"
+  },
+  {
+   "file": "index.html",
+   "base_sha256": "99ff267701d1804d4be6d7a050c24abc49b9ec13b60d41b3da0ffc6151293e7c",
+   "head_sha256": "42bffca57286fa0d137994b11ec31391a8002a7abea70d48d9b32afbab928bc8",
+   "rule": "V9_MARKET_CONTEXT_PRESENTATION"
+  },
+  {
+   "file": "quant.html",
+   "base_sha256": "c41d92a9202fe965a46c7bc4b462bc4e435245a5da7d54284159e68a372d106d",
+   "head_sha256": "0d5b79ccfd675662b76ffb1de6256c456619150ac2193186e6e6f7754799929d",
+   "rule": "V9_PROBATION_LABEL"
+  }
+ ],
+ "identity_states": {
+  "AAPL": "VERIFIED_TRADFI",
+  "ACME": "VERIFIED_TRADFI",
+  "ADBE": "VERIFIED_TRADFI",
+  "ASTS": "VERIFIED_TRADFI",
+  "BB": "VERIFIED_CRYPTO",
+  "BTC": "VERIFIED_CRYPTO",
+  "BYD": "VERIFIED_TRADFI",
+  "ETH": "VERIFIED_CRYPTO",
+  "EURUSD": "VERIFIED_TRADFI",
+  "EXTONLY": "UNVERIFIED",
+  "FAKE00": "VERIFIED_CRYPTO",
+  "FAKE01": "VERIFIED_CRYPTO",
+  "FAKE02": "VERIFIED_CRYPTO",
+  "FAKE03": "VERIFIED_CRYPTO",
+  "FAKE04": "VERIFIED_CRYPTO",
+  "FAKE05": "VERIFIED_CRYPTO",
+  "FAKE06": "VERIFIED_CRYPTO",
+  "FAKE07": "UNVERIFIED",
+  "FAKE08": "VERIFIED_CRYPTO",
+  "FAKE09": "VERIFIED_CRYPTO",
+  "FAKE10": "VERIFIED_CRYPTO",
+  "FAKE11": "VERIFIED_CRYPTO",
+  "FAKE12": "VERIFIED_CRYPTO",
+  "FAKE13": "VERIFIED_CRYPTO",
+  "FAKE14": "VERIFIED_CRYPTO",
+  "FAKE15": "VERIFIED_CRYPTO",
+  "FAKE16": "VERIFIED_CRYPTO",
+  "FAKE17": "VERIFIED_CRYPTO",
+  "FAKE18": "VERIFIED_CRYPTO",
+  "FAKE19": "VERIFIED_CRYPTO",
+  "FAKE20": "VERIFIED_CRYPTO",
+  "FAKE21": "VERIFIED_CRYPTO",
+  "FAKE22": "VERIFIED_CRYPTO",
+  "FAKE23": "VERIFIED_CRYPTO",
+  "FAKE24": "VERIFIED_CRYPTO",
+  "FAKE25": "VERIFIED_CRYPTO",
+  "FAKE26": "VERIFIED_CRYPTO",
+  "FAKE27": "VERIFIED_CRYPTO",
+  "HYUNDAI": "UNVERIFIED",
+  "HYUNDAIUSD": "VERIFIED_TRADFI",
+  "KIOXIA": "VERIFIED_TRADFI",
+  "KORU": "VERIFIED_TRADFI",
+  "LONLY": "VERIFIED_CRYPTO",
+  "MOONX": "UNVERIFIED",
+  "NEW10": "VERIFIED_CRYPTO",
+  "NEW40": "VERIFIED_CRYPTO",
+  "NEWCOIN": "UNVERIFIED",
+  "NOCAND": "VERIFIED_CRYPTO",
+  "ONDS": "VERIFIED_TRADFI",
+  "PRLX": "UNVERIFIED",
+  "PURR": "VERIFIED_CRYPTO",
+  "QNT": "VERIFIED_CRYPTO",
+  "SAMSUNGUSD": "VERIFIED_TRADFI",
+  "SCALEX": "VERIFIED_CRYPTO",
+  "SECT": "AMBIGUOUS",
+  "SKHYNIX": "VERIFIED_TRADFI",
+  "SKHYNIXUSD": "VERIFIED_TRADFI",
+  "THINREF": "VERIFIED_CRYPTO",
+  "TINY": "VERIFIED_CRYPTO",
+  "US100S": "VERIFIED_TRADFI",
+  "US10Y": "VERIFIED_TRADFI",
+  "VANA": "VERIFIED_CRYPTO",
+  "XIAOMI": "VERIFIED_TRADFI",
+  "ZEROV": "VERIFIED_CRYPTO"
+ },
+ "audit_files_added": [],
+ "removed_sources": [],
+ "not_allowed": "No unlisted delta. Universe, identity, venue filtering, signal definitions, parameters, quant.py, the journal, research methods and the Phase 10 limits are unchanged. The decision engine's changes (probation tier, governed book, entered signals) are proven by tests/test_v9_scope.py and the v9 decision tests. No merge or deployment."
+}

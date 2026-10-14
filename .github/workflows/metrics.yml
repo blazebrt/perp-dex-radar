@@ -1,0 +1,76 @@
+name: Binance metrics archive
+
+# v9 phase D2 data: downloads Binance's daily USD-M `metrics` files (5-minute open interest and long/short ratios)
+# for every research coin of the survivorship-free archive (delisted coins included) and reduces them to the
+# archive's 4h bars (tools/v9/metrics_fetch.py). Research data only: nothing is published to the site and nothing is
+# tested here.
+# - The dataset replaces the "archive-metrics" branch (one commit, no history).
+# - The survey, coverage and log replace the "metrics-results" branch.
+# Runs when the fetcher or this workflow changes on a v9 branch, or from the Actions tab.
+
+on:
+  push:
+    branches: ["v9/**"]
+    paths: ["tools/v9/metrics_fetch.py", ".github/workflows/metrics.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: metrics-archive
+  cancel-in-progress: true
+
+jobs:
+  metrics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    defaults:
+      run:
+        shell: bash          # bash -eo pipefail: a failed fetch fails its step even when piped to tee
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: The fetcher's offline tests
+        run: python -m unittest tests.test_v9_metrics_fetch -v
+
+      - name: The research universe (archive-data universe.json)
+        run: |
+          mkdir -p md_bn results
+          git fetch --no-tags --depth=1 origin +refs/heads/archive-data:refs/remotes/origin/archive-data
+          git show origin/archive-data:universe.json > md_bn/universe.json
+          echo "archive-data $(git rev-parse origin/archive-data)" > results/dataset_ref.txt
+
+      - name: Download and reduce the metrics files
+        run: python tools/v9/metrics_fetch.py --md md_bn --out md_metrics --workers 64 2>&1 | tee results/fetch.log
+
+      - name: Save the dataset on archive-metrics and the survey on metrics-results
+        if: always()
+        env:
+          GIT_AUTHOR_NAME: perp-dex-radar
+          GIT_AUTHOR_EMAIL: actions@users.noreply.github.com
+          GIT_COMMITTER_NAME: perp-dex-radar
+          GIT_COMMITTER_EMAIL: actions@users.noreply.github.com
+        run: |
+          mkdir -p results
+          cp md_metrics/survey.json md_metrics/meta.json results/ 2>/dev/null || true
+          echo "$GITHUB_REF_NAME $GITHUB_SHA $(date -u +%Y-%m-%dT%H:%MZ)" > results/run_meta.txt
+          save() {  # save <folder> <branch> <message>
+            export GIT_INDEX_FILE="$RUNNER_TEMP/$2.index"
+            rm -f "$GIT_INDEX_FILE"
+            git read-tree --empty
+            (cd "$1" && find . -type f | sed 's#^\./##' | sort) > "$RUNNER_TEMP/$2.files"
+            while read -r f; do
+              git update-index --add --cacheinfo "100644,$(git hash-object -w "$1/$f"),$f"
+            done < "$RUNNER_TEMP/$2.files"
+            commit=$(git commit-tree "$(git write-tree)" -m "$3")
+            git push --force origin "$commit:refs/heads/$2"
+          }
+          save results metrics-results "Metrics survey $GITHUB_REF_NAME ${GITHUB_SHA::7}"
+          if [ -f md_metrics/meta.json ]; then
+            save md_metrics archive-metrics "Binance metrics, 4h bars, $(date -u +%Y-%m-%d)"
+          fi

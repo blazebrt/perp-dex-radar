@@ -200,6 +200,10 @@ def _decision(P, reg, disc_bytes, hdr, ts, pages_url, decision_path):
         rows = {r["strategy_id"]: r for r in policy["strategies"]}
         strategies = {sid: dict((di.get("strategies") or {}).get(sid) or {}, deployment_state=r["deployment_state"],
                                 research_state=r["research_state"]) for sid, r in rows.items()}
+        for sid, r in rows.items():      # v9: the bound probation terms of an ACTIVE_PROBATION row (validated at load)
+            terms = SP.probation_terms(r)
+            if terms:
+                strategies[sid]["probation"] = terms
         prev, prev_src = load_previous_decision(pages_url, decision_path)
         contracts = [{k: c.get(k) for k in ("id", "venue", "asset", "type", "active", "price", "npx", "vol", "fund8h",
                                             "fund_iv_h", "src_ts", "rcv_ts", "health", "admitted", "legacy")}
@@ -221,6 +225,7 @@ def _decision(P, reg, disc_bytes, hdr, ts, pages_url, decision_path):
                                                     "venues": disc.get("venues") or {}},
                     "contracts": contracts, "trade_dexes": di.get("trade_dexes") or [], "signals": di.get("signals") or {},
                     "strategies": strategies, "portfolio": di.get("portfolio"), "sizing": di.get("sizing"),
+                    "forward_tests": di.get("forward_tests") or {},
                     "phase10_state": (qp.get("portfolio_risk") or {}).get("state"),
                     "inputs_as_of": inputs_as_of,
                     "authorities": auth, "previous": prev,

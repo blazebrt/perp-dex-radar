@@ -609,11 +609,12 @@
     return s / (b.length - 1);
   }
 
-  /* The quant desk's own label for a strategy: its Phase 9 deployment state as quant.json publishes it (the same label
-     as the Quant desk page). Only ACTIVE_REQUALIFIED is requalified; anything else is a legacy holdover. A label, not
-     authority: the call comes from the Phase 11 decision. */
+  /* The quant desk's own label for a strategy: its deployment state as quant.json publishes it (the same label as the
+     Quant desk page). ACTIVE_REQUALIFIED is requalified, ACTIVE_PROBATION (v9) is on probation for its archive-confirmed
+     side only; anything else is a legacy holdover. A label, not authority: the call comes from the Phase 11 decision. */
   function deskLabel(st) {
-    return st && st.deployment_state === "ACTIVE_REQUALIFIED" ? "Requalified" : "Legacy holdover";
+    return st && st.deployment_state === "ACTIVE_REQUALIFIED" ? "Requalified"
+      : st && st.deployment_state === "ACTIVE_PROBATION" ? "Probation (confirmed side only)" : "Legacy holdover";
   }
   /* What the legacy scans say about one coin, as context: {signals (legacy signals, long or short), notes (there, but
      not a signal), inScan}. src: {picks, picksResearch, quant, quantResearch, smart}, each optional. None of it is the

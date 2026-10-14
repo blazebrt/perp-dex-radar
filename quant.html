@@ -421,7 +421,8 @@ function sizeFor(entry, stopPct) {
 function stateLabel(sid) {
   const s = Q && Q.strategies && Q.strategies[sid];
   if (!s) return null;
-  return s.deployment_state === "ACTIVE_REQUALIFIED" ? "Requalified" : "Legacy holdover";
+  return s.deployment_state === "ACTIVE_REQUALIFIED" ? "Requalified"
+    : s.deployment_state === "ACTIVE_PROBATION" ? "Probation (confirmed side only)" : "Legacy holdover";
 }
 function authority() {
   const S = Q && Q.strategies;

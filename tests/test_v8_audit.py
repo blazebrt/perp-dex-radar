@@ -63,6 +63,12 @@ ANALYZER_CUTOVER = ("analyze.html", "analyze.js")     # Phase 11 correction: the
 with open(os.path.join(HERE, "fixtures", "v8", "phase12_expected_deltas.json")) as _fh:
     _phase12 = json.load(_fh)
     PHASE12_FILES = sorted({e["file"] for category in ("files", "code") for e in _phase12[category]})
+# v9 phase B: this branch's golden; the probation tier changes quant.json's XSMOM states and the desk presentation,
+# each pinned in v9b_expected_deltas.json (base: main after PR #24 = the Phase 12 golden)
+V9B_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_v9b.json")
+with open(os.path.join(HERE, "fixtures", "v8", "v9b_expected_deltas.json")) as _fh:
+    _v9b = json.load(_fh)
+    V9B_FILES = sorted({e["file"] for category in ("files", "code") for e in _v9b[category]})
 PHASE7_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase7.json")
 PHASE6_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase6.json")
 PHASE7_MANIFEST = os.path.join(HERE, "fixtures", "v8", "phase7_expected_deltas.json")
@@ -128,11 +134,16 @@ class PipelineAudit(unittest.TestCase):
 
     # ---- parity
     def test_legacy_outputs_identical_to_this_branch_golden(self):
-        with open(GOLDEN) as fh:
-            golden = json.load(fh)
-        diffs = LP.compare(golden, self.summary)
+        with open(V9B_GOLDEN) as fh:
+            head = json.load(fh)
+        diffs = LP.compare(head, self.summary)
         self.assertEqual(diffs, [], "legacy outputs changed:\n" + "\n".join(diffs))
-        self.assertEqual(self.summary["combined"], golden["combined"])
+        self.assertEqual(self.summary["combined"], head["combined"])
+        with open(GOLDEN) as fh:                              # historical: Phase 12 -> v9 phase B is the manifest only
+            golden = json.load(fh)
+        changed = lambda a, b: sorted(f for f in set(a["files"]) | set(b["files"]) if a["files"].get(f) != b["files"].get(f))
+        self.assertEqual(changed(golden, head), V9B_FILES)
+        self.assertEqual((golden["decisions"], golden["audit_files"]), (head["decisions"], head["audit_files"]))
         self.assertGreaterEqual(len(golden["files"]), 20)
         with open(PHASE11_GOLDEN) as fh:                      # historical: Phase 11 -> Phase 12 is the desk's pages only
             p11 = json.load(fh)

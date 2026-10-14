@@ -143,8 +143,12 @@ process.stdout.write(value);
                           "_valid_execution_bar", "_valid_execution_time"})
         self.assertEqual(dump(normalize_run(old_fn["run"])), dump(normalize_run(new_fn["run"])))
 
+    # v9 phase B changes four of the files pinned below on purpose: the reviewed strategy policy and its validator (the
+    # probation tier), the decision policy and engine (probation tier and governed book) and one field of the Phase 10
+    # portfolio input (each paper position's entry time). tests/test_v9_scope.py proves each change against main at the
+    # start of v9 phase B (the merge of this PR); everything else stays pinned to PR24's start here.
     def test_phase9_methods_candidate_definitions_and_policies_unchanged(self):
-        paths = ("v8/quant_strategy_policy.json", "v8/strategy_policy.py", "v8/strategy_authority.py",
+        paths = ("v8/strategy_authority.py",
                  "tools/research/strategy_adjudication.py", "tools/research/matched_controls.py",
                  "tools/research/multiple_testing.py", "tools/research/strategy_census.py",
                  "tools/research/qexport.py", "tools/research/qstrat.py", "tools/research/qind.py",
@@ -155,28 +159,32 @@ process.stdout.write(value);
                 self.assertEqual((ROOT / name).read_bytes(), original(name))
 
     def test_phase10_limits_and_risk_engine_unchanged(self):
-        for name in ("v8/portfolio_risk_policy.json", "v8/portfolio_risk.py"):
+        for name in ("v8/portfolio_risk_policy.json",):        # portfolio_risk.py: tests/test_v9_scope.py
             with self.subTest(file=name):
                 self.assertEqual((ROOT / name).read_bytes(), original(name))
 
     def test_phase11_policy_state_and_ranking_unchanged(self):
-        self.assertEqual((ROOT / "v8/decision_policy.json").read_bytes(), original("v8/decision_policy.json"))
+        # decision_policy.json and the functions v9 phase B declares are proven in tests/test_v9_scope.py
         old_fn = functions(original("v8/decision.py").decode())
         new_fn = functions((ROOT / "v8/decision.py").read_text(encoding="utf8"))
         boundary_changes = {"_asset_gates", "_freshness", "_context", "_directional"}
+        v9_changes = {"validate_policy", "_valid_until", "_emerging", "build"}
+        v9_added = {"_side_name", "_authorized_side", "_governed_book", "_forward_test"}
         for name, node in old_fn.items():
-            if name not in boundary_changes:
+            if name not in boundary_changes | v9_changes:
                 with self.subTest(function=name):
                     self.assertEqual(dump(node), dump(new_fn[name]))
-        self.assertEqual(set(new_fn) - set(old_fn), {"_validate_inputs"})
-        self.assertEqual(dump(normalize_directional(old_fn["_directional"])),
-                         dump(normalize_directional(new_fn["_directional"])))
+        self.assertEqual(set(new_fn) - set(old_fn), {"_validate_inputs"} | v9_added)
 
     def test_phase12_research_publication_logic_unchanged(self):
         for name in ("tools/research/production_publication.py", "research.html",
-                     ".github/workflows/research.yml", ".github/workflows/scan.yml"):
+                     ".github/workflows/research.yml"):
             with self.subTest(file=name):
                 self.assertEqual((ROOT / name).read_bytes(), original(name))
+        # v9 adds two steps to scan.yml (market context, trade alerts); everything else in it is unchanged
+        from tests.test_v9_scope import without_v9_steps
+        self.assertEqual(without_v9_steps((ROOT / ".github/workflows/scan.yml").read_text(encoding="utf8")),
+                         original(".github/workflows/scan.yml").decode())
         def research_section(raw):
             start = raw.index("  /* RESEARCH:")
             end = raw.index("  /* What the pages re-render on", start)

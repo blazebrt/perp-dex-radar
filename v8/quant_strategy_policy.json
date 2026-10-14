@@ -1,10 +1,44 @@
 {
-  "schema": "v8.quant-strategy-policy/1",
-  "runtime_order": ["TSMOM", "TREND_EMA", "XSMOM"],
-  "strategies": [
-    {"strategy_id": "TSMOM", "deployment_state": "LEGACY_HOLDOVER", "research_state": "INSUFFICIENT_EVIDENCE"},
-    {"strategy_id": "TREND_EMA", "deployment_state": "LEGACY_HOLDOVER", "research_state": "INSUFFICIENT_EVIDENCE"},
-    {"strategy_id": "XSMOM", "deployment_state": "LEGACY_HOLDOVER", "research_state": "INSUFFICIENT_EVIDENCE"}
+  "schema": "v8.quant-strategy-policy/2",
+  "runtime_order": [
+    "TSMOM",
+    "TREND_EMA",
+    "XSMOM"
   ],
-  "authority": "Reviewed main-branch policy. Research cannot promote or demote runtime strategies."
+  "strategies": [
+    {
+      "strategy_id": "TSMOM",
+      "deployment_state": "LEGACY_HOLDOVER",
+      "research_state": "INSUFFICIENT_EVIDENCE"
+    },
+    {
+      "strategy_id": "TREND_EMA",
+      "deployment_state": "LEGACY_HOLDOVER",
+      "research_state": "INSUFFICIENT_EVIDENCE"
+    },
+    {
+      "strategy_id": "XSMOM",
+      "deployment_state": "ACTIVE_PROBATION",
+      "research_state": "PROBATION",
+      "probation": {
+        "sides": [
+          "long"
+        ],
+        "risk_multiplier": 0.5,
+        "evidence": {
+          "path": "research/v9/probation_evidence.json",
+          "sha256": "7b7e6e8acf705f75fdad3b1c85900bad25c60911d193f27fd9941edd6a956542"
+        },
+        "forward_tests": {
+          "long": {
+            "experiment_id": "V9-PROBATION-XSMOM-LONG-1",
+            "path": "research/shadow-ledger/000002-REGISTRATION-V9-PROBATION-XSMOM-LONG-1.json",
+            "sha256": "8801257a530288ad049699e4285032cd522e96ced2f7c588d0759a2e369720d3",
+            "effective_from": 1792022400
+          }
+        }
+      }
+    }
+  ],
+  "authority": "Reviewed main-branch policy. Research cannot promote or demote runtime strategies. v9: XSMOM long is ACTIVE_PROBATION at half size on archive evidence (research/v9/probation_evidence.json) with its forward test registered in the shadow ledger; the owner's merge to main is the review of this row."
 }

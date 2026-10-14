@@ -242,11 +242,13 @@ def quant_part(now, universe, coins, got, data, daily, lastd, new, open_trades, 
     return part
 
 
-def signal_states(q, data, feats, xs_dir, lastd, new):
+def signal_states(q, data, feats, xs_dir, lastd, new, open_trades=()):
     """{coin: [signal]}: every deployment-enabled strategy's current signal at the latest closed bar, computed with
     quant.py's own functions (trend_feats/sig_trend_ema, sig_tsmom, xs_scores/_stop) exactly as this audit already
-    evaluates them; a signal that opened a paper trade this scan is kind NEW, any other current one ACTIVE. Only the
-    strategies quant.py runs (RUNTIME_ORDER) are evaluated: a disabled strategy has no live signal."""
+    evaluates them; a signal that opened a paper trade this scan is kind NEW, one whose paper trade was opened from
+    this very signal (same strategy, coin, direction and signal bar) in an earlier scan is ENTERED with that trade's
+    id, any other current one ACTIVE. Only the strategies quant.py runs (RUNTIME_ORDER) are evaluated: a disabled
+    strategy has no live signal."""
     out = {}
 
     def put(t, sid, d, stop, trail, bar_close, kind, trade_id=None):
@@ -281,7 +283,47 @@ def signal_states(q, data, feats, xs_dir, lastd, new):
                 put(t, "XSMOM", xs_dir[t], stop, 0.0, lastd + q.DAY, "ACTIVE")
     for tr in new:
         put(tr["c"], tr["s"], tr["d"], tr["stop_pct"], tr["trail_pct"], tr["t_sig"], "NEW", tr.get("id"))
+    entered = {(tr.get("s"), tr.get("c"), tr.get("d"), tr.get("t_sig")): tr.get("id") for tr in open_trades or ()
+               if isinstance(tr, dict)}
+    for t, lst in out.items():
+        for x in lst:
+            tid = entered.get((x["strategy"], t, x["direction"], x["bar_close_t"]))
+            if x["kind"] == "ACTIVE" and tid is not None:
+                x.update(kind="ENTERED", trade_id=tid)
     return {t: sorted(v, key=lambda x: (x["strategy"], x["direction"])) for t, v in sorted(out.items())}
+
+
+def forward_tests(q, open_trades, blocked_open, journal):
+    """{experiment_id: record}: the live record of every probation side's registered forward test - the paper trades
+    of that strategy and direction entered at or after the test's registered start (closed: their journal net R;
+    qualified: those with the full live-record proof; open: still running). Nothing here decides; the decision engine
+    compares it with the bound demotion band."""
+    from . import strategy_policy as SP
+    out = {}
+    for row in q.POLICY["strategies"]:
+        terms = SP.probation_terms(row)
+        if not terms:
+            continue
+        for side, t in sorted(terms["sides"].items()):
+            ft = t["forward_test"]
+            d = 1 if side == "long" else -1
+            since = ft["effective_from"]
+            mine = lambda tr: (isinstance(tr, dict) and tr.get("s") == row["strategy_id"] and tr.get("d") == d  # noqa: E731
+                               and isinstance(tr.get("t_in"), int) and tr["t_in"] >= since)
+            closed = [tr for tr in (journal or {}).get("closed") or [] if mine(tr)]
+            rs = [tr["r"] for tr in closed if isinstance(tr.get("r"), (int, float)) and not isinstance(tr.get("r"), bool)]
+            qual = [tr["r"] for tr in closed if q.qualified_trade(tr) and isinstance(tr.get("r"), (int, float))]
+            out[ft["experiment_id"]] = {
+                "strategy": row["strategy_id"], "side": side, "effective_from": since,
+                "closed": len(rs), "closed_without_r": len(closed) - len(rs),
+                "mean_R": sum(rs) / len(rs) if rs else None, "sum_R": sum(rs) if rs else 0.0,
+                "wins": sum(1 for r in rs if r > 0),
+                "qualified_closed": len(qual), "qualified_mean_R": sum(qual) / len(qual) if qual else None,
+                "open": sum(1 for tr in list(open_trades or ()) + list(blocked_open or ()) if mine(tr)),
+                "journal_closed_total": len((journal or {}).get("closed") or []),
+                "recent": [{"id": tr.get("id"), "coin": tr.get("c"), "t_in": tr.get("t_in"), "t_out": tr.get("t_out"),
+                            "r": tr.get("r")} for tr in closed[-20:]]}
+    return out
 
 
 def decision_inputs_part(q, now, universe, data, daily, feats, xs_dir, lastd, new, open_trades, blocked_open, journal,
@@ -295,7 +337,7 @@ def decision_inputs_part(q, now, universe, data, daily, feats, xs_dir, lastd, ne
         policy = PR.load_policy()
         market = policy["dependence"]["market_asset"]["value"]
         bars = policy["dependence"]["lookback_bars"]["value"] + 2
-        sig = signal_states(q, data, feats, xs_dir, lastd, new)
+        sig = signal_states(q, data, feats, xs_dir, lastd, new, list(open_trades or ()) + list(blocked_open or ()))
         pf = PR.live_portfolio(open_trades, universe, daily, now, cfg["account"], cfg["risk"], trade_dexes, None,
                                market_asset=market, blocked_open=blocked_open)
         for a in sorted(set(sig) | {market}):
@@ -306,7 +348,8 @@ def decision_inputs_part(q, now, universe, data, daily, feats, xs_dir, lastd, ne
                       for sid, v in q.STRATS.items()}
         return {"as_of": int(now), "signals": sig, "portfolio": pf, "strategies": strategies,
                 "sizing": dict(pf["sizing"]), "trade_dexes": list(trade_dexes or ()),
-                "runtime_order": list(q.RUNTIME_ORDER)}
+                "runtime_order": list(q.RUNTIME_ORDER),
+                "forward_tests": forward_tests(q, open_trades, blocked_open, journal)}
     except Exception as e:  # noqa: BLE001 - the audit must never break the scan
         return {"error": f"{type(e).__name__}: {e}"[:300]}
 

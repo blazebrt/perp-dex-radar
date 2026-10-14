@@ -815,8 +815,9 @@ class AuditIntegration(unittest.TestCase):
         # on this branch, only the Phase 11 Analyzer authority cutover and the Phase 12 desk pages (pinned in the Phase 12
         # manifest) differ from the Phase 10 golden
         p12 = sorted({e["file"] for category in ("files", "code") for e in json.loads((ROOT / "tests/fixtures/v8/phase12_expected_deltas.json").read_text())[category]})
-        self.assertEqual(sorted(d.split(":")[0] for d in LP.compare(golden, self.summary)), sorted(set(p12) | {"analyze.html", "analyze.js"}))
-        with open(ROOT / "tests/fixtures/v8/legacy_parity_golden_phase12.json") as fh:
+        v9b = {e["file"] for category in ("files", "code") for e in json.loads((ROOT / "tests/fixtures/v8/v9b_expected_deltas.json").read_text())[category]}
+        self.assertEqual(sorted(d.split(":")[0] for d in LP.compare(golden, self.summary)), sorted(set(p12) | v9b | {"analyze.html", "analyze.js"}))
+        with open(ROOT / "tests/fixtures/v8/legacy_parity_golden_v9b.json") as fh:
             self.assertEqual(LP.compare(json.load(fh), self.summary), [])
 
     def test_audit_never_raises(self):
@@ -1103,9 +1104,11 @@ class EarlierAuthorityUnchanged(unittest.TestCase):
         self.assertEqual(SP.runtime_implementation_hash(),
                          __import__("v8.strategy_policy", fromlist=["runtime_implementation_hash"]).runtime_implementation_hash())
         policy = SP.load(quant.STRATS)
-        self.assertEqual(SP.digest(policy), "f2e10f9934a919543bbc2c5fa02e8823629fb9b78789cf6348c3e8cadb96e351")
+        # v9 phase B: the reviewed strategy policy now holds XSMOM's probation row (v8.quant-strategy-policy/2)
+        self.assertEqual(SP.digest(policy), "67aa8122ae4a033af7352f0cf900e10d4bc1a2b744c545cc69c4c09b18ccf49e")
         self.assertEqual(policy["runtime_order"], ["TSMOM", "TREND_EMA", "XSMOM"])
-        self.assertEqual({r["deployment_state"] for r in policy["strategies"]}, {"LEGACY_HOLDOVER"})
+        self.assertEqual({r["strategy_id"]: r["deployment_state"] for r in policy["strategies"]},
+                         {"TSMOM": "LEGACY_HOLDOVER", "TREND_EMA": "LEGACY_HOLDOVER", "XSMOM": "ACTIVE_PROBATION"})
         self.assertEqual(SA.VERSION, "v8.strategy-research/1")
         import strategy_census as SC
         self.assertEqual(len(SC.catalog()), 24)

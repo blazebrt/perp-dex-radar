@@ -130,6 +130,11 @@ h3 { font-size: 14px; line-height: 1.35; margin: 0; font-weight: 650; }
 .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 10px 0 0; font-size: 14px; }
 .kv dt { color: var(--muted); }
 .kv dd { margin: 0; text-align: right; font-weight: 600; }
+/* v9: market context, a fact list read left to right (label, value, and its source detail beneath) */
+.kv.mk { grid-template-columns: minmax(7.5em, auto) 1fr; font-size: 13px; gap: 6px 12px; }
+.kv.mk dd { text-align: left; font-weight: 400; color: var(--ink-2); overflow-wrap: anywhere; }
+.kv.mk dd b { color: var(--ink); font-weight: 650; }
+.kv.mk dd .muted { display: block; font-size: 12px; }
 .more { display: inline-block; margin-top: 10px; font-size: 14px; font-weight: 600; }
 
 /* ---- opportunity cards */
@@ -147,6 +152,12 @@ h3 { font-size: 14px; line-height: 1.35; margin: 0; font-weight: 650; }
 .opp-why { margin: 8px 0 0; font-size: 14.5px; }
 .opp-facts { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 8px 0 0; font-size: 13px; color: var(--ink-2); }
 .opp-facts b { color: var(--ink); font-weight: 620; }
+/* v9: the governed plan of a TRADE (the engine's proposal) and the probation tier tag */
+.opp-plan { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 10px 0 0; padding: 8px 10px; border-radius: 8px; font-size: 13px;
+  color: var(--ink-2); background: var(--trade-bg); }
+.opp-plan b { color: var(--ink); font-weight: 650; }
+.tag.tier-probation { background: transparent; color: var(--trade); border: 1px solid var(--trade); margin-left: 6px; }
+.tag.tier-full { background: var(--trade-bg); color: var(--trade); margin-left: 6px; }
 .opp-gates { display: flex; align-items: center; gap: 10px; margin: 10px 0 0; font-size: 12.5px; color: var(--muted); }
 .opp-act { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin: 10px 0 0; }
 .needs { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; font-size: 14px; }

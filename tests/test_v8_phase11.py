@@ -85,7 +85,10 @@ def sig(strategy="REQ", d=1, kind="NEW", age=3600, stop=0.05, trade_id=None):
             "kind": kind, "trade_id": trade_id}
 
 
-def book_position(pid, asset, d=1, notional=50.0, strategy="TSMOM", rate=0.0, **kw):
+def book_position(pid, asset, d=1, notional=50.0, strategy="REQ", rate=0.0, **kw):
+    """A paper position of the book. v9: the Phase 10 gates evaluate the governed book (trade-authorized strategy
+    sides), so the default position belongs to the requalified fixture strategy REQ; a legacy-holdover position
+    (strategy="TSMOM") is in the full paper book only."""
     p = {"id": pid, "asset": asset, "strategy": strategy, "direction": d, "mark": 100.0,
          "stop": 100.0 * (1 - d * 0.05), "notional": notional, "entered": True, "actionability": "ACTIONABLE",
          "liquidity": {"state": "KNOWN", "volume": 5e6}, "funding": {"state": "OBSERVED_ZERO", "rate_8h": 0.0}
@@ -137,8 +140,8 @@ REVIEWED_VALUES_DIGEST = "2c788403b1f4f65f4d591a1075aeebceba24782d94d28a725a47f9
 class Policy(unittest.TestCase):
     def test_policy_is_governed_and_reviewed(self):
         p = DE.load_policy()
-        self.assertEqual((p["schema"], p["review_status"]), ("v8.decision-policy/1", "POLICY_REVIEWED_INITIAL_V1"))
-        self.assertEqual(DE.REVIEW_STATUS, "POLICY_REVIEWED_INITIAL_V1")
+        self.assertEqual((p["schema"], p["review_status"]), ("v8.decision-policy/1", "POLICY_REVIEWED_V2_PROBATION"))
+        self.assertEqual(DE.REVIEW_STATUS, "POLICY_REVIEWED_V2_PROBATION")
         for sec in DE.SECTION_KEYS:
             for k, e in p[sec].items():
                 self.assertEqual(e["basis"], "POLICY", f"{sec}.{k}")
@@ -151,9 +154,16 @@ class Policy(unittest.TestCase):
         self.assertEqual(DE.policy_hash(p), DE.policy_hash(DE.load_policy()))
 
     def test_reviewed_values_are_unchanged(self):
+        """Every version-1 value is unchanged; version 2 (v9) only adds the probation states and the gating book."""
         p = DE.load_policy()
-        self.assertEqual(DE.digest({s: {k: e["value"] for k, e in p[s].items()} for s in DE.SECTION_KEYS}),
-                         REVIEWED_VALUES_DIGEST)
+        v1 = {s: {k: e["value"] for k, e in p[s].items()} for s in DE.SECTION_KEYS}
+        added = {"strategy_authority": {"probation_deployment_states": ["ACTIVE_PROBATION"],
+                                        "probation_research_states": ["PROBATION"]},
+                 "portfolio": {"gating_book": "GOVERNED_TRADE_AUTHORIZED"}}
+        for section, values in added.items():
+            for key, value in values.items():
+                self.assertEqual(v1[section].pop(key), value)
+        self.assertEqual(DE.digest(v1), REVIEWED_VALUES_DIGEST)
         self.assertEqual(p["portfolio"]["after_state_effects"]["value"]["APPROACHING_LIMITS"], "CAP_WATCH")
         self.assertEqual(p["portfolio"]["after_state_effects"]["value"]["LIMIT_BREACHED"], "AVOID")
 
@@ -338,7 +348,9 @@ class StrategyAuthority(unittest.TestCase):
         from v8 import strategy_policy as SP
         policy = SP.load(quant.STRATS)
         self.assertEqual({r["strategy_id"]: (r["deployment_state"], r["research_state"]) for r in policy["strategies"]},
-                         {s: ("LEGACY_HOLDOVER", "INSUFFICIENT_EVIDENCE") for s in ("TSMOM", "TREND_EMA", "XSMOM")})
+                         {"TSMOM": ("LEGACY_HOLDOVER", "INSUFFICIENT_EVIDENCE"),
+                          "TREND_EMA": ("LEGACY_HOLDOVER", "INSUFFICIENT_EVIDENCE"),
+                          "XSMOM": ("ACTIVE_PROBATION", "PROBATION")})      # v9 phase B: XSMOM long on probation
         sys.path.insert(0, str(ROOT / "tools" / "research"))
         import strategy_census as SC
         catalog = {r["strategy_id"] for r in SC.catalog()}
@@ -348,7 +360,8 @@ class StrategyAuthority(unittest.TestCase):
         _, c = one(signal=sig("TSMOM_FAST"))                # a catalog strategy absent from the reviewed policy
         self.assertEqual(c["state"], DE.AVOID)
         self.assertIn("STRATEGY_UNGOVERNED", c["blockers"])
-        self.assertEqual(SP.digest(policy), "f2e10f9934a919543bbc2c5fa02e8823629fb9b78789cf6348c3e8cadb96e351")
+        # v9 phase B: the reviewed strategy policy now holds XSMOM's probation row (v8.quant-strategy-policy/2)
+        self.assertEqual(SP.digest(policy), "67aa8122ae4a033af7352f0cf900e10d4bc1a2b744c545cc69c4c09b18ccf49e")
         self.assertEqual(SP.runtime_implementation_hash(),
                          __import__("v8.strategy_policy", fromlist=["runtime_implementation_hash"]).runtime_implementation_hash())
 
@@ -405,7 +418,7 @@ class Portfolio(unittest.TestCase):
         _, c = one(signal=sig("REQ"))
         self.assertEqual((c["portfolio"]["after"]["state"], c["state"]), (PR.WITHIN, DE.TRADE))
         near = [book_position(f"n{k}", a, d, 50.0, strategy=st) for k, (a, d, st) in
-                enumerate((("LO", 1, "TSMOM"), ("NEG", -1, "XSMOM"), ("ALPHA", 1, "TREND_EMA"), ("BRAVO", -1, "X1")))]
+                enumerate((("LO", 1, "REQ"), ("NEG", -1, "REQ4H"), ("ALPHA", 1, "REQ"), ("BRAVO", -1, "REQ4H")))]
         _, c = one(signal=sig("REQ"), book=near)
         self.assertEqual(c["portfolio"]["after"]["state"], PR.APPROACHING)
         self.assertEqual((c["state"], c["caps"]), (DE.WATCH, ["PORTFOLIO_APPROACHING_LIMITS"]))
@@ -899,9 +912,11 @@ class LiveIntegration(unittest.TestCase):
         sigs = self.part["decision_inputs"]["signals"]
         self.assertGreater(sum(len(v) for v in sigs.values()), 0)
         self.assertEqual({x["strategy"] for v in sigs.values() for x in v} - {"TSMOM", "TREND_EMA", "XSMOM"}, set())
-        for c in self.doc["candidates"]:
+        for c in self.doc["candidates"]:      # v9: XSMOM is on probation (long only, from 2026-10-15 00:00 UTC)
             if c["type"] == DE.DIRECTIONAL:
-                self.assertIn("STRATEGY_RESEARCH_AUTHORITY_INSUFFICIENT", c["caps"])
+                want = ("STRATEGY_RESEARCH_AUTHORITY_INSUFFICIENT" if c["strategy"] != "XSMOM" else
+                        "STRATEGY_SIDE_NOT_CONFIRMED" if c["direction"] == -1 else "PROBATION_NOT_YET_EFFECTIVE")
+                self.assertIn(want, c["caps"], c["id"])
                 self.assertNotEqual(c["state"], DE.TRADE)
 
     def test_inputs_are_current_and_funding_observed(self):
@@ -923,12 +938,13 @@ class LiveIntegration(unittest.TestCase):
     def test_legacy_outputs_unchanged(self):
         sys.path.insert(0, str(ROOT / "tools" / "v8"))
         import legacy_parity as LP
-        golden = json.loads((ROOT / "tests/fixtures/v8/legacy_parity_golden_phase12.json").read_text())
+        golden = json.loads((ROOT / "tests/fixtures/v8/legacy_parity_golden_v9b.json").read_text())      # v9 phase B
         self.assertEqual(LP.compare(golden, self.summary), [])
         # historical: against the Phase 11 golden only the Phase 12 desk pages differ, each pinned in its manifest
         p11 = json.loads((ROOT / "tests/fixtures/v8/legacy_parity_golden_phase11.json").read_text())
         p12 = sorted({e["file"] for category in ("files", "code") for e in json.loads((ROOT / "tests/fixtures/v8/phase12_expected_deltas.json").read_text())[category]})
-        self.assertEqual(sorted(d.split(":")[0] for d in LP.compare(p11, self.summary)), p12)
+        v9b = {e["file"] for category in ("files", "code") for e in json.loads((ROOT / "tests/fixtures/v8/v9b_expected_deltas.json").read_text())[category]}
+        self.assertEqual(sorted(d.split(":")[0] for d in LP.compare(p11, self.summary)), sorted(set(p12) | v9b))
 
     def test_no_engine_reads_the_decision(self):
         # The desk pages consume the published decision: since v8 Phase 12 through their shared core (desk.js), which
