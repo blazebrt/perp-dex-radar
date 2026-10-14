@@ -1,0 +1,2 @@
+market context: 16/16 sources OK, 178 coins; median funding 0.0001/8h, fear & greed 62, BTC DVOL 38.26; wrote out/data/v9/market.json (51007 bytes)
+history: this hour is already recorded
