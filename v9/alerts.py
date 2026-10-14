@@ -42,6 +42,13 @@ def _pct(x, d=2):
     return f"{x * 100:.{d}f}%" if _num(x) else "–"
 
 
+def _hold(h):
+    """The proposal's time exit (hours) in words, or None when the engine states none."""
+    if isinstance(h, bool) or not isinstance(h, int) or h <= 0:
+        return None
+    return f"{h} hours" if h % 24 else "1 day" if h == 24 else f"{h // 24} days"
+
+
 def new_trades(doc):
     """The candidates that became TRADE since the previous published decision (none when it is unknown)."""
     ch = doc.get("changes") or {}
@@ -69,6 +76,8 @@ def message(c, doc, pages_url=None):
     if _num(p.get("mark")) and _num(p.get("stop")) and p["mark"] > 0:
         lines.append(f"Enter near {_price(p['mark'])} · stop {_price(p['stop'])} ({_pct(abs(p['mark'] - p['stop']) / p['mark'], 1)} away)"
                      + (f" · risk {_pct(p['risk_fraction'])} of the account" if _num(p.get("risk_fraction")) else ""))
+    if _hold(p.get("time_exit_hours")):
+        lines.append(f"Exit at the stop or {_hold(p['time_exit_hours'])} after you enter, whichever comes first")
     exp = ((c.get("probation") or {}).get("expectation") or {})
     if _num(exp.get("out_of_sample_mean_R")):
         lo, hi = exp.get("out_of_sample_lower_95"), exp.get("out_of_sample_upper_95")
