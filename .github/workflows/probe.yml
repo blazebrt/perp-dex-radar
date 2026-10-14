@@ -1,0 +1,58 @@
+name: Data source probe
+
+# v9: calls every candidate market-data source from a GitHub-hosted runner (where the scans run) and records what
+# answers: status, latency, payload shape, rate-limit headers, geo blocks. Runs when the probe changes on a v9 branch,
+# or from the Actions tab. The results replace the "probe-results" branch (one commit, no history). Read-only public
+# data; nothing is published to the site.
+
+on:
+  push:
+    branches: ["v9/**"]
+    paths: ["tools/v9/probe_sources.py", ".github/workflows/probe.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: probe
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Probe every source
+        env:
+          COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
+          COINALYZE_API_KEY: ${{ secrets.COINALYZE_API_KEY }}
+          CRYPTOPANIC_API_KEY: ${{ secrets.CRYPTOPANIC_API_KEY }}
+          CMC_API_KEY: ${{ secrets.CMC_API_KEY }}
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+        run: mkdir -p probe && (python tools/v9/probe_sources.py --out probe | tee probe/run.txt) || true
+
+      - name: Save on the probe-results branch
+        if: always()
+        env:
+          GIT_AUTHOR_NAME: perp-dex-radar
+          GIT_AUTHOR_EMAIL: actions@users.noreply.github.com
+          GIT_COMMITTER_NAME: perp-dex-radar
+          GIT_COMMITTER_EMAIL: actions@users.noreply.github.com
+        run: |
+          mkdir -p probe
+          echo "$GITHUB_REF_NAME $GITHUB_SHA $(date -u +%Y-%m-%dT%H:%MZ) $RUNNER_NAME" > probe/run_meta.txt
+          export GIT_INDEX_FILE="$RUNNER_TEMP/probe.index"
+          git read-tree --empty
+          for f in probe/*; do
+            git update-index --add --cacheinfo "100644,$(git hash-object -w "$f"),$(basename "$f")"
+          done
+          commit=$(git commit-tree "$(git write-tree)" -m "Source probe $GITHUB_REF_NAME ${GITHUB_SHA::7}")
+          git push --force origin "$commit:refs/heads/probe-results"
