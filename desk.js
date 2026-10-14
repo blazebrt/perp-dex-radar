@@ -22,7 +22,7 @@
 
   // ------------------------------------------------------------------ the contract
   const DECISION = {schema: "v8.decision/1", file: "data/v8/decision.json", directional: "DIRECTIONAL_STRATEGY",
-                    emerging: "EMERGING_OBSERVATION", funding: "FUNDING_SPREAD", policyStatus: "POLICY_REVIEWED_INITIAL_V1"};
+                    emerging: "EMERGING_OBSERVATION", funding: "FUNDING_SPREAD", policyStatus: "POLICY_REVIEWED_V2_PROBATION"};
   const SECTIONS = ["best_trades_now", "emerging_opportunities", "funding_opportunities"];
   const UI_MAX = 5;                         // a desk section shows at most five, never a minimum (Phase 11 sections)
   const STATE_ORDER = {TRADE: 0, WATCH: 1, AVOID: 2};
@@ -111,6 +111,15 @@
     NO_FUNDING_SPREAD: "no positive funding spread", LEG_LIQUIDITY_BELOW_GATE: "a leg's venue volume is below the gate",
     LEG_LIQUIDITY_UNKNOWN: "a leg's venue volume is unknown", CARRY_NOT_POSITIVE_AFTER_COSTS: "carry is not positive after costs",
     BASIS_TOO_WIDE: "the legs' prices are too far apart", BASIS_UNKNOWN: "basis unknown", NOT_RISK_FREE: "not risk-free",
+    STRATEGY_SIDE_NOT_CONFIRMED: "this side of the strategy is not confirmed by the archive (probation covers the confirmed side only)",
+    PROBATION_FORWARD_TEST_FAILED: "the live forward test fell below the archive's demotion band",
+    PROBATION_NOT_YET_EFFECTIVE: "before the registered start of the probation forward test",
+    PROBATION_ENTRY_WINDOW_PASSED: "past the confirmed entry window for this signal",
+    PROBATION_TERMS_MISSING: "probation terms missing", FORWARD_TEST_RECORD_MISSING: "the forward test's live record is missing",
+  };
+  const TIER_VIEW = {
+    FULL: {label: "Requalified", line: "Requalified under the full Phase 9 gate; page sizing."},
+    PROBATION: {label: "Probation · reduced size", line: "An archive-confirmed strategy side (survivorship-free, out of sample) at a reduced size, inside its confirmed entry window, with a forward test registered before its first trade. Not requalified: it is demoted automatically if its live record falls below the archive's band."},
   };
   const codeLabel = (c) => CODE_TXT[c] || String(c).toLowerCase().replace(/_/g, " ");
   const codeTxt = (c) => codeLabel(c) + " (" + c + ")";
@@ -347,8 +356,35 @@
       funding: fund ? {result: fund.result, code: fund.code, input: fund.input} : null,
       why_trade: ex.why_trade || null, to_become_trade: ex.to_become_trade || [],
       section: pl.section || null, rank: pl.section ? pl.rank : null, placement_reason: pl.reason || null,
-      valid_until: c.valid_until,
+      valid_until: c.valid_until, tier: c.authority_tier || null, probation: c.probation || null, proposal: c.proposal || null,
     };
+  }
+  /* A TRADE's plan, exactly as the engine's Phase 10 proposal states it (entry is the current mark; the stop and the size
+     are the governed proposal's; the account is the page's default sizing, labelled as such). Nothing is recomputed. */
+  function planHtml(m) {
+    const p = m.proposal || {};
+    if (m.state !== "TRADE" || m.type !== DECISION.directional || !isNum(p.mark) || !isNum(p.stop) || p.mark <= 0) return "";
+    const parts = ['Enter near <b>' + esc(price(p.mark)) + '</b>', 'Stop <b>' + esc(price(p.stop)) + '</b> <span class="muted">(' + esc(pct(Math.abs(p.mark - p.stop) / p.mark)) + ' away)</span>'];
+    if (isNum(p.risk_fraction)) parts.push('Risk <b>' + esc(pct(p.risk_fraction)) + '</b> of the account' + (isNum(p.size_multiplier) && p.size_multiplier < 1 ? ' <span class="muted">(' + esc(String(p.size_multiplier)) + '× the page size)</span>' : ""));
+    if (isNum(p.notional) && isNum(p.equity)) parts.push('Size <b>' + esc(usd(p.notional)) + '</b> <span class="muted">on a ' + esc(usd(p.equity)) + ' page account' + (isNum(p.stop_risk_usd) ? ', ' + esc(usd(p.stop_risk_usd)) + ' at the stop' : "") + '</span>');
+    const pr = m.probation || {};
+    const sig = m.signal || {};
+    if (m.tier === "PROBATION" && isNum(pr.entry_window_s) && isNum(sig.age_s)) parts.push('Entry window <b>' + esc(durTxt(Math.max(0, pr.entry_window_s - sig.age_s))) + ' left</b>');
+    return '<div class="opp-plan" aria-label="Trade plan">' + parts.map((x) => '<span>' + x + '</span>').join("") + '</div>';
+  }
+  /* The archive evidence and the live forward test behind a probation side, as the bound evidence states them. */
+  function evidenceHtml(m) {
+    const pr = m.probation;
+    if (!pr || m.type !== DECISION.directional) return "";
+    const e = pr.expectation || {}, f = pr.forward_test || {}, ho = pr.holdout || {};
+    let h = '<p class="opp-sub"><b>Archive evidence:</b> ';
+    h += isNum(e.out_of_sample_mean_R) ? esc((e.out_of_sample_mean_R >= 0 ? "+" : "") + e.out_of_sample_mean_R.toFixed(2)) + 'R per trade out of sample' +
+      (isNum(e.out_of_sample_lower_95) && isNum(e.out_of_sample_upper_95) ? ' (95% interval ' + esc(e.out_of_sample_lower_95.toFixed(2)) + ' to ' + esc(e.out_of_sample_upper_95.toFixed(2)) + 'R' + (isInt(ho.n) ? ', ' + ho.n + ' trades before Oct 2023' : "") + ')' : "") : "not stated";
+    h += isNum(e.all_windows_mean_R) ? '; ' + esc((e.all_windows_mean_R >= 0 ? "+" : "") + e.all_windows_mean_R.toFixed(2)) + 'R over every window' + (isInt(pr.archive_trades) ? ' (' + pr.archive_trades + ' trades, delisted coins included)' : "") : "";
+    h += '. R is the result in units of the stop distance, after costs and funding. Past results do not promise future ones.</p>';
+    h += '<p class="opp-sub"><b>Live forward test:</b> ' + (isInt(f.closed) ? f.closed + ' closed trade' + (f.closed === 1 ? "" : "s") + (isNum(f.mean_R) ? ', mean ' + esc((f.mean_R >= 0 ? "+" : "") + f.mean_R.toFixed(2)) + 'R' : "") +
+      (isNum(f.band_p05_mean_R) ? ' · demoted below ' + esc(f.band_p05_mean_R.toFixed(2)) + 'R after ' + f.band_trades + ' trades' : isInt(f.min_trades) ? ' · checked against the archive band from ' + f.min_trades + ' trades' : "") : "no live record yet") + '.</p>';
+    return h;
   }
   /* The one-line reason a card shows: the engine's own codes, worded. */
   function keyReason(m) {
@@ -427,7 +463,9 @@
           ((i.unhealthy_excluded || []).length ? " · unhealthy venues excluded " + i.unhealthy_excluded.join(", ") : "");
         return kv(i, Object.keys(i));
       case "STRATEGY_AUTHORITY":
-        return i.strategy ? i.strategy + ": " + (i.deployment_state || "?") + " / " + (i.research_state || "?") : "no governed strategy";
+        return i.strategy ? i.strategy + ": " + (i.deployment_state || "?") + " / " + (i.research_state || "?") +
+          (i.tier ? " · tier " + i.tier : "") + ((i.confirmed_sides || []).length ? " · confirmed " + i.confirmed_sides.join(", ") : "") +
+          (isNum(i.entry_window_s) ? " · entry window " + durTxt(i.entry_window_s) : "") : "no governed strategy";
       case "EXECUTION_LIQUIDITY":
         if (i.legs) return i.legs.map((l) => l[0] + " " + l[1] + (l[2] ? " (" + l[2] + ")" : "")).join(" · ") + (isNum(i.threshold) ? " · gate " + usd(i.threshold) : "");
         return (i.state || "unknown") + (isNum(i.observed_value) ? " · 24h trade-DEX volume " + usd(i.observed_value) : "") + (isNum(i.threshold) ? " vs gate " + usd(i.threshold) : "");
@@ -648,12 +686,14 @@
       (opt.asset === false ? '<span class="opp-type">' + esc(m.typeLabel) + '</span>' : '<span class="opp-asset">' + esc(m.asset) + '</span>');
     if (dir) h += (c.state === "TRADE" ? dirTag(m.side) : "") + '<span class="muted small">' + esc(m.strategy) + (c.state !== "TRADE" && m.side ? " · " + m.side + " signal, not a call" : "") + '</span>';
     else if (opt.asset !== false) h += '<span class="muted small">' + esc(m.typeLabel) + '</span>';
-    h += stateChip(c.state) + '</div>';
+    h += stateChip(c.state) + (c.state === "TRADE" && TIER_VIEW[m.tier] ? '<span class="tag tier-' + esc(String(m.tier).toLowerCase()) + '" title="' + esc(TIER_VIEW[m.tier].line) + '">' + esc(TIER_VIEW[m.tier].label) + '</span>' : "") + '</div>';
     if (c.type === DECISION.emerging) h += '<p class="opp-why"><b>Why it is interesting:</b> ' + esc(m.evidence.map((e) => e.label).join(" · ") || "–") + '</p><p class="opp-sub">' + esc(keyReason(m)) + '</p>';
     else h += '<p class="opp-why">' + esc(keyReason(m)) + '</p>';
+    h += planHtml(m);
     // a TRADE's distinguishing qualification: the engine's own strategy-authority rule (explanation.why_trade)
     const qual = c.state === "TRADE" && Array.isArray(m.why_trade) ? m.why_trade.find((x) => x && x.step === "STRATEGY_AUTHORITY") : null;
     if (qual && qual.rule) h += '<p class="opp-sub">Strategy authority: ' + esc(qual.rule) + '</p>';
+    if (c.state === "TRADE" || (m.probation && c.state === "WATCH")) h += evidenceHtml(m);
     const facts = [];
     if (dir && m.signal) facts.push('Signal <b>' + esc(String(m.signal.kind || "").toLowerCase()) + ' · ' + esc(durTxt(m.signal.age_s)) + ' old</b>');
     if (m.liquidity && !m.liquidity.legs) facts.push('Execution <b>' + (m.liquidity.state === "KNOWN" ? esc(usd(m.liquidity.value)) + ' 24h' : esc(titleCase(m.liquidity.state || "unknown"))) +
@@ -719,6 +759,32 @@
   const expiredNote = (sec) => sec.expired.length ? '<p class="note" role="status">' + sec.expired.length + (sec.expired.length === 1 ? " decision in this section has" : " decisions in this section have") +
     ' passed its own valid-until time (' + esc(timeTxt(Math.min.apply(null, sec.expired.map((x) => x.valid_until)))) + ') and ' + (sec.expired.length === 1 ? "is" : "are") + ' not shown. The desk does not extend a decision; the next governed scan re-decides it.</p>' : "";
 
+  /* Which strategy sides may produce a TRADE at all (decision.strategy_tiers), so an empty section says what to expect. */
+  function tiersNote(doc) {
+    const t = doc && doc.strategy_tiers;
+    if (!t || typeof t !== "object") return "";
+    const rows = [];
+    for (const x of t.FULL || []) rows.push(esc(x.strategy) + " (requalified)");
+    for (const x of t.PROBATION || []) {
+      const sides = Object.keys(x.sides || {}).sort();
+      const failed = sides.filter((s) => (x.sides[s] || {}).forward_test_state === "FAILED");
+      rows.push(esc(x.strategy) + " " + esc(sides.join(" and ")) + " (probation, " + esc(String(x.risk_multiplier)) + "× size" +
+                (failed.length ? "; demoted by its forward test: " + esc(failed.join(", ")) : "") + ")");
+    }
+    if (!rows.length) return '<p class="e-d">No strategy side is authorized to trade yet, so this section stays empty until one is.</p>';
+    const daily = (t.FULL || []).concat(t.PROBATION || []).some((x) => x.timeframe === "1d");
+    return '<p class="e-d">Authorized to trade: ' + rows.join("; ") + '. A trade appears here only when one of them has a fresh signal and every other gate passes.' +
+      (daily ? " Daily strategies decide at the 00:00 UTC close." : "") + '</p>';
+  }
+  /* The governed book behind the Phase 10 gates, and the legacy paper positions that no longer gate anything. */
+  function governedNote(doc) {
+    const g = (doc && doc.portfolio || {}).governed, full = (doc && doc.portfolio || {}).full_paper_book;
+    if (!g || typeof g !== "object" || !isInt(g.governed_positions)) return "";
+    const n = g.governed_positions, x = isInt(g.excluded_paper_positions) ? g.excluded_paper_positions : null;
+    return '<p class="note">Governed book: ' + n + ' position' + (n === 1 ? "" : "s") + ' of trade-authorized strategy sides.' +
+      (x ? ' ' + x + ' legacy paper position' + (x === 1 ? " is" : "s are") + ' a diagnostic only' + (full && PF_VIEW[full.state] ? ' (that book: ' + esc(PF_VIEW[full.state].label.toLowerCase()) + ')' : "") + ' and do' + (x === 1 ? "es" : "") + ' not gate trades.' : "") + '</p>';
+  }
+
   /* TODAY. raw: the loaded decision (or null / "MALFORMED"). Returns every region's HTML; nothing is decided here. */
   function vToday(raw, now) {
     const A = authority(raw, now), st = vStatus(A, now, "today");
@@ -741,7 +807,7 @@
         ' in this file passed ' + (sec.expired.length === 1 ? "its" : "their") + ' own valid-until time (' + esc(timeTxt(Math.min.apply(null, sec.expired.map((x) => x.valid_until)))) + '). Nothing is trade-ready until the next governed scan re-decides ' + (sec.expired.length === 1 ? "it" : "them") + '.</p></div>' + inconsistentNote(sec);
     } else {
       const z = zeroTrade(doc);
-      let h = '<div class="empty"><p class="e-t">No trade currently clears every desk gate.</p>';
+      let h = '<div class="empty"><p class="e-t">No trade currently clears every desk gate.</p>' + tiersNote(doc);
       if (!z.signals) h += '<p class="e-d">No governed strategy has a current signal in this decision, so there is nothing to clear the gates.</p>';
       else {
         h += '<p class="e-d">From this decision: ' + z.signals + ' current strategy signal' + (z.signals === 1 ? "" : "s") + ', none trade-ready.</p>';
@@ -779,7 +845,7 @@
       (p.approaching.length ? '<dt>Approaching</dt><dd>' + esc(p.approaching.map((x) => x.label).join(", ")) + '</dd>' : "") +
       (p.missingCount ? '<dt>Missing authority</dt><dd>' + esc(p.missingGroups.map((g) => g.label + " ×" + g.count).join(", ")) + '</dd>' : "") + '</dl>' +
       '<p class="note">Risk and stressed loss as a share of equity. Stress losses are governed deterministic scenarios, not probabilities.</p><a class="more" href="portfolio.html">Open the portfolio console</a>';
-    out.pf = ph;
+    out.pf = ph + governedNote(doc);
     // Funding spreads: qualified Phase 11 funding_opportunities only
     const fs = section(doc, "funding_opportunities", now), ev = counts(doc).byType.FUNDING_SPREAD || {}, total = (ev.TRADE || 0) + (ev.WATCH || 0) + (ev.AVOID || 0);
     out.fund = (fs.count ? '<ul class="reasons">' + fs.items.map((it) => { const c = it.cand, L = c.legs || {};
@@ -885,10 +951,28 @@
     const key = (x, n) => JSON.stringify([x.as_of, x.policy_hash, x.state, x.breached || [], x.approaching || [], n, lim(x.limits)]);
     return key(pr, Array.isArray(pr.positions) ? pr.positions.length : null) === key(p10, p10.positions) ? pr : null;
   }
+  /* The audit evaluates the whole paper book; it is bound to the decision's full-paper-book summary the same way. */
+  function boundFullDetail(doc, audit) {
+    const full = (doc.portfolio || {}).full_paper_book;
+    return full && typeof full === "object" ? boundDetail({portfolio: {phase10: full}}, audit) : null;
+  }
+  function governedPositions(doc) {
+    const rows = (doc.portfolio || {}).governed_positions;
+    if (!Array.isArray(rows)) return "";
+    let h = '<section class="sec panel" aria-labelledby="gp-h"><h2 id="gp-h">Governed positions</h2><p class="secsub">' + rows.length + ' paper position' + (rows.length === 1 ? "" : "s") +
+      ' of trade-authorized strategy sides, entered since that authority took effect. These are what the limits above evaluate.</p>';
+    if (!rows.length) return h + '<p class="small" style="margin:0">None yet.</p></section>';
+    return h + '<div class="tblwrap"><table class="tbl"><thead><tr><th>Asset</th><th>Strategy</th><th>Side</th><th class="num">Entry</th><th class="num">Mark</th><th class="num">Stop</th><th class="num">Leverage</th><th class="num">Stop risk</th><th>Funding</th><th class="num">Time left</th></tr></thead><tbody>' +
+      rows.map((x) => '<tr><td><a href="analyze.html?coin=' + encodeURIComponent(x.asset) + '">' + esc(x.asset) + '</a></td><td>' + esc(x.strategy) + '</td><td>' + dirTag(sideOf(x.direction)) + '</td><td class="num">' + esc(price(x.entry)) +
+        '</td><td class="num">' + esc(price(x.mark)) + '</td><td class="num">' + esc(price(x.stop)) + '</td><td class="num">' + esc(lev(x.leverage)) + '</td><td class="num">' + esc(pct(x.account_risk)) +
+        '</td><td>' + esc(String(x.funding || "–").toLowerCase()) + (isNum(x.funding_rate_8h) ? ' ' + esc(rate8h(x.funding_rate_8h)) : "") + '</td><td class="num">' +
+        (isNum(x.hold_hours_remaining) ? esc(durTxt(x.hold_hours_remaining * 3600)) : "–") + '</td></tr>').join("") + '</tbody></table></div></section>';
+  }
   function vPortfolio(raw, now, audit, auditState) {
     const A = authority(raw, now), st = vStatus(A, now, "portfolio");
     if (A.status !== "AVAILABLE") return {status: A.status, statusHtml: st.html, statusBad: true, body: failClosed(A, now)};
-    const doc = A.doc, p = portfolioView((doc.portfolio || {}).phase10), pr = boundDetail(doc, audit);
+    const doc = A.doc, p = portfolioView((doc.portfolio || {}).phase10), full = (doc.portfolio || {}).full_paper_book;
+    const governed = !!(doc.portfolio || {}).governed, pr = governed ? null : boundDetail(doc, audit), fullPr = governed ? boundFullDetail(doc, audit) : null;
     let h = '<section class="sec panel" aria-labelledby="st-h"><h2 id="st-h" class="sr">Portfolio state</h2><div class="pfhead">' + pfChip(p.state, {big: true}) + '<p>' + esc(p.view.line) + '</p></div>';
     if (p.breached.length) h += '<p class="blocker"><b>Breached:</b> ' + esc(p.breached.map((b) => b.label).join(", ")) + '. A new directional trade is rejected while the portfolio would still breach a limit after it.</p>';
     if (p.approaching.length) h += '<p class="small" style="margin:10px 0 0"><b>Approaching:</b> ' + esc(p.approaching.map((b) => b.label).join(", ")) + '.</p>';
@@ -913,7 +997,16 @@
         return '<tr><td>' + esc(x.label) + '</td><td class="num">' + esc(pct(x.loss)) + '</td><td class="ink2">' + esc(pr ? (sc.rule || "–") + ((sc.missing || []).length ? " · missing: " + sc.missing.join(", ") : "") + (sc.status && sc.status !== "AVAILABLE" ? " · " + sc.status : "") : "…") + '</td></tr>'; }).join("") + '</tbody></table></div></section>';
     h += '<section class="sec panel" aria-labelledby="ma-h"><h2 id="ma-h">Missing authority</h2>' + (p.missingCount ? '<ul class="reasons">' + p.missingGroups.map((g) => '<li><span class="cnt">' + g.count + '</span><span>' + esc(g.label) +
       '<small><code>' + esc(g.code) + '</code></small></span></li>').join("") + '</ul><p class="note">Missing values stay missing: they are never counted as zero' + (pr && pr.funding && pr.funding.rule ? " (" + esc(pr.funding.rule) + ")" : "") + '.</p>' : '<p class="small" style="margin:0">None recorded.</p>') + '</section>';
-    h += portfolioDetail(doc, pr, audit, auditState);
+    if (!governed) {
+      h += portfolioDetail(doc, pr, audit, auditState);
+      return {status: "AVAILABLE", statusHtml: st.html, statusBad: false, body: h};
+    }
+    h += governedPositions(doc);
+    const fv = portfolioView(full);
+    h += '<section class="sec panel" aria-labelledby="lb-h"><h2 id="lb-h">Legacy paper book · diagnostic only</h2><div class="pfhead">' + pfChip(fv.state) +
+      '<p>Every open paper position of the quant desk, including legacy holdovers the desk never recommended. It no longer gates any decision.</p></div>' +
+      (fv.breached.length ? '<p class="small" style="margin:8px 0 0"><b>Breached in this book:</b> ' + esc(fv.breached.map((b) => b.label).join(", ")) + '.</p>' : "") + '</section>';
+    h += portfolioDetail(doc, fullPr, audit, auditState);
     return {status: "AVAILABLE", statusHtml: st.html, statusBad: false, body: h};
   }
   function portfolioDetail(doc, pr, audit, auditState) {

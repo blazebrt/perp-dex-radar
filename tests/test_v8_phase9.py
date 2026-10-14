@@ -35,6 +35,34 @@ def side_row(n=500, mean=.5, upper=.7):
     return {"n": n, "mean_R": mean, "upper_95": upper}
 
 
+def copy_bound_policy_files(policy, root):
+    """The v9 probation row binds files by repository path (its evidence and its forward-test registration): a
+    fixture that validates the real policy against another root needs the same bytes at the same paths."""
+    for row in policy["strategies"]:
+        prob = row.get("probation")
+        if not prob:
+            continue
+        for rel in [prob["evidence"]["path"]] + [ft["path"] for ft in prob["forward_tests"].values()]:
+            dst = Path(root) / rel
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(ROOT / rel, dst)
+
+
+def rebind_probation(policy, root, runtime_hash):
+    """Regenerate the copied probation evidence for another runtime implementation (what tools/v9/confirm.py does
+    after a quant.py change) and re-bind it in the policy row."""
+    for row in policy["strategies"]:
+        prob = row.get("probation")
+        if not prob:
+            continue
+        path = Path(root) / prob["evidence"]["path"]
+        ev = json.loads(path.read_bytes())
+        ev["code"]["runtime_implementation_hash"] = runtime_hash
+        raw = (json.dumps(ev, sort_keys=True, indent=1) + "\n").encode()
+        path.write_bytes(raw)
+        prob["evidence"]["sha256"] = hashlib.sha256(raw).hexdigest()
+
+
 def passing_evidence(sides=("long", "short")):
     """A synthetic evidence record that clears every gate check for a definition trading `sides`."""
     e = {k: True for k in REQUIRED_TRUE}
@@ -54,8 +82,11 @@ class Policy(unittest.TestCase):
         self.assertEqual(policy["runtime_order"], ["TSMOM", "TREND_EMA", "XSMOM"])
         self.assertEqual(quant.RUNTIME_ORDER, tuple(policy["runtime_order"]))
         self.assertFalse(hasattr(quant, "ORDER"))
-        self.assertEqual({r["deployment_state"] for r in policy["strategies"]}, {"LEGACY_HOLDOVER"})
-        self.assertEqual({r["research_state"] for r in policy["strategies"]}, {"INSUFFICIENT_EVIDENCE"})
+        # v9 phase B: XSMOM is on probation (its long side, archive-confirmed); nothing is ACTIVE_REQUALIFIED
+        self.assertEqual({r["strategy_id"]: (r["deployment_state"], r["research_state"]) for r in policy["strategies"]},
+                         {"TSMOM": ("LEGACY_HOLDOVER", "INSUFFICIENT_EVIDENCE"),
+                          "TREND_EMA": ("LEGACY_HOLDOVER", "INSUFFICIENT_EVIDENCE"),
+                          "XSMOM": ("ACTIVE_PROBATION", "PROBATION")})
 
     def test_bad_policy_fails_closed(self):
         import quant
@@ -67,9 +98,9 @@ class Policy(unittest.TestCase):
             p = copy.deepcopy(good)
             p["strategies"][0][key] = value
             variants.append(p)
-        for p in variants:
+        for p in variants:   # with the repository root, so each variant fails for its own reason
             with self.subTest(p=p), self.assertRaises(ValueError):
-                SP.validate(p, quant.STRATS)
+                SP.validate(p, quant.STRATS, ROOT)
         with tempfile.TemporaryDirectory() as d:
             with self.assertRaises(FileNotFoundError):
                 SP.load(quant.STRATS, Path(d) / "absent")
@@ -85,7 +116,7 @@ class Policy(unittest.TestCase):
         import quant
         p = SP.load(quant.STRATS)
         p["strategies"][0]["research_state"] = "REQUALIFIED"
-        self.assertEqual(SP.validate(p, quant.STRATS)["strategies"][0]["deployment_state"], "LEGACY_HOLDOVER")
+        self.assertEqual(SP.validate(p, quant.STRATS, ROOT)["strategies"][0]["deployment_state"], "LEGACY_HOLDOVER")
 
     def test_audit_exposes_current_and_adjudicated_definition_bindings(self):
         import quant
@@ -289,6 +320,7 @@ class PromotionFixture(unittest.TestCase):
                    "runtime_implementation_hash": self.row["runtime_implementation_hash"],
                    "adjudicated_definition_hash": self.row["adjudicated_definition_hash"]}
         self.policy["strategies"][0].update(deployment_state="ACTIVE_REQUALIFIED", research_state="REQUALIFIED")
+        copy_bound_policy_files(self.policy, self.root)
         self.write_package()
 
     def write_package(self, rehash_artifact=True):
@@ -486,6 +518,7 @@ class RuntimeImplementationBinding(PromotionFixture):
         new = SP.runtime_implementation_hash(folder)
         self.row["runtime_implementation_hash"] = self.ev["runtime_implementation_hash"] = new
         self.write_package()
+        rebind_probation(self.policy, self.root, new)     # every binding is regenerated for the new implementation
         self.assertIs(SP.validate(self.policy, self.strats, self.root, folder), self.policy)
         self.assert_invalid()          # ... and that review does not authorize the repository's code
 

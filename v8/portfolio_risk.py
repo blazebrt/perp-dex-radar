@@ -922,7 +922,7 @@ def live_open_position(tr, actionability, universe, now, account, risk, trade_de
     end = (tr.get("t_in") or 0) + (tr.get("hold_h") or 0) * 3600
     return {"id": tr.get("id"), "asset": tr.get("c"), "strategy": tr.get("s"), "direction": tr.get("d"),
             "actionability": actionability, "entry": px, "mark": res.get("last_px"), "stop": res.get("stop_now"),
-            "quantity": qty, "entered": True,
+            "quantity": qty, "entered": True, "entered_at": tr.get("t_in") if _int(tr.get("t_in")) else None,
             "liquidity": {"state": ev["state"], "volume": ev["value"]},
             "funding": {"state": "MISSING", "reason": "NO_AUTHORITATIVE_LIVE_FUNDING"},
             "hold_hours_remaining": (max(0.0, (end - now) / 3600.0)

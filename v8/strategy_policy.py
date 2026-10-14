@@ -13,6 +13,21 @@ the signal functions (sig_tsmom, sig_trend_ema, xs_scores), the stop and trailin
 eligibility, and trade management (sim_trade and the run loop's entry/exit rules). Hashing its exact bytes means any
 edit to it - a strategy's or not - invalidates every promotion until a review is regenerated (fail closed).
 
+v9 probation tier (ACTIVE_PROBATION / PROBATION). A strategy side that the survivorship-free archive confirms
+(tools/v9/confirm.py, research/v9/probation_evidence.json, v9.probation-evidence/1) may be deployed at a reduced size
+before the full Phase 9 requalification is possible. Its row carries a `probation` record, validated fail closed:
+
+    sides             the confirmed sides only ("long" / "short"); the other side of the strategy stays WATCH
+    risk_multiplier   in (0, MAX_PROBATION_RISK_MULTIPLIER]: probation never trades at full size
+    evidence          {path, sha256}: the bound evidence file; every listed side must be CONFIRMED in it, for the
+                      runtime definition (digest of STRATS[sid]) and runtime implementation hash running now
+    forward_tests     {side: {experiment_id, path, sha256, effective_from}}: the shadow-ledger REGISTRATION of each
+                      side's forward test, registered before its evaluation starts; effective_from is its
+                      evaluation_start (the first signal that counts, and the start of the governed book)
+
+Changing quant.py therefore invalidates a probation until the evidence is re-bound (python tools/v9/confirm.py
+--from-branch evidence-results), exactly as it invalidates an ACTIVE_REQUALIFIED promotion.
+
 Excluded, with the reason each is not part of a strategy's runtime definition:
     scanner.py              market-data acquisition, bar cleaning and the shared crypto universe/identity/liquidity
                             gates used by every engine; it decides which coins and bars exist, not how a strategy
@@ -29,13 +44,18 @@ import hashlib
 import json
 from pathlib import Path
 
-VERSION = "v8.quant-strategy-policy/1"
+VERSION = "v8.quant-strategy-policy/2"       # /2: the v9 ACTIVE_PROBATION deployment state and its probation record
 PATH = Path(__file__).with_name("quant_strategy_policy.json")
-DEPLOYMENT = {"LEGACY_HOLDOVER", "ACTIVE_REQUALIFIED", "PAPER_ONLY", "DISABLED"}
+DEPLOYMENT = {"LEGACY_HOLDOVER", "ACTIVE_REQUALIFIED", "ACTIVE_PROBATION", "PAPER_ONLY", "DISABLED"}
 RESEARCH = {"REQUALIFIED", "PROBATION", "REJECTED", "INSUFFICIENT_EVIDENCE", "INVALIDATED"}
-ENABLED = {"LEGACY_HOLDOVER", "ACTIVE_REQUALIFIED"}
+ENABLED = {"LEGACY_HOLDOVER", "ACTIVE_REQUALIFIED", "ACTIVE_PROBATION"}
 REPO_ROOT = PATH.parent.parent
 RUNTIME_IMPLEMENTATION_FILES = ("quant.py",)
+PROBATION_EVIDENCE_SCHEMA = "v9.probation-evidence/1"
+MAX_PROBATION_RISK_MULTIPLIER = 0.5
+PROBATION_KEYS = {"sides", "risk_multiplier", "evidence", "forward_tests"}
+FORWARD_TEST_KEYS = {"experiment_id", "path", "sha256", "effective_from"}
+LEDGER_DIR = "research/shadow-ledger"
 
 
 def digest(value):
@@ -128,9 +148,104 @@ def validate(policy, strats, root=None, runtime_root=None):
                     ev.get("runtime_implementation_hash") == adjudicated.get("runtime_implementation_hash")
                     == current_implementation,
                     "runtime implementation differs between runtime, review and adjudication")
+        if ds == "ACTIVE_PROBATION":
+            require(rs == "PROBATION", "active probation without the PROBATION research state")
+            require(root is not None, "probation evidence required")
+            _validate_probation(sid, row.get("probation"), strats, Path(root).resolve(), runtime_root, require)
+        else:
+            require("probation" not in row, "a probation record on a row that is not ACTIVE_PROBATION")
     require(all(isinstance(s, str) for s in order) and len(set(order)) == len(order), "duplicate or invalid order")
     require(set(order) == set(enabled), "order must contain every deployment-enabled strategy exactly once")
     return policy
+
+
+def _bound_file(base, ref, require, what, inside=None):
+    """The bytes of a hash-bound file inside the repository (or inside `inside` below it)."""
+    require(isinstance(ref, dict) and isinstance(ref.get("path"), str) and isinstance(ref.get("sha256"), str),
+            what + " reference")
+    path = (base / ref["path"]).resolve()
+    limit = (base / inside).resolve() if inside else base
+    require(path.is_relative_to(limit) and path.is_file(), what + " outside its folder or missing")
+    raw = path.read_bytes()
+    require(hashlib.sha256(raw).hexdigest() == ref["sha256"], what + " hash")
+    return raw
+
+
+def _validate_probation(sid, prob, strats, base, runtime_root, require):
+    """ACTIVE_PROBATION: the confirmed sides, a reduced size, the bound evidence and a registered forward test."""
+    def number(x):
+        return not isinstance(x, bool) and isinstance(x, (int, float))
+    require(isinstance(prob, dict) and set(prob) == PROBATION_KEYS, "probation record keys")
+    sides = prob["sides"]
+    require(isinstance(sides, list) and bool(sides) and len(set(sides)) == len(sides)
+            and set(sides) <= {"long", "short"}, "probation sides")
+    m = prob["risk_multiplier"]
+    require(number(m) and 0 < m <= MAX_PROBATION_RISK_MULTIPLIER, "probation risk multiplier must be in (0, %s]"
+            % MAX_PROBATION_RISK_MULTIPLIER)
+    ev = json.loads(_bound_file(base, prob["evidence"], require, "probation evidence"))
+    require(ev.get("schema") == PROBATION_EVIDENCE_SCHEMA, "probation evidence schema")
+    try:
+        current = runtime_implementation_hash(REPO_ROOT if runtime_root is None else runtime_root)
+    except OSError:
+        current = None
+    require(current is not None and (ev.get("code") or {}).get("runtime_implementation_hash") == current,
+            "probation evidence was produced for another runtime implementation (re-bind it with tools/v9/confirm.py)")
+    tests = prob["forward_tests"]
+    require(isinstance(tests, dict) and set(tests) == set(sides), "one forward test per probation side")
+    for side in sides:
+        rows = [h for h in ev.get("hypotheses") or [] if isinstance(h, dict) and h.get("strategy_id") == sid
+                and h.get("side") == side]
+        require(len(rows) == 1, f"probation evidence row for {sid} {side}")
+        h = rows[0]
+        require(h.get("verdict") == "CONFIRMED" and h.get("failing") == [] and isinstance(h.get("checks"), dict)
+                and bool(h["checks"]) and all(v is True for v in h["checks"].values()),
+                f"{sid} {side} is not CONFIRMED by the probation evidence")
+        require(h.get("runtime_definition_hash") == digest(strats[sid]),
+                f"{sid} runtime definition differs from the confirmed one")
+        window = (h.get("late_entry") or {}).get("trade_window_hours")
+        require(number(window) and window > 0, f"{sid} {side} has no confirmed entry window")
+        band = (h.get("demotion_band") or {}).get("table")
+        require(isinstance(band, list) and bool(band) and all(isinstance(b, dict) and number(b.get("trades"))
+                                                              and number(b.get("p05_mean_R")) for b in band),
+                f"{sid} {side} demotion band")
+        require(isinstance(h.get("expectation"), dict), f"{sid} {side} expectation")
+        ft = tests[side]
+        require(isinstance(ft, dict) and set(ft) == FORWARD_TEST_KEYS, f"{sid} {side} forward test keys")
+        reg = json.loads(_bound_file(base, ft, require, f"{sid} {side} forward-test registration", LEDGER_DIR))
+        params = reg.get("params") or {}
+        require(reg.get("kind") == "REGISTRATION" and reg.get("status") == "REGISTERED" and reg.get("authority") == "NONE"
+                and reg.get("experiment_id") == ft["experiment_id"], f"{sid} {side} forward-test registration record")
+        require(params.get("strategy_id") == sid and params.get("side") == side and params.get("risk_multiplier") == m,
+                f"{sid} {side} forward test registered for other parameters")
+        require(isinstance(ft["effective_from"], int) and not isinstance(ft["effective_from"], bool)
+                and ft["effective_from"] == reg.get("evaluation_start")
+                and isinstance(reg.get("registered_at"), int) and reg["registered_at"] <= ft["effective_from"],
+                f"{sid} {side} probation must start at its registered forward-only evaluation start")
+
+
+def probation_terms(row, root=REPO_ROOT):
+    """The bound evidence terms of a validated ACTIVE_PROBATION row, per side: the confirmed entry window, the
+    out-of-sample expectation, the demotion band and the forward test. None for any other row. Call only on a policy
+    that validate() accepted (it re-reads the bound file; its hash was checked at load)."""
+    prob = row.get("probation") if isinstance(row, dict) else None
+    if row.get("deployment_state") != "ACTIVE_PROBATION" or not isinstance(prob, dict):
+        return None
+    raw = (Path(root) / prob["evidence"]["path"]).read_bytes()
+    if hashlib.sha256(raw).hexdigest() != prob["evidence"]["sha256"]:
+        raise ValueError("STRATEGY_POLICY_INVALID: probation evidence hash")
+    ev = json.loads(raw)
+    sides = {}
+    for side in prob["sides"]:
+        h = next(x for x in ev["hypotheses"] if x["strategy_id"] == row["strategy_id"] and x["side"] == side)
+        sides[side] = {"entry_window_s": int(h["late_entry"]["trade_window_hours"] * 3600),
+                       "expectation": h["expectation"], "trades": h["trades"],
+                       "holdout": {k: h["windows"]["holdout"].get(k) for k in ("n", "mean_R", "lower_95", "upper_95")},
+                       "holdout_holm_p": h.get("holdout_holm_p"),
+                       "design_window": {k: h["windows"]["design_window"].get(k)
+                                         for k in ("n", "mean_R", "lower_95", "upper_95")},
+                       "demotion_band": h["demotion_band"], "forward_test": prob["forward_tests"][side]}
+    return {"risk_multiplier": prob["risk_multiplier"], "sides": sides, "evidence": dict(prob["evidence"]),
+            "evidence_as_of": ev.get("as_of"), "dataset_sha256": (ev.get("inputs") or {}).get("dataset_sha256")}
 
 
 def load(strats, path=PATH):

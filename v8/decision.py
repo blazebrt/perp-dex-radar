@@ -7,11 +7,16 @@ This module consumes the existing authorities and never recomputes them:
     discovery            v8.discovery/1 records (universal: every active perp of every healthy venue)
     identity / exposure  the record's v8.identity/4 state, exposure flags and admitted contracts
     venue health         the record's data quality, the discovery provenance and each contract's health
-    strategy authority   the Phase 9 reviewed policy rows (v8.quant-strategy-policy/1), never a profit or a score
+    strategy authority   the reviewed policy rows (v8.quant-strategy-policy/2), never a profit or a score: a
+                         requalified strategy (FULL tier) or an archive-confirmed side on probation (PROBATION tier:
+                         its confirmed sides only, a reduced size, inside its confirmed entry window, until its
+                         registered forward test falls below the archive's demotion band)
     signals              quant.py's own strategy functions at the latest closed bar (the quant audit records them)
     execution liquidity  the record's v8.liquidity execution gate
     funding              venue-reported current rates of the asset's admitted trade-DEX contracts (never a default)
-    portfolio risk       Phase 10 what_if() of the proposed position against the whole open book (v8.portfolio-risk/1)
+    portfolio risk       Phase 10 what_if() of the proposed position against the governed book (v8.portfolio-risk/1):
+                         the paper positions of trade-authorized strategy sides, entered since that authority took
+                         effect, with their current observed funding; the whole paper book stays a diagnostic
 
 and turns them into one record per opportunity and one per asset, with a TRADE / WATCH / AVOID state, the gate that
 decided it, the governed ranking inputs, the section it was placed in and an INPUT -> RULE -> RESULT -> EFFECT trace.
@@ -34,12 +39,13 @@ import math
 from pathlib import Path
 
 from . import portfolio_risk as PR
+from . import strategy_policy as SP
 
 VERSION = "v8.decision/1"
 POLICY_VERSION = "v8.decision-policy/1"
 PATH = Path(__file__).with_name("decision_policy.json")
 FILE = "data/v8/decision.json"
-REVIEW_STATUS = "POLICY_REVIEWED_INITIAL_V1"      # the one accepted review status of v8.decision-policy/1
+REVIEW_STATUS = "POLICY_REVIEWED_V2_PROBATION"    # the one accepted review status of v8.decision-policy/1 (v9: V2)
 TRADE, WATCH, AVOID = "TRADE", "WATCH", "AVOID"
 STATES = (TRADE, WATCH, AVOID)
 STATE_ORDER = {TRADE: 0, WATCH: 1, AVOID: 2}
@@ -59,7 +65,11 @@ RANK_FIELDS = {
                                "outstanding_blockers": "num", "asset": "str"},
     "funding_opportunities": {"net_carry": "num", "basis_abs": "num", "asset": "str"},
 }
-DEPLOYMENT = ("LEGACY_HOLDOVER", "ACTIVE_REQUALIFIED", "PAPER_ONLY", "DISABLED")
+DEPLOYMENT = ("LEGACY_HOLDOVER", "ACTIVE_REQUALIFIED", "ACTIVE_PROBATION", "PAPER_ONLY", "DISABLED")
+FULL_TIER, PROBATION_TIER = "FULL", "PROBATION"
+MAX_PROBATION_RISK_MULTIPLIER = SP.MAX_PROBATION_RISK_MULTIPLIER   # the strategy policy's own invariant, not a threshold here
+GOVERNED_BOOK = "GOVERNED_TRADE_AUTHORIZED"
+FRESH_ENTRY_KINDS = ("NEW", "ENTERED")       # the signal's own paper position was opened from this very signal
 RESEARCH = ("REQUALIFIED", "PROBATION", "REJECTED", "INSUFFICIENT_EVIDENCE", "INVALIDATED")
 HEALTHY = "HEALTHY"
 REQUIRED_INPUT_TIMES = ("discovery", "quant", "portfolio")
@@ -107,12 +117,13 @@ SECTION_KEYS = {
     "exposure": ("conflict_flags", "degraded_flags"),
     "venue_health": ("healthy_data_quality",),
     "signal": ("max_age_s", "max_stop_fraction"),
-    "strategy_authority": ("trade_deployment_states", "trade_research_states", "watch_deployment_states",
-                           "avoid_deployment_states", "avoid_research_states"),
+    "strategy_authority": ("trade_deployment_states", "trade_research_states", "probation_deployment_states",
+                           "probation_research_states", "watch_deployment_states", "avoid_deployment_states",
+                           "avoid_research_states"),
     "execution": ("effects",),
     "funding": ("venue_rule", "max_rate_age_s"),
     "freshness": ("max_input_age_s",),
-    "portfolio": ("after_state_effects",),
+    "portfolio": ("after_state_effects", "gating_book"),
     "emerging": ("evidence_from_flags", "primary_evidence", "warning_flags"),
     "funding_spread": ("holding_hours", "max_basis", "min_net_carry", "leg_volume_threshold"),
     "sections": SECTIONS,
@@ -160,18 +171,21 @@ def validate_policy(policy):
     need(_num(v("signal", "max_stop_fraction")) and 0 < v("signal", "max_stop_fraction") < 1, "signal.max_stop_fraction")
     sa = {k: v("strategy_authority", k) for k in SECTION_KEYS["strategy_authority"]}
     for k, allowed in (("trade_deployment_states", DEPLOYMENT), ("watch_deployment_states", DEPLOYMENT),
-                       ("avoid_deployment_states", DEPLOYMENT), ("trade_research_states", RESEARCH),
+                       ("avoid_deployment_states", DEPLOYMENT), ("probation_deployment_states", DEPLOYMENT),
+                       ("trade_research_states", RESEARCH), ("probation_research_states", RESEARCH),
                        ("avoid_research_states", RESEARCH)):
         need(isinstance(sa[k], list) and set(sa[k]) <= set(allowed), "strategy_authority." + k)
     need(set(sa["trade_deployment_states"]) <= {"ACTIVE_REQUALIFIED"}, "only ACTIVE_REQUALIFIED can support TRADE")
     need(set(sa["trade_research_states"]) <= {"REQUALIFIED"}, "only REQUALIFIED research can support TRADE")
+    need(set(sa["probation_deployment_states"]) <= {"ACTIVE_PROBATION"},
+         "only ACTIVE_PROBATION can support a probation TRADE")
+    need(set(sa["probation_research_states"]) <= {"PROBATION"}, "only PROBATION research can support a probation TRADE")
     need("DISABLED" in sa["avoid_deployment_states"], "a DISABLED strategy must be AVOID")
-    need(not (set(sa["trade_deployment_states"]) & set(sa["watch_deployment_states"]))
-         and not (set(sa["watch_deployment_states"]) & set(sa["avoid_deployment_states"]))
-         and not (set(sa["trade_deployment_states"]) & set(sa["avoid_deployment_states"])),
+    lists = ("trade_deployment_states", "probation_deployment_states", "watch_deployment_states",
+             "avoid_deployment_states")
+    need(all(not (set(sa[a]) & set(sa[b])) for i, a in enumerate(lists) for b in lists[i + 1:]),
          "deployment-state lists must be disjoint")
-    need(set(sa["trade_deployment_states"]) | set(sa["watch_deployment_states"]) | set(sa["avoid_deployment_states"])
-         == set(DEPLOYMENT), "every deployment state must be mapped")
+    need(set().union(*(set(sa[k]) for k in lists)) == set(DEPLOYMENT), "every deployment state must be mapped")
     ef = v("execution", "effects")
     need(isinstance(ef, dict) and set(ef) == {"KNOWN_PASS", "KNOWN_BELOW_GATE", "MISSING", "NO_COIN_RECORD",
                                              "NOT_ON_TRADE_DEX"} and set(ef.values()) <= set(EFFECT_RESULT),
@@ -185,6 +199,7 @@ def validate_policy(policy):
          "portfolio.after_state_effects")
     need(pe[PR.BREACHED] == "AVOID", "a Phase 10 limit breach after the addition is always AVOID")
     need(pe[PR.UNEVALUABLE] != "PASS", "an unevaluable portfolio can never pass")
+    need(v("portfolio", "gating_book") == GOVERNED_BOOK, "portfolio.gating_book must be " + GOVERNED_BOOK)
     em = {k: v("emerging", k) for k in SECTION_KEYS["emerging"]}
     need(isinstance(em["evidence_from_flags"], dict)
          and all(isinstance(a, str) and isinstance(b, str) for a, b in em["evidence_from_flags"].items()),
@@ -373,6 +388,9 @@ def _valid_until(cand, snap, policy):
         ma = _v(policy, "signal", "max_age_s").get(tf) if isinstance(tf, str) else None
         if _int(s.get("bar_close_t")) and ma is not None:
             until.append(s["bar_close_t"] + ma)
+        win = (cand.get("probation") or {}).get("entry_window_s")
+        if cand.get("authority_tier") == PROBATION_TIER and _int(s.get("bar_close_t")) and _int(win):
+            until.append(s["bar_close_t"] + win)
         until += [o["received_ts"] + rate_age for o in (cand.get("funding") or {}).get("observations") or []
                   if _int(o.get("received_ts"))]
     elif cand["type"] == FUNDING:
@@ -420,6 +438,83 @@ def cand_codes(cand, result):
     return [g["code"] for g in cand["trace"] if g["result"] == result and g["code"]]
 
 
+# --------------------------------------------------------------------------- authority tiers and the governed book
+def _side_name(d):
+    return {1: "long", -1: "short"}.get(d) if not isinstance(d, bool) else None
+
+
+def _authorized_side(strat, d, sa):
+    """(authorized, since): whether this strategy side may produce a TRADE under the reviewed policy, and from when
+    (None: no start bound). Independent of the signal, its age and the forward test: it decides book membership."""
+    if not isinstance(strat, dict):
+        return False, None
+    ds, rs = strat.get("deployment_state"), strat.get("research_state")
+    if ds in sa["trade_deployment_states"] and rs in sa["trade_research_states"]:
+        return True, None
+    if ds in sa["probation_deployment_states"] and rs in sa["probation_research_states"]:
+        prob = strat.get("probation") if isinstance(strat.get("probation"), dict) else {}
+        terms = (prob.get("sides") or {}).get(_side_name(d)) if isinstance(prob.get("sides"), dict) else None
+        since = ((terms or {}).get("forward_test") or {}).get("effective_from")
+        return terms is not None and _int(since), since
+    return False, None
+
+
+def _governed_book(snap, policy):
+    """The book the Phase 10 gates evaluate (portfolio.gating_book = GOVERNED_TRADE_AUTHORIZED): every paper position
+    of a trade-authorized strategy side entered since that authority took effect - a superset of what the desk
+    recommended, so it is conservative - with the asset's current observed funding as its funding projection (the
+    same rule as a proposal) unless the position carries its own observed funding. The rest of the paper book (legacy holdovers the desk never recommended) is reported as a
+    diagnostic and does not gate. A position that is not a record is kept, so it can never vanish silently."""
+    pf = snap.get("portfolio") if isinstance(snap.get("portfolio"), dict) else None
+    if pf is None or not isinstance(pf.get("positions"), list):
+        return None
+    sa = {k: _v(policy, "strategy_authority", k) for k in SECTION_KEYS["strategy_authority"]}
+    strategies = snap.get("strategies") or {}
+    keep, excluded = [], 0
+    for p in pf["positions"]:
+        if not isinstance(p, dict):
+            keep.append(p)
+            continue
+        ok, since = _authorized_side(strategies.get(p.get("strategy")), p.get("direction"), sa)
+        if ok and (since is None or (_int(p.get("entered_at")) and p["entered_at"] >= since)):
+            if (p.get("funding") or {}).get("state") in ("OBSERVED", "OBSERVED_ZERO"):
+                keep.append(p)
+                continue
+            d = p.get("direction") if p.get("direction") in (1, -1) and not isinstance(p.get("direction"), bool) else 1
+            fund = _directional_funding(p.get("asset"), d, snap, policy)
+            keep.append(dict(p, funding={"state": fund["state"], "rate_8h": fund.get("rate_8h"),
+                                         "basis": "current venue-reported rate of the asset's trade-DEX contracts "
+                                                  "(most adverse), the projection a proposal uses"}))
+        else:
+            excluded += 1
+    return dict(pf, positions=keep, book={"gating_book": GOVERNED_BOOK, "governed_positions": len(keep),
+                                          "excluded_paper_positions": excluded, "full_paper_book": pf.get("book")})
+
+
+def _forward_test(terms, snap):
+    """(ACTIVE | FAILED | MISSING, detail) of a probation side's registered forward test against its demotion band:
+    FAILED once at least min_trades closed forward trades average below the band's 5th percentile for the largest
+    tabulated n not above the live n."""
+    ft = terms.get("forward_test") if isinstance(terms.get("forward_test"), dict) else {}
+    rec = (snap.get("forward_tests") or {}).get(ft.get("experiment_id"))
+    detail = {"experiment_id": ft.get("experiment_id"), "effective_from": ft.get("effective_from")}
+    if not isinstance(rec, dict) or not _int(rec.get("closed")) or rec["closed"] < 0:
+        return "MISSING", detail
+    band = terms.get("demotion_band") if isinstance(terms.get("demotion_band"), dict) else {}
+    table = sorted([b for b in band.get("table") or [] if isinstance(b, dict) and _int(b.get("trades"))
+                    and _num(b.get("p05_mean_R"))], key=lambda b: b["trades"])
+    n, mean = rec["closed"], rec.get("mean_R")
+    row = next((b for b in reversed(table) if b["trades"] <= n), None)
+    min_n = band.get("min_trades") if _int(band.get("min_trades")) else (table[0]["trades"] if table else None)
+    detail.update(closed=n, mean_R=mean, open=rec.get("open"), band_trades=(row or {}).get("trades"),
+                  band_p05_mean_R=(row or {}).get("p05_mean_R"), min_trades=min_n)
+    if not table or min_n is None:
+        return "MISSING", detail
+    if n >= min_n and row is not None and (not _num(mean) or mean < row["p05_mean_R"]):
+        return "FAILED", detail
+    return "ACTIVE", detail
+
+
 # --------------------------------------------------------------------------- opportunity types
 def _directional(asset, rec, sig, snap, policy, base):
     as_of = snap.get("as_of")
@@ -446,21 +541,28 @@ def _directional(asset, rec, sig, snap, policy, base):
     # The paper desk opens a paper trade for every new signal: a NEW signal's own just-opened paper position is taken
     # out of the book so the what-if is the marginal effect of this position; any other open position of the same
     # strategy, asset and direction means this is not a new opportunity.
-    pf = snap.get("portfolio") if isinstance(snap.get("portfolio"), dict) else None
-    own = sig.get("trade_id") if sig.get("kind") == "NEW" else None
-    held = [p for p in (pf or {}).get("positions") or []
+    # A signal whose own paper position was opened from this very signal (NEW this scan, ENTERED in an earlier scan
+    # of the same bar) is still the same opportunity until the signal ages out: its own position is taken out of the
+    # book so the what-if is its marginal effect. Any other open paper position of the same strategy, asset and
+    # direction (the whole paper book) means this is not a new opportunity.
+    full = snap.get("portfolio") if isinstance(snap.get("portfolio"), dict) else None
+    own = sig.get("trade_id") if sig.get("kind") in FRESH_ENTRY_KINDS else None
+    held = [p for p in (full or {}).get("positions") or []
             if isinstance(p, dict) and p.get("asset") == asset and p.get("strategy") == sid and p.get("direction") == d
             and p.get("id") != own]
     if held:
         gates.append(_gate("SIGNAL", {"open_positions": sorted(str(p.get("id")) for p in held)},
                            "a new opportunity, not a position the book already holds", FAIL, "POSITION_ALREADY_OPEN"))
+    pf = snap.get("_governed_portfolio") if full is not None else None
     if pf is not None and own is not None:
         pf = dict(pf, positions=[p for p in pf.get("positions") or [] if not (isinstance(p, dict)
                                                                                 and p.get("id") == own)])
     sa = {k: _v(policy, "strategy_authority", k) for k in SECTION_KEYS["strategy_authority"]}
     ainp = {"strategy": sid, "deployment_state": (strat or {}).get("deployment_state"),
-            "research_state": (strat or {}).get("research_state"), "source": "v8.quant-strategy-policy/1 (Phase 9)"}
+            "research_state": (strat or {}).get("research_state"),
+            "source": "v8.quant-strategy-policy/2 (Phase 9 and the v9 probation tier)"}
     ds, rs = ainp["deployment_state"], ainp["research_state"]
+    tier, terms, mult, fdet = None, None, None, None
     if strat is None or ds not in DEPLOYMENT or rs not in RESEARCH:
         gates.append(_gate("STRATEGY_AUTHORITY", ainp, "the strategy must be governed by the Phase 9 policy", FAIL,
                            "STRATEGY_UNGOVERNED"))
@@ -471,7 +573,43 @@ def _directional(asset, rec, sig, snap, policy, base):
         gates.append(_gate("STRATEGY_AUTHORITY", ainp, "research state must not be rejected or invalidated", FAIL,
                            "STRATEGY_RESEARCH_" + rs))
     elif ds in sa["trade_deployment_states"] and rs in sa["trade_research_states"]:
+        tier = FULL_TIER
+        ainp.update(tier=tier)
         gates.append(_gate("STRATEGY_AUTHORITY", ainp, "ACTIVE_REQUALIFIED / REQUALIFIED: sufficient for TRADE", PASS))
+    elif ds in sa["probation_deployment_states"] and rs in sa["probation_research_states"]:
+        prob = strat.get("probation") if isinstance(strat.get("probation"), dict) else None
+        sides = (prob or {}).get("sides") if isinstance((prob or {}).get("sides"), dict) else None
+        mult = (prob or {}).get("risk_multiplier")
+        terms = sides.get(_side_name(d)) if sides is not None else None
+        ainp.update(tier=PROBATION_TIER, confirmed_sides=sorted(sides or {}), risk_multiplier=mult)
+        if sides is None or not (_num(mult) and 0 < mult <= MAX_PROBATION_RISK_MULTIPLIER):
+            gates.append(_gate("STRATEGY_AUTHORITY", ainp, "a probation strategy needs its bound probation terms",
+                               MISSING, "PROBATION_TERMS_MISSING"))
+        elif not isinstance(terms, dict):
+            gates.append(_gate("STRATEGY_AUTHORITY", ainp, "probation covers only the archive-confirmed side(s): "
+                               + ", ".join(sorted(sides)), CAP, "STRATEGY_SIDE_NOT_CONFIRMED"))
+        else:
+            fstate, fdet = _forward_test(terms, snap)
+            win, since = terms.get("entry_window_s"), (terms.get("forward_test") or {}).get("effective_from")
+            ainp.update(forward_test=fdet, entry_window_s=win, effective_from=since,
+                        expectation=terms.get("expectation"))
+            if fstate == "MISSING":
+                gates.append(_gate("STRATEGY_AUTHORITY", ainp, "the registered forward test's live record is required",
+                                   MISSING, "FORWARD_TEST_RECORD_MISSING"))
+            elif fstate == "FAILED":
+                gates.append(_gate("STRATEGY_AUTHORITY", ainp, "the forward test is below the archive's demotion "
+                                   "band: the side is demoted to WATCH", CAP, "PROBATION_FORWARD_TEST_FAILED"))
+            elif not (_int(since) and _int(bar) and bar >= since):
+                gates.append(_gate("STRATEGY_AUTHORITY", ainp, "only signals at or after the forward test's registered "
+                                   "start can be probation trades", CAP, "PROBATION_NOT_YET_EFFECTIVE"))
+            elif not (_int(win) and win > 0 and age is not None and 0 <= age <= win):
+                gates.append(_gate("STRATEGY_AUTHORITY", ainp, f"inside the confirmed entry window ({win}s after the "
+                                   "signal bar closed; tested with late entries)", CAP, "PROBATION_ENTRY_WINDOW_PASSED"))
+            else:
+                tier = PROBATION_TIER
+                gates.append(_gate("STRATEGY_AUTHORITY", ainp, "ACTIVE_PROBATION / PROBATION: an archive-confirmed side "
+                                   f"at {mult:g}x size, inside its entry window, forward test registered and within "
+                                   "its band: sufficient for a probation TRADE", PASS))
     else:
         gates.append(_gate("STRATEGY_AUTHORITY", ainp, "runtime continuity is not research authority", CAP,
                            "STRATEGY_RESEARCH_AUTHORITY_INSUFFICIENT"))
@@ -486,10 +624,14 @@ def _directional(asset, rec, sig, snap, policy, base):
     # Phase 10 what-if against the whole open book
     price = (rec or {}).get("price")
     sizing = snap.get("sizing") or {}
+    risk = sizing.get("risk_per_trade")
+    size_mult = mult if _num(mult) and 0 < mult <= MAX_PROBATION_RISK_MULTIPLIER else 1.0
+    if _num(risk):
+        risk = risk * size_mult      # a probation side is always proposed at its reduced size, whatever its state
     proposal = {"id": "PROPOSED:" + cid.split(":", 1)[1], "asset": asset, "strategy": sid, "direction": d,
                 "mark": price if _num(price) and price > 0 else None,
                 "stop": (price * (1 - d * stop) if _num(price) and price > 0 and _num(stop) and d in (1, -1) else None),
-                "risk_fraction": sizing.get("risk_per_trade"), "entered": False, "actionability": PR.PROPOSED,
+                "risk_fraction": risk, "entered": False, "actionability": PR.PROPOSED,
                 "liquidity": {"state": ((rec or {}).get("execution_liquidity") or {}).get("state"),
                               "volume": ((rec or {}).get("execution_liquidity") or {}).get("observed_value")},
                 "funding": {"state": fund["state"], "rate_8h": fund.get("rate_8h")},
@@ -498,13 +640,15 @@ def _directional(asset, rec, sig, snap, policy, base):
     before = (w or {}).get("before") or {}
     gates.append(_gate("PORTFOLIO_BEFORE", {"state": before.get("state"), "breached": before.get("breached"),
                                             "missing": len(before.get("missing_authorities") or []),
-                                            "own_paper_position_excluded": own},
-                       "Phase 10 evaluation of the whole open book (actionable and identity-blocked)", INFO))
+                                            "own_paper_position_excluded": own, "book": (pf or {}).get("book")},
+                       "Phase 10 evaluation of the governed book (paper positions of trade-authorized strategy "
+                       "sides since their authority took effect; the rest of the paper book is a diagnostic)", INFO))
     row = next((p for p in ((w or {}).get("after_result") or {}).get("positions") or []
                 if p.get("id") == proposal["id"]), None)
     evaluated_equity = ((w or {}).get("after_result") or {}).get("equity")
     pinp = {"id": proposal["id"], "mark": proposal["mark"], "stop": proposal["stop"],
             "risk_fraction": proposal["risk_fraction"], "sizing_basis": sizing.get("basis"),
+            "base_risk_fraction": sizing.get("risk_per_trade"), "size_multiplier": size_mult,
             "status": (row or {}).get("status"), "leverage": (row or {}).get("leverage"),
             "stop_risk": (row or {}).get("account_risk"), "expected_fees": (row or {}).get("expected_fees"),
             "expected_slippage": (row or {}).get("expected_slippage"),
@@ -539,12 +683,19 @@ def _directional(asset, rec, sig, snap, policy, base):
                        "Phase 10 limits (v8.portfolio-risk-policy/1, unchanged)", INFO))
     metrics = after.get("metrics") or {}
     cand = {"id": cid, "type": DIRECTIONAL, "asset": asset, "strategy": sid, "direction": d,
+            "authority_tier": tier,
+            "probation": ({"risk_multiplier": mult, "entry_window_s": terms.get("entry_window_s"),
+                           "expectation": terms.get("expectation"), "holdout": terms.get("holdout"),
+                           "design_window": terms.get("design_window"), "archive_trades": terms.get("trades"),
+                           "forward_test": fdet, "evidence": (strat.get("probation") or {}).get("evidence")}
+                          if isinstance(terms, dict) else None),
             "positive_evidence": [{"type": "CURRENT_STRATEGY_SIGNAL", "strategy": sid, "direction": d,
                                    "kind": sig.get("kind")}],
             "funding": fund, "proposal": pinp,
             "portfolio": {"before": before, "after": after, "effect": (w or {}).get("effect"),
                           "delta": (w or {}).get("delta"), "explanation": (w or {}).get("explanation")},
-            "ranking_inputs": {"signal_kind_order": 0 if sig.get("kind") == "NEW" else 1, "signal_age_s": age,
+            "ranking_inputs": {"signal_kind_order": 0 if sig.get("kind") in FRESH_ENTRY_KINDS else 1,
+                               "signal_age_s": age,
                                "slippage_rate": ((row or {}).get("liquidity") or {}).get("slippage_rate"),
                                "after_executable_risk": metrics.get("max_executable_risk"),
                                "asset": asset, "strategy": sid, "direction": d},
@@ -563,7 +714,8 @@ def _emerging(asset, rec, base, directional, policy):
                           note="first seen by this desk after tracking started; not a listing date")
             evidence.append(ev)
     for c in directional:
-        if c["state"] == WATCH:
+        # v9: the side of a probation strategy that its archive evidence did not confirm is not positive evidence
+        if c["state"] == WATCH and "STRATEGY_SIDE_NOT_CONFIRMED" not in c["caps"]:
             evidence.append({"type": "CURRENT_STRATEGY_SIGNAL", "strategy": c["strategy"], "direction": c["direction"],
                              "candidate": c["id"], "source": "a WATCH directional decision of an enabled strategy"})
     primary = [e for e in evidence if e["type"] in _v(policy, "emerging", "primary_evidence")]
@@ -866,6 +1018,7 @@ def _context(snapshot, policy):
     _validate_inputs(snap, policy)
     recs = {r["asset"]: r for r in (snap.get("discovery") or {}).get("assets") or [] if isinstance(r, dict)
             and isinstance(r.get("asset"), str)}
+    snap = dict(snap, _governed_portfolio=_governed_book(snap, policy))
     return policy, snap, recs
 
 
@@ -905,14 +1058,49 @@ def build(snapshot, policy=None):
     for c in cands:
         c["placement"] = _placement(c, placed, policy)
     pf = snap.get("portfolio") if isinstance(snap.get("portfolio"), dict) else None
+    gpf = snap.get("_governed_portfolio")
     book = PR.evaluate(pf) if pf is not None else None
-    portfolio = {"phase10": PR.audit_summary(book) if book else PR.audit_summary(None),
+    governed = PR.evaluate(gpf) if gpf is not None else None
+    rows = [r for r in (governed or {}).get("positions") or [] if isinstance(r, dict)]
+    portfolio = {"phase10": PR.audit_summary(governed) if governed else PR.audit_summary(None),
+                 "gating_book": _v(policy, "portfolio", "gating_book"),
+                 "governed": (gpf or {}).get("book"),
+                 "governed_positions": [dict({k: r.get(k) for k in ("id", "asset", "strategy", "direction", "status",
+                                                                      "actionability", "entry", "mark", "stop",
+                                                                      "leverage", "account_risk", "notional_usd",
+                                                                      "hold_hours_remaining")},
+                                             liquidity=(r.get("liquidity") or {}).get("state"),
+                                             funding=(r.get("funding") or {}).get("state"),
+                                             funding_rate_8h=(r.get("funding") or {}).get("rate_8h")) for r in rows],
+                 "full_paper_book": PR.audit_summary(book) if book else PR.audit_summary(None),
                  "binding": {"phase10_audit_state": snap.get("phase10_state"),
                              "engine_book_state": (book or {}).get("state"),
                              "consistent": (book or {}).get("state") == snap.get("phase10_state"),
                              "portfolio_input_hash": digest(pf) if pf is not None else None,
+                             "governed_input_hash": digest(gpf) if gpf is not None else None,
                              "book": (pf or {}).get("book")}}
     info = {"policy_hash": policy_hash(policy)}
+    # which strategy sides may produce a TRADE at all, and on what terms (reported whether or not a signal is current)
+    sa = {k: _v(policy, "strategy_authority", k) for k in SECTION_KEYS["strategy_authority"]}
+    tiers = {FULL_TIER: [], PROBATION_TIER: []}
+    for sid, st in sorted((snap.get("strategies") or {}).items()):
+        if not isinstance(st, dict):
+            continue
+        ds, rs = st.get("deployment_state"), st.get("research_state")
+        if ds in sa["trade_deployment_states"] and rs in sa["trade_research_states"]:
+            tiers[FULL_TIER].append({"strategy": sid, "timeframe": st.get("tf")})
+        elif ds in sa["probation_deployment_states"] and rs in sa["probation_research_states"]:
+            prob = st.get("probation") if isinstance(st.get("probation"), dict) else {}
+            sides = prob.get("sides") if isinstance(prob.get("sides"), dict) else {}
+            rows = {}
+            for side, terms in sorted(sides.items()):
+                fstate, fdet = _forward_test(terms, snap) if isinstance(terms, dict) else ("MISSING", {})
+                rows[side] = {"entry_window_s": terms.get("entry_window_s") if isinstance(terms, dict) else None,
+                              "expectation": terms.get("expectation") if isinstance(terms, dict) else None,
+                              "forward_test_state": fstate, "forward_test": fdet}
+            tiers[PROBATION_TIER].append({"strategy": sid, "timeframe": st.get("tf"),
+                                          "risk_multiplier": prob.get("risk_multiplier"), "sides": rows,
+                                          "evidence": prob.get("evidence")})
     index = _index(cands)
     prov = (snap.get("discovery") or {}).get("provenance") or {}
     missing = {}
@@ -932,6 +1120,9 @@ def build(snapshot, policy=None):
                "execution_blocked_assets": sum(1 for a in assets if a["execution_blocked"]),
                "current_strategy_signals": sum(len(v or []) for v in (snap.get("signals") or {}).values()),
                "portfolio_state": portfolio["phase10"].get("state"),
+               "full_paper_book_state": portfolio["full_paper_book"].get("state"),
+               "trade_by_tier": {t: sum(1 for c in cands if c["state"] == TRADE and c.get("authority_tier") == t)
+                                 for t in (FULL_TIER, PROBATION_TIER)},
                "major_missing_authorities": dict(sorted(missing.items(), key=lambda kv: (-kv[1], kv[0]))[:10]),
                "venue_degradation": {"venues_failed": prov.get("venues_failed_names") or [],
                                      "fallback_universe": prov.get("fallback_universe"),
@@ -943,6 +1134,7 @@ def build(snapshot, policy=None):
            "authority": authority(snap, policy), "inputs": snap.get("input_provenance"),
            "best_trades_now": sections["best_trades_now"], "emerging_opportunities": sections["emerging_opportunities"],
            "funding_opportunities": sections["funding_opportunities"], "portfolio": portfolio,
+           "strategy_tiers": tiers,
            "market_summary": summary, "assets": assets, "candidates": cands, "index": index,
            "changes": _changes(index, snap.get("previous"), info),
            "vocabulary": {"states": {TRADE: "the governed evidence is sufficient to present it as trade-ready for "
@@ -952,6 +1144,12 @@ def build(snapshot, policy=None):
                                      AVOID: "do not take this opportunity now under the governed rules (a current "
                                             "decision, not a permanent verdict on the asset)"},
                           "gate_results": EFFECT_TEXT, "trace_steps": list(TRACE_STEPS) + list(PLACEMENT_STEPS),
+                          "authority_tiers": {FULL_TIER: "a strategy requalified under the Phase 9 gate, at the page "
+                                                         "sizing",
+                                              PROBATION_TIER: "an archive-confirmed strategy side (survivorship-free, "
+                                                              "out of sample) at a reduced size, inside its confirmed "
+                                                              "entry window, with a forward test registered before its "
+                                                              "first trade and automatic demotion; not requalified"},
                           "valid_until": "after this time the decision's inputs exceed their policy ages (freshness, "
                                          "signal age, funding age): a consumer must treat it as stale and fail closed",
                           "execution": "NONE: nothing here places, sizes for real money or ranks a trade for execution"}}
