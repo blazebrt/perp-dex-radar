@@ -253,8 +253,11 @@ def _flow(text):
     return -v if neg and _num(v) else v
 
 
-def parse_farside(text, keep=10):
-    """US spot bitcoin ETF daily net flows (US$m) from Farside's table: the dated rows with a numeric total."""
+def parse_farside(text, now, keep=10):
+    """US spot bitcoin ETF daily net flows (US$m) from Farside's table: the dated rows with a numeric total, before
+    today (UTC). Today's row is the US session still in progress (Farside shows it as 0.0 until funds report), so it
+    is never read as a flow."""
+    today = int(now) // 86400 * 86400
     days = []
     for row in re.findall(r"<tr[^>]*>(.*?)</tr>", text, re.S | re.I):
         cells = [_cell(c) for c in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", row, re.S | re.I)]
@@ -265,8 +268,9 @@ def parse_farside(text, keep=10):
             continue
         total = _flow(cells[-1])
         if _num(total):
-            d = datetime(int(m.group(3)), MONTHS[m.group(2)], int(m.group(1)), tzinfo=timezone.utc)
-            days.append((int(d.timestamp()), total))
+            d = int(datetime(int(m.group(3)), MONTHS[m.group(2)], int(m.group(1)), tzinfo=timezone.utc).timestamp())
+            if d < today:
+                days.append((d, total))
     if not days:
         raise ValueError("no dated rows with a total")
     days = sorted(set(days))[-keep:]
@@ -275,16 +279,13 @@ def parse_farside(text, keep=10):
             "days": [[t, _sig(v, 6)] for t, v in days]}
 
 
-def parse_coinbase_last(rows):
-    rows = [r for r in rows if isinstance(r, list) and len(r) >= 5]
-    rows.sort(key=lambda r: r[0])
-    return {"t": int(rows[-1][0]), "close": _f(rows[-1][4])}
-
-
-def parse_binance_last(rows):
-    rows = [r for r in rows if isinstance(r, list) and len(r) >= 5]
-    rows.sort(key=lambda r: r[0])
-    return {"t": int(rows[-1][0]) // 1000, "close": _f(rows[-1][4])}
+def parse_price(payload, now):
+    """A live ticker's last price ({"price": "..."}: Coinbase products/<id>/ticker, Binance ticker/price), stamped
+    with the fetch time (both are fetched in the same scan, seconds apart)."""
+    p = _f(payload.get("price"))
+    if not _num(p) or p <= 0:
+        raise ValueError("no price")
+    return {"t": int(now), "price": p}
 
 
 # --------------------------------------------------------------------------- collection
@@ -322,13 +323,13 @@ def collect(now=None, fetch=fetch_default, cg_key=None, top_n=30, workers=16):
             f"&start_timestamp={(now - 8 * 86400) * 1000}&end_timestamp={now * 1000}"), now),
         "alt.fng": lambda: parse_fng(fetch("https://api.alternative.me/fng/?limit=8")),
         "llama.stable": lambda: parse_stablecoins(fetch("https://stablecoins.llama.fi/stablecoincharts/all")),
-        "cb.btc": lambda: parse_coinbase_last(fetch("https://api.exchange.coinbase.com/products/BTC-USD/candles?granularity=60")),
-        "bn.btc": lambda: parse_binance_last(fetch("https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=1m&limit=3")),
+        "cb.btc": lambda: parse_price(fetch("https://api.exchange.coinbase.com/products/BTC-USD/ticker"), time.time()),
+        "bn.btc": lambda: parse_price(fetch("https://data-api.binance.vision/api/v3/ticker/price?symbol=BTCUSDT"), time.time()),
         "upbit.btc": lambda: fetch("https://api.upbit.com/v1/ticker?markets=KRW-BTC")[0],
         "fx.usd": lambda: fetch("https://open.er-api.com/v6/latest/USD")["rates"],
         "bfx.longs": lambda: fetch("https://api-pub.bitfinex.com/v2/stats1/pos.size:1m:tBTCUSD:long/hist?limit=1441"),
         "bfx.shorts": lambda: fetch("https://api-pub.bitfinex.com/v2/stats1/pos.size:1m:tBTCUSD:short/hist?limit=1441"),
-        "farside.etf": lambda: parse_farside(fetch("https://farside.co.uk/bitcoin-etf-flow-all-data/", kind="text")),
+        "farside.etf": lambda: parse_farside(fetch("https://farside.co.uk/bitcoin-etf-flow-all-data/", kind="text"), now),
     }
     if cg_key:
         jobs["cg.global"] = lambda: parse_cg_global(fetch("https://api.coingecko.com/api/v3/global",
@@ -393,13 +394,18 @@ def regime(got, ctx, stats, now):
     liquid = {c: v for c, v in ctx.items() if _num(v.get("vol_24h_usd")) and v["vol_24h_usd"] >= LIQUID_USD}
     funds = [v["funding_8h"] for v in liquid.values() if _num(v.get("funding_8h"))]
     top = {c: v for c, v in liquid.items() if v["vol_24h_usd"] >= TOP_USD and _num(v.get("funding_8h"))}
+    med = statistics.median(funds) if funds else None
+    oi = lambda c: top[c].get("oi_usd") or 0      # noqa: E731 - ties (many coins sit at a venue's baseline) by size
     chg = [v["chg_24h"] for v in liquid.values() if _num(v.get("chg_24h"))]
     ois = sorted(((c, v["oi_usd"]) for c, v in ctx.items() if _num(v.get("oi_usd"))), key=lambda x: (-x[1], x[0]))
-    out = {"funding": ({"liquid_coins": len(funds), "median_8h": _rate(statistics.median(funds)),
+    out = {"funding": ({"liquid_coins": len(funds), "median_8h": _rate(med),
                         "share_positive": _pct(sum(1 for f in funds if f > 0) / len(funds)),
                         "btc_8h": (ctx.get("BTC") or {}).get("funding_8h"), "eth_8h": (ctx.get("ETH") or {}).get("funding_8h"),
-                        "highest": [[c, top[c]["funding_8h"]] for c in sorted(top, key=lambda c: (-top[c]["funding_8h"], c))[:5]],
-                        "lowest": [[c, top[c]["funding_8h"]] for c in sorted(top, key=lambda c: (top[c]["funding_8h"], c))[:5]]}
+                        "highest": [[c, top[c]["funding_8h"]] for c in sorted((c for c in top if top[c]["funding_8h"] > med),
+                                                                               key=lambda c: (-top[c]["funding_8h"], -oi(c), c))[:5]],
+                        "lowest": [[c, top[c]["funding_8h"]] for c in sorted((c for c in top if top[c]["funding_8h"] < med),
+                                                                              key=lambda c: (top[c]["funding_8h"], -oi(c), c))[:5]],
+                        "extremes_rule": "coins trading at least $5M a day, above (highest) or below (lowest) the median"}
                        if funds else None),
            "breadth": ({"liquid_coins": len(chg), "share_up_24h": _pct(sum(1 for x in chg if x > 0) / len(chg)),
                         "median_chg_24h": _pct(statistics.median(chg))} if chg else None),
@@ -419,13 +425,14 @@ def premiums(got, now):
     bn = got.get("bn.btc") or {}
     out = {"basis": "BTC: Coinbase BTC/USD and Upbit BTC/KRW (converted with open.er-api USD/KRW) vs Binance BTC/USDT"}
     cb = got.get("cb.btc") or {}
-    if _num(cb.get("close")) and _num(bn.get("close")) and abs((cb.get("t") or 0) - (bn.get("t") or 0)) <= 180:
-        out["coinbase"] = _pct(cb["close"] / bn["close"] - 1)
-    else:
-        out["coinbase"] = None
+    ref = bn.get("price")
+    out["coinbase"] = (_pct(cb["price"] / ref - 1) if _num(cb.get("price")) and _num(ref)
+                       and abs((cb.get("t") or 0) - (bn.get("t") or 0)) <= 60 else None)
     up, fx = got.get("upbit.btc") or {}, got.get("fx.usd") or {}
     krw, rate = _f(up.get("trade_price")), _f(fx.get("KRW"))
-    out["korea"] = _pct(krw / rate / bn["close"] - 1) if _num(krw) and _num(rate) and rate > 0 and _num(bn.get("close")) else None
+    out["korea"] = _pct(krw / rate / ref - 1) if _num(krw) and _num(rate) and rate > 0 and _num(ref) else None
+    out["prices"] = {"binance_usdt": _sig(ref), "coinbase_usd": _sig(cb.get("price")),
+                     "upbit_krw": _sig(krw), "usd_krw": _sig(rate)}
     out["as_of"] = bn.get("t")
     return out
 

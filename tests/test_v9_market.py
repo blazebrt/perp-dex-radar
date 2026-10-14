@@ -78,6 +78,7 @@ FARSIDE = """<html><table class="etf"><tr><th>Date</th><th>IBIT</th><th>Total</t
 <tr><td>09 Oct 2026</td><td>1,000.0</td><td>1,234.5</td></tr>
 <tr><td>10 Oct 2026</td><td>0.0</td><td>0.0</td></tr>
 <tr><td>13 Oct 2026</td><td>3.0</td><td>55.0</td></tr>
+<tr><td>14 Oct 2026</td><td>0.0</td><td>0.0</td></tr>
 <tr><td>Total</td><td>9</td><td>99999</td></tr></table></html>"""
 
 
@@ -85,8 +86,8 @@ def payloads():
     return {
         "metaAndAssetCtxs": hl_ctx(), "predictedFundings": hl_predicted(), "perpsAtOpenInterestCap": ["TINY", "ZZZ"],
         "currency=BTC": dvol(40.0), "currency=ETH": dvol(55.0), "alternative.me": FNG, "stablecoins.llama": STABLE,
-        "coinbase.com": [[NOW // 60 * 60, 83000, 83500, 83100, 83400, 12.0], [NOW // 60 * 60 - 60, 83000, 83500, 83100, 83300, 10.0]],
-        "binance.vision": [[(NOW // 60 * 60 - 60) * 1000, "83000", "83500", "83100", "83300"], [(NOW // 60 * 60) * 1000, "83000", "83500", "83100", "83350"]],
+        "coinbase.com": {"price": "83400.00", "time": "2026-10-14T13:33:00Z"},
+        "binance.vision": {"symbol": "BTCUSDT", "price": "83350.00"},
         "upbit.com": [{"market": "KRW-BTC", "trade_price": 113000000.0}], "er-api.com": {"result": "success", "rates": {"KRW": 1350.0}},
         "tBTCUSD:long": [[(NOW - k * 60) * 1000, 89000 + k] for k in range(1441)],
         "tBTCUSD:short": [[(NOW - k * 60) * 1000, 3000.0] for k in range(1441)],
@@ -161,13 +162,14 @@ class Parsers(unittest.TestCase):
         self.assertEqual((g["btc_dominance"], g["mcap_chg_24h"]), (0.582, 0.015))
 
     def test_farside_flows(self):
-        e = M.parse_farside(FARSIDE)
+        e = M.parse_farside(FARSIDE, NOW)
         self.assertEqual(e["unit"], "USD millions")
-        self.assertEqual([v for _, v in e["days"]], [100.5, -20.0, 1234.5, 0.0, 55.0])     # '-' is missing, not zero
+        # '-' is missing, not zero; today's row (14 Oct, the US session in progress) is never read as a flow
+        self.assertEqual([v for _, v in e["days"]], [100.5, -20.0, 1234.5, 0.0, 55.0])
         self.assertEqual(e["last_total_musd"], 55.0)
         self.assertEqual(e["sum_5d_musd"], 1370.0)
         with self.assertRaises(ValueError):
-            M.parse_farside("<html>no table</html>")
+            M.parse_farside("<html>no table</html>", NOW)
 
 
 class Collect(unittest.TestCase):
@@ -201,8 +203,8 @@ class Collect(unittest.TestCase):
         self.assertEqual(f["liquid_coins"], 3)
         self.assertEqual(f["median_8h"], 0.0001)
         self.assertEqual(f["share_positive"], round(2 / 3, 6))
-        self.assertEqual(f["highest"][0], ["kPEPE", 0.0008])
-        self.assertEqual(f["lowest"][0], ["ETH", -0.00016])
+        self.assertEqual(f["highest"], [["kPEPE", 0.0008]])          # only coins above the median are "highest"
+        self.assertEqual(f["lowest"], [["ETH", -0.00016]])
         b = doc["regime"]["breadth"]
         self.assertEqual(b["liquid_coins"], 4)                            # SOL's change is known even without funding
         self.assertEqual(doc["regime"]["open_interest"]["largest"][0][0], "BTC")
@@ -232,11 +234,13 @@ class Collect(unittest.TestCase):
         self.assertFalse([c for c in f.calls if "coingecko" in c[0]])
         self.assertIsNone(doc["regime"]["global"])
 
-    def test_stale_premium_inputs_are_not_compared(self):
+    def test_a_missing_price_is_not_compared(self):
         t = payloads()
-        t["coinbase.com"] = [[NOW - 3600, 1, 1, 1, 90000.0, 1]]
+        t["coinbase.com"] = {"message": "not found"}
         doc, _ = collect(table=t)
+        self.assertEqual(doc["sources"]["cb.btc"]["status"], "ERROR")
         self.assertIsNone(doc["regime"]["premiums"]["coinbase"])
+        self.assertIsNotNone(doc["regime"]["premiums"]["korea"])
 
     def test_no_engine_reads_the_market_context(self):
         for path in list(ROOT.glob("v8/*.py")) + [ROOT / n for n in ("quant.py", "scanner.py", "picks.py", "smart.py")]:
