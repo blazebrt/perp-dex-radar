@@ -116,13 +116,17 @@ it to say what to expect when nothing is trade-ready.
 
 - **TRADE card.**
   - A "Probation · reduced size" tag.
-  - The engine's own plan: enter near the mark, the stop, the risk, the size on the page account, and the time left in
-    the entry window.
+  - The engine's own plan: enter near the mark, the stop, the exit ("at the stop or 14 days after you enter"), the risk,
+    the size on the page account, and the time left in the entry window.
   - The archive's out-of-sample expectation with its 95% interval, and the live forward test.
+- **The exit.** The proposal publishes `time_exit_hours`, the strategy's hold from quant.py (336 hours for XSMOM). The
+  archive results assume both exits: the stop, and the time exit counted from the trader's own entry. That is how the
+  late-entry checks (j) simulated it. No profit target is stated, because the strategy has none.
 - **Today.** The empty state names the authorized sides. The Portfolio panel separates the governed book from the
   legacy paper book.
 - **Portfolio page.** It lists the governed positions, then the legacy paper book as a diagnostic.
-- **Analyzer and Quant page.** They label XSMOM "Probation (confirmed side only)".
+- **Analyzer and Quant page.** They label XSMOM "Probation (confirmed side only)". The Analyzer's exact governed
+  proposal card also states the exit, which the legacy Analyzer always showed and the governed card had dropped.
 
 ## Proofs and tests
 

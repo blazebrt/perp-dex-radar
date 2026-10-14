@@ -248,11 +248,22 @@ class ProbationTier(unittest.TestCase):
         self.assertEqual(c["proposal"]["risk_fraction"], 0.0025)               # the page's 0.5% at 0.5x
         self.assertEqual(c["proposal"]["size_multiplier"], 0.5)
         self.assertAlmostEqual(c["proposal"]["notional"], full["proposal"]["notional"] / 2)
+        # the exit besides the stop is the strategy's own hold, for either tier
+        self.assertEqual((c["proposal"]["time_exit_hours"], full["proposal"]["time_exit_hours"]), (336, 48))
         self.assertEqual(gate(c, "STRATEGY_AUTHORITY")["result"], DE.PASS)
         self.assertIn("probation", gate(c, "STRATEGY_AUTHORITY")["rule"].lower())
         self.assertEqual(c["probation"]["expectation"], REAL_TERMS["sides"]["long"]["expectation"])
         self.assertEqual(doc["best_trades_now"]["count"], 2)
         self.assertEqual(doc["market_summary"]["trade_by_tier"], {"FULL": 1, "PROBATION": 1})
+
+    def test_time_exit_is_stated_only_when_the_strategy_has_one(self):
+        s = snap({"HI": [P.sig("PROB", age=600)]})
+        for bad in (None, 0.5, "336", True, 0, -24):
+            with self.subTest(hold_h=bad):
+                s2 = json.loads(json.dumps(s))
+                s2["strategies"]["PROB"]["hold_h"] = bad
+                c = cand(DE.build(s2), "HI")
+                self.assertIsNone(c["proposal"]["time_exit_hours"])
 
     def test_unconfirmed_side_is_watch_at_half_size(self):
         doc = DE.build(snap({"HI": [P.sig("PROB", d=-1, age=600)]}))
@@ -441,11 +452,28 @@ class Desk(unittest.TestCase):
     def test_probation_trade_card(self):
         best = self.out["trade"]["today"]["best"]
         for text in ("Probation · reduced size", "Enter near", "Stop", "0.5× the page size", "Entry window",
+                     "Exit at the stop or <b>14 days</b> after you enter",
                      "Archive evidence", "R per trade out of sample", "Live forward test",
                      "Past results do not promise future ones"):
             self.assertIn(text, best)
         for banned in ("guaranteed", "risk-free", "certain", "proven profit"):
             self.assertNotIn(banned, best.lower())
+
+    def test_analyzer_governed_card_states_the_time_exit(self):
+        html = (ROOT / "analyze.html").read_text(encoding="utf8")
+        src = html[html.index("function govExitTxt("):html.index("const s = c.lead, p = c.plan, L = p.side")] + "}"
+        js = ("const vm=require('vm');const ctx={esc:String,fp:String,money:String,money2:String};vm.createContext(ctx);"
+              "vm.runInContext(process.argv[1],ctx);const base={kind:'governed',entry:1,stop:0.9,equity:1e4,size:100,"
+              "lev:1,riskUsd:5,riskFraction:0.0025,costs:{fees:0,slippage:0},sizingBasis:'b'};"
+              "const out=[336,24,30,null,0].map(h=>ctx.testedPlanCard({verdict:'LONG',plan:Object.assign({},base,"
+              "{proposal:{time_exit_hours:h}})}));process.stdout.write(JSON.stringify(out));")
+        out = json.loads(subprocess.check_output([NODE, "-e", js, src], timeout=60))
+        self.assertIn("<b>Exit:</b> at the stop, or 14 days after you enter, whichever comes first.", out[0])
+        self.assertIn("or 1 day after you enter", out[1])
+        self.assertIn("or 30 hours after you enter", out[2])
+        for html_out in out[3:]:
+            self.assertNotIn("Exit:", html_out)
+        self.assertIn("Exact governed proposal", out[0])
 
     def test_empty_state_says_what_can_trade(self):
         best = self.out["empty"]["today"]["best"]

@@ -365,6 +365,8 @@
     const p = m.proposal || {};
     if (m.state !== "TRADE" || m.type !== DECISION.directional || !isNum(p.mark) || !isNum(p.stop) || p.mark <= 0) return "";
     const parts = ['Enter near <b>' + esc(price(p.mark)) + '</b>', 'Stop <b>' + esc(price(p.stop)) + '</b> <span class="muted">(' + esc(pct(Math.abs(p.mark - p.stop) / p.mark)) + ' away)</span>'];
+    /* The strategy's own exit besides the stop, as the engine states it: the archive results assume both. */
+    if (isInt(p.time_exit_hours) && p.time_exit_hours > 0) parts.push('Exit at the stop or <b>' + esc(durTxt(p.time_exit_hours * 3600)) + '</b> after you enter');
     if (isNum(p.risk_fraction)) parts.push('Risk <b>' + esc(pct(p.risk_fraction)) + '</b> of the account' + (isNum(p.size_multiplier) && p.size_multiplier < 1 ? ' <span class="muted">(' + esc(String(p.size_multiplier)) + '× the page size)</span>' : ""));
     if (isNum(p.notional) && isNum(p.equity)) parts.push('Size <b>' + esc(usd(p.notional)) + '</b> <span class="muted">on a ' + esc(usd(p.equity)) + ' page account' + (isNum(p.stop_risk_usd) ? ', ' + esc(usd(p.stop_risk_usd)) + ' at the stop' : "") + '</span>');
     const pr = m.probation || {};
