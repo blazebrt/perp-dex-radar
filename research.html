@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Research · Perp Decision Desk</title>
+<meta name="description" content="Why the desk's strategies are or are not trade-ready: the governed strategy authority, the qualification truth and the full research evidence.">
+<script>try{var t=localStorage.getItem("picks_theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="stylesheet" href="desk.css">
+<style>
+.lead { font-size: 16px; max-width: 78ch; margin: 0; }
+.lead + .lead { margin-top: 8px; }
+.matrix td:first-child { font-weight: 600; }
+.ev details.more-d { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.ev details.more-d:first-child { border-top: 1px solid var(--line); }
+.ev .dbody { padding: 8px 0 4px; font-size: 14px; max-width: 90ch; }
+.legacy { border-style: dashed; }
+.diag { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 8px; }
+.diag a { font-weight: 600; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="dk-wrap abwrap">
+    <a class="ablogo" href="./" aria-label="Perp Decision Desk, Today"><i><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".45"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".75"/><path d="M12 12 L19.5 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg></i><b>Perp Decision Desk</b></a>
+    <nav class="apptabs" aria-label="Pages">
+      <a href="./">Today</a>
+      <a href="analyze.html">Analyzer</a>
+      <a href="funding.html">Funding</a>
+      <a href="portfolio.html">Portfolio</a>
+      <a href="research.html" aria-current="page">Research</a>
+    </nav>
+    <button class="iconbtn" id="theme" type="button" aria-label="Switch light or dark theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+  </div>
+</header>
+
+<main id="main" class="dk-wrap">
+  <div class="pagehead"><h1>Research</h1><p>The evidence behind the desk's strategy authority. Today is for decisions; this page is for why.</p></div>
+  <div id="body"><div class="skel">Loading the governed research record…</div></div>
+</main>
+
+<script src="desk.js"></script>
+<script>
+"use strict";
+(function () {
+  const D = window.DESK, $ = (s) => document.querySelector(s);
+  if (!D) { document.getElementById("body").innerHTML = '<div class="failclosed" role="alert"><p class="fc-t">The desk core did not load, so nothing is shown.</p></div>'; return; }
+  D.shell();
+  const R = D.RESEARCH_DIR + "phase9/";
+  const ok = (r) => r.status === "OK" && r.data && typeof r.data === "object" ? r.data : null;
+  // Production authority and the isolated production evidence channel; committed files are only a historical baseline.
+  (async function load() {
+    const [sum, mt, mc, reg, adj, dash, authority, snapshot] = await Promise.all(["research_phase9_summary.json", "research_multiple_testing.json", "research_matched_controls.json",
+      "research_phase9_registration_plan.json", "research_strategy_adjudication.json"].map((f) => D.getJSON(R + f)).concat([D.getJSON("data/dashboard.json"), D.getJSON(D.RESEARCH_DIR + "authority.json"), D.getJSON(D.RESEARCH_DIR + "current/snapshot.json")]));
+    const v = D.views.researchPublication({baseline: {sum: ok(sum), mt: ok(mt), mc: ok(mc), reg: ok(reg), adj: ok(adj)}, dash: ok(dash), authority: ok(authority), snapshot: ok(snapshot)});
+    $("#body").innerHTML = v.html;
+  })();
+})();
+</script>
+</body>
+</html>

@@ -10,13 +10,15 @@ Runs after scanner.py in every scan (see .github/workflows/scan.yml):
        TSMOM      Daily trend rider       30- and 7-day returns and the 50-day EMA agree (long or short)
        TREND_EMA  4-hour trend crossover  EMA 20 crosses EMA 100 with ADX above 20 (long or short)
        XSMOM      Momentum rotation       the 5 strongest coins of the last 14 days long, the 5 weakest short
-  4. Paper trading: every signal is traded on paper at the open of the next hour with its stop, trailing
-     stop and time limit, after taker fees, slippage and funding (the same rules as the backtest).
+  4. Paper trading: entry at the recorded next-hour open, continuous hourly stop/trailing evidence, and an absolute
+     time limit. Missing price path stays pending; missing funding cannot supply qualified R. Complete observed
+     paths retain the original fees, slippage, funding and stop/trailing arithmetic.
   5. Output: data/quant.json (signals, open and closed trades, live record) for quant.html, and
      data/quant_journal.json (the record, carried between runs through the published site).
      v8 Phase 3 closure (v8/evidence.py): "open" lists only positions whose coin is VERIFIED_CRYPTO in this scan
-     (the others stay in the journal and are published apart in "blocked_open"), and the live record counts only
-     trades with entry-time identity proof (older trades are kept and reported in "legacy_unqualified").
+     (the others stay in the journal and are published apart in "blocked_open"). The live record requires both
+     entry-time identity proof and corrected execution evidence; historical rows retain their original values
+     and are reported as unqualified unless their archived execution proof is complete.
 
 Standard library only. Python 3.10+.
 """
@@ -222,10 +224,35 @@ MEXC_FUND = ("https://contract.mexc.com/api/v1/contract/funding_rate/history?sym
              "&page_num={page}&page_size=100")
 
 
+class FundingHistory(dict):
+    """Observed rates and exchange-reported cycle intervals; absence is never an observed zero.
+
+    MEXC's historical collectCycle describes the interval ending at a settlement. Coverage never extends
+    beyond that observed settlement. This deliberately leaves an unfinished funding interval unqualified.
+    """
+
+    def __init__(self, rates=(), cycles=()):
+        super().__init__(rates)
+        self.cycles = dict(cycles)
+
+    def observation(self, ts, as_of=None):
+        value = self.get(ts)
+        if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value):
+            return ("OBSERVED_ZERO" if value == 0 else "OBSERVED"), float(value)
+        for end, hours in self.cycles.items():
+            settled = self.get(end)
+            if (isinstance(hours, int) and not isinstance(hours, bool) and hours > 0
+                    and isinstance(settled, (int, float)) and not isinstance(settled, bool)
+                    and math.isfinite(settled) and (as_of is None or end <= as_of)
+                    and end - hours * H < ts < end):
+                return "NOT_SCHEDULED", 0.0
+        return "MISSING", None
+
+
 def funding_since(coin_t, start):
-    """Funding settlements {time: rate} on MEXC since `start` (longs pay positive rates)."""
+    """Observed MEXC funding settlements and their explicit cycle metadata since `start`."""
     sym = sc.exchange_symbol("mexc", coin_t)
-    out, page = {}, 1
+    out, page = FundingHistory(), 1
     while page < 6:
         d = sc.FETCH(MEXC_FUND.format(sym=sym, page=page))
         lst = ((d or {}).get("data") or {}).get("resultList") or []
@@ -234,7 +261,11 @@ def funding_since(coin_t, start):
         for x in lst:
             t, r = x.get("settleTime"), sc.fnum(x.get("fundingRate"))
             if t is not None and r is not None:
-                out[int(t) // 1000] = r
+                ts = int(t) // 1000
+                out[ts] = r
+                cycle = x.get("collectCycle")
+                if isinstance(cycle, int) and not isinstance(cycle, bool) and cycle > 0:
+                    out.cycles[ts] = cycle
         if min(int(x.get("settleTime") or 0) for x in lst) // 1000 < start:
             break
         page += 1
@@ -358,11 +389,63 @@ def xs_scores(feats_at):
 
 
 # --------------------------------------------------------------------------- paper trades
+EXECUTION_VERSION = "quant.execution/1"
+EXECUTION_QUALIFIED = "QUALIFIED"
+LEGACY_EXECUTION_UNQUALIFIED = "LEGACY_EXECUTION_UNQUALIFIED"
+
+
+def execution_qualified(tr):
+    """Closed paper evidence needs the corrected replay's explicit path and funding proof."""
+    proof = tr.get("execution") or {}
+    return (proof.get("version") == EXECUTION_VERSION and proof.get("state") == EXECUTION_QUALIFIED
+            and proof.get("path_complete") is True and proof.get("funding_complete") is True
+            and isinstance(tr.get("r"), (int, float)) and not isinstance(tr.get("r"), bool)
+            and math.isfinite(tr["r"]))
+
+
+def qualified_trade(tr):
+    return EV.qualified(tr) and execution_qualified(tr)
+
+
+def execution_class(tr):
+    """No archived replay proof means UNKNOWN, never hindsight reconstruction of an old close."""
+    return (tr.get("execution") or {}).get("state") or LEGACY_EXECUTION_UNQUALIFIED
+
+
+def mark_legacy_execution(closed):
+    """Add metadata only: original prices, timestamps and stored returns stay byte-for-value unchanged."""
+    for tr in closed:
+        if "execution" not in tr:
+            tr["execution"] = {"version": EXECUTION_VERSION, "state": LEGACY_EXECUTION_UNQUALIFIED,
+                               "path_complete": None, "funding_complete": None,
+                               "historical_path": "UNKNOWN", "historical_funding": "UNKNOWN"}
+
+
+def _valid_execution_time(value):
+    return isinstance(value, int) and not isinstance(value, bool) and value >= 0 and value % H == 0
+
+
+def _valid_execution_bar(bar):
+    """Direct replay callers receive the same fail-closed numerical path boundary as cleaned exchange data."""
+    if not isinstance(bar, dict) or not _valid_execution_time(bar.get("t")):
+        return False
+    values = [bar.get(key) for key in ("o", "h", "l", "c")]
+    if any(not isinstance(value, (int, float)) or isinstance(value, bool)
+           or not math.isfinite(value) or value <= 0 for value in values):
+        return False
+    o, high, low, c = values
+    return low <= min(o, c) <= max(o, c) <= high
+
+
 def sim_trade(tr, c1, fund, now):
-    """Replay a paper trade on hourly candles from its entry hour. Same rules as the backtest:
+    """Replay a paper trade over continuous hourly evidence up to its absolute elapsed-time deadline.
+
     stop first when a bar touches both, gaps exit at the open, the trailing stop moves at each close
-    and applies from the next bar, time exit at the close of the last allowed hour."""
-    i0 = next((i for i, x in enumerate(c1) if x["t"] >= tr["t_in"]), None)
+    and applies from the next bar, time exit at the exact deadline. Missing candles stay pending;
+    missing funding permits only a clearly unqualified diagnostic outcome, never a qualified R.
+    """
+    i0 = next((i for i, x in enumerate(c1)
+               if not isinstance(x, dict) or not _valid_execution_time(x.get("t")) or x["t"] >= tr["t_in"]), None)
     if i0 is None:
         return None
     d, entry = tr["d"], tr["px"]
@@ -372,15 +455,39 @@ def sim_trade(tr, c1, fund, now):
     best = entry
     fsum = 0.0
     mfe = mae = 0.0
-    last = i0 + tr["hold_h"] - 1
+    deadline = tr["t_in"] + tr["hold_h"] * H
+    expected = tr["t_in"]
+    last_px = entry
+    hours = 0
+    funding_states = {"OBSERVED": 0, "OBSERVED_ZERO": 0, "NOT_SCHEDULED": 0, "MISSING": 0}
+    missing_funding = []
+    history = fund if isinstance(fund, FundingHistory) else FundingHistory(fund)
+    path_state = "CONTINUOUS"
+    missing_hour = None
     state, exit_px, exit_t = "open", None, None
     for i in range(i0, len(c1)):
         x = c1[i]
+        if not _valid_execution_bar(x):
+            path_state, missing_hour, state = "MISSING_CANDLE_PATH", expected, "pending_history"
+            break
         if x["t"] + H > now:  # the hour still forming: wait for its close
             break
+        if x["t"] != expected:
+            path_state, missing_hour, state = "MISSING_CANDLE_PATH", expected, "pending_history"
+            break
+        if x["t"] >= deadline:
+            break
         if i > i0:
-            fsum += fund.get(x["t"], 0.0)
+            observed = history.observation(x["t"], as_of=now)
+            fstate, rate = observed
+            funding_states[fstate] += 1
+            if rate is None:
+                missing_funding.append(x["t"])
+            else:
+                fsum += rate
         o, h, l, c = x["o"], x["h"], x["l"], x["c"]
+        hours += 1
+        last_px, expected = c, x["t"] + H
         fav = ((h - entry) if d > 0 else (entry - l)) / risk
         adv = ((entry - l) if d > 0 else (h - entry)) / risk
         hit = None
@@ -406,17 +513,33 @@ def sim_trade(tr, c1, fund, now):
             else:
                 best = min(best, c)
                 stop = min(stop, best + trail)
-        if i == last:
+        if x["t"] + H == deadline:
             state, exit_px, exit_t = "time", c, x["t"] + H
             break
+    if state == "open" and expected + H <= min(now, deadline):
+        path_state, missing_hour, state = "MISSING_CANDLE_PATH", expected, "pending_history"
     taker = CFG["fee_taker"] + tr["slip"]
-    cur = exit_px if exit_px is not None else c1[-1]["c"]
+    cur = exit_px if exit_px is not None else last_px
     gross = d * (cur - entry) / entry
     fcost = d * fsum
     cost = 2 * taker  # entry and exit at market (an open trade is valued as if closed at market now)
+    r = (gross - cost - fcost) / tr["stop_pct"]
+    complete_path = path_state == "CONTINUOUS"
+    complete_funding = not missing_funding
+    quality = ("MISSING_CANDLE_PATH" if not complete_path else "MISSING_FUNDING" if not complete_funding
+               else EXECUTION_QUALIFIED if state != "open" else "PENDING_EXIT")
     return {"state": state, "exit_px": exit_px, "exit_t": exit_t, "stop_now": stop, "mfe": round(mfe, 3),
-            "mae": round(mae, 3), "gross": gross / tr["stop_pct"], "r": (gross - cost - fcost) / tr["stop_pct"],
-            "fund": fcost / tr["stop_pct"], "last_px": c1[-1]["c"], "hours": len(c1) - i0}
+            "mae": round(mae, 3), "gross": gross / tr["stop_pct"],
+            "r": r if complete_path and complete_funding else None,
+            "diagnostic_r_without_missing_funding": r if complete_path and not complete_funding else None,
+            "fund": fcost / tr["stop_pct"] if complete_funding else None,
+            "observed_fund": fcost / tr["stop_pct"], "last_px": last_px, "hours": hours,
+            "deadline": deadline,
+            "execution": {"version": EXECUTION_VERSION, "state": quality,
+                          "path_complete": complete_path, "funding_complete": complete_funding,
+                          "funding_observations": funding_states, "missing_funding_hours": missing_funding,
+                          "missing_candle_hour": missing_hour, "entry_hour": tr["t_in"],
+                          "observed_until": expected, "deadline": deadline}}
 
 
 def _tidy(key, v):
@@ -462,7 +585,11 @@ def load_journal(pages_url, path, now):
     return J, "site"
 
 
-def live_stats(closed):
+def live_stats(closed, *, include_unqualified=False):
+    """Qualified evidence by default; the explicit override is solely for labelled diagnostic history."""
+    closed = [t for t in closed if (include_unqualified or qualified_trade(t))
+              and isinstance(t.get("r"), (int, float)) and not isinstance(t.get("r"), bool)
+              and math.isfinite(t["r"])]
     rs = [t["r"] for t in closed]
     n = len(rs)
     if not n:
@@ -504,20 +631,22 @@ def split_open(open_trades, universe, auth):
 
 
 def journal_evidence(J, actionable, blocked):
-    """The journal by evidence class: qualified (entry-time VERIFIED_CRYPTO proof, in the live record) or not (kept,
-    never counted), open and closed; the open positions by current actionability; entry-proof completeness."""
+    """Closed live evidence requires entry identity AND corrected execution proof; old values remain diagnostics."""
     out = {"qualified": {"open": 0, "closed": 0}, "unqualified": {"open": 0, "closed": 0}, "unqualified_reasons": {},
            "proof_complete": {"open": 0, "closed": 0}, "actionable_open": len(actionable),
            "blocked_open": len(blocked), "blocked_coins": sorted({b["c"] for b in blocked}), "blocked_reasons": {},
-           "live_record_rule": "identity-qualified closed trades only (entry-time VERIFIED_CRYPTO proof)"}
+           "execution_classes": {"open": {}, "closed": {}},
+           "live_record_rule": "closed trades with entry-time VERIFIED_CRYPTO proof AND continuous hourly path / observed funding proof"}
     for part in ("open", "closed"):
         for tr in J.get(part) or []:
-            q = EV.qualified(tr)
+            q = EV.qualified(tr) if part == "open" else qualified_trade(tr)
             out["qualified" if q else "unqualified"][part] += 1
             out["proof_complete"][part] += 1 if EV.proof_complete(tr) else 0
             if not q:
-                why = EV.unqualified_reason(tr)
+                why = EV.unqualified_reason(tr) or execution_class(tr)
                 out["unqualified_reasons"][why] = out["unqualified_reasons"].get(why, 0) + 1
+            cls = execution_class(tr)
+            out["execution_classes"][part][cls] = out["execution_classes"][part].get(cls, 0) + 1
     for b in blocked:
         out["blocked_reasons"][b["identity_reason"]] = out["blocked_reasons"].get(b["identity_reason"], 0) + 1
     return out
@@ -532,6 +661,7 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
     # LEGACY_NO_IDENTITY_PROOF (never inferred from today's identity); they finish their paper life normally but never
     # enter the live record
     legacy_new = EV.mark_legacy(J["open"] + J["closed"])
+    mark_legacy_execution(J["closed"])
     log(f"journal ({jsrc}): {len(J['open'])} open, {len(J['closed'])} closed"
         + (f", {legacy_new} marked {EV.LEGACY_NO_IDENTITY_PROOF}" if legacy_new else ""))
     if universe is None:
@@ -571,21 +701,25 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
         for tr in trades:
             c1 = c1s.get(tr["c"]) or []
             if tr["px"] is None:
-                first = next((x for x in c1 if x["t"] >= tr["t_in"]), None)
+                first = next((x for x in c1 if x["t"] == tr["t_in"]), None)
                 if first is None:
-                    if now - tr["t_in"] <= 6 * H:  # no candle yet: try again next scan
-                        keep.append(tr)
+                    tr["execution"] = {"version": EXECUTION_VERSION, "state": "MISSING_ENTRY_HISTORY",
+                                       "path_complete": False, "funding_complete": None}
+                    keep.append(tr)  # recover the actual entry hour; a later candle is never a substitute fill
                     continue
                 tr["px"] = first["o"]
                 tr["stop"] = tr["px"] * (1 - tr["d"] * tr["stop_pct"])
             res = sim_trade(tr, c1, funds.get(tr["c"]) or {}, now) if c1 else None
             if res is None:
+                tr["execution"] = {"version": EXECUTION_VERSION, "state": "MISSING_HISTORY",
+                                   "path_complete": False, "funding_complete": None}
                 keep.append(tr)
                 continue
             tr["res"] = {k: (_tidy(k, v) if isinstance(v, float) else v) for k, v in res.items()}
-            if res["state"] != "open":
+            tr["execution"] = res["execution"]
+            if res["state"] not in ("open", "pending_history"):
                 tr["t_out"] = res["exit_t"]
-                tr["r"] = round(res["r"], 4)
+                tr["r"] = round(res["r"], 4) if res["r"] is not None else None
                 closed.append(tr)
             else:
                 keep.append(tr)
@@ -671,7 +805,8 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
         opened, closed_new = replay(new)
         J["open"].extend(opened)
         closed_now += closed_new
-    J["closed"] = (J["closed"] + closed_now)[-CFG["keep_closed"]:]
+    # The public recent-history list is bounded below; the audit journal retains every original closed row.
+    J["closed"] = J["closed"] + closed_now
     J["updated"], J["scans"] = now, J.get("scans", 0) + 1
     log(f"{len(closed_now)} trades closed this scan, {len(J['open'])} open")
 
@@ -682,8 +817,8 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
     if blocked:
         log(f"{len(blocked)} open position(s) without current crypto execution identity kept out of the actionable "
             "set: " + ", ".join(f"{b['c']} {b['s']} ({b['identity_reason']})" for b in blocked))
-    qual = [t for t in J["closed"] if EV.qualified(t)]
-    unq = [t for t in J["closed"] if not EV.qualified(t)]
+    qual = [t for t in J["closed"] if qualified_trade(t)]
+    unq = [t for t in J["closed"] if not qualified_trade(t)]
 
     # 5) market state for the page
     btc = daily.get("BTC") or []
@@ -710,12 +845,13 @@ def run(out_dir, pages_url=None, journal_path=None, universe=None):
         "signals": [{"s": t["s"], "c": t["c"], "d": t["d"], "t": t["t_in"], "stop_pct": t["stop_pct"],
                      "trail_pct": t["trail_pct"]} for t in new],
         "open": actionable, "blocked_open": blocked, "closed": J["closed"][-150:],
-        # v8 Phase 3 closure: the live record counts identity-qualified trades only (entry-time VERIFIED_CRYPTO proof)
+        # Identity alone cannot qualify an outcome with unknown execution or funding evidence.
         "live": {sid: live_stats([t for t in qual if t["s"] == sid]) for sid in RUNTIME_ORDER},
         "live_all": live_stats(qual),
-        "legacy_unqualified": {"reason": EV.LEGACY_NO_IDENTITY_PROOF,
-                               "live": {sid: live_stats([t for t in unq if t["s"] == sid]) for sid in RUNTIME_ORDER},
-                               "live_all": live_stats(unq)},
+        "legacy_unqualified": {"reason": "ENTRY_IDENTITY_OR_EXECUTION_UNQUALIFIED",
+                               "live": {sid: live_stats([t for t in unq if t["s"] == sid], include_unqualified=True)
+                                        for sid in RUNTIME_ORDER},
+                               "live_all": live_stats(unq, include_unqualified=True)},
         "evidence": journal_evidence(J, actionable, blocked),
         "next_scan_min": sc.CFG["schedule_every_min"],
     }

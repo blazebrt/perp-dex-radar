@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Today · Perp Decision Desk</title>
+<meta name="description" content="The desk's current decision: what is trade-ready, what to watch, what blocks the rest, the portfolio's risk state and funding spreads.">
+<script>try{var t=localStorage.getItem("picks_theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="stylesheet" href="desk.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="dk-wrap abwrap">
+    <a class="ablogo" href="./" aria-label="Perp Decision Desk, Today"><i><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".45"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".75"/><path d="M12 12 L19.5 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg></i><b>Perp Decision Desk</b></a>
+    <nav class="apptabs" aria-label="Pages">
+      <a href="./" aria-current="page">Today</a>
+      <a href="analyze.html">Analyzer</a>
+      <a href="funding.html">Funding</a>
+      <a href="portfolio.html">Portfolio</a>
+      <a href="research.html">Research</a>
+    </nav>
+    <button class="iconbtn" id="theme" type="button" aria-label="Switch light or dark theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+  </div>
+</header>
+
+<main id="main" class="dk-wrap">
+  <div class="pagehead"><h1>Today</h1><p>What the desk can act on now, and what stands in the way. You make the final call and place every order.</p></div>
+  <div id="status" class="status" aria-live="polite"><span class="muted">Loading the current decision…</span></div>
+
+  <div class="desk">
+    <div>
+      <section class="sec" aria-labelledby="best-h">
+        <div class="sechead"><h2 id="best-h">Best trades now</h2><span class="n" id="best-n"></span></div>
+        <div id="best"><div class="skel">Loading…</div></div>
+      </section>
+      <section class="sec" aria-labelledby="em-h" id="em-sec">
+        <div class="sechead"><h2 id="em-h">Emerging opportunities</h2><span class="n" id="em-n"></span></div>
+        <div id="emerging"></div>
+      </section>
+      <section class="sec" aria-labelledby="av-h" id="av-sec">
+        <div class="sechead"><h2 id="av-h">Avoided</h2><span class="n" id="av-n"></span></div>
+        <div id="avoided"></div>
+      </section>
+    </div>
+    <aside class="rail" aria-label="Portfolio, funding and system state">
+      <section class="panel" aria-labelledby="pf-h"><h2 id="pf-h">Portfolio</h2><div id="pf"></div></section>
+      <section class="panel" aria-labelledby="fd-h"><h2 id="fd-h">Funding spreads</h2><div id="fund"></div></section>
+      <section class="panel" aria-labelledby="sy-h"><h2 id="sy-h">System</h2><div id="sys"></div></section>
+    </aside>
+  </div>
+
+  <p class="foot">Every state, rank and reason on this page is the desk's governed decision (<code>data/v8/decision.json</code>), shown as published. Nothing here places an order. Trade-ready means every required desk gate passes now; it is not a guarantee of profit, and funding spreads are never risk-free. <span id="ver"></span></p>
+</main>
+
+<script src="desk.js"></script>
+<script>
+"use strict";
+(function () {
+  const D = window.DESK, $ = (s) => document.querySelector(s);
+  if (!D) {
+    document.getElementById("status").outerHTML = '<div class="failclosed" role="alert"><p class="fc-t">The desk core did not load, so nothing is shown.</p><p class="fc-d">Reload the page. No decision is presented without it.</p></div>';
+    return;
+  }
+  D.shell();
+  let RAW = {doc: null}, LAST = "";
+  const getDoc = () => { const A = D.authority(RAW.doc, D.nowS()); return A.status === "AVAILABLE" ? A.doc : null; };
+  D.bindTraces(document.getElementById("main"), getDoc);
+  async function refresh() { RAW = await D.loadDecision(); render(true); }
+  // every region comes from DESK.views.today (desk.js): this page only places it
+  function render(force) {
+    const now = D.nowS(), A = D.authority(RAW.doc, now), key = D.timeKey(RAW.doc, now);
+    if (!force && key === LAST) { const f = $("#status .fresh"); if (f) f.outerHTML = D.html.freshness(A, now); return; }
+    LAST = key;
+    const v = D.views.today(RAW.doc, now), st = $("#status");
+    st.classList.toggle("bad", v.statusBad); st.innerHTML = v.statusHtml;
+    $("#best-n").textContent = v.bestN; $("#best").innerHTML = v.best;
+    $("#em-sec").hidden = v.emHidden; $("#em-n").textContent = v.emN; $("#emerging").innerHTML = v.emerging;
+    $("#av-sec").hidden = v.avHidden; $("#av-n").textContent = v.avN; $("#avoided").innerHTML = v.avoided;
+    $("#pf").innerHTML = v.pf; $("#fund").innerHTML = v.fund; $("#sys").innerHTML = v.sys; $("#ver").textContent = v.ver;
+  }
+  refresh();
+  setInterval(() => render(false), 30000);                    // re-check validity: an expired decision fails closed
+  setInterval(refresh, 5 * 60000);                            // revalidate the file (a 304 when it has not changed)
+  let hiddenAt = 0;
+  document.addEventListener("visibilitychange", () => { if (document.hidden) hiddenAt = Date.now(); else if (Date.now() - hiddenAt > 60000) refresh(); });
+})();
+</script>
+</body>
+</html>

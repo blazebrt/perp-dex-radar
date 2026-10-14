@@ -4,20 +4,23 @@ name: Research
 # ("v8/phase-...") (and on demand): the tests,
 # one scan, two runs of the smart-money engine, one run of the quant desk and one of the coin picks on live
 # exchange data, each with a new journal, then the dashboard from those files. Nothing is published. The
-# results replace the "research" branch (one commit, no history) so they can be checked before main changes.
+# Phase runs replace only "research" for review. A daily/current-main run may atomically publish validated
+# evidence to "research-production". Neither channel changes runtime policy or promotes a strategy.
 
 on:
   push:
     branches: ["v5*", "v6*", "v7*", "v8/phase-*"]
   workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *" # Daily 03:17 UTC: low-frequency evidence refresh, separate from market scans.
 
 permissions:
   contents: write
   actions: read     # v8 Phase 8: list and download this repository's v8-audit-* scan artifacts (read only)
 
 concurrency:
-  group: research
-  cancel-in-progress: true
+  group: research-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   research:
@@ -32,11 +35,16 @@ jobs:
         with:
           python-version: "3.12"
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
       - name: Unit tests
-        continue-on-error: true
         run: |
-          python -m unittest discover -s tests -v > research_tests.txt 2>&1 || true
+          rc=0
+          python -m unittest discover -s tests -v > research_tests.txt 2>&1 || rc=$?
           tail -5 research_tests.txt
+          test "$rc" -eq 0
 
       - name: Scanner on live exchange data (no backtest, nothing published)
         continue-on-error: true
@@ -85,7 +93,7 @@ jobs:
         # differences the change explains.
         continue-on-error: true
         run: |
-          BASE_SHA=$(python -c "import json; print(json.load(open('tests/fixtures/v8/phase11_expected_deltas.json'))['base']['sha'])")
+          BASE_SHA=$(python -c "import json; print(json.load(open('tests/fixtures/v8/phase12_expected_deltas.json'))['base']['sha'])")
           echo "phase base $BASE_SHA" > research_base.txt
           git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA" >> research_base.txt 2>&1 || true
           cd "$RUNNER_TEMP/base"
@@ -256,7 +264,10 @@ jobs:
           rc=0
           python -m pip install --disable-pip-version-check --quiet numpy numba pandas >> research_phase9.txt 2>&1 || rc=$?
           if [ "$rc" -eq 0 ]; then python -m unittest tests.test_v8_phase9 -v >> research_phase9.txt 2>&1 || rc=$?; fi
-          if [ "$rc" -eq 0 ]; then python tools/research/strategy_adjudication.py --md md --history hist_prod --cutoff "$(git show -s --format=%ct HEAD)" --out . >> research_phase9.txt 2>&1 || rc=$?; fi
+          # Production refresh evaluates newly accumulated history; review runs retain their deterministic head cutoff.
+          CUTOFF="$(git show -s --format=%ct HEAD)"
+          if [ "$GITHUB_REF" = refs/heads/main ]; then CUTOFF="$(date -u +%s)"; fi
+          if [ "$rc" -eq 0 ]; then python tools/research/strategy_adjudication.py --md md --history hist_prod --cutoff "$CUTOFF" --out . >> research_phase9.txt 2>&1 || rc=$?; fi
           echo "exit $rc" >> research_phase9.txt
           python -c "import json,os; json.dump({'head':os.environ['GITHUB_SHA'],'exit_code':int('$rc')},open('research_phase9_exit.json','w'),sort_keys=True)"
           test "$rc" -eq 0
@@ -283,8 +294,26 @@ jobs:
           tail -12 research_phase11.txt
           test "$rc" -eq 0
 
+      - name: Phase 12 production desk on this run's decision (mandatory; the desk shows the live decision as published, zero TRADE included)
+        run: |
+          rc=0
+          python -m unittest tests.test_v8_phase12 tests.test_v8_research_publication -v >> research_phase12.txt 2>&1 || rc=$?
+          if [ "$rc" -eq 0 ]; then node tools/v8/desk_check.js out_new/data/v8/decision.json research_phase12_desk.json >> research_phase12.txt 2>&1 || rc=$?; fi
+          echo "exit $rc" >> research_phase12.txt
+          python -c "import json,os; json.dump({'head':os.environ['GITHUB_SHA'],'exit_code':int('$rc')},open('research_phase12_exit.json','w'),sort_keys=True)"
+          tail -8 research_phase12.txt
+          test "$rc" -eq 0
+
+      - name: Publish validated production research (main only; no promotion)
+        if: success() && github.ref == 'refs/heads/main' && github.event.repository.default_branch == 'main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        env:
+          PRODUCTION_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          python tools/research/production_publication.py build
+          python tools/research/production_publication.py publish
+
       - name: Save the results for review
-        if: always()
+        if: always() && github.ref != 'refs/heads/main'
         env:
           GIT_AUTHOR_NAME: perp-dex-radar
           GIT_AUTHOR_EMAIL: actions@users.noreply.github.com
@@ -296,6 +325,7 @@ jobs:
           cp research_strategy_*.json research_multiple_testing.json research_matched_controls.json research_phase9_*.json R/ 2>/dev/null || true
           cp research_phase10_*.json R/ 2>/dev/null || true
           cp research_phase11_*.json R/ 2>/dev/null || true
+          cp research_phase12_*.json R/ 2>/dev/null || true
           for f in latest.json journal.csv quant.json picks.json smart.json dashboard.json; do
             if [ -f "out_new/data/$f" ]; then cp "out_new/data/$f" "R/new_$f"; fi
           done

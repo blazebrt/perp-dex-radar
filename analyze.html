@@ -3,14 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Coin Analyzer · Perp DEX Radar</title>
-<meta name="description" content="Search any coin: the Phase 11 decision (trade, watch or avoid), the plan and your position size only for a Phase 11 trade, legacy signals as context, and a chart read on four timeframes.">
+<title>Analyzer · Perp Decision Desk</title>
+<meta name="description" content="Inspect any coin with the same governed decision as Today: trade, watch, avoid or no decision, its full trace, and price, chart and legacy signals as context.">
 <script>try{var t=localStorage.getItem("picks_theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="stylesheet" href="desk.css">
 <style>
 :root {
   color-scheme: light;
-  --page: #f9f9f7; --surface: #fcfcfb; --surface-2: #f3f2ef; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
-  --grid: #e1e0d9; --border: rgba(11, 11, 11, 0.10);
+  --page: #f6f6f3; --surface: #ffffff; --surface-2: #efefeb; --ink: #15171a; --ink-2: #474b51; --muted: #686d74;
+  --grid: #e2e3de; --border: rgba(21, 23, 26, 0.11);
   --long: #2a78d6; --short: #eb6834; --long-wash: rgba(42, 120, 214, 0.10); --short-wash: rgba(235, 104, 52, 0.10);
   --good: #0ca30c; --good-text: #006300; --bad: #d03b3b; --warn: #fab219; --half: #b88300; --accent: #2a78d6;
   --up: #1f9d55; --down: #e0453a; --zone-sup: rgba(31, 157, 85, 0.13); --zone-res: rgba(224, 69, 58, 0.12);
@@ -20,7 +21,7 @@
 @media (prefers-color-scheme: dark) {
   :root:where(:not([data-theme="light"])) {
     color-scheme: dark;
-    --page: #0d0d0d; --surface: #1a1a19; --surface-2: #232321; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+    --page: #0f1012; --surface: #17191c; --surface-2: #1f2226; --ink: #f1f1ee; --ink-2: #bec1c6; --muted: #959aa1;
     --grid: #2c2c2a; --border: rgba(255, 255, 255, 0.10);
     --long: #3987e5; --short: #d95926; --long-wash: rgba(57, 135, 229, 0.14); --short-wash: rgba(217, 89, 38, 0.14);
     --good-text: #0ca30c; --half: #c98500; --accent: #3987e5;
@@ -30,7 +31,7 @@
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --page: #0d0d0d; --surface: #1a1a19; --surface-2: #232321; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+  --page: #0f1012; --surface: #17191c; --surface-2: #1f2226; --ink: #f1f1ee; --ink-2: #bec1c6; --muted: #959aa1;
   --grid: #2c2c2a; --border: rgba(255, 255, 255, 0.10);
   --long: #3987e5; --short: #d95926; --long-wash: rgba(57, 135, 229, 0.14); --short-wash: rgba(217, 89, 38, 0.14);
   --good-text: #0ca30c; --half: #c98500; --accent: #3987e5;
@@ -87,7 +88,7 @@ h3 { font-size: 13px; margin: 14px 0 4px; color: var(--muted); text-transform: u
 .qc .s-long { color: var(--long); font-weight: 650; } .qc .s-short { color: var(--short); font-weight: 650; }
 
 /* status */
-.status { margin-top: 18px; }
+.loadstat { margin-top: 18px; }
 .loading { display: flex; align-items: center; gap: 12px; color: var(--ink-2); }
 .spin { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--grid); border-top-color: var(--accent); animation: spin .8s linear infinite; flex: none; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -117,6 +118,13 @@ h3 { font-size: 13px; margin: 14px 0 4px; color: var(--muted); text-transform: u
 .meter .mid { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--muted); opacity: .5; }
 .meter .dot { position: absolute; top: 50%; width: 14px; height: 14px; border-radius: 50%; transform: translate(-50%, -50%); border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--border); }
 .meter .cf { font-size: 13px; color: var(--ink-2); }
+.dpanel { margin: 0 0 14px; }
+.dtop { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.dasset { font-size: 28px; font-weight: 750; letter-spacing: -0.02em; margin: 0 6px 0 0; }
+.dhead { margin: 10px 0 0; font-size: 15px; max-width: 95ch; }
+.dpanel .opp { margin-top: 12px; box-shadow: none; }
+.ctxlabel { margin: 26px 0 10px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; border-top: 1px solid var(--border); padding-top: 18px; }
+.ctxlabel h2 { margin: 0; font-size: 20px; }
 .funda { width: 100%; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--ink-2); border-top: 1px dashed var(--grid); padding-top: 10px; }
 .funda b { color: var(--ink); font-weight: 600; }
 
@@ -288,7 +296,7 @@ details.alt summary { cursor: pointer; color: var(--accent); font-size: 13px; fo
 }
 
 /* shared app bar: the same on every page */
-header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; max-width: 1180px; padding-top: 10px; padding-bottom: 10px; }
+header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; max-width: 1240px; padding-top: 10px; padding-bottom: 10px; }
 .ablogo { flex: none; display: flex; align-items: center; gap: 9px; color: var(--ink); text-decoration: none; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 .ablogo:hover { text-decoration: none; }
 .ablogo i { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; background: var(--ink); color: var(--page); font-style: normal; }
@@ -305,28 +313,26 @@ header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: 
 </style>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 <header class="top">
   <div class="wrap abwrap">
-    <a class="ablogo" href="./" aria-label="Perp DEX Radar dashboard"><i><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".45"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".75"/><path d="M12 12 L19.5 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg></i><b>Perp DEX Radar</b></a>
+    <a class="ablogo" href="./" aria-label="Perp Decision Desk, Today"><i><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".45"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".75"/><path d="M12 12 L19.5 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg></i><b>Perp Decision Desk</b></a>
     <nav class="apptabs" aria-label="Pages">
-      <a href="./">Dashboard</a>
-      <a href="picks.html">Coin picks</a>
-      <a href="quant.html">Quant desk</a>
-      <a href="radar.html">15m radar</a>
-      <a href="smart.html">Smart money</a>
+      <a href="./">Today</a>
       <a href="analyze.html" aria-current="page">Analyzer</a>
+      <a href="funding.html">Funding</a>
+      <a href="portfolio.html">Portfolio</a>
+      <a href="research.html">Research</a>
     </nav>
-    <button class="iconbtn" id="theme" type="button" aria-label="Switch light or dark theme">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
-      </button>
+    <button class="iconbtn" id="theme" type="button" aria-label="Switch light or dark theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
   </div>
 </header>
 <script>(function(){var n=document.querySelector(".apptabs");if(!n)return;var a=n.querySelector("[aria-current=page]");if(a&&n.scrollWidth>n.clientWidth)n.scrollLeft+=a.getBoundingClientRect().left-n.getBoundingClientRect().left-(n.clientWidth-a.offsetWidth)/2;function e(){n.classList.toggle("fl",n.scrollLeft>4);n.classList.toggle("fr",n.scrollLeft+n.clientWidth<n.scrollWidth-4)}n.addEventListener("scroll",e,{passive:true});addEventListener("resize",e);e();})();</script>
 
 
-<main class="wrap">
-  <h1>Analyze any coin</h1>
-  <p class="lede">Type a coin. The call comes only from the Phase 11 decision engine: long or short for a current Phase 11 TRADE, with the desk's trade (entry, stop, trailing stop, time limit) and your size; watch, avoid or wait otherwise, with the exact reason. Legacy signals and the chart read on four timeframes are context. Prices update live.</p>
+<main class="wrap" id="main">
+  <h1>Analyzer</h1>
+  <p class="lede">Inspect any coin with the same governed decision as Today: trade, watch, avoid or no decision, with its full trace. Price, chart, legacy signals and sentiment follow as context; they never make, size or block a call. Prices update live.</p>
 
   <form class="card search" id="form" autocomplete="off">
     <div class="sbox">
@@ -344,11 +350,14 @@ header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: 
   </form>
   <div class="quick" id="quick"></div>
 
-  <div class="status" id="status"></div>
+  <div class="loadstat" id="status"></div>
 
   <section id="result" hidden>
+    <section class="panel dpanel" id="decision" aria-labelledby="dec-h" aria-live="polite"></section>
+    <div id="ctxerr"></div>
+    <div id="ctx" hidden>
+    <div class="ctxlabel"><h2>Context</h2><span class="muted">Price, chart, legacy signals and sentiment. None of it is decision authority.</span></div>
     <div class="card head" id="head"></div>
-    <div class="card sigs" id="signals"></div>
     <div class="cols">
       <div class="card chartcard">
         <div class="ctools">
@@ -365,6 +374,7 @@ header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: 
       </div>
       <aside class="card plan" id="plan"></aside>
     </div>
+    <div class="card sigs" id="signals"></div>
     <div class="ctxhead"><h2>The chart read</h2><span class="tier ctx">Context, not a signal</span></div>
     <p class="alignnote" style="margin-top:2px" id="ctxnote"></p>
     <div class="align" id="align"></div>
@@ -378,22 +388,23 @@ header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: 
     </div>
     <div class="card" id="checks" style="margin-top:12px"></div>
     <div class="card ai" id="ai" style="margin-top:12px"></div>
+    </div>
   </section>
 
   <section class="section method" id="how">
     <div class="card">
       <h2>How the call is made</h2>
-      <p><b>Only the Phase 11 decision makes the call.</b> Every scan, the unified decision engine (v8.decision/1) decides TRADE, WATCH or AVOID for every discovered coin from governed evidence: identity, venue health, the Phase 9 strategy authority, liquidity, observed funding and the Phase 10 portfolio risk of adding the position. A coin gets LONG or SHORT only for a current Phase 11 TRADE, and only in its direction. WATCH and AVOID show the engine's exact reasons and get no plan and no size. Without a current decision (missing, stale or malformed) there is no call: the page never falls back to the legacy signals.</p>
-      <p><b>Legacy signals are context.</b> They stay visible with their own records, but none of them makes, flips, sizes or blocks the call:</p>
+      <p><b>Only the desk's decision makes the call</b>, the same governed decision Today shows. Every scan it decides TRADE, WATCH or AVOID for every discovered coin from identity, venue health, the Phase 9 strategy authority, liquidity, observed funding and the Phase 10 portfolio risk of adding the position. A coin gets LONG or SHORT only for a current TRADE, and only in its direction. WATCH and AVOID show the exact reasons and get no plan and no size. Without a current decision (missing, stale or malformed) there is no call: the page never falls back to the legacy signals. A coin outside the desk's discovery has no decision at all.</p>
+      <p><b>Legacy signals are context.</b> They stay visible with their own records, but none of them makes, flips, sizes or blocks the call. The records below are the earlier engines' own backtests: the coin lists were chosen with hindsight and no Phase 9 gate has passed them, so they are not evidence of an edge.</p>
       <ul>
         <li><b>A Coin picks swing score of 80 or more.</b> Three-year test on 118 coins (Oct 2023 to Oct 2026): +$29 per $100 risked over 5,453 trades after fees, positive every year for longs and shorts. Exits as tested: in at the daily open, stop 2 daily ATR (kept between 5% and 25%), trailing stop 3 ATR behind the best price, out after 30 days at the latest.</li>
         <li><b>A position of the quant desk.</b> Its strategies are legacy holdovers until Phase 9 requalifies them, so its old research record is shown, not used. Exits: the desk's own stop, trailing stop and time limit.</li>
-        <li><b>Proven traders shorting together:</b> 2 or more of Hyperliquid's proven traders opening shorts on the same coin within 24 hours. Promising, not proven: +$14 per $100 risked over 31 trades in a 30-day test without hindsight. Exits: stop 1.5 times the coin's typical daily move, out after 24 hours.</li>
+        <li><b>Leaderboard traders shorting together:</b> 2 or more of Hyperliquid's leaderboard traders opening shorts on the same coin within 24 hours. Promising, not proven: +$14 per $100 risked over 31 trades in a 30-day test without hindsight. Exits: stop 1.5 times the coin's typical daily move, out after 24 hours.</li>
       </ul>
-      <p><b>The plan is the desk's trade.</b> For a Phase 11 TRADE you join the quant desk position the decision is about as it stands (same stop level, same trailing stop, same time limit). There are no profit targets. The size is set so the stop costs your chosen share of the account.</p>
+      <p><b>The plan is the exact evaluated proposal.</b> A Phase 11 TRADE displays the mark, stop, evaluated account, size, leverage, risk and costs approved by Phase 10. Chart quotes and saved browser preferences are context. A different proposal requires a new governed evaluation.</p>
       <p><b>When decisions disagree.</b> Phase 11 TRADE decisions on both sides of one coin: no call.</p>
       <p><b>The chart read is context.</b> Trend, levels, momentum and positioning on four timeframes show where the price sits and which levels matter. We tested whether it makes the calls better: on the 5,453 swing signals of the last three years, trades made +$27 per $100 risked when the 4-hour read agreed and +$38 when it disagreed (+$18 against +$45 on the daily chart), and swing shorts did worst when the 4-hour read agreed (−$1). So the chart read never confirms or blocks a call. On its own its plans were about break-even before fees and lost money after them (29,039 trades on 1-hour charts and 8,400 on 4-hour charts, one year, 118 coins).</p>
-      <p><b>No guarantee.</b> Between 38% and 61% of these trades win, depending on the signal. The edge is small and shows over many trades, not in any one of them. Expect losing runs, risk the same small share every time, and never move a stop away from the price.</p>
+      <p><b>No guarantee.</b> A TRADE means every governed desk gate passes now, not that the trade will make money. In the legacy records above, between 38% and 61% of trades won, depending on the signal. Expect losing runs, risk the same small share every time, and never move a stop away from the price.</p>
     </div>
   </section>
 
@@ -401,6 +412,7 @@ header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: 
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
+<script src="desk.js"></script>
 <script src="analyze.js"></script>
 <script>
 "use strict";
@@ -433,6 +445,8 @@ let PK = null;            // the scan (data/picks.json): tested swing scores, se
 // (all optional; without a current decision every coin is a wait): Coin picks, its 3-year test, the quant desk and its
 // research, smart money
 const SRC = {decision: null, picks: null, picksResearch: null, quant: null, quantResearch: null, smart: null};
+const D = window.DESK || null, H = D ? D.html : null;   // the shared desk core: the only reader of the decision
+let DISC = [];            // assets in the current governed discovery (from the decision), for search
 // one-year walk-forward test of the chart read's own plans (hourly and 4-hour charts, after 0.12% round-trip costs)
 const SELF_TEST = {h1: {trades: 29039, coins: 118, avgR: -0.039, win: 0.419, gross: 0.00036, net: -0.00084}, h4: {trades: 8400, coins: 117, avgR: -0.024, win: 0.424, gross: 0.00076, net: -0.00044}, period: "Sep 2025 to Oct 2026"};
 // does the chart read make the tested swing signals better? 5,453 swing signals (score 80+, Oct 2023 to Oct 2026),
@@ -456,9 +470,11 @@ async function getData(name, fresh) {
 let SCANS_AT = 0;
 async function loadScans() {
   SCANS_AT = Date.now();
-  const [dc, pk, pr, q, qr, sm] = await Promise.all([getData("v8/decision.json", true), getData("picks.json", true), getData("picks_research.json"),
+  const [dc, pk, pr, q, qr, sm] = await Promise.all([D ? D.loadDecision().then((r) => r.doc) : Promise.resolve(null), getData("picks.json", true), getData("picks_research.json"),
     getData("quant.json", true), getData("quant_research.json"), getData("smart.json", true)]);
   Object.assign(SRC, {decision: dc, picks: pk, picksResearch: pr, quant: q, quantResearch: qr, smart: sm});
+  const DA = D ? D.authority(dc, Math.floor(Date.now() / 1000)) : {status: "MISSING"};
+  DISC = DA.status === "AVAILABLE" ? DA.doc.assets.filter((a) => a && typeof a.asset === "string").map((a) => ({sym: a.asset, state: a.state})).sort((a, b) => (a.sym < b.sym ? -1 : 1)) : [];
   PK = pk;
   if (PK) {
     const list = PK.scores ? Object.entries(PK.scores).map(([sym, x]) => ({sym, side: x.side, score: x.score, label: x.label}))
@@ -539,7 +555,7 @@ function onType() {
   const raw = $("#q").value.trim(), q = normSym(raw);
   clearTimeout(sgTimer);
   if (!raw) { showSugg([], ""); return; }
-  const loc = LOCAL.filter((x) => x.sym.startsWith(q)).slice(0, 5).map((x) => ({sym: x.sym, name: "", group: "On your DEXs", tag: (x.side === "long" ? "Long " : "Short ") + Math.round(x.score)}));
+  const loc = DISC.filter((x) => x.sym.startsWith(q)).slice(0, 6).map((x) => ({sym: x.sym, name: "", group: "In the desk's discovery", tag: D ? (D.STATE_VIEW[x.state] || {label: ""}).label : ""}));
   showSugg(loc, q);
   if (raw.length < 2) return;
   const seq = ++sgSeq;
@@ -548,7 +564,7 @@ function onType() {
       const rem = await cgSearch(raw);
       if (seq !== sgSeq) return;
       const seen = new Set(loc.map((x) => x.sym));
-      const more = rem.filter((x) => x.sym && !seen.has(x.sym)).slice(0, 6).map((x) => Object.assign(x, {group: "All coins (CoinGecko)", tag: x.rank ? "#" + x.rank : ""}));
+      const more = rem.filter((x) => x.sym && !seen.has(x.sym)).slice(0, 6).map((x) => Object.assign(x, {group: "Other coins (CoinGecko): outside the desk's discovery, context only", tag: ""}));
       // a coin in the scan that the name search found gets its picture and name
       for (const l of loc) { const m = rem.find((x) => x.sym === l.sym); if (m) { l.thumb = m.thumb; l.name = m.name; l.id = m.id; } }
       showSugg(loc.concat(more), q);
@@ -646,15 +662,15 @@ function optsFor() {
 }
 function livePrice() { const b = S.data && S.data.bars["1h"]; return b && b.length ? last(b).c : null; }
 function recompute() {
-  S.all = TA.analyzeAll(S.data, optsFor());
-  S.call = TA.decide({coin: S.coin, price: livePrice(), d1: S.data.bars["1d"] || [], now: Math.floor(Date.now() / 1000), account: acct(), risk: riskPct(), src: SRC});
+  S.all = S.data ? TA.analyzeAll(S.data, optsFor()) : null;
+  S.call = TA.decide({coin: S.coin, price: livePrice(), d1: (S.data && S.data.bars["1d"]) || [], now: Math.floor(Date.now() / 1000), src: SRC});
 }
 function syncUrl() {
   const u = new URL(location.href);
   if (S.coin) u.searchParams.set("coin", S.coin); else u.searchParams.delete("coin");
   u.searchParams.set("tf", S.tf);
   history.replaceState(null, "", u.pathname + "?" + u.searchParams.toString());
-  document.title = (S.coin ? S.coin + " " + TFN[S.tf] + " · " : "") + "Coin Analyzer · Perp DEX Radar";
+  document.title = (S.coin ? S.coin + " · " : "") + "Analyzer · Perp Decision Desk";
 }
 async function run(raw) {
   const coin = normSym(raw);
@@ -662,18 +678,25 @@ async function run(raw) {
   S.busy = true;
   $("#go").disabled = true;
   stopLive();
-  $("#status").innerHTML = '<div class="card loading"><span class="spin"></span><span>Loading ' + esc(coin) + ' on four timeframes…</span></div>';
+  // the decision first: it needs no price, so it shows even when every exchange fails
+  Object.assign(S, {coin, data: null, all: null, call: null, meta: null, sent: null});
+  recompute();
+  $("#status").innerHTML = "";
+  $("#result").hidden = false;
+  $("#ctx").hidden = true;
+  $("#ctxerr").innerHTML = '<div class="card loading"><span class="spin"></span><span>Loading ' + esc(coin) + ' prices on four timeframes (context)…</span></div>';
+  renderDecision(); addRecent(coin); renderQuick(); syncUrl();
   try {
     const data = await TA.load(coin);
-    S.coin = data.coin; S.data = data; S.meta = null; S.sent = null;
+    if (S.coin !== coin) return;
+    S.data = data;
     const sc = scanOf(S.coin);
     if (sc && sc.sentiment) S.sent = sc.sentiment;
     recompute();
-    if (!Object.keys(S.all).length) throw new Error("Not enough price history for " + coin + " yet.");
+    if (!S.all || !Object.keys(S.all).length) throw new Error("Not enough price history for " + coin + " yet.");
     if (!S.all[S.tf]) setTf(Object.keys(S.all).includes("1h") ? "1h" : Object.keys(S.all)[0], false);
-    $("#status").innerHTML = "";
-    $("#result").hidden = false;
-    addRecent(S.coin); renderQuick(); syncUrl();
+    $("#ctxerr").innerHTML = "";
+    $("#ctx").hidden = false;
     renderAll(false);
     startLive();
     // extras that do not block the first picture
@@ -689,8 +712,12 @@ async function run(raw) {
       recompute(); renderHead(); renderSent(); renderChecks(); renderRead();
     });
   } catch (e) {
-    $("#status").innerHTML = '<div class="card errbox"><b>Could not analyze ' + esc(coin) + '.</b> <span class="ink2">' + esc(e.message) + '</span>' +
-      (e.details && e.details.length ? '<details class="small muted" style="margin-top:6px"><summary>What was tried</summary>' + e.details.map(esc).join("<br>") + '</details>' : "") + '</div>';
+    if (S.coin === coin) {
+      $("#ctx").hidden = true;
+      $("#ctxerr").innerHTML = '<div class="card errbox"><b>Price data for ' + esc(coin) + ' is unavailable.</b> <span class="ink2">' + esc(e.message) + ' The desk decision above does not depend on it.</span>' +
+        (e.details && e.details.length ? '<details class="small muted" style="margin-top:6px"><summary>What was tried</summary>' + e.details.map(esc).join("<br>") + '</details>' : "") + '</div>';
+      renderDecision();
+    }
   } finally {
     S.busy = false;
     $("#go").disabled = false;
@@ -709,6 +736,7 @@ function startLive() {
       const closed = await TA.update(S.data);
       const before = sigOf(S.all && S.all[S.tf]);
       recompute();
+      renderDecision();
       if (closed || sigOf(S.all[S.tf]) !== before) renderAll(true);   // the call or the plan changed: redraw everything
       else {
         renderHead(); renderAlign(); liveBar();
@@ -735,7 +763,7 @@ function liveBar() {
 function renderAll(keepRange) {
   if (!S.all || !S.all[S.tf]) return;
   // one section failing (odd data from a source) must not take the rest of the page down
-  for (const f of [renderHead, renderSignals, renderAlign, () => renderChart(keepRange), renderPlan, renderRead, renderScore, renderChecks, renderSent, renderAI]) {
+  for (const f of [renderDecision, renderHead, renderSignals, renderAlign, () => renderChart(keepRange), renderPlan, renderRead, renderScore, renderChecks, renderSent, renderAI]) {
     try { f(); } catch (e) { console.error("render", e); }
   }
 }
@@ -750,7 +778,7 @@ const P11_TAG = {TRADE: "Phase 11 TRADE", WATCH: "Phase 11 WATCH", AVOID: "Phase
 function tierTag(t, txt) { return '<span class="tier ' + (TIER_CLS[t] || "none") + '">' + esc(txt || t) + '</span>'; }
 function sidePill(side, quiet) { return side ? '<span class="pill ' + (quiet ? "ord" : side) + '">' + (quiet ? side : side.toUpperCase()) + '</span>' : ""; }
 function whenShort(t) { return new Date(t * 1000).toLocaleString(LOCALE, {month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"}); }
-function sizeShare(p) { return (riskPct() * p.riskShare * 100).toFixed(2).replace(/\.?0+$/, "") + "%"; }
+function sizeShare(p) { return ((p.riskFraction == null ? riskPct() * p.riskShare : p.riskFraction) * 100).toFixed(2).replace(/\.?0+$/, "") + "%"; }
 function sigName(s) { return s.name + (s.src === "quant" ? " (" + s.strategy + ")" : ""); }
 function callWhy() {
   const c = S.call;
@@ -760,26 +788,31 @@ function callWhy() {
   if (c.lead && c.against.length) t += ' <b>Legacy context against it:</b> ' + c.against.map((s) => esc(sigName(s) + " " + s.side + " (" + s.tier.toLowerCase() + ")")).join(", ") + '. Legacy signals do not change the Phase 11 call.';
   return t;
 }
+/* The desk's decision on the coin: the same core and the same cards as Today (desk.js). A direction is shown only for a
+   current Phase 11 TRADE; a coin outside the desk's discovery has no decision. */
+function renderDecision() {
+  const el = $("#decision");
+  if (!el || !S.coin) return;
+  if (!D) { el.innerHTML = '<div class="failclosed" role="alert"><p class="fc-t">The desk core did not load: no decision is shown and nothing is actionable.</p></div>'; return; }
+  const v = D.views.assetPanel(SRC.decision, S.coin, Math.floor(Date.now() / 1000), S.call);
+  el.dataset.state = v.state || v.status;
+  if (renderDecision.last === v.html) return;      // unchanged since the last draw: open traces stay open
+  renderDecision.last = v.html;
+  el.innerHTML = v.html;
+}
+if (D) D.bindTraces(document.getElementById("decision"), () => { const A = D.authority(SRC.decision, Math.floor(Date.now() / 1000)); return A.status === "AVAILABLE" ? A.doc : null; });
 function renderHead() {
-  const a = A(), c = S.call, d = S.data, m = S.meta && !S.meta.mismatch ? S.meta : null;
+  const d = S.data, m = S.meta && !S.meta.mismatch ? S.meta : null;
+  if (!d) return;
   const h1 = d.bars["1h"], px = last(h1).c, ref = h1[Math.max(0, h1.length - 25)].c, ch = px / ref - 1;
-  const v = c ? c.verdict : "WAIT", cls = c && c.side ? c.side : "wait";
-  const au = c && c.authority;
-  const tag = !c ? '<span class="tier none">Loading the scans</span>' : c.lead ? tierTag("TRADE", P11_TAG.TRADE)
-    : P11_TAG[c.verdict] ? tierTag(c.verdict, P11_TAG[c.verdict])
-    : '<span class="tier none">' + (au && au.status !== "AVAILABLE" ? "No decision authority" : c.conflict ? "Phase 11 decisions disagree" : "No Phase 11 call") + '</span>';
-  const sub = c && c.lead ? esc(sigName(c.lead)) + " · full size"
-    : "Chart " + TFN[S.tf] + ": " + LEAN(a).toLowerCase() + " (context only)";
   let h = '<div class="coinid">' + (m && m.image ? '<img src="' + esc(m.image) + '" alt="">' : '<div class="ph">' + esc(S.coin.slice(0, 1)) + '</div>') +
     '<div><div class="sym">' + esc(S.coin) + '</div><div class="nm">' + esc(m ? m.name : "") + (m && m.rank ? " · #" + m.rank : "") + '</div></div></div>' +
     '<div class="pxbox"><div class="px">' + fp(px) + '</div><div class="ch ' + (ch >= 0 ? "pos" : "neg") + '">' + pct(ch, 2) + ' 24h</div></div>' +
     '<div class="src"><span class="live" title="Live"></span>' + esc(d.exchange) + ' · ' + esc(d.symbol) + ' · updated ' + ago(d.updated || d.loaded) + venuesTxt() +
-    (d.multiplier > 1 ? ' · prices per ' + d.multiplier.toLocaleString() + ' ' + esc(S.coin) + ' (like the 1000' + esc(S.coin) + ' and k' + esc(S.coin) + ' contracts)' : "") + '</div>' +
-    '<div class="verdict"><div class="vpill ' + cls + '">' + v + '</div><div class="vmeta">' + tag + '<div class="sub">' + sub + '</div></div></div>' +
-    '<p class="callwhy">' + callWhy() + '</p>';
+    (d.multiplier > 1 ? ' · prices per ' + d.multiplier.toLocaleString() + ' ' + esc(S.coin) + ' (like the 1000' + esc(S.coin) + ' and k' + esc(S.coin) + ' contracts)' : "") + '</div>';
   if (m) {
     const circ = m.circ && (m.max || m.total) ? m.circ / (m.max || m.total) : null;
-    h += '<div class="funda"><span>Market cap <b>' + big(m.mc) + '</b></span>' + (m.fdv ? '<span>Fully diluted <b>' + big(m.fdv) + '</b></span>' : "") +
+    h += '<div class="funda"><span class="muted">CoinGecko, matched by ticker (context, not identity):</span><span>Market cap <b>' + big(m.mc) + '</b></span>' + (m.fdv ? '<span>Fully diluted <b>' + big(m.fdv) + '</b></span>' : "") +
       (circ ? '<span><b>' + Math.round(circ * 100) + '%</b> of supply circulating' + (circ < 0.5 ? " (unlocks ahead)" : "") + '</span>' : "") +
       (m.athPct != null ? '<span><b>' + Math.round(Math.abs(m.athPct)) + '%</b> ' + (m.athPct < 0 ? "below" : "above") + ' its all-time high</span>' : "") +
       (m.vol ? '<span>Volume 24h <b>' + big(m.vol) + '</b></span>' : "") + '</div>';
@@ -801,21 +834,6 @@ function renderSignals() {
     '<div class="ss">' + state + (small ? '<small>' + small + '</small>' : "") + '</div><div class="st">' + tier + '</div><div class="sr">' + rec + '</div></div>');
   const ran = '<span class="tier none">Ran its course</span>', noSig = (t) => '<span class="tier none">' + (t || "No signal") + '</span>';
   const all = c.signals.concat(c.expired), isLive = (s) => c.signals.includes(s), lead = (s) => s === c.lead ? "lead" : (isLive(s) ? "" : "dim");
-  // the Phase 11 decision: the call's only authority
-  const au = c.authority || {status: "MISSING", candidates: []}, dsub = "v8.decision/1 · makes the call";
-  if (au.status !== "AVAILABLE") {
-    row("", "Phase 11 decision", dsub, esc({MISSING: "Not loaded", STALE: "Stale", MALFORMED: "Malformed"}[au.status] || au.status), esc(au.reason || ""),
-      '<span class="tier bad">No authority</span>', "No call until a current decision loads");
-  } else if (!au.candidates.length) {
-    row("", "Phase 11 decision", dsub, "No directional decision", esc(au.reason || ""), noSig("No call"),
-      'Decision of ' + whenShort(au.as_of) + (au.asset ? ' · asset ' + esc(au.asset.state) : ' · not in discovery'));
-  } else {
-    for (const k of au.candidates) {
-      row(au.trade && k.id === au.trade.id && c.lead ? "lead" : "", "Phase 11 decision", esc(k.strategy), sidePill(k.side) + esc(k.state) + (k.blocking_step ? " at " + esc(k.blocking_step) : ""),
-        esc(k.reasons.join(", ") || "every governed gate passes"), tierTag(k.state, P11_TAG[k.state]),
-        'Decision of ' + whenShort(au.as_of) + ' · policy ' + esc(String(au.policy_hash || "").slice(0, 12)));
-    }
-  }
   // Coin picks swing
   const sw = all.find((s) => s.src === "swing"), swn = c.notes.find((n) => n.src === "swing");
   if (sw) {
@@ -824,7 +842,7 @@ function renderSignals() {
       isLive(sw) ? tierTag(sw.tier, sw.tier + " record") : ran, recTxt(sw.rec, "swing") + (sw.rec ? ' <span class="muted">(' + sw.side + 's with a chart score of ' + sw.rec.band + ')</span>' : ""));
   } else if (swn) {
     const sc = scanOf(S.coin) || {};
-    row("dim", "Coin picks swing", "Score 80+, days to weeks", 'Score ' + Math.round(swn.score) + ' for a ' + swn.side + ' · not ready', 'A trade starts at ' + swn.readyAt + '.',
+    row("dim", "Coin picks swing", "Score 80+, days to weeks", 'Score ' + Math.round(swn.score) + ' for a ' + swn.side + ' · not ready', 'The diagnostic watchlist threshold is ' + swn.readyAt + '.',
       noSig("Not a signal"), swn.rec ? 'Tested chart score ' + Math.round(sc.core != null ? sc.core : swn.score) + ': ' + TA.usd100(swn.rec.per100) + ' per $100 risked (' +
       swn.rec.n.toLocaleString("en-US") + ' trades, ' + esc(swn.rec.tier.toLowerCase()) + ')' : "");
   } else {
@@ -846,11 +864,11 @@ function renderSignals() {
   const ss = all.find((s) => s.src === "smart"), sn = c.notes.find((n) => n.src === "smart"), srec = SRC.smart ? TA.smartRecord(SRC.smart) : null;
   if (ss) {
     const p = ss.plan;
-    row(lead(ss), "Smart money", "Proven traders shorting together", sidePill(ss.side) + esc(ss.text),
+    row(lead(ss), "Smart money", "Leaderboard traders shorting together", sidePill(ss.side) + esc(ss.text),
       isLive(ss) ? (p && p.signal.move != null ? "Signal " + agoS(p.signal.t) + ", " + pct(p.signal.move) + " for the trade since" : "Signal " + agoS(ss.t)) + (ss.cluster >= 3 ? " · " + ss.cluster + " coins at once" : "") : esc(ss.why),
       isLive(ss) ? tierTag(ss.tier, ss.tier + " record") : ran, recTxt(ss.rec) + (ss.rec && ss.rec.live && ss.rec.live.n ? ' · live: ' + ss.rec.live.n + ' trades' : ' · live record starting'));
   } else {
-    row("dim", "Smart money", "Proven traders shorting together", SRC.smart ? esc(sn ? sn.text : "No proven-trader crowd") : "Scan not loaded", "",
+    row("dim", "Smart money", "Leaderboard traders shorting together", SRC.smart ? esc(sn ? sn.text : "No leaderboard-trader crowd") : "Scan not loaded", "",
       sn && sn.side ? noSig("Information") : noSig(), srec ? 'Rule: ' + TA.usd100(srec.per100) + ' per $100 risked over ' + srec.n + ' trades (shorts)' : "");
   }
   // the chart read: context
@@ -858,7 +876,7 @@ function renderSignals() {
   row("dim", "Chart read · " + TFN[S.tf], "Trend, levels, momentum", LEAN(a) + ' · score ' + sgn(a.bias), "", '<span class="tier ctx">Context</span>',
     g ? 'Tested on ' + GATE_TEST.n.toLocaleString("en-US") + ' swing signals: ' + TA.usd100(g.agree[1]) + ' per $100 risked when this read agreed, ' + TA.usd100(g.disagree[1]) + ' when it disagreed. It does not change the call.'
       : 'Its own plans: ' + pct(st.net, 2) + ' a trade after fees over ' + st.trades.toLocaleString("en-US") + ' trades (one year). It does not change the call.');
-  $("#signals").innerHTML = '<h2>The call on ' + esc(S.coin) + ' <span class="small muted" style="font-weight:500">the Phase 11 decision, then every legacy signal as context</span></h2>' +
+  $("#signals").innerHTML = '<h2>Legacy signals on ' + esc(S.coin) + ' <span class="small muted" style="font-weight:500">earlier engines, shown as context: they never make, size or block the call</span></h2>' +
     '<div class="sgrid">' + rows.join("") + '</div><p class="signote">Only the Phase 11 decision makes, sizes or blocks the call. Legacy records come from tests on past data after fees; they are context only, size nothing and cannot change the call.</p>';
 }
 const DEX = {HL: "Hyperliquid", VR: "Variational", AS: "Aster", EG: "edgeX", LT: "Lighter", DY: "dYdX", PX: "Paradex", EX: "Extended"};
@@ -1046,8 +1064,14 @@ function exitWhy(s, p) {
   return "24 hours after the signal, if the stop is not hit first";
 }
 function testedPlanCard(c) {
+  if (c.plan.kind === "governed") {
+    const p = c.plan;
+    return '<h2>Exact governed proposal · ' + esc(c.verdict) + '</h2><p>This plan is the proposal evaluated by Phase 10 and approved by the current decision. Browser prices and saved account preferences do not change it.</p>' +
+      '<div class="lvls"><div class="lv"><span>Evaluated mark</span><b>' + fp(p.entry) + '</b></div><div class="lv"><span>Evaluated stop</span><b>' + fp(p.stop) + '</b></div></div>' +
+      '<div class="sizebox">Evaluated account: ' + money(p.equity) + '<br>Position: ' + money(p.size) + ' · ' + p.lev.toFixed(3) + '× leverage<br>Stop risk: ' + money2(p.riskUsd) + ' · ' + (p.riskFraction * 100).toFixed(2) + '% sizing input<br>Expected fees: ' + (p.costs.fees * 100).toFixed(4) + '% of equity; slippage: ' + (p.costs.slippage * 100).toFixed(4) + '% of equity<br>Basis: ' + esc(p.sizingBasis) + '</div><p>Changing the account, entry, stop or size requires a new governed evaluation. This page cannot approve a custom proposal.</p>';
+  }
   const s = c.lead, p = c.plan, L = p.side === "long";
-  const title = s.src === "swing" ? "The tested swing trade" : s.src === "quant" ? "Join the " + s.strategy : "Join the proven traders' short";
+  const title = s.src === "swing" ? "The tested swing trade" : s.src === "quant" ? "Join the " + s.strategy : "Join the leaderboard traders' short";
   const ref = p.kind === "swing" ? {lbl: "Tested entry", px: p.tested.entry, t: p.tested.t, move: p.tested.move}
     : p.kind === "quant" ? (p.desk.entry ? {lbl: "Desk entry", px: p.desk.entry, t: p.desk.t, move: p.desk.move} : null)
     : (p.signal.entry ? {lbl: "Signal at", px: p.signal.entry, t: p.signal.t, move: p.signal.move} : null);
@@ -1076,25 +1100,16 @@ function leftTxt(t) {
   return s <= 0 ? "due" : s >= 2 * 86400 ? Math.round(s / 86400) + " days" : Math.max(1, Math.round(s / 3600)) + " h";
 }
 function waitCard(c) {
-  const au = c.authority || {status: "MISSING", candidates: []}, v = c.verdict || "WAIT";
-  const title = v === "WATCH" ? "Phase 11: watch, not a trade" : v === "AVOID" ? "Phase 11: avoid" :
-    au.status !== "AVAILABLE" ? "No decision authority" : au.conflict ? "Phase 11 decisions disagree" : "No Phase 11 call";
-  let h = '<h2><span class="pill">' + esc(v) + '</span>' + esc(title) + '</h2><p class="small ink2" style="margin:0 0 6px">' + esc(c.headline) + '</p>';
-  const next = [];
-  for (const k of au.candidates || []) {
-    if (k.state === "WATCH") for (const x of k.to_become_trade) next.push(esc(k.strategy + " " + k.side + " · " + x.step + ": " + TA.codeTxt(x.code)));
-    if (k.state === "AVOID") next.push(esc(k.strategy + " " + k.side + " · rejected at " + k.blocking_step + ": " + k.reasons.join(", ")));
-  }
-  if (next.length) h += '<h3>' + (v === "WATCH" ? "What Phase 11 needs before it can be a trade" : "Why Phase 11 rejects it") + '</h3><ul class="next">' + next.map((x) => '<li>' + x + '</li>').join("") + '</ul>';
-  h += '<p class="small muted" style="margin:8px 0 0">No plan and no size: only a current Phase 11 TRADE gets one. The legacy signals and the chart read are context only.</p>';
-  return h;
+  const v = (c && c.verdict) || "WAIT";
+  return '<h2><span class="pill">' + esc(v) + '</span>No trade plan</h2><p class="small ink2" style="margin:0">Only a current trade decision gets a plan and a size. The desk\'s decision on ' + esc(S.coin) +
+    ' is above, with what would need to change.</p>';
 }
 function renderPlan() {
   const c = S.call;
   let h;
   if (c && c.lead && c.plan) h = testedPlanCard(c);
   else if (c && c.lead) h = '<h2><span class="pill ' + c.side + '">' + c.verdict + '</span>' + esc(sigName(c.lead)) + '</h2><div class="subhead">' + tierTag("TRADE", P11_TAG.TRADE) + '</div><div class="note">' + esc(c.lead.planError || "The plan could not be built.") + '</div>';
-  else h = waitCard(c || {verdict: "WAIT", headline: "Loading the scans…", authority: {status: "MISSING", candidates: []}});
+  else h = waitCard(c);
   h += '<div class="btnrow"><button class="btn" type="button" id="copyPlan">Copy plan</button><button class="btn" type="button" id="reload">Re-analyze</button>' +
     (c && c.lead ? '<a class="btn" href="' + PAGE_OF[c.lead.src] + '">' + esc(c.lead.name) + ' page</a>' : "") + '</div>';
   $("#plan").innerHTML = h;
@@ -1112,6 +1127,12 @@ function planText() {
     const s = c.lead, p = c.plan, L = p.side === "long";
     lines.push(S.coin + " · " + c.verdict + " · Phase 11 TRADE: " + sigName(s) + ". " + s.text + ".");
     if (s.rec) lines.push("Tested: " + TA.recordTxt(s.rec) + (s.rec.period ? " (" + s.rec.period + ")" : "") + ".");
+    if (p.kind === "governed") return [S.coin + " · " + c.verdict + " · exact governed proposal",
+      "Evaluated mark " + fp(p.entry) + ", stop " + fp(p.stop),
+      "Evaluated equity " + money(p.equity) + ", size " + money(p.size) + ", leverage " + p.lev,
+      "Stop risk " + money2(p.riskUsd) + ", risk fraction " + p.riskFraction,
+      "Sizing basis " + p.sizingBasis + "; fees/equity " + p.costs.fees + "; slippage/equity " + p.costs.slippage,
+      "Valid only for the exact current governed proposal. Custom changes require a new evaluation."].join("\n");
     lines.push((L ? "Buy" : "Sell") + " at market, near " + fp(p.entry));
     lines.push("Stop " + fp(p.stop) + " (" + (L ? "−" : "+") + (p.stopPct * 100).toFixed(2) + "%): " + stopWhy(s, p).replace(/^./, (m) => m.toLowerCase()));
     if (p.trail > 0) lines.push("Trailing stop " + fp(p.trail) + " " + trailWhy(s, p));
@@ -1279,7 +1300,8 @@ function aiPayload() {
   const rec = (r) => r ? {trades: r.n, win_rate: +r.win.toFixed(3), usd_per_100_risked: r.per100, period: r.period} : null;
   const sig = (s) => ({source: sigName(s), side: s.side, legacy_label: s.tier, signal: s.text, legacy_record: rec(s.rec)});
   const p = c && c.plan, ld = c && c.lead;
-  const plan = p && ld ? {side: p.side, order: "market", entry: r2(p.entry), stop: r2(p.stop), stop_pct: +(p.stopPct * 100).toFixed(2), stop_basis: stopWhy(ld, p),
+  const plan = p && ld && p.kind === "governed" ? {authority: "EXACT_GOVERNED_PROPOSAL", side: p.side,
+    proposal: JSON.parse(JSON.stringify(p.proposal))} : p && ld ? {side: p.side, order: "market", entry: r2(p.entry), stop: r2(p.stop), stop_pct: +(p.stopPct * 100).toFixed(2), stop_basis: stopWhy(ld, p),
     trailing_stop: p.trail > 0 ? {distance: r2(p.trail), pct: +(p.trailPct * 100).toFixed(2), rule: trailWhy(ld, p)} : null,
     exit_by_utc: new Date(p.exitBy * 1000).toISOString().slice(0, 16).replace("T", " "), exit_rule: exitWhy(ld, p), profit_target: "none (the tested exits let winners run)",
     size_usd: Math.round(p.size), leverage: +p.lev.toFixed(1), risk_usd: +p.riskUsd.toFixed(2), half_size: p.riskShare < 1} : null;
@@ -1393,6 +1415,7 @@ document.addEventListener("visibilitychange", async () => {
 });
 setTf(S.tf, false);
 renderQuick();
+setInterval(() => { if (S.coin) { recompute(); renderDecision(); } }, 30000);   // a decision past valid_until fails closed
 (async function start() {
   const u = new URL(location.href), c = u.searchParams.get("coin"), tf = u.searchParams.get("tf");
   if (tf && TFS.includes(tf)) setTf(tf, false);

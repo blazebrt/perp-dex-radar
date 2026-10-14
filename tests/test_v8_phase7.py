@@ -705,14 +705,18 @@ class PipelineDiscovery(unittest.TestCase):
         shutil.rmtree(cls.tmp, ignore_errors=True)
 
     def test_legacy_outputs_unchanged(self):
-        for g in ("legacy_parity_golden_phase11.json",):
+        for g in ("legacy_parity_golden_phase12.json",):
             with open(os.path.join(HERE, "fixtures", "v8", g)) as fh:
                 golden = json.load(fh)
             self.assertEqual(self.LP.compare(golden, self.summary), [], g)
-        # historical: against Phase 9's golden, only the Phase 11 Analyzer authority cutover differs
+        # historical: against Phase 9's golden, only the Phase 11 Analyzer authority cutover and the Phase 12 desk pages
+        # (each pinned in the Phase 12 manifest) differ
         with open(os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase9.json")) as fh:
             p9 = json.load(fh)
-        self.assertEqual(sorted(d.split(":")[0] for d in self.LP.compare(p9, self.summary)), ["analyze.html", "analyze.js"])
+        with open(os.path.join(HERE, "fixtures", "v8", "phase12_expected_deltas.json")) as fh:
+            manifest = json.load(fh)
+            p12 = sorted({e["file"] for category in ("files", "code") for e in manifest[category]})
+        self.assertEqual(sorted(d.split(":")[0] for d in self.LP.compare(p9, self.summary)), sorted(set(p12) | {"analyze.html", "analyze.js"}))
         with open(os.path.join(HERE, "fixtures", "v8", "phase7_expected_deltas.json")) as fh:
             man = json.load(fh)
         self.assertEqual((man["base"]["sha"], man["base"]["tree"]),

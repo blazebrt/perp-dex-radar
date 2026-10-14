@@ -138,14 +138,16 @@ jobs:
           cp picks.html site/index.html || true
           cp picks.html site/picks.html || true
 
-      - name: Publish the coin analyzer page
-        # The analyzer runs in the browser (it reads exchange data itself), so it is published on every scan.
+      - name: Publish the Perp Decision Desk pages
+        # v8 Phase 12: the desk (Today as the front page, the Analyzer, Funding, Portfolio, Research and their shared
+        # core) runs in the browser on the published files, so it is published on every scan, before the dashboard
+        # step and independently of it. The earlier engines' pages stay as diagnostics.
         if: always()
-        run: cp analyze.html analyze.js site/ || true
+        run: python -c "import dashboard; dashboard.publish('site')" || (cp analyze.html analyze.js funding.html portfolio.html research.html desk.js desk.css site/ && cp today.html site/index.html) || true
 
-      - name: Build the dashboard (the front page)
-        # One look at all versions, smart money and the accuracy scorecard. If it fails, the front page stays
-        # the coin picks page.
+      - name: Build the dashboard data (the earlier engines' records)
+        # dashboard.json: every earlier engine's record, shown on Research as historical, unqualified context. It also
+        # publishes the desk pages again (the same files).
         if: always()
         continue-on-error: true
         run: python dashboard.py --out site
@@ -165,6 +167,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: python -m v8.snapshot --out site --pages-url "${{ steps.pages.outputs.base_url }}" --archive-dir "$RUNNER_TEMP/v8_archive" --history-branch v8-history --history-backfill --history-repo "${{ github.repository }}"
+
+      - name: Publish production Research evidence (read only; independent of desk decisions)
+        if: always() && steps.core_tests.outcome == 'success' && github.ref == 'refs/heads/main'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python tools/research/production_publication.py site
 
       - name: Keep this scan's audit snapshot for 14 days (Actions artifact; nothing is stored permanently)
         if: always() && steps.core_tests.outcome == 'success'

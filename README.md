@@ -16,6 +16,9 @@ is on the path to your target and what the journal's own results say about reach
 
 ## Dashboard (version 7.2): everything in one look
 
+*Historical: retired in v8 Phase 12. The front page is now Today on the Perp Decision Desk (see Phase 12 below); the
+verdicts in this section are the earlier engines' own records, not strategy authority.*
+
 The front page (`dashboard.html`, served as `index.html`) shows the three versions side by side with smart money
 and one accuracy scorecard, and every page has the same tab bar (Dashboard, Coin picks, Quant desk, 15m radar,
 Smart money, Analyzer), so each version is one tap away, on a phone too:
@@ -611,4 +614,16 @@ evidence **zero TRADE is the expected result**. Every rule is a reviewed initial
 alone: LONG or SHORT only for a current Phase 11 TRADE, WATCH / AVOID / WAIT otherwise with the engine's exact
 reason, and no call when the decision is missing, stale or malformed. Legacy swing, quant and smart-money signals are
 shown as context only. No engine or other page changes. See [the Phase 11 design](docs/v8/phase11-decision-engine.md).
-Phase 12 (the final TODAY and Analyzer experience) is not implemented or authorized.
+
+## Phase 12 Perp Decision Desk
+
+The published site is now one product, the **Perp Decision Desk**, with five surfaces and one tab bar: **Today**
+(the front page), **Analyzer**, **Funding**, **Portfolio** and **Research**. Every state, rank, reason and trace on
+them is the governed Phase 11 decision (`data/v8/decision.json`), read through one shared core (`desk.js`) that
+decides nothing. Today shows up to five Best Trades Now (TRADE only, never filled), the emerging WATCH observations
+with what needs to change, a summary of what was avoided and why, the Phase 10 portfolio state and qualified funding
+spreads. With today's evidence zero TRADE is the expected result, and the desk says so and why. A missing, malformed
+or expired decision fails closed ("Decision expired — waiting for the next governed scan."). Nothing on the desk places
+an order, and funding spreads are never risk-free. The earlier engines' pages (coin picks, quant desk, smart money, the
+15-minute radar) keep running as diagnostics outside the tab bar; their scores and the scorecard above are historical,
+not desk decisions. See [the Phase 12 design](docs/v8/phase12-final-production-experience.md).

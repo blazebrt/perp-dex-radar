@@ -86,7 +86,8 @@ class FakeExchange:
             ts = list(range((self.now // 28800) * 28800, first, -28800))
             chunk = ts[(page - 1) * size: page * size]
             return {"success": True, "data": {"totalPage": (len(ts) + size - 1) // size, "resultList": [
-                {"symbol": q["symbol"][0], "fundingRate": 0.0001, "settleTime": t * 1000} for t in chunk]}}
+                {"symbol": q["symbol"][0], "fundingRate": 0.0001, "settleTime": t * 1000, "collectCycle": 8}
+                for t in chunk]}}
         if url == sc.VAR_STATS:
             return {"listings": [{"ticker": c, "name": c, "mark_price": self.c15[c][-1]["c"],
                                   "volume_24h": self.vol24[c], "funding_rate": 0.05,

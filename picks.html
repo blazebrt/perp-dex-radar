@@ -164,26 +164,26 @@ header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: 
 <body>
 <header class="top">
   <div class="wrap abwrap">
-    <a class="ablogo" href="./" aria-label="Perp DEX Radar dashboard"><i><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".45"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".75"/><path d="M12 12 L19.5 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg></i><b>Perp DEX Radar</b></a>
+    <a class="ablogo" href="./" aria-label="Perp Decision Desk, Today"><i><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".45"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".75"/><path d="M12 12 L19.5 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg></i><b>Perp Decision Desk</b></a>
     <nav class="apptabs" aria-label="Pages">
-      <a href="./">Dashboard</a>
-      <a href="picks.html" aria-current="page">Coin picks</a>
-      <a href="quant.html">Quant desk</a>
-      <a href="radar.html">15m radar</a>
-      <a href="smart.html">Smart money</a>
+      <a href="./">Today</a>
       <a href="analyze.html">Analyzer</a>
+      <a href="funding.html">Funding</a>
+      <a href="portfolio.html">Portfolio</a>
+      <a href="research.html">Research</a>
     </nav>
     <button class="iconbtn" id="theme" type="button" aria-label="Switch light or dark theme">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
       </button>
   </div>
 </header>
+<div role="note" style="background:var(--surface-2,#efefeb);border-bottom:1px dashed var(--border,rgba(0,0,0,.12));font:14px/1.45 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;padding:9px 16px;text-align:center"><b>Diagnostic page.</b> This shows the coin picks, an earlier engine, as it runs. Its scores and calls are not desk decisions and are not trade-ready. The desk's decisions are on <a href="./">Today</a> and in the <a href="analyze.html">Analyzer</a>.</div>
 <script>(function(){var n=document.querySelector(".apptabs");if(!n)return;var a=n.querySelector("[aria-current=page]");if(a&&n.scrollWidth>n.clientWidth)n.scrollLeft+=a.getBoundingClientRect().left-n.getBoundingClientRect().left-(n.clientWidth-a.offsetWidth)/2;function e(){n.classList.toggle("fl",n.scrollLeft>4);n.classList.toggle("fr",n.scrollLeft+n.clientWidth<n.scrollWidth-4)}n.addEventListener("scroll",e,{passive:true});addEventListener("resize",e);e();})();</script>
 
 
 <main class="wrap">
   <h1>The best coins to trade right now</h1>
-  <p class="lede" id="lede">Every coin on your DEXs is scored 0 to 100 on 18 checks: the chart setup (tested on three years of data), smart money, funding, open interest, fundamentals and liquidity. The Top 5 and Top 10 are below, each with its reasons and a trade plan.</p>
+  <p class="lede" id="lede">Every coin on your DEXs is scored 0 to 100 on 18 checks: the chart setup (tested on three years of data), smart money, funding, open interest, fundamentals and liquidity. The Top 5 and Top 10 are below, each with its diagnostic reasons and a hypothetical plan. Scores are not decision authority.</p>
 
   <div class="card mood" id="mood"><span class="muted">Loading the latest scan…</span></div>
 
@@ -197,7 +197,7 @@ header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: 
   <div class="card bar">
     <label>Your account ($)<input id="acct" type="number" min="10" step="10" value="500"></label>
     <label>Risk per trade (%)<input id="risk" type="number" min="0.1" max="10" step="0.1" value="2"></label>
-    <div class="hint">Sizes on every pick: if the stop is hit you lose this share of the account (plus fees). The tests used 2%.</div>
+    <div class="hint">Sizes on every pick: if the stop is hit you lose this share of the account (plus fees). Hypothetical only; the legacy tests used 2%. Not evaluated by Phase 10.</div>
   </div>
 
   <div class="tabs" id="swing">
@@ -318,9 +318,9 @@ function planHtml(p) {
   const pl = p.plan, a = acct(), r = riskPct();
   const riskUsd = a * r, size = riskUsd / pl.stop_pct, lev = size / a;
   const ready = p.score >= ((P && P.settings) || {}).ready;
-  const sideWord = (p.side === "long" ? "Buy" : "Sell short") + (ready ? "" : " · not yet");
+  const sideWord = (p.side === "long" ? "Hypothetical long" : "Hypothetical short") + (ready ? "" : " · not yet");
   const unit = p.kind === "swing" ? (pl.days + " days") : (pl.hours + " hours");
-  const wait = ready ? "" : '<div class="small" style="margin-top:10px;color:var(--half);font-weight:600">Not a trade yet: the score is below 80. Watch it; the plan below is what it would be now.</div>';
+  const wait = ready ? "" : '<div class="small" style="margin-top:10px;color:var(--half);font-weight:600">Diagnostic only. This hypothetical plan is not evaluated by the governed risk engine.</div>';
   return wait + '<div class="plan">' +
     '<div><div class="l">' + sideWord + '</div><div class="v">' + px(pl.entry) + '</div><div class="s">price now</div></div>' +
     '<div><div class="l">Stop</div><div class="v">' + px(pl.stop) + '</div><div class="s">' + (p.side === "long" ? "−" : "+") + (pl.stop_pct * 100).toFixed(1) + '% away</div></div>' +
@@ -346,7 +346,7 @@ function oddsHtml(p) {
   const yR = (v) => v.R != null ? v.R : (v.ret || 0);   // per dollar risked, the unit of the headline
   const up = ys.filter(([, v]) => yR(v) > 0).length;
   const yrs = ys.map(([y, v]) => { const d = Math.round(yR(v) * 100); return y + " " + (d > 0 ? "+$" : d < 0 ? "−$" : "$") + Math.abs(d); }).join(" · ");
-  const verdict = b.R > 0 && ys.length && up === ys.length ? ["good", "✓ Proven"] : b.R > 0 ? ["warn", "Mixed"] : ["bad", "No edge"];
+  const verdict = b.R > 0 && ys.length && up === ys.length ? ["warn", "Unqualified historical result"] : b.R > 0 ? ["warn", "Mixed"] : ["bad", "No edge"];
   const per100 = Math.round(b.R * 100);
   const range = b.lo + "–" + Math.min(100, b.hi - 1);
   const advice = verdict[0] === "good" ? "" : (b.lo < 80 ? " Wait for 80+." : "");
@@ -383,7 +383,7 @@ function noteHtml(p, open) {
 }
 function anaLink(p) {
   if (!/^[A-Za-z0-9]+$/.test(p.coin)) return "";   // tickers the exchanges do not list by name
-  return '<div class="small" style="margin-top:8px"><a href="analyze.html?coin=' + encodeURIComponent(p.coin) + '&tf=' + (p.kind === "swing" ? "4h" : "1h") + '">The call, the tested plan and the chart for ' + esc(p.coin) + ' →</a></div>';
+  return '<div class="small" style="margin-top:8px"><a href="analyze.html?coin=' + encodeURIComponent(p.coin) + '&tf=' + (p.kind === "swing" ? "4h" : "1h") + '">Current governed decision and chart context for ' + esc(p.coin) + ' →</a></div>';
 }
 function pickCard(p, i) {
   const venues = p.venues ? '<span class="pill" title="Traded on">' + esc(p.venues) + '</span>' : "";
@@ -391,8 +391,8 @@ function pickCard(p, i) {
   return '<div class="card pick' + (i === 0 ? " first" : "") + '">' +
     '<div class="top"><div class="rank">#' + (i + 1) + '</div><div><div class="coin">' + esc(p.coin) + '<small>' + px(p.price) + ' · ' + pct(p.chg24) + ' 24h</small></div>' +
     '<div class="meta"><span class="pill ' + p.side + '">' + (p.side === "long" ? "LONG" : "SHORT") + '</span>' + setup +
-    '<span class="pill lab-' + esc(p.label.split(" ")[0]) + '">' + esc(p.label) + '</span>' + venues + sentPill(p) + '</div></div>' + ring(p.score) + '</div>' +
-    '<p class="why">' + esc(p.why) + '</p>' +
+    '<span class="pill lab-' + esc(p.label.split(" ")[0]) + '">' + esc("Watchlist score " + Math.round(p.score)) + '</span>' + venues + sentPill(p) + '</div></div>' + ring(p.score) + '</div>' +
+    '<p class="why">' + esc((p.why || "").replace(/\((ready|strong)\)/gi, "(watchlist band)")) + '</p>' +
     '<div class="pricebar"><span class="small muted">' + (p.kind === "swing" ? "60 days" : "48 hours") + '</span>' + spark(p.spark, p.side) + '</div>' +
     planHtml(p) + oddsHtml(p) + noteHtml(p, i === 0) + anaLink(p) +
     '<details class="more"' + (i === 0 ? " open" : "") + '><summary>All ' + (p.checks.length + p.extras.length) + ' checks</summary>' + checksHtml(p) + '</details>' +
@@ -413,7 +413,7 @@ function renderMood() {
     '<div class="small ink2">BTC ' + px(b.price) + ' · 50-day EMA ' + px(b.ema50) + ' · 30 days ' + pct(b.mom30) + '</div>' +
     '<div class="small ink2">' + (m.above != null ? m.above + ' of ' + m.total + ' coins above their 50-day EMA' : "") + '</div>' +
     (m.fng && m.fng.value != null ? '<div class="small ink2">Fear &amp; Greed <b>' + esc(m.fng.value) + '</b> ' + esc(m.fng.label || "") + '</div>' : "") +
-    '<div class="small muted">Updated ' + ago(P.generated) + ' · ' + P.coins + ' coins scored · smart money ' + (s.smart ? "on (" + (s.smart_traders || 0) + (s.smart_kind === "proven" ? " proven traders)" : " top traders)") : "off") +
+    '<div class="small muted">Updated ' + ago(P.generated) + ' · ' + P.coins + ' coins scored · smart money ' + (s.smart ? "on (" + (s.smart_traders || 0) + (s.smart_kind === "proven" ? " leaderboard traders)" : " top traders)") : "off") +
     ' · fundamentals ' + (s.cg_time ? "from " + ago(s.cg_time) : "unavailable") + (s.cg_key ? " (your CoinGecko key)" : "") +
     (s.stocktwits != null ? ' · sentiment from ' + s.stocktwits + ' coins on Stocktwits, ' + (s.news || 0) + ' headlines, ' + (s.reddit || 0) + ' coins on Reddit' : "") + '</div>' +
     '<div class="refresh"><button class="iconbtn" id="refresh" type="button">⟳ Refresh now</button><span class="small muted" id="refreshMsg">' +
@@ -431,23 +431,23 @@ function renderKindNote() {
       t = ' Over ' + esc(R.period) + ', longs scoring 80+ made ' + pct(L.ret) + ' per trade after fees (positive in ' + yrs(L) + ' years) and shorts scoring 80+ made ' + pct(S.ret) +
         ' (positive in ' + yrs(S) + '). Longs 80+ had about the same chance of a +50% month as any coin (' + Math.round(L.up50 * 100) + '% vs ' + Math.round(B.up50 * 100) + '%) and half the chance of a 30% fall (' + Math.round(L.dn30 * 100) + '% vs ' + Math.round(B.dn30 * 100) + '%).';
     }
-    h = '<div class="note good"><b>Tested.</b> Swing picks hold for days to weeks with a wide stop.' + t + ' Trade only "Ready" (80+) and "Strong" (90+) picks; lower scores show what is setting up.</div>';
+    h = '<div class="note good"><b>Legacy research diagnostic.</b> Swing scores hold for days to weeks with a wide stop.' + t + ' Scores 80+ and 90+ are watchlist bands, not approval. Use TODAY / Analyzer for current governed authority.</div>';
   } else {
-    h = '<div class="note"><b>No tested edge.</b> In a one-year test on hourly candles, every way of picking day trades lost money after fees and slippage (the best selection still lost about 0.06% per trade). These are the coins with the best conditions for a day trade right now: trend aligned on the daily, 4-hour and 1-hour charts, not chasing a spike, calm and liquid. If you trade them, use limit orders and small size. The swing list is where the tested edge is.</div>';
+    h = '<div class="note"><b>No tested edge.</b> In a one-year test on hourly candles, every way of picking day trades lost money after fees and slippage (the best selection still lost about 0.06% per trade). These are the coins with the best conditions for a day trade right now: trend aligned on the daily, 4-hour and 1-hour charts, not chasing a spike, calm and liquid. This list cannot approve an order; consult TODAY / Analyzer. The swing list also remains unqualified historical research.</div>';
   }
   $("#kindnote").innerHTML = h;
 }
 function renderPicks() {
   const L = list();
   const ready = L.filter((p) => p.score >= (P.settings || {}).ready).length;
-  $("#top5h").textContent = "Top 5 " + (KIND === "swing" ? "swing" : "day") + " trades" + (SIDE === "all" ? "" : SIDE === "long" ? " · longs" : " · shorts");
-  $("#top5p").textContent = ready ? ready + " of these 10 are ready (score 80+)." : "No setup is ready (80+) right now: these are the closest. Waiting is a position too.";
+  $("#top5h").textContent = "Top 5 " + (KIND === "swing" ? "swing" : "day") + " watchlist scores" + (SIDE === "all" ? "" : SIDE === "long" ? " · longs" : " · shorts");
+  $("#top5p").textContent = ready ? ready + " of these 10 have watchlist score 80+." : "No watchlist score reaches 80+; these are the closest diagnostics.";
   $("#top5").innerHTML = L.length ? L.slice(0, 5).map(pickCard).join("") : '<div class="card empty">No coins scored yet.</div>';
   const rest = L.slice(5, 10);
   $("#rest").innerHTML = rest.length ? rest.map((p, i) => '<tr class="rowx" data-i="' + (i + 5) + '"><td class="muted">' + (i + 6) + '</td><td><b>' + esc(p.coin) + '</b> <span class="muted small">' + px(p.price) + '</span></td>' +
     '<td><span class="pill ' + p.side + '">' + (p.side === "long" ? "LONG" : "SHORT") + '</span></td><td class="num"><b>' + Math.round(p.score) + '</b></td>' +
-    '<td>' + esc(p.kind === "swing" ? p.setup : (p.side === "long" ? "Day long" : "Day short")) + ' <span class="muted small">' + esc(p.label) + '</span></td>' +
-    '<td class="num">' + (p.plan.stop_pct * 100).toFixed(1) + '%</td><td class="small ink2">' + esc(p.why) + '</td></tr>').join("")
+    '<td>' + esc(p.kind === "swing" ? p.setup : (p.side === "long" ? "Day long" : "Day short")) + ' <span class="muted small">' + esc("Watchlist score " + Math.round(p.score)) + '</span></td>' +
+    '<td class="num">' + (p.plan.stop_pct * 100).toFixed(1) + '%</td><td class="small ink2">' + esc((p.why || "").replace(/\((ready|strong)\)/gi, "(watchlist band)")) + '</td></tr>').join("")
     : '<tr><td colspan="7" class="empty">Nothing more to show.</td></tr>';
   document.querySelectorAll("tr.rowx").forEach((tr) => tr.addEventListener("click", () => {
     const nx = tr.nextElementSibling;

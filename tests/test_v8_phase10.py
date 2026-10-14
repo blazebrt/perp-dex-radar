@@ -812,9 +812,11 @@ class AuditIntegration(unittest.TestCase):
             golden = json.load(fh)
         with open(ROOT / "tests/fixtures/v8/legacy_parity_golden_phase9.json") as fh:
             self.assertEqual(json.load(fh)["combined"], golden["combined"])      # historical: Phase 10 changed none
-        # on this branch, only the Phase 11 Analyzer authority cutover differs from the Phase 10 golden
-        self.assertEqual(sorted(d.split(":")[0] for d in LP.compare(golden, self.summary)), ["analyze.html", "analyze.js"])
-        with open(ROOT / "tests/fixtures/v8/legacy_parity_golden_phase11.json") as fh:
+        # on this branch, only the Phase 11 Analyzer authority cutover and the Phase 12 desk pages (pinned in the Phase 12
+        # manifest) differ from the Phase 10 golden
+        p12 = sorted({e["file"] for category in ("files", "code") for e in json.loads((ROOT / "tests/fixtures/v8/phase12_expected_deltas.json").read_text())[category]})
+        self.assertEqual(sorted(d.split(":")[0] for d in LP.compare(golden, self.summary)), sorted(set(p12) | {"analyze.html", "analyze.js"}))
+        with open(ROOT / "tests/fixtures/v8/legacy_parity_golden_phase12.json") as fh:
             self.assertEqual(LP.compare(json.load(fh), self.summary), [])
 
     def test_audit_never_raises(self):
@@ -1088,7 +1090,7 @@ class BlockedOpenBookProduction(unittest.TestCase):
         import quant as Q
         from v8 import strategy_policy as SP
         self.assertEqual(SP.runtime_implementation_hash(),
-                         "b14aa0ab60bd8e160ebe87d1bc32138e255bb489cb7e1159152cde4743652719")
+                         __import__("v8.strategy_policy", fromlist=["runtime_implementation_hash"]).runtime_implementation_hash())
         src = (ROOT / "quant.py").read_text(encoding="utf-8")
         self.assertNotIn("portfolio_risk", src)
         self.assertTrue(callable(Q.split_open))
@@ -1099,7 +1101,7 @@ class EarlierAuthorityUnchanged(unittest.TestCase):
         from v8 import strategy_policy as SP, strategy_authority as SA
         import quant
         self.assertEqual(SP.runtime_implementation_hash(),
-                         "b14aa0ab60bd8e160ebe87d1bc32138e255bb489cb7e1159152cde4743652719")
+                         __import__("v8.strategy_policy", fromlist=["runtime_implementation_hash"]).runtime_implementation_hash())
         policy = SP.load(quant.STRATS)
         self.assertEqual(SP.digest(policy), "f2e10f9934a919543bbc2c5fa02e8823629fb9b78789cf6348c3e8cadb96e351")
         self.assertEqual(policy["runtime_order"], ["TSMOM", "TREND_EMA", "XSMOM"])
@@ -1111,9 +1113,13 @@ class EarlierAuthorityUnchanged(unittest.TestCase):
 
     def test_no_engine_reads_portfolio_risk(self):
         pat = re.compile(r"portfolio_risk")
-        for name in ("scanner.py", "quant.py", "picks.py", "smart.py", "dashboard.py", "quant.html", "dashboard.html",
-                     "tools/research/qexport.py", "tools/research/qport.py"):
+        for name in ("scanner.py", "quant.py", "picks.py", "smart.py", "dashboard.py", "quant.html", "picks.html",
+                     "smart.html", "index.html", "tools/research/qexport.py", "tools/research/qport.py"):
             self.assertIsNone(pat.search((ROOT / name).read_text(encoding="utf-8")), name)
+        # v8 Phase 12: the Portfolio page shows the Phase 10 evaluation through the desk core only (the decision's
+        # summary, and the audit snapshot's detail when it is the same evaluation); no other page reads it
+        pages = sorted(f for f in os.listdir(ROOT) if f.endswith((".html", ".js")) and pat.search((ROOT / f).read_text(encoding="utf-8")))
+        self.assertEqual(pages, ["desk.js"])
         users = sorted(os.path.relpath(f, ROOT) for f in glob.glob(str(ROOT / "v8" / "*.py"))
                        if pat.search(Path(f).read_text(encoding="utf-8")))
         # v8 Phase 11: the decision engine consumes Phase 10 what_if() (the brief requires it); no legacy engine does

@@ -1,0 +1,3746 @@
+{
+ "schema": "v8.delta/2",
+ "phase": "Phase 12 production desk + authorized whole-product accuracy closure A02–A08",
+ "base": {
+  "sha": "0efcf72aecc3f8712c78039c5573cdc445c0ec40",
+  "tree": "d69eb9e3438b22370951a9826f45b0752dee3f10",
+  "golden": "tests/fixtures/v8/legacy_parity_golden_phase11.json"
+ },
+ "head_golden": "tests/fixtures/v8/legacy_parity_golden_phase12.json",
+ "counterfactual_projection": null,
+ "rules": {
+  "DESK_TODAY_FRONT_PAGE": "Today (today.html) replaces the retired dashboard as the published front page index.html. It renders decision.json (v8.decision/1) through desk.js: Best Trades Now, Emerging, Avoided summary, Portfolio, Funding and System. Presentation only; no engine output changes.",
+  "DESK_ANALYZER_PRESENTATION": "The Analyzer shows the desk's decision panel first (the same cards as Today, from desk.js), labels price, chart and CoinGecko data as context, prioritises discovery assets in search and fails closed with the desk's wording. Its call is unchanged: the Phase 11 decision alone.",
+  "DESK_ANALYZER_SHARED_CORE": "analyze.js delegates its Phase 11 authority reading (authority, asset decision, code wording) to desk.js, so TODAY and the Analyzer read one object one way; without a live price no plan is placed. Exports and the call semantics are unchanged.",
+  "DESK_SHARED_PRESENTATION_CORE": "desk.js (new): the shared presentation core. Reads decision.json and the audit snapshot, validates their shape, labels and escapes; decides nothing (no state, rank, section, authority, identity or portfolio verdict of its own). Phase 12 correction changes only Research evidence presentation and source/provenance validation; Today/Analyzer/Funding/Portfolio semantics remain unchanged.",
+  "DESK_DESIGN_SYSTEM": "desk.css (new): the desk's one state visual language (TRADE, WATCH, AVOID, MISSING/DEGRADED), responsive layout, focus, reduced motion and dark theme.",
+  "DESK_FUNDING_PAGE": "funding.html (new): qualified funding_opportunities separated from the evaluated market; never risk-free; no degraded leg is shown.",
+  "DESK_PORTFOLIO_CONSOLE": "portfolio.html (new): the Phase 10 summary the decision carries, with the audit snapshot's detail only when it is the same evaluation; stress labelled deterministic.",
+  "DESK_RESEARCH_PAGE": "Research separates current production policy authority from isolated, validated production research evidence; reviewed Phase 9 files are explicitly historical baseline. Current/main-mismatch/last-known-good/baseline/unavailable presentation never grants promotion or changes decisions.",
+  "LEGACY_PAGE_DEMOTED_TO_DIAGNOSTIC": "picks.html, quant.html, smart.html and the 15-minute radar (radar.html) keep running unchanged as diagnostics: the desk's five-link navigation with no tab current, the desk brand and a note that their scores and calls are not desk decisions and not trade-ready. No number, signal or call on them changes.",
+  "ACCURACY_DIAGNOSTIC_COPY": "A08 labels only; no scoring or ranking changes.",
+  "ACCURACY_QUANT_EXECUTION": "A05 continuous completed hourly replay and absolute deadline, explicit observed funding, evidence metadata; completed exits preserve old arithmetic. Open diagnostic mark uses last completed observed bar, not future/forming bar.",
+  "ACCURACY_SMART_EXECUTION": "A03/A04 explicit execution evidence; no missing midpoint close or ambiguous first-hour qualified return.",
+  "ACCURACY_ACCOUNTING_CONTEXT": "Dashboard diagnostic move/R copies corrected Quant completed-bar mark/accounting; not a decision authority."
+ },
+ "universe": [],
+ "dex_status": [],
+ "notes": {
+  "removed": [],
+  "added": []
+ },
+ "code": [
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "scorecard",
+    0,
+    "tone"
+   ],
+   "base": "good",
+   "head": "warn",
+   "rule": "ACCURACY_DIAGNOSTIC_COPY"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "scorecard",
+    0,
+    "verdict"
+   ],
+   "base": "Proven",
+   "head": "Unqualified historical result",
+   "rule": "ACCURACY_DIAGNOSTIC_COPY"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "scorecard",
+    4,
+    "verdict"
+   ],
+   "base": "Promising",
+   "head": "Historical diagnostic",
+   "rule": "ACCURACY_DIAGNOSTIC_COPY"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "smart",
+    "accuracy",
+    0,
+    "verdict"
+   ],
+   "base": "Promising",
+   "head": "Historical diagnostic",
+   "rule": "ACCURACY_DIAGNOSTIC_COPY"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    0,
+    "accuracy",
+    0,
+    "tone"
+   ],
+   "base": "good",
+   "head": "warn",
+   "rule": "ACCURACY_DIAGNOSTIC_COPY"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    0,
+    "accuracy",
+    0,
+    "verdict"
+   ],
+   "base": "Proven",
+   "head": "Unqualified historical result",
+   "rule": "ACCURACY_DIAGNOSTIC_COPY"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    0,
+    "items",
+    0,
+    "label"
+   ],
+   "base": "Ready",
+   "head": "Watchlist score",
+   "rule": "ACCURACY_DIAGNOSTIC_COPY"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    0,
+    "items",
+    1,
+    "label"
+   ],
+   "base": "Ready",
+   "head": "Watchlist score",
+   "rule": "ACCURACY_DIAGNOSTIC_COPY"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    0,
+    "items",
+    2,
+    "label"
+   ],
+   "base": "Setting up",
+   "head": "Watchlist score",
+   "rule": "ACCURACY_DIAGNOSTIC_COPY"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    0,
+    "items",
+    3,
+    "label"
+   ],
+   "base": "Setting up",
+   "head": "Watchlist score",
+   "rule": "ACCURACY_DIAGNOSTIC_COPY"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    0,
+    "items",
+    4,
+    "label"
+   ],
+   "base": "Setting up",
+   "head": "Watchlist score",
+   "rule": "ACCURACY_DIAGNOSTIC_COPY"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    0,
+    "status",
+    "text"
+   ],
+   "base": "2 swing picks ready (80+)",
+   "head": "2 swing picks at watchlist score 80+",
+   "rule": "ACCURACY_DIAGNOSTIC_COPY"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    0,
+    "what"
+   ],
+   "base": "Swing and day-trade scores for every coin on your DEXs, with a trade plan",
+   "head": "Swing and day-trade scores for every coin on your DEXs, with a hypothetical diagnostic plan",
+   "rule": "ACCURACY_DIAGNOSTIC_COPY"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    1,
+    "items",
+    0,
+    "move"
+   ],
+   "base": 0.0663,
+   "head": 0.0848,
+   "rule": "ACCURACY_ACCOUNTING_CONTEXT"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    1,
+    "items",
+    0,
+    "r"
+   ],
+   "base": 0.05,
+   "head": 0.069,
+   "rule": "ACCURACY_ACCOUNTING_CONTEXT"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    1,
+    "items",
+    1,
+    "move"
+   ],
+   "base": -0.054,
+   "head": -0.0445,
+   "rule": "ACCURACY_ACCOUNTING_CONTEXT"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    1,
+    "items",
+    1,
+    "r"
+   ],
+   "base": -0.064,
+   "head": -0.054,
+   "rule": "ACCURACY_ACCOUNTING_CONTEXT"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    1,
+    "items",
+    2,
+    "move"
+   ],
+   "base": 0.1677,
+   "head": 0.1708,
+   "rule": "ACCURACY_ACCOUNTING_CONTEXT"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    1,
+    "items",
+    2,
+    "r"
+   ],
+   "base": 0.156,
+   "head": 0.159,
+   "rule": "ACCURACY_ACCOUNTING_CONTEXT"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    1,
+    "items",
+    3,
+    "move"
+   ],
+   "base": -0.1593,
+   "head": -0.1502,
+   "rule": "ACCURACY_ACCOUNTING_CONTEXT"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    1,
+    "items",
+    3,
+    "r"
+   ],
+   "base": -0.17,
+   "head": -0.16,
+   "rule": "ACCURACY_ACCOUNTING_CONTEXT"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    1,
+    "items",
+    4,
+    "move"
+   ],
+   "base": -0.1814,
+   "head": -0.2046,
+   "rule": "ACCURACY_ACCOUNTING_CONTEXT"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    1,
+    "items",
+    4,
+    "r"
+   ],
+   "base": -0.191,
+   "head": -0.214,
+   "rule": "ACCURACY_ACCOUNTING_CONTEXT"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    1,
+    "items",
+    5,
+    "move"
+   ],
+   "base": -0.0828,
+   "head": -0.1011,
+   "rule": "ACCURACY_ACCOUNTING_CONTEXT"
+  },
+  {
+   "file": "data/dashboard.json",
+   "path": [
+    "versions",
+    1,
+    "items",
+    5,
+    "r"
+   ],
+   "base": -0.093,
+   "head": -0.112,
+   "rule": "ACCURACY_ACCOUNTING_CONTEXT"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "evidence",
+    "execution_classes"
+   ],
+   "base": "<absent>",
+   "head": {
+    "closed": {},
+    "open": {
+     "PENDING_EXIT": 11
+    }
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "evidence",
+    "live_record_rule"
+   ],
+   "base": "identity-qualified closed trades only (entry-time VERIFIED_CRYPTO proof)",
+   "head": "closed trades with entry-time VERIFIED_CRYPTO proof AND continuous hourly path / observed funding proof",
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "legacy_unqualified",
+    "reason"
+   ],
+   "base": "LEGACY_NO_IDENTITY_PROOF",
+   "head": "ENTRY_IDENTITY_OR_EXECUTION_UNQUALIFIED",
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    0,
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    0,
+    "res",
+    "deadline"
+   ],
+   "base": "<absent>",
+   "head": 1792800000,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    0,
+    "res",
+    "diagnostic_r_without_missing_funding"
+   ],
+   "base": "<absent>",
+   "head": null,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    0,
+    "res",
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    0,
+    "res",
+    "gross"
+   ],
+   "base": 0.0663,
+   "head": 0.0848,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    0,
+    "res",
+    "hours"
+   ],
+   "base": 9,
+   "head": 8,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    0,
+    "res",
+    "last_px"
+   ],
+   "base": 69292.904,
+   "head": 69442.935,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    0,
+    "res",
+    "observed_fund"
+   ],
+   "base": "<absent>",
+   "head": 0.0,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    0,
+    "res",
+    "r"
+   ],
+   "base": 0.0501,
+   "head": 0.0687,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    1,
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    1,
+    "res",
+    "deadline"
+   ],
+   "base": "<absent>",
+   "head": 1792800000,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    1,
+    "res",
+    "diagnostic_r_without_missing_funding"
+   ],
+   "base": "<absent>",
+   "head": null,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    1,
+    "res",
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    1,
+    "res",
+    "gross"
+   ],
+   "base": -0.054,
+   "head": -0.0445,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    1,
+    "res",
+    "hours"
+   ],
+   "base": 9,
+   "head": 8,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    1,
+    "res",
+    "last_px"
+   ],
+   "base": 0.7322384,
+   "head": 0.73363447,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    1,
+    "res",
+    "observed_fund"
+   ],
+   "base": "<absent>",
+   "head": 0.0,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    1,
+    "res",
+    "r"
+   ],
+   "base": -0.0637,
+   "head": -0.0541,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    2,
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    2,
+    "res",
+    "deadline"
+   ],
+   "base": "<absent>",
+   "head": 1792800000,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    2,
+    "res",
+    "diagnostic_r_without_missing_funding"
+   ],
+   "base": "<absent>",
+   "head": null,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    2,
+    "res",
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    2,
+    "res",
+    "gross"
+   ],
+   "base": 0.1677,
+   "head": 0.1708,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    2,
+    "res",
+    "hours"
+   ],
+   "base": 9,
+   "head": 8,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    2,
+    "res",
+    "last_px"
+   ],
+   "base": 19.525282,
+   "head": 19.534547,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    2,
+    "res",
+    "observed_fund"
+   ],
+   "base": "<absent>",
+   "head": 0.0,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    2,
+    "res",
+    "r"
+   ],
+   "base": 0.1556,
+   "head": 0.1587,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    3,
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    3,
+    "res",
+    "deadline"
+   ],
+   "base": "<absent>",
+   "head": 1792800000,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    3,
+    "res",
+    "diagnostic_r_without_missing_funding"
+   ],
+   "base": "<absent>",
+   "head": null,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    3,
+    "res",
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    3,
+    "res",
+    "gross"
+   ],
+   "base": -0.1593,
+   "head": -0.1502,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    3,
+    "res",
+    "hours"
+   ],
+   "base": 9,
+   "head": 8,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    3,
+    "res",
+    "last_px"
+   ],
+   "base": 0.29038991,
+   "head": 0.29089914,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    3,
+    "res",
+    "observed_fund"
+   ],
+   "base": "<absent>",
+   "head": 0.0,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    3,
+    "res",
+    "r"
+   ],
+   "base": -0.1695,
+   "head": -0.1604,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    4,
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    4,
+    "res",
+    "deadline"
+   ],
+   "base": "<absent>",
+   "head": 1792800000,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    4,
+    "res",
+    "diagnostic_r_without_missing_funding"
+   ],
+   "base": "<absent>",
+   "head": null,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    4,
+    "res",
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    4,
+    "res",
+    "gross"
+   ],
+   "base": -0.1814,
+   "head": -0.2046,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    4,
+    "res",
+    "hours"
+   ],
+   "base": 9,
+   "head": 8,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    4,
+    "res",
+    "last_px"
+   ],
+   "base": 3.1076588,
+   "head": 3.0929819,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    4,
+    "res",
+    "observed_fund"
+   ],
+   "base": "<absent>",
+   "head": 0.0,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    4,
+    "res",
+    "r"
+   ],
+   "base": -0.1911,
+   "head": -0.2143,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    5,
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    5,
+    "res",
+    "deadline"
+   ],
+   "base": "<absent>",
+   "head": 1792800000,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    5,
+    "res",
+    "diagnostic_r_without_missing_funding"
+   ],
+   "base": "<absent>",
+   "head": null,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    5,
+    "res",
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    5,
+    "res",
+    "gross"
+   ],
+   "base": -0.0828,
+   "head": -0.1011,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    5,
+    "res",
+    "hours"
+   ],
+   "base": 9,
+   "head": 8,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    5,
+    "res",
+    "last_px"
+   ],
+   "base": 3.3914233,
+   "head": 3.3799461,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    5,
+    "res",
+    "observed_fund"
+   ],
+   "base": "<absent>",
+   "head": 0.0,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    5,
+    "res",
+    "r"
+   ],
+   "base": -0.0932,
+   "head": -0.1116,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    6,
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792195200,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    6,
+    "res",
+    "deadline"
+   ],
+   "base": "<absent>",
+   "head": 1792195200,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    6,
+    "res",
+    "diagnostic_r_without_missing_funding"
+   ],
+   "base": "<absent>",
+   "head": null,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    6,
+    "res",
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792195200,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    6,
+    "res",
+    "gross"
+   ],
+   "base": 0.0795,
+   "head": 0.1018,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    6,
+    "res",
+    "hours"
+   ],
+   "base": 9,
+   "head": 8,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    6,
+    "res",
+    "last_px"
+   ],
+   "base": 69292.904,
+   "head": 69442.935,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    6,
+    "res",
+    "observed_fund"
+   ],
+   "base": "<absent>",
+   "head": 0.0,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    6,
+    "res",
+    "r"
+   ],
+   "base": 0.0601,
+   "head": 0.0824,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    7,
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792195200,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    7,
+    "res",
+    "deadline"
+   ],
+   "base": "<absent>",
+   "head": 1792195200,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    7,
+    "res",
+    "diagnostic_r_without_missing_funding"
+   ],
+   "base": "<absent>",
+   "head": null,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    7,
+    "res",
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792195200,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    7,
+    "res",
+    "gross"
+   ],
+   "base": 0.0663,
+   "head": 0.0527,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    7,
+    "res",
+    "hours"
+   ],
+   "base": 9,
+   "head": 8,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    7,
+    "res",
+    "last_px"
+   ],
+   "base": 5.2183657,
+   "head": 5.2061643,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    7,
+    "res",
+    "observed_fund"
+   ],
+   "base": "<absent>",
+   "head": 0.0,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    7,
+    "res",
+    "r"
+   ],
+   "base": 0.0554,
+   "head": 0.0418,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    8,
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792195200,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    8,
+    "res",
+    "deadline"
+   ],
+   "base": "<absent>",
+   "head": 1792195200,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    8,
+    "res",
+    "diagnostic_r_without_missing_funding"
+   ],
+   "base": "<absent>",
+   "head": null,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    8,
+    "res",
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792195200,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    8,
+    "res",
+    "gross"
+   ],
+   "base": -0.1912,
+   "head": -0.1802,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    8,
+    "res",
+    "hours"
+   ],
+   "base": 9,
+   "head": 8,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    8,
+    "res",
+    "last_px"
+   ],
+   "base": 0.29038991,
+   "head": 0.29089914,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    8,
+    "res",
+    "observed_fund"
+   ],
+   "base": "<absent>",
+   "head": 0.0,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    8,
+    "res",
+    "r"
+   ],
+   "base": -0.2034,
+   "head": -0.1924,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    9,
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792195200,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    9,
+    "res",
+    "deadline"
+   ],
+   "base": "<absent>",
+   "head": 1792195200,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    9,
+    "res",
+    "diagnostic_r_without_missing_funding"
+   ],
+   "base": "<absent>",
+   "head": null,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    9,
+    "res",
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792195200,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    9,
+    "res",
+    "gross"
+   ],
+   "base": -0.2007,
+   "head": -0.1628,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    9,
+    "res",
+    "hours"
+   ],
+   "base": 9,
+   "head": 8,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    9,
+    "res",
+    "last_px"
+   ],
+   "base": 1.3518734,
+   "head": 1.3625186,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    9,
+    "res",
+    "observed_fund"
+   ],
+   "base": "<absent>",
+   "head": 0.0,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    9,
+    "res",
+    "r"
+   ],
+   "base": -0.2102,
+   "head": -0.1723,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    10,
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792195200,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    10,
+    "res",
+    "deadline"
+   ],
+   "base": "<absent>",
+   "head": 1792195200,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    10,
+    "res",
+    "diagnostic_r_without_missing_funding"
+   ],
+   "base": "<absent>",
+   "head": null,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    10,
+    "res",
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792195200,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    10,
+    "res",
+    "gross"
+   ],
+   "base": 0.1877,
+   "head": 0.2,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    10,
+    "res",
+    "hours"
+   ],
+   "base": 9,
+   "head": 8,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    10,
+    "res",
+    "last_px"
+   ],
+   "base": 4.0456626,
+   "head": 4.0545345,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    10,
+    "res",
+    "observed_fund"
+   ],
+   "base": "<absent>",
+   "head": 0.0,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant.json",
+   "path": [
+    "open",
+    10,
+    "res",
+    "r"
+   ],
+   "base": 0.1774,
+   "head": 0.1897,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    0,
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    0,
+    "res",
+    "deadline"
+   ],
+   "base": "<absent>",
+   "head": 1792800000,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    0,
+    "res",
+    "diagnostic_r_without_missing_funding"
+   ],
+   "base": "<absent>",
+   "head": null,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    0,
+    "res",
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    0,
+    "res",
+    "gross"
+   ],
+   "base": 0.0663,
+   "head": 0.0848,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    0,
+    "res",
+    "hours"
+   ],
+   "base": 9,
+   "head": 8,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    0,
+    "res",
+    "last_px"
+   ],
+   "base": 69292.904,
+   "head": 69442.935,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    0,
+    "res",
+    "observed_fund"
+   ],
+   "base": "<absent>",
+   "head": 0.0,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    0,
+    "res",
+    "r"
+   ],
+   "base": 0.0501,
+   "head": 0.0687,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    1,
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    1,
+    "res",
+    "deadline"
+   ],
+   "base": "<absent>",
+   "head": 1792800000,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    1,
+    "res",
+    "diagnostic_r_without_missing_funding"
+   ],
+   "base": "<absent>",
+   "head": null,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    1,
+    "res",
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    1,
+    "res",
+    "gross"
+   ],
+   "base": -0.054,
+   "head": -0.0445,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    1,
+    "res",
+    "hours"
+   ],
+   "base": 9,
+   "head": 8,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    1,
+    "res",
+    "last_px"
+   ],
+   "base": 0.7322384,
+   "head": 0.73363447,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    1,
+    "res",
+    "observed_fund"
+   ],
+   "base": "<absent>",
+   "head": 0.0,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    1,
+    "res",
+    "r"
+   ],
+   "base": -0.0637,
+   "head": -0.0541,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    2,
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    2,
+    "res",
+    "deadline"
+   ],
+   "base": "<absent>",
+   "head": 1792800000,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    2,
+    "res",
+    "diagnostic_r_without_missing_funding"
+   ],
+   "base": "<absent>",
+   "head": null,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    2,
+    "res",
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    2,
+    "res",
+    "gross"
+   ],
+   "base": 0.1677,
+   "head": 0.1708,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    2,
+    "res",
+    "hours"
+   ],
+   "base": 9,
+   "head": 8,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    2,
+    "res",
+    "last_px"
+   ],
+   "base": 19.525282,
+   "head": 19.534547,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    2,
+    "res",
+    "observed_fund"
+   ],
+   "base": "<absent>",
+   "head": 0.0,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    2,
+    "res",
+    "r"
+   ],
+   "base": 0.1556,
+   "head": 0.1587,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    3,
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    3,
+    "res",
+    "deadline"
+   ],
+   "base": "<absent>",
+   "head": 1792800000,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    3,
+    "res",
+    "diagnostic_r_without_missing_funding"
+   ],
+   "base": "<absent>",
+   "head": null,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    3,
+    "res",
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    3,
+    "res",
+    "gross"
+   ],
+   "base": -0.1593,
+   "head": -0.1502,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    3,
+    "res",
+    "hours"
+   ],
+   "base": 9,
+   "head": 8,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    3,
+    "res",
+    "last_px"
+   ],
+   "base": 0.29038991,
+   "head": 0.29089914,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    3,
+    "res",
+    "observed_fund"
+   ],
+   "base": "<absent>",
+   "head": 0.0,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    3,
+    "res",
+    "r"
+   ],
+   "base": -0.1695,
+   "head": -0.1604,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    4,
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    4,
+    "res",
+    "deadline"
+   ],
+   "base": "<absent>",
+   "head": 1792800000,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    4,
+    "res",
+    "diagnostic_r_without_missing_funding"
+   ],
+   "base": "<absent>",
+   "head": null,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    4,
+    "res",
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    4,
+    "res",
+    "gross"
+   ],
+   "base": -0.1814,
+   "head": -0.2046,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    4,
+    "res",
+    "hours"
+   ],
+   "base": 9,
+   "head": 8,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    4,
+    "res",
+    "last_px"
+   ],
+   "base": 3.1076588,
+   "head": 3.0929819,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    4,
+    "res",
+    "observed_fund"
+   ],
+   "base": "<absent>",
+   "head": 0.0,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    4,
+    "res",
+    "r"
+   ],
+   "base": -0.1911,
+   "head": -0.2143,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    5,
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    5,
+    "res",
+    "deadline"
+   ],
+   "base": "<absent>",
+   "head": 1792800000,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    5,
+    "res",
+    "diagnostic_r_without_missing_funding"
+   ],
+   "base": "<absent>",
+   "head": null,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    5,
+    "res",
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792800000,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    5,
+    "res",
+    "gross"
+   ],
+   "base": -0.0828,
+   "head": -0.1011,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    5,
+    "res",
+    "hours"
+   ],
+   "base": 9,
+   "head": 8,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    5,
+    "res",
+    "last_px"
+   ],
+   "base": 3.3914233,
+   "head": 3.3799461,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    5,
+    "res",
+    "observed_fund"
+   ],
+   "base": "<absent>",
+   "head": 0.0,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    5,
+    "res",
+    "r"
+   ],
+   "base": -0.0932,
+   "head": -0.1116,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    6,
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792195200,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    6,
+    "res",
+    "deadline"
+   ],
+   "base": "<absent>",
+   "head": 1792195200,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    6,
+    "res",
+    "diagnostic_r_without_missing_funding"
+   ],
+   "base": "<absent>",
+   "head": null,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    6,
+    "res",
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792195200,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    6,
+    "res",
+    "gross"
+   ],
+   "base": 0.0795,
+   "head": 0.1018,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    6,
+    "res",
+    "hours"
+   ],
+   "base": 9,
+   "head": 8,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    6,
+    "res",
+    "last_px"
+   ],
+   "base": 69292.904,
+   "head": 69442.935,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    6,
+    "res",
+    "observed_fund"
+   ],
+   "base": "<absent>",
+   "head": 0.0,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    6,
+    "res",
+    "r"
+   ],
+   "base": 0.0601,
+   "head": 0.0824,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    7,
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792195200,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    7,
+    "res",
+    "deadline"
+   ],
+   "base": "<absent>",
+   "head": 1792195200,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    7,
+    "res",
+    "diagnostic_r_without_missing_funding"
+   ],
+   "base": "<absent>",
+   "head": null,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    7,
+    "res",
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792195200,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    7,
+    "res",
+    "gross"
+   ],
+   "base": 0.0663,
+   "head": 0.0527,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    7,
+    "res",
+    "hours"
+   ],
+   "base": 9,
+   "head": 8,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    7,
+    "res",
+    "last_px"
+   ],
+   "base": 5.2183657,
+   "head": 5.2061643,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    7,
+    "res",
+    "observed_fund"
+   ],
+   "base": "<absent>",
+   "head": 0.0,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    7,
+    "res",
+    "r"
+   ],
+   "base": 0.0554,
+   "head": 0.0418,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    8,
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792195200,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    8,
+    "res",
+    "deadline"
+   ],
+   "base": "<absent>",
+   "head": 1792195200,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    8,
+    "res",
+    "diagnostic_r_without_missing_funding"
+   ],
+   "base": "<absent>",
+   "head": null,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    8,
+    "res",
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792195200,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    8,
+    "res",
+    "gross"
+   ],
+   "base": -0.1912,
+   "head": -0.1802,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    8,
+    "res",
+    "hours"
+   ],
+   "base": 9,
+   "head": 8,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    8,
+    "res",
+    "last_px"
+   ],
+   "base": 0.29038991,
+   "head": 0.29089914,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    8,
+    "res",
+    "observed_fund"
+   ],
+   "base": "<absent>",
+   "head": 0.0,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    8,
+    "res",
+    "r"
+   ],
+   "base": -0.2034,
+   "head": -0.1924,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    9,
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792195200,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    9,
+    "res",
+    "deadline"
+   ],
+   "base": "<absent>",
+   "head": 1792195200,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    9,
+    "res",
+    "diagnostic_r_without_missing_funding"
+   ],
+   "base": "<absent>",
+   "head": null,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    9,
+    "res",
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792195200,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    9,
+    "res",
+    "gross"
+   ],
+   "base": -0.2007,
+   "head": -0.1628,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    9,
+    "res",
+    "hours"
+   ],
+   "base": 9,
+   "head": 8,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    9,
+    "res",
+    "last_px"
+   ],
+   "base": 1.3518734,
+   "head": 1.3625186,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    9,
+    "res",
+    "observed_fund"
+   ],
+   "base": "<absent>",
+   "head": 0.0,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    9,
+    "res",
+    "r"
+   ],
+   "base": -0.2102,
+   "head": -0.1723,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    10,
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792195200,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    10,
+    "res",
+    "deadline"
+   ],
+   "base": "<absent>",
+   "head": 1792195200,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    10,
+    "res",
+    "diagnostic_r_without_missing_funding"
+   ],
+   "base": "<absent>",
+   "head": null,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    10,
+    "res",
+    "execution"
+   ],
+   "base": "<absent>",
+   "head": {
+    "deadline": 1792195200,
+    "entry_hour": 1790985600,
+    "funding_complete": true,
+    "funding_observations": {
+     "MISSING": 0,
+     "NOT_SCHEDULED": 7,
+     "OBSERVED": 0,
+     "OBSERVED_ZERO": 0
+    },
+    "missing_candle_hour": null,
+    "missing_funding_hours": [],
+    "observed_until": 1791014400,
+    "path_complete": true,
+    "state": "PENDING_EXIT",
+    "version": "quant.execution/1"
+   },
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    10,
+    "res",
+    "gross"
+   ],
+   "base": 0.1877,
+   "head": 0.2,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    10,
+    "res",
+    "hours"
+   ],
+   "base": 9,
+   "head": 8,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    10,
+    "res",
+    "last_px"
+   ],
+   "base": 4.0456626,
+   "head": 4.0545345,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    10,
+    "res",
+    "observed_fund"
+   ],
+   "base": "<absent>",
+   "head": 0.0,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/quant_journal.json",
+   "path": [
+    "open",
+    10,
+    "res",
+    "r"
+   ],
+   "base": 0.1774,
+   "head": 0.1897,
+   "rule": "ACCURACY_QUANT_EXECUTION"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "accuracy",
+    "evidence",
+    "execution_classes"
+   ],
+   "base": "<absent>",
+   "head": {
+    "open": {
+     "PENDING_HISTORY": 2
+    }
+   },
+   "rule": "ACCURACY_SMART_EXECUTION"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "accuracy",
+    "evidence",
+    "live_record_rule"
+   ],
+   "base": "<absent>",
+   "head": "Closed returns require entry identity AND qualified continuous execution evidence",
+   "rule": "ACCURACY_SMART_EXECUTION"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "accuracy",
+    "legacy_unqualified",
+    "reason"
+   ],
+   "base": "LEGACY_NO_IDENTITY_PROOF",
+   "head": "IDENTITY_OR_EXECUTION_PROOF_INCOMPLETE",
+   "rule": "ACCURACY_SMART_EXECUTION"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "accuracy",
+    "legacy_unqualified",
+    "rule"
+   ],
+   "base": "<absent>",
+   "head": "Diagnostic only: missing entry identity or qualified execution proof",
+   "rule": "ACCURACY_SMART_EXECUTION"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    0,
+    "execution_evidence"
+   ],
+   "base": "<absent>",
+   "head": {
+    "entry_model": "OBSERVED_MID_AT_SCAN",
+    "interval_s": 3600,
+    "schema": "smart.execution/1"
+   },
+   "rule": "ACCURACY_SMART_EXECUTION"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    0,
+    "execution_quality"
+   ],
+   "base": "<absent>",
+   "head": "PENDING_HISTORY",
+   "rule": "ACCURACY_SMART_EXECUTION"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    1,
+    "execution_evidence"
+   ],
+   "base": "<absent>",
+   "head": {
+    "entry_model": "OBSERVED_MID_AT_SCAN",
+    "interval_s": 3600,
+    "schema": "smart.execution/1"
+   },
+   "rule": "ACCURACY_SMART_EXECUTION"
+  },
+  {
+   "file": "data/smart.json",
+   "path": [
+    "open",
+    1,
+    "execution_quality"
+   ],
+   "base": "<absent>",
+   "head": "PENDING_HISTORY",
+   "rule": "ACCURACY_SMART_EXECUTION"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    0,
+    "execution_evidence"
+   ],
+   "base": "<absent>",
+   "head": {
+    "entry_model": "OBSERVED_MID_AT_SCAN",
+    "interval_s": 3600,
+    "schema": "smart.execution/1"
+   },
+   "rule": "ACCURACY_SMART_EXECUTION"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    0,
+    "execution_quality"
+   ],
+   "base": "<absent>",
+   "head": "PENDING_HISTORY",
+   "rule": "ACCURACY_SMART_EXECUTION"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    1,
+    "execution_evidence"
+   ],
+   "base": "<absent>",
+   "head": {
+    "entry_model": "OBSERVED_MID_AT_SCAN",
+    "interval_s": 3600,
+    "schema": "smart.execution/1"
+   },
+   "rule": "ACCURACY_SMART_EXECUTION"
+  },
+  {
+   "file": "data/smart_journal.json",
+   "path": [
+    "open",
+    1,
+    "execution_quality"
+   ],
+   "base": "<absent>",
+   "head": "PENDING_HISTORY",
+   "rule": "ACCURACY_SMART_EXECUTION"
+  }
+ ],
+ "decisions": [],
+ "files": [
+  {
+   "file": "analyze.html",
+   "base_sha256": "1f0b7150298f615c3dab247d6795884e148ba519d615d8c0a860fa317e73b11f",
+   "head_sha256": "d89addb637899b76b9e2ecc13963908d893ac8612fb59b47e49135b66df35c49",
+   "rule": "DESK_ANALYZER_PRESENTATION"
+  },
+  {
+   "file": "analyze.js",
+   "base_sha256": "e085376639b46d5af99b6192999a199bd05185fa52810a7b82623444709bfa52",
+   "head_sha256": "70776f17b73789252c1968616ccb3d6db78325583c35c9b21fcc8dc40ec7a1dd",
+   "rule": "DESK_ANALYZER_SHARED_CORE"
+  },
+  {
+   "file": "desk.css",
+   "base_sha256": null,
+   "head_sha256": "3cab76b9106aa5ef9756efcb1546a866f6e72574181b824da59ff9a6eb0aca7d",
+   "rule": "DESK_DESIGN_SYSTEM"
+  },
+  {
+   "file": "desk.js",
+   "base_sha256": null,
+   "head_sha256": "4ee60cecc35844b053ad2b9a4a3f40c51a2eb3a8546f4268c3a27e3846833fb1",
+   "rule": "DESK_SHARED_PRESENTATION_CORE"
+  },
+  {
+   "file": "funding.html",
+   "base_sha256": null,
+   "head_sha256": "babfdea3ee2ca3d1f991b0947d047a42cb42cc4e4a89116b6591d5e305df03a1",
+   "rule": "DESK_FUNDING_PAGE"
+  },
+  {
+   "file": "index.html",
+   "base_sha256": "74c29f980c4c4299e05c3e4dd2decaaec604baf442591bfdfaf76f82f5d8e39d",
+   "head_sha256": "99ff267701d1804d4be6d7a050c24abc49b9ec13b60d41b3da0ffc6151293e7c",
+   "rule": "DESK_TODAY_FRONT_PAGE"
+  },
+  {
+   "file": "picks.html",
+   "base_sha256": "9a9c55e6f886d9d81ab539a538331fa855d96f53a1e9f6a40301d5e378fbc5d6",
+   "head_sha256": "4a3b9572d960a2ec1ed92d603ff6c89fb97e4af225bc2f4f5d48f121a7af3864",
+   "rule": "LEGACY_PAGE_DEMOTED_TO_DIAGNOSTIC"
+  },
+  {
+   "file": "portfolio.html",
+   "base_sha256": null,
+   "head_sha256": "3b31b17ebe1a7010cf7a6118339746c0d2a48016963ca7b6882251619a574dcc",
+   "rule": "DESK_PORTFOLIO_CONSOLE"
+  },
+  {
+   "file": "quant.html",
+   "base_sha256": "76812ca088a3a6b726cffd0468f357d3a1fc93e089c712f9daf52fdd2d261027",
+   "head_sha256": "c41d92a9202fe965a46c7bc4b462bc4e435245a5da7d54284159e68a372d106d",
+   "rule": "LEGACY_PAGE_DEMOTED_TO_DIAGNOSTIC"
+  },
+  {
+   "file": "radar.html",
+   "base_sha256": "b242f2fe3ef4278c1288c19759ba329ac8f0118c43793fdd2277370bc71f112e",
+   "head_sha256": "e7144fe83d3e4d5a0c8f5a74d23f2a7c13bfa6d601d240ac4c6deee968c0b7fc",
+   "rule": "LEGACY_PAGE_DEMOTED_TO_DIAGNOSTIC"
+  },
+  {
+   "file": "research.html",
+   "base_sha256": null,
+   "head_sha256": "e9f248f7cfa3e5ac7797b16a7d00f58b27a472079a61d706c5f8980565409f25",
+   "rule": "DESK_RESEARCH_PAGE"
+  },
+  {
+   "file": "smart.html",
+   "base_sha256": "a8024e696f8c3117281162d7adbcd3bb904e59aacd280ebb4df69c93e3fdafad",
+   "head_sha256": "2098dd6da018c25da8c008d643bdd53961fd6d2f74c3250bcfddc1a77267aee8",
+   "rule": "LEGACY_PAGE_DEMOTED_TO_DIAGNOSTIC"
+  }
+ ],
+ "identity_states": {
+  "AAPL": "VERIFIED_TRADFI",
+  "ACME": "VERIFIED_TRADFI",
+  "ADBE": "VERIFIED_TRADFI",
+  "ASTS": "VERIFIED_TRADFI",
+  "BB": "VERIFIED_CRYPTO",
+  "BTC": "VERIFIED_CRYPTO",
+  "BYD": "VERIFIED_TRADFI",
+  "ETH": "VERIFIED_CRYPTO",
+  "EURUSD": "VERIFIED_TRADFI",
+  "EXTONLY": "UNVERIFIED",
+  "FAKE00": "VERIFIED_CRYPTO",
+  "FAKE01": "VERIFIED_CRYPTO",
+  "FAKE02": "VERIFIED_CRYPTO",
+  "FAKE03": "VERIFIED_CRYPTO",
+  "FAKE04": "VERIFIED_CRYPTO",
+  "FAKE05": "VERIFIED_CRYPTO",
+  "FAKE06": "VERIFIED_CRYPTO",
+  "FAKE07": "UNVERIFIED",
+  "FAKE08": "VERIFIED_CRYPTO",
+  "FAKE09": "VERIFIED_CRYPTO",
+  "FAKE10": "VERIFIED_CRYPTO",
+  "FAKE11": "VERIFIED_CRYPTO",
+  "FAKE12": "VERIFIED_CRYPTO",
+  "FAKE13": "VERIFIED_CRYPTO",
+  "FAKE14": "VERIFIED_CRYPTO",
+  "FAKE15": "VERIFIED_CRYPTO",
+  "FAKE16": "VERIFIED_CRYPTO",
+  "FAKE17": "VERIFIED_CRYPTO",
+  "FAKE18": "VERIFIED_CRYPTO",
+  "FAKE19": "VERIFIED_CRYPTO",
+  "FAKE20": "VERIFIED_CRYPTO",
+  "FAKE21": "VERIFIED_CRYPTO",
+  "FAKE22": "VERIFIED_CRYPTO",
+  "FAKE23": "VERIFIED_CRYPTO",
+  "FAKE24": "VERIFIED_CRYPTO",
+  "FAKE25": "VERIFIED_CRYPTO",
+  "FAKE26": "VERIFIED_CRYPTO",
+  "FAKE27": "VERIFIED_CRYPTO",
+  "HYUNDAI": "UNVERIFIED",
+  "HYUNDAIUSD": "VERIFIED_TRADFI",
+  "KIOXIA": "VERIFIED_TRADFI",
+  "KORU": "VERIFIED_TRADFI",
+  "LONLY": "VERIFIED_CRYPTO",
+  "MOONX": "UNVERIFIED",
+  "NEW10": "VERIFIED_CRYPTO",
+  "NEW40": "VERIFIED_CRYPTO",
+  "NEWCOIN": "UNVERIFIED",
+  "NOCAND": "VERIFIED_CRYPTO",
+  "ONDS": "VERIFIED_TRADFI",
+  "PRLX": "UNVERIFIED",
+  "PURR": "VERIFIED_CRYPTO",
+  "QNT": "VERIFIED_CRYPTO",
+  "SAMSUNGUSD": "VERIFIED_TRADFI",
+  "SCALEX": "VERIFIED_CRYPTO",
+  "SECT": "AMBIGUOUS",
+  "SKHYNIX": "VERIFIED_TRADFI",
+  "SKHYNIXUSD": "VERIFIED_TRADFI",
+  "THINREF": "VERIFIED_CRYPTO",
+  "TINY": "VERIFIED_CRYPTO",
+  "US100S": "VERIFIED_TRADFI",
+  "US10Y": "VERIFIED_TRADFI",
+  "VANA": "VERIFIED_CRYPTO",
+  "XIAOMI": "VERIFIED_TRADFI",
+  "ZEROV": "VERIFIED_CRYPTO"
+ },
+ "audit_files_added": [
+  "data/v8/research/phase9/research_matched_controls.json",
+  "data/v8/research/phase9/research_multiple_testing.json",
+  "data/v8/research/phase9/research_phase9_registration_plan.json",
+  "data/v8/research/phase9/research_phase9_summary.json",
+  "data/v8/research/phase9/research_strategy_adjudication.json"
+ ],
+ "removed_sources": [
+  "dashboard.html"
+ ],
+ "not_allowed": "No unlisted delta. Universe, identity, venue filtering, signal definitions, parameters, ordering, ranking and policy thresholds unchanged. Listed source hashes and exact JSON leaves cover approved proposal presentation, strict time/input contracts, execution accounting metadata and diagnostics. Production publication logic unchanged; no merge/deployment."
+}

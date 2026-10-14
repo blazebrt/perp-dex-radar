@@ -226,18 +226,18 @@ header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: 
 <body>
 <header class="top">
   <div class="wrap abwrap">
-    <a class="ablogo" href="./" aria-label="Perp DEX Radar dashboard"><i><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".45"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".75"/><path d="M12 12 L19.5 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg></i><b>Perp DEX Radar</b></a>
+    <a class="ablogo" href="./" aria-label="Perp Decision Desk, Today"><i><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".45"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".75"/><path d="M12 12 L19.5 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg></i><b>Perp Decision Desk</b></a>
     <nav class="apptabs" aria-label="Pages">
-      <a href="./">Dashboard</a>
-      <a href="picks.html">Coin picks</a>
-      <a href="quant.html" aria-current="page">Quant desk</a>
-      <a href="radar.html">15m radar</a>
-      <a href="smart.html">Smart money</a>
+      <a href="./">Today</a>
       <a href="analyze.html">Analyzer</a>
+      <a href="funding.html">Funding</a>
+      <a href="portfolio.html">Portfolio</a>
+      <a href="research.html">Research</a>
     </nav>
     <button class="iconbtn" id="theme" type="button" aria-label="Switch between light and dark"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="display:block"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
   </div>
 </header>
+<div role="note" style="background:var(--surface-2,#efefeb);border-bottom:1px dashed var(--border,rgba(0,0,0,.12));font:14px/1.45 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;padding:9px 16px;text-align:center"><b>Diagnostic page.</b> This shows the quant desk's paper positions, an earlier engine, as it runs. Its scores and calls are not desk decisions and are not trade-ready. The desk's decisions are on <a href="./">Today</a> and in the <a href="analyze.html">Analyzer</a>.</div>
 <script>(function(){var n=document.querySelector(".apptabs");if(!n)return;var a=n.querySelector("[aria-current=page]");if(a&&n.scrollWidth>n.clientWidth)n.scrollLeft+=a.getBoundingClientRect().left-n.getBoundingClientRect().left-(n.clientWidth-a.offsetWidth)/2;function e(){n.classList.toggle("fl",n.scrollLeft>4);n.classList.toggle("fr",n.scrollLeft+n.clientWidth<n.scrollWidth-4)}n.addEventListener("scroll",e,{passive:true});addEventListener("resize",e);e();})();</script>
 
 
@@ -501,7 +501,7 @@ function renderOpen() {
   $("heroOpen").textContent = open.length;
   const longs = open.filter((x) => x.d > 0).length;
   $("heroOpenSub").textContent = open.length ? `${longs} long · ${open.length - longs} short · ${fresh.size} new this scan` : "None right now.";
-  $("sigNote").textContent = "Sizes use your account and risk above. Orders: enter at market, place the stop, move it as the trailing stop moves.";
+  $("sigNote").textContent = "Hypothetical sizes use your account and risk above. These paper positions are diagnostics, not approved orders. Use TODAY / Analyzer for current governed authority.";
   const head = el("tr", {}, ["Coin", "Side", "Strategy", "Entered", "Entry", "Stop now", "P&L", "Your size", "Exit by"].map((h, i) => el("th", { class: i >= 4 && i <= 7 ? "num" : "", text: h })));
   t.append(el("thead", {}, head));
   const body = el("tbody");
@@ -819,8 +819,9 @@ function renderClosed() {
     const side = el("span", { class: "pill " + (x.d > 0 ? "long" : "short") }, [el("span", { class: "dot" }), x.d > 0 ? "Long" : "Short"]);
     tb.append(el("tr", {}, [el("td", {}, el("b", { text: x.c })), el("td", {}, side), el("td", { class: "ink2", text: NAMES[x.s] || x.s }),
       el("td", { class: "ink2", text: dt(x.t_in) }), el("td", { class: "ink2", text: x.t_out ? dt(x.t_out) : "–" }),
-      el("td", { class: "ink2", text: why[(x.res || {}).state] || "" }),
-      el("td", { class: "num " + tone(x.r), text: sgn(x.r) + "R" })]));
+      el("td", { class: "ink2", text: (why[(x.res || {}).state] || "") + " · " + ((x.execution || {}).state || "LEGACY_EXECUTION_UNQUALIFIED") }),
+      el("td", { class: "num " + tone(x.r) }, [x.r == null ? "Unknown / unqualified" : sgn(x.r) + "R",
+        el("div", {class: "muted small", text: (x.execution || {}).state === "QUALIFIED" ? "Execution evidence qualified; current authority is on TODAY" : "Stored diagnostic; excluded from qualified evidence"})])]));
   }
   t.append(tb);
 }

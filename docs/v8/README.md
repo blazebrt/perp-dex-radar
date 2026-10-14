@@ -31,6 +31,7 @@ What is new:
 | Strategy authority (Phase 9) | Deployment follows the reviewed `v8/quant_strategy_policy.json`; research adjudicates all 24 candidates with a predeclared gate, trial census, matched controls and multiple testing, and can never promote by itself; TSMOM, TREND_EMA and XSMOM are legacy holdovers with insufficient evidence | [phase9-strategy-authority.md](phase9-strategy-authority.md) |
 | Portfolio and risk realism (Phase 10) | One governed portfolio-risk authority (`v8.portfolio-risk/1`, policy `v8.portfolio-risk-policy/1`): trade-level, gross/net, concentration, point-in-time dependence, liquidity, funding, six stress scenarios, four fail-closed states, what-if and an INPUT -> RULE -> RESULT -> EFFECT trace; the whole open book counts, actionable and identity-blocked; every limit is a reviewed initial policy (`POLICY_REVIEWED_INITIAL_V1`), never an empirical claim; audit-only (`v8.audit/9`) | [phase10-portfolio-risk.md](phase10-portfolio-risk.md) |
 | Unified decision engine (Phase 11) | One decision authority (`v8.decision/1`, policy `v8.decision-policy/1`): TRADE / WATCH / AVOID per opportunity and per discovered asset from identity, discovery, Phase 9 strategy authority, execution liquidity, observed funding and Phase 10 what-if; Best Trades Now / Emerging Opportunities / funding spreads (each up to 5, never filled); ranking after gates; Decision Trace; the Analyzer's same-engine API; `data/v8/decision.json` (`v8.audit/10`); reviewed policy `POLICY_REVIEWED_INITIAL_V1`; the Analyzer's call cut over to it (legacy signals are context only) | [phase11-decision-engine.md](phase11-decision-engine.md) |
+| Production desk (Phase 12) | The Perp Decision Desk: five surfaces (Today as the front page, Analyzer, Funding, Portfolio, Research) presenting the governed Phase 11 decision through one shared core (`desk.js`, `desk.css`) that decides nothing; one state language (TRADE / WATCH / AVOID / MISSING-DEGRADED); Decision Trace and "What needs to change" on every card; fail closed on a missing, malformed or stale decision (`valid_until`, no local TTL); the earlier engines' pages demoted to diagnostics; published pages only, pinned in `phase12_expected_deltas.json` | [phase12-final-production-experience.md](phase12-final-production-experience.md) |
 
 ## How it runs
 
@@ -42,7 +43,7 @@ What is new:
 3. After the dashboard step, `python -m v8.snapshot --out site` assembles `data/v8/audit_latest.json` (and a gzip
    copy and the first-seen map), hashes the legacy files, and appends the gzip copy to a 14-day Actions artifact.
 
-The snapshot is published with the site at `data/v8/audit_latest.json`. There is no v8 page yet.
+The snapshot is published with the site at `data/v8/audit_latest.json`. Since Phase 12 the desk's pages read the decision (`data/v8/decision.json`) and, on Portfolio, the snapshot's Phase 10 detail.
 
 Since Phase 2, two v8 modules **decide** instead of observing: `v8/identity.py` builds the coin universe that
 `scanner.build_universe()` returns to the scanner, the quant desk and the coin picks, and `v8/liquidity.py` is the

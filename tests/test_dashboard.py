@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -102,7 +103,7 @@ class Accuracy(Base):
         out = self.full()
         sc = {r["name"]: r for r in out["scorecard"]}
         sw = sc["Coin picks · swing"]
-        self.assertEqual(sw["verdict"], "Proven")
+        self.assertEqual(sw["verdict"], "Unqualified historical result")
         self.assertEqual(sw["tested"]["n"], 5453)
         self.assertEqual(sw["tested"]["per100"], 29, "R 0.293 is +$29 per $100 risked")
         self.assertAlmostEqual(sw["tested"]["win"], 0.48, places=2)
@@ -127,7 +128,7 @@ class Accuracy(Base):
             "live": {"n": 3, "win": 0.67, "r": 0.2}}})
         out = self.full()
         sm = out["scorecard"][-1]
-        self.assertEqual((sm["verdict"], sm["tested"]["n"], sm["tested"]["per100"]), ("Proven", 900, 12))
+        self.assertEqual((sm["verdict"], sm["tested"]["n"], sm["tested"]["per100"]), ("Historical diagnostic", 900, 12))
         self.assertEqual(out["smart"]["source"], "engine")
 
     def test_per100_and_combine(self):
@@ -143,7 +144,7 @@ class Versions(Base):
     def test_cards_market_and_agreement(self):
         out = self.full()
         v = {x["id"]: x for x in out["versions"]}
-        self.assertEqual(v["picks"]["status"]["text"], "1 swing pick ready (80+)")
+        self.assertEqual(v["picks"]["status"]["text"], "1 swing pick at watchlist score 80+")
         self.assertEqual([i["coin"] for i in v["picks"]["items"]], ["BTC", "HYPE", "XPL", "DOGE"])
         self.assertEqual(v["quant"]["status"]["text"], "2 open: 1 long, 1 short")
         self.assertEqual(v["quant"]["items"][0]["coin"], "BTC", "newest first")
@@ -176,31 +177,39 @@ class Versions(Base):
             d = json.load(fh)
         self.assertEqual(d["version"], D.VERSION)
         with open(os.path.join(self.tmp, "index.html")) as fh:
-            self.assertIn("Dashboard · Perp DEX Radar", fh.read(), "the dashboard is the front page")
+            self.assertIn("Today · Perp Decision Desk", fh.read(), "Today is the front page")
         with open(os.path.join(self.tmp, "picks.html")) as fh:
             self.assertIn("Coin Picks", fh.read())
+        for name in ("analyze.html", "analyze.js", "funding.html", "portfolio.html", "research.html", "desk.js", "desk.css"):
+            self.assertTrue(os.path.exists(os.path.join(self.tmp, name)), name)
+        self.assertTrue(os.path.exists(os.path.join(self.data, "v8", "research", "phase9", "research_phase9_summary.json")))
 
 
 class Pages(unittest.TestCase):
     """Every page carries the same tab bar, with its own tab marked."""
 
     def test_shared_tab_bar(self):
+        """v8 Phase 12: the five desk surfaces (Today, Analyzer, Funding, Portfolio, Research) carry the same tab bar,
+        each with its own tab marked; the diagnostic pages of the earlier engines carry it with no tab marked."""
         root = os.path.dirname(HERE)
-        want = {"dashboard.html": "./", "picks.html": "picks.html", "quant.html": "quant.html",
-                "index.html": "radar.html", "analyze.html": "analyze.html", "smart.html": "smart.html"}
+        desk = {"today.html": "./", "analyze.html": "analyze.html", "funding.html": "funding.html",
+                "portfolio.html": "portfolio.html", "research.html": "research.html"}
+        diagnostic = ("index.html", "picks.html", "quant.html", "smart.html")
         bars = set()
-        for name, current in want.items():
-            path = os.path.join(root, name)
-            if not os.path.exists(path):
-                continue
-            with open(path, encoding="utf-8") as fh:
+        for name in list(desk) + list(diagnostic):
+            with open(os.path.join(root, name), encoding="utf-8") as fh:
                 s = fh.read()
             i = s.index('<nav class="apptabs"')
             nav = s[i:s.index("</nav>", i)]
-            self.assertIn(f'<a href="{current}" aria-current="page">', nav, name)
-            self.assertEqual(nav.count("aria-current"), 1, name)
+            if name in desk:
+                self.assertIn(f'<a href="{desk[name]}" aria-current="page">', nav, name)
+                self.assertEqual(nav.count("aria-current"), 1, name)
+            else:
+                self.assertEqual(nav.count("aria-current"), 0, name + " is not a desk surface")
             bars.add(nav.replace(' aria-current="page"', ""))
         self.assertEqual(len(bars), 1, "the same tabs on every page")
+        self.assertEqual(re.findall(r'<a href="[^"]+">([^<]+)</a>', bars.pop()), ["Today", "Analyzer", "Funding", "Portfolio", "Research"])
+        self.assertFalse(os.path.exists(os.path.join(root, "dashboard.html")), "the old front page is retired")
 
 
 if __name__ == "__main__":

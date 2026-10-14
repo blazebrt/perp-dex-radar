@@ -5,9 +5,16 @@
 
 Runs last in the scan. Reads what the scan just wrote in site/data (latest.json from the 15-minute radar,
 quant.json from the quant desk, picks.json from the coin picks, smart.json from the smart-money engine) and the
-tested records (picks_research.json, quant_research.json), then writes site/data/dashboard.json and publishes the
-pages: the dashboard becomes the front page (index.html) and the coin picks move to picks.html. Every number comes
-from those files; nothing is fetched. If this step fails, the front page stays the coin picks page.
+tested records (picks_research.json, quant_research.json), then writes site/data/dashboard.json (the earlier engines'
+records, shown on the desk's Research page as historical, unqualified context) and publishes the pages. Every number
+comes from those files; nothing is fetched.
+
+v8 Phase 12: publish() lays out the Perp Decision Desk. Its five surfaces read the governed Phase 11 decision
+(v8.decision/1) and the audit snapshot in the browser, never here: Today (today.html, the front page index.html), the
+Analyzer, Funding, Portfolio and Research, with their shared core (desk.js, desk.css). The earlier engines' pages
+(coin picks, quant desk, smart money; the 15-minute radar is radar.html) stay published as diagnostics outside the
+desk's navigation, and the committed Phase 9 research record is published for the Research page. The Scan workflow
+also runs publish() on its own, so the desk is the front page even when this step fails.
 
 Accuracy uses one unit everywhere: the average result per trade for each $100 risked, after fees (+$29 means a
 trade made 0.29 times its risk on average), next to the share of winning trades and the number of trades.
@@ -23,7 +30,15 @@ import time
 
 VERSION = "1.0.0"
 HERE = os.path.dirname(os.path.abspath(__file__))
-PAGES = ("dashboard.html", "picks.html", "quant.html", "analyze.html", "analyze.js", "smart.html")
+# source file -> published name: the desk (Today is the front page) and its shared core
+DESK_PAGES = (("today.html", "index.html"), ("analyze.html", "analyze.html"), ("analyze.js", "analyze.js"),
+              ("funding.html", "funding.html"), ("portfolio.html", "portfolio.html"), ("research.html", "research.html"),
+              ("desk.js", "desk.js"), ("desk.css", "desk.css"))
+DIAGNOSTIC_PAGES = ("picks.html", "quant.html", "smart.html")      # earlier engines, outside the desk's navigation
+PAGES = tuple(dst for _, dst in DESK_PAGES) + DIAGNOSTIC_PAGES
+# the committed, hash-bound Phase 9 research record the Research page reads (copied as is, never computed here)
+RESEARCH_EVIDENCE = ("research_phase9_summary.json", "research_multiple_testing.json", "research_matched_controls.json",
+                     "research_phase9_registration_plan.json", "research_strategy_adjudication.json")
 
 
 def load(path):
@@ -99,7 +114,7 @@ def picks_accuracy(P, PR):
     live = rec(ls.get("n"), ls.get("wr"), ls.get("avg"), ls.get("avg_ret"),
                f"since {month_year(rp.get('since'))}" if rp.get("since") else None)
     if t["n"] and (t.get("r") or 0) > 0 and years_n and years_ok == years_n:
-        verdict, tone = "Proven", "good"
+        verdict, tone = "Unqualified historical result", "warn"
         why = (f"Positive after fees in every test year, longs and shorts ({years_ok} of {years_n}). "
                "Only picks scoring 80+ count; lower scores show what is setting up.")
     elif t["n"]:
@@ -193,7 +208,7 @@ def radar_accuracy(R):
     passed = [s for s in st if s.get("status") == "passed" and not s.get("variant")]
     base = [s for s in st if not s.get("variant")]
     if passed:
-        verdict, tone = "Passed", "good"
+        verdict, tone = "Historical diagnostic", "warn"
         why = f"{len(passed)} of {len(base)} strategies passed live paper trading; only those are published."
     elif base:
         verdict, tone = "Not proven", "warn"
@@ -213,10 +228,10 @@ def smart_accuracy(S, R):
     acc = (S or {}).get("accuracy") or {}
     if acc:
         t, lv = acc.get("tested") or {}, acc.get("live") or {}
-        return {"name": "Smart money", "sub": acc.get("sub") or "Hyperliquid's proven traders", "page": "smart.html",
+        return {"name": "Smart money", "sub": (acc.get("sub") or "Hyperliquid's leaderboard traders").replace("proven traders", "leaderboard traders"), "page": "smart.html",
                 "tested": rec(t.get("n"), t.get("win"), t.get("r"), t.get("ret"), t.get("period"), t.get("note")),
                 "live": rec(lv.get("n"), lv.get("win"), lv.get("r"), lv.get("ret"), lv.get("period"), lv.get("note")),
-                "verdict": acc.get("verdict") or "Testing", "tone": acc.get("tone") or "warn",
+                "verdict": "Historical diagnostic", "tone": "warn",
                 "why": acc.get("why_short") or acc.get("why") or ""}
     j = (R or {}).get("journal") or {}
     les = next((x for x in j.get("lessons") or [] if x.get("bucket") == "sm_long"), None)
@@ -269,17 +284,17 @@ def picks_card(P, acc_swing, acc_day):
     st = (P or {}).get("settings") or {}
     ready_at = st.get("ready") or 80
     ready = [r for r in sw if (r.get("score") or 0) >= ready_at]
-    items = [{"coin": r["coin"], "side": r["side"], "score": r.get("score"), "label": r.get("label"),
+    items = [{"coin": r["coin"], "side": r["side"], "score": r.get("score"), "label": "Watchlist score",
               "kind": "swing", "ready": (r.get("score") or 0) >= ready_at, "setup": r.get("setup"),
               "chg24": rnd(r.get("chg24"))} for r in sw[:5]]
     if ready:
-        status = {"tone": "good", "text": f"{len(ready)} swing pick{'s' if len(ready) > 1 else ''} ready (80+)"}
+        status = {"tone": "good", "text": f"{len(ready)} swing pick{'s' if len(ready) > 1 else ''} at watchlist score 80+"}
     else:
-        status = {"tone": "wait", "text": "No swing setup ready (80+); the closest are below"}
+        status = {"tone": "wait", "text": "No swing diagnostic at score 80+; the closest are below"}
     good_day = [r for r in dy if (r.get("score") or 0) >= 80]
     open_n = len(((P or {}).get("record") or {}).get("open") or [])
     return {"id": "picks", "name": "Coin picks", "page": "picks.html", "logo": "P",
-            "what": "Swing and day-trade scores for every coin on your DEXs, with a trade plan",
+            "what": "Swing and day-trade scores for every coin on your DEXs, with a hypothetical diagnostic plan",
             "updated": (P or {}).get("generated"), "status": status, "items": items,
             "day": [{"coin": r["coin"], "side": r["side"], "score": r.get("score")} for r in good_day[:5]],
             "open_paper": open_n, "accuracy": [acc_swing, acc_day]}
@@ -351,7 +366,7 @@ def signals(P, Q, R, S):
     for r in (((P or {}).get("swing") or {}).get("all") or [])[:10]:
         if (r.get("score") or 0) >= (st.get("watch") or 60):
             add(r.get("coin"), "swing", r.get("side"), f"{r.get('side')} {r.get('score', 0):.0f}"
-                + (" ready" if r["score"] >= ready_at else ""), r["score"] >= ready_at)
+                + (" watchlist" if r["score"] >= ready_at else ""), r["score"] >= ready_at)
     for r in (((P or {}).get("daytrade") or {}).get("all") or [])[:10]:
         if (r.get("score") or 0) >= 80:
             add(r.get("coin"), "day", r.get("side"), f"{r.get('side')} {r.get('score', 0):.0f}", False)
@@ -433,11 +448,18 @@ def build(data_dir, research_dir=HERE):
 
 
 def publish(out_dir, here=HERE):
-    """The dashboard becomes the front page; the coin picks keep their own page (picks.html)."""
-    for name in PAGES:
-        src = os.path.join(here, name)
-        if os.path.exists(src):
-            shutil.copyfile(src, os.path.join(out_dir, "index.html" if name == "dashboard.html" else name))
+    """The desk's pages (Today as the front page), the earlier engines' diagnostic pages and the Phase 9 research record."""
+    os.makedirs(out_dir, exist_ok=True)
+    for src, dst in DESK_PAGES + tuple((n, n) for n in DIAGNOSTIC_PAGES):
+        p = os.path.join(here, src)
+        if os.path.exists(p):
+            shutil.copyfile(p, os.path.join(out_dir, dst))
+    rdir = os.path.join(out_dir, "data", "v8", "research", "phase9")
+    for name in RESEARCH_EVIDENCE:
+        p = os.path.join(here, "research", "phase9", name)
+        if os.path.exists(p):
+            os.makedirs(rdir, exist_ok=True)
+            shutil.copyfile(p, os.path.join(rdir, name))
 
 
 def main(argv=None):
