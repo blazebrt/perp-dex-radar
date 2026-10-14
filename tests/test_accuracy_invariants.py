@@ -139,7 +139,8 @@ process.stdout.write(value);
                     self.assertIn(name, new_fn)
                     self.assertEqual(dump(node), dump(new_fn[name]))
         self.assertEqual(set(new_fn) - set(old_fn),
-                         {"execution_qualified", "qualified_trade", "execution_class", "mark_legacy_execution"})
+                         {"execution_qualified", "qualified_trade", "execution_class", "mark_legacy_execution",
+                          "_valid_execution_bar", "_valid_execution_time"})
         self.assertEqual(dump(normalize_run(old_fn["run"])), dump(normalize_run(new_fn["run"])))
 
     def test_phase9_methods_candidate_definitions_and_policies_unchanged(self):
