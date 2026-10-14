@@ -60,12 +60,12 @@ def journal_part(open_trades, closed_trades):
     unq = []
     for part in ("open", "closed"):
         for tr in J[part]:
-            if not S.trade_qualified(tr):
+            if not (S.realized_qualified(tr) if part == "closed" else S.trade_qualified(tr)):
                 unq.append({"id": tr.get("id"), "coin": tr.get("coin"), "kind": tr.get("kind", "signal"), "state": part,
                             "t_in": tr.get("t_in"), "r": tr.get("r"),
-                            "reason": tr.get("identity_unqualified_reason") or "IDENTITY_PROOF_INCOMPLETE"})
+                            "reason": S.unqualified_reason(tr), "execution_quality": S.execution_quality(tr)})
     return {"evidence": S.journal_evidence(J), "unqualified_trades": unq[-200:], "unqualified_n": len(unq),
-            "live_record_rule": "identity_qualified trades only (entry-time VERIFIED_CRYPTO proof)"}
+            "live_record_rule": "Closed returns require entry identity AND qualified continuous execution evidence"}
 
 
 def smart_part(now, cfg, board, traders, snap, coins, open_trades, authority=None, closed_trades=None):

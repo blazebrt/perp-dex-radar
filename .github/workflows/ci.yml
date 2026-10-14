@@ -52,11 +52,10 @@ jobs:
         run: python tools/v8/legacy_parity.py --out "$RUNNER_TEMP/parity_head" --check tests/fixtures/v8/legacy_parity_golden_phase12.json
 
       - name: Differential parity against the phase base (approved deltas only)
-        # Phase 12 changes published pages only (the Perp Decision Desk): no universe, identity, decision, signal,
-        # ranking, stop, size or journal may change. Every changed or new page (Today as index.html, the Analyzer,
-        # Funding, Portfolio, Research, the shared desk.js / desk.css and the four demoted diagnostic pages) is pinned
-        # to its exact base and head digest in the manifest. Both the frozen base and this branch must reproduce their
-        # respective golden digests.
+        # Phase 12 includes authorized accuracy corrections A02–A08. Signal definitions, parameters, policy limits,
+        # ranking and universe remain unchanged. Published source hashes and exact accounting/diagnostic JSON
+        # leaves are pinned in the reviewed manifest; every unlisted delta fails. Both checkouts must reproduce
+        # their committed golden digests.
         run: |
           MANIFEST=tests/fixtures/v8/phase12_expected_deltas.json
           BASE_SHA=$(python -c "import json; print(json.load(open('$MANIFEST'))['base']['sha'])")

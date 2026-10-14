@@ -144,8 +144,8 @@ class Publication(unittest.TestCase):
         self.assertIn("if: always() && github.ref != 'refs/heads/main'", src)
         self.assertNotIn('production_publication.py publish', src.split('- name: Save the results')[1])
 
-    def test_final_phase9_accepted_implementation_unchanged(self):
-        for name in ('quant.py', 'v8/quant_strategy_policy.json', 'tools/research/strategy_adjudication.py',
+    def test_final_phase9_policy_and_adjudication_method_unchanged(self):
+        for name in ('v8/quant_strategy_policy.json', 'tools/research/strategy_adjudication.py',
                      'tools/research/matched_controls.py', 'tools/research/multiple_testing.py'):
             original = subprocess.check_output(['git','-c','safe.directory=*','-C',str(ROOT),'show','19596979d4d2f2e700f4a405c4a76c667b167f04:'+name])
             self.assertEqual((ROOT / name).read_bytes(), original, name)

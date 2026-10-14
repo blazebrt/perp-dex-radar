@@ -31,7 +31,7 @@ sys.path.insert(0, HERE)
 import dashboard as D  # noqa: E402
 import scanner as sc  # noqa: E402
 import smart as SM  # noqa: E402
-from test_smart import T0, Fake, addr, hourly  # noqa: E402
+from test_smart import T0, Fake, addr, hourly, QUALIFIED  # noqa: E402
 from test_v8_phase3_smart import NODE, node_signals, offline_env  # noqa: E402
 from v8 import identity as ID  # noqa: E402
 from v8 import parts  # noqa: E402
@@ -55,8 +55,13 @@ def legacy_trade(coin, kind, r, t_in, closed=True, d=-1, px=100.0):
 
 
 def qualified_trade(coin, kind, r, t_in, scan="gh-1-1", **kw):
-    return dict(legacy_trade(coin, kind, r, t_in, **kw), identity_state_at_entry=VC, identity_qualified=True,
-                identity_version=ID.VERSION, identity_scan_id=scan, identity_decision="CRYPTO")
+    tr = dict(legacy_trade(coin, kind, r, t_in, **kw), **copy.deepcopy(QUALIFIED))
+    tr.update(identity_scan_id=scan, identity_decision="CRYPTO")
+    if not kw.get("closed", True):
+        tr["execution_quality"] = "PENDING_HISTORY"
+        tr["execution_evidence"] = {"schema": SM.EXECUTION_SCHEMA, "interval_s": H,
+                                    "entry_model": "OBSERVED_MID_AT_SCAN"}
+    return tr
 
 
 class World:
@@ -127,13 +132,14 @@ class LegacyClosedSignal(Base):
         self.assertEqual(a["live"], {"n": 0})
         self.assertEqual(a["verdict"], RESEARCH["verdict"])               # the test decides, as with no live trades
         self.assertEqual(a["legacy_unqualified"]["signal"]["n"], 45)
-        self.assertEqual(a["legacy_unqualified"]["reason"], "LEGACY_NO_IDENTITY_PROOF")
+        self.assertEqual(a["legacy_unqualified"]["reason"], "IDENTITY_OR_EXECUTION_PROOF_INCOMPLETE")
         self.assertEqual((a["evidence"]["unqualified"]["closed_signal"], a["evidence"]["qualified"]["closed_signal"]),
                          (45, 0))
         self.assertEqual(a["evidence"]["unqualified_reasons"], {"LEGACY_NO_IDENTITY_PROOF": 45})
         # kept, unchanged apart from the marking
         for old, new in zip(self.WINNERS, J["closed"]):
-            self.assertEqual({k: v for k, v in new.items() if not k.startswith("identity")}, old)
+            self.assertEqual({k: new[k] for k in old}, old)
+            self.assertEqual(new["execution_quality"], SM.LEGACY_EXECUTION_UNQUALIFIED)
             self.assertEqual((new["identity_qualified"], new["identity_unqualified_reason"],
                               new["identity_state_at_entry"]), (False, "LEGACY_NO_IDENTITY_PROOF", None))
 
@@ -179,8 +185,8 @@ class LegacyOpenSignal(Base):
         auth = ID.Authority.from_states({"ETH": VC, "SOL": VC})      # SOL is verified crypto today: irrelevant
         out = w.scan(T0, auth, seed=lambda J: J["open"].append(copy.deepcopy(old)))
         tr = w.journal()["open"][0]
-        self.assertEqual({k: v for k, v in tr.items() if not k.startswith("identity") and k not in ("last_px", "r_now")},
-                         old, "kept as it was")
+        self.assertEqual({k: tr[k] for k in old}, old, "all original values stay intact")
+        self.assertEqual(tr["execution_quality"], SM.LEGACY_EXECUTION_UNQUALIFIED)
         self.assertEqual((tr["identity_qualified"], tr["identity_unqualified_reason"]), (False, "LEGACY_NO_IDENTITY_PROOF"))
         self.assertEqual(out["accuracy"]["evidence"]["unqualified"]["open_signal"], 1)
         jp = w.part()["journal"]
@@ -228,14 +234,17 @@ class NewVerifiedSignal(Base):
                           tr["identity_scan_id"], tr["identity_decision"]),
                          (VC, True, ID.VERSION, "local-%d" % (T0 + 1200), VC))
         self.assertTrue(SM.trade_qualified(tr))
+        self.assertFalse(SM.realized_qualified(tr), "entry identity does not yet prove the exit")
         out = w.scan(T0 + 1200 + 25 * H, ID.Authority.from_states({"ETH": VC, "SOL": VC}))
         closed = {t["coin"]: t for t in w.journal()["closed"]}
         c = closed["ETH"]
         self.assertTrue(SM.trade_qualified(c))
+        self.assertFalse(SM.realized_qualified(c), "a mid-hour deadline has no exact observed exit price")
+        self.assertEqual((c["execution_quality"], c["r"]), ("DEADLINE_PRICE_UNAVAILABLE", None))
         self.assertEqual(out["accuracy"]["live"], SM.live_stats([c]))
         self.assertEqual(out["accuracy"]["live"], base_accuracy(w.journal()["closed"]), "as before: same R and count")
         self.assertEqual(out["accuracy"]["live_info"], SM.live_stats([closed["SOL"]]))
-        self.assertEqual(out["accuracy"]["evidence"]["qualified"]["closed_signal"], 1)
+        self.assertEqual(out["accuracy"]["evidence"]["qualified"]["closed_signal"], 0)
         self.assertEqual(out["accuracy"]["legacy_unqualified"]["signal"], {"n": 0})
 
 
@@ -264,7 +273,8 @@ class IdentityChangesAfterEntry(Base):
         out = w.scan(T0 + 1200 + 25 * H, later)
         c = {t["coin"]: t for t in w.journal()["closed"]}["ETH"]
         self.assertEqual((c["identity_state_at_entry"], c["identity_qualified"]), (VC, True))
-        self.assertEqual(out["accuracy"]["live"]["n"], 1, "it counts: the authority was valid when it was entered")
+        self.assertEqual(out["accuracy"]["live"]["n"], 0, "entry identity is retained but cannot prove a mid-hour exit")
+        self.assertEqual(c["execution_quality"], "DEADLINE_PRICE_UNAVAILABLE")
 
 
 class NewUnverifiedCrowd(Base):

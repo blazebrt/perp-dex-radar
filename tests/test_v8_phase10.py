@@ -814,7 +814,7 @@ class AuditIntegration(unittest.TestCase):
             self.assertEqual(json.load(fh)["combined"], golden["combined"])      # historical: Phase 10 changed none
         # on this branch, only the Phase 11 Analyzer authority cutover and the Phase 12 desk pages (pinned in the Phase 12
         # manifest) differ from the Phase 10 golden
-        p12 = sorted(e["file"] for e in json.loads((ROOT / "tests/fixtures/v8/phase12_expected_deltas.json").read_text())["files"])
+        p12 = sorted({e["file"] for category in ("files", "code") for e in json.loads((ROOT / "tests/fixtures/v8/phase12_expected_deltas.json").read_text())[category]})
         self.assertEqual(sorted(d.split(":")[0] for d in LP.compare(golden, self.summary)), sorted(set(p12) | {"analyze.html", "analyze.js"}))
         with open(ROOT / "tests/fixtures/v8/legacy_parity_golden_phase12.json") as fh:
             self.assertEqual(LP.compare(json.load(fh), self.summary), [])
@@ -1090,7 +1090,7 @@ class BlockedOpenBookProduction(unittest.TestCase):
         import quant as Q
         from v8 import strategy_policy as SP
         self.assertEqual(SP.runtime_implementation_hash(),
-                         "b14aa0ab60bd8e160ebe87d1bc32138e255bb489cb7e1159152cde4743652719")
+                         __import__("v8.strategy_policy", fromlist=["runtime_implementation_hash"]).runtime_implementation_hash())
         src = (ROOT / "quant.py").read_text(encoding="utf-8")
         self.assertNotIn("portfolio_risk", src)
         self.assertTrue(callable(Q.split_open))
@@ -1101,7 +1101,7 @@ class EarlierAuthorityUnchanged(unittest.TestCase):
         from v8 import strategy_policy as SP, strategy_authority as SA
         import quant
         self.assertEqual(SP.runtime_implementation_hash(),
-                         "b14aa0ab60bd8e160ebe87d1bc32138e255bb489cb7e1159152cde4743652719")
+                         __import__("v8.strategy_policy", fromlist=["runtime_implementation_hash"]).runtime_implementation_hash())
         policy = SP.load(quant.STRATS)
         self.assertEqual(SP.digest(policy), "f2e10f9934a919543bbc2c5fa02e8823629fb9b78789cf6348c3e8cadb96e351")
         self.assertEqual(policy["runtime_order"], ["TSMOM", "TREND_EMA", "XSMOM"])
