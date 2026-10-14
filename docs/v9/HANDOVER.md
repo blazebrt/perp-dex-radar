@@ -21,7 +21,7 @@ This file is that plan. Keep it current.
      merged into it. PR #25 still shows the old phase-12 branch as its base; switching the base to `main` in the PR
      page is an owner click.
    - `v9/market-data`: phase C (live market context) and F5 (trade alerts), draft PR #26 on top of #25.
-   - `v9/research-d1`: phase D1 (pre-registered funding and taker-flow research), on top of `v9/market-data`.
+   - `v9/research-d1`: phase D1 (pre-registered funding and taker-flow research), draft PR #27 on top of #26.
    - PR #24 (the v8 desk) was merged into main on 2026-10-14 with the owner's accuracy fixes.
 3. Read the latest evidence:
    - `git fetch origin evidence-results evidence-d1-results`;
@@ -361,6 +361,11 @@ How every phase D study runs (D1 set the pattern):
 
 - [ ] F1. Rich TRADE card: entry zone, stop, trailing rule, time stop, size for the user's account (settings stored
   locally), expected R with interval, tier, and its live record.
+  - Done: the tier, expected R with its interval and the live forward test (B6). The engine's plan: entry near the
+    mark, stop, risk, size on the page account, entry window. The time exit, "exit at the stop or 14 days after you
+    enter" (`6dfc56b`): in the engine's proposal (`time_exit_hours`), on the desk, in the Analyzer and in the alerts.
+  - Left: sizing for the user's own account (stored locally), and a trailing rule for strategies that have one (none
+    of the tradable sides does today).
 - [ ] F2. Market board on Today: regime, funding and OI heatmap, liquidations, flows.
 - [ ] F3. Coin deep-dive in the Analyzer, with every data source (context clearly labelled).
 - [ ] F4. Performance ledger page: every tier's live trades against expectation.
@@ -382,10 +387,10 @@ How every phase D study runs (D1 set the pattern):
   - `COINALYZE_API_KEY`: the best free liquidation history. Sign up at coinalyze.net, then API key.
   - `CRYPTOPANIC_API_KEY`: news.
   - `FRED_API_KEY`: macro.
-- Review and merge decisions on PR #25, then PR #26, then the D1 PR. Nothing is merged without you.
+- Review and merge decisions on PR #25, then PR #26, then PR #27. Nothing is merged without you.
   - Merging #25 is what turns XSMOM long's probation on in production; that merge is the review of the policy rows.
   - Switch PR #25's base to `main` (PR #24 is merged).
-  - #26 adds live market context and the alerts. The D1 PR adds research only; the live desk does not change.
+  - #26 adds live market context and the alerts. #27 adds research only; the live desk does not change.
 - No login-only sites are needed. Every source used is a public API or public page.
 
 ## 8. Session log
@@ -415,4 +420,6 @@ How every phase D study runs (D1 set the pattern):
     FUND_FADE.
   - Phase D renumbered: D1 is this study, the Binance metrics study is D2, and the legacy hourly funding strategies
     are D3.
+  - Every TRADE plan now states the strategy's time exit (`6dfc56b` on #25, merged up the stack). XSMOM's archive
+    results assume it, and the governed Analyzer card had dropped it, where the legacy Analyzer always showed it.
   - B8 is still pending: a check is scheduled in the session for 2026-10-15 00:40 UTC.
