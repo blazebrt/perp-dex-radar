@@ -63,16 +63,18 @@ def journal_part(J, actionable, blocked):
     unq = []
     for part in ("open", "closed"):
         for tr in (J or {}).get(part) or []:
-            if not EV.qualified(tr):
+            qualified = q.qualified_trade(tr) if part == "closed" else EV.qualified(tr)
+            if not qualified:
                 unq.append({"id": tr.get("id"), "coin": tr.get("c"), "s": tr.get("s"), "state": part,
                             "t_in": tr.get("t_in"), "r": tr.get("r", (tr.get("res") or {}).get("r")),
-                            "reason": EV.unqualified_reason(tr)})
+                            "reason": EV.unqualified_reason(tr) or q.execution_class(tr),
+                            "execution": tr.get("execution")})
     return {"evidence": q.journal_evidence(J or {}, actionable or [], blocked or []),
             "blocked_open": [{k: b.get(k) for k in ("id", "c", "s", "d", "t_in", "r_now", "exit_stop", "exit_time",
                                                      "identity", "identity_reason", "identity_qualified",
                                                      "identity_unqualified_reason")} for b in blocked or []],
             "unqualified_trades": unq[-200:], "unqualified_n": len(unq),
-            "qualified_closed_n": sum(1 for t in (J or {}).get("closed") or [] if EV.qualified(t))}
+            "qualified_closed_n": sum(1 for t in (J or {}).get("closed") or [] if q.qualified_trade(t))}
 
 
 def quant_part(now, universe, coins, got, data, daily, lastd, new, open_trades, blocked_open=None, journal=None):
@@ -288,6 +290,7 @@ def decision_inputs_part(q, now, universe, data, daily, feats, xs_dir, lastd, ne
     input (with the closed daily bars of every signalled asset, so a proposal's dependence can be evaluated), the
     strategies' timeframe and holding horizon, the page sizing and the trade DEXs. Never raises."""
     from . import portfolio_risk as PR
+    import quant as q
     try:
         policy = PR.load_policy()
         market = policy["dependence"]["market_asset"]["value"]
@@ -316,7 +319,7 @@ def portfolio_risk_part(now, universe, daily, open_trades, blocked_open, journal
     from . import portfolio_risk as PR
     try:
         policy = PR.load_policy()
-        closed = [t.get("r") for t in (journal or {}).get("closed") or [] if EV.qualified(t)]
+        closed = [t.get("r") for t in (journal or {}).get("closed") or [] if q.qualified_trade(t)]
         pf = PR.live_portfolio(open_trades, universe, daily, now, cfg["account"], cfg["risk"], trade_dexes,
                                closed if journal is not None else None,
                                market_asset=policy["dependence"]["market_asset"]["value"], blocked_open=blocked_open)
@@ -325,8 +328,7 @@ def portfolio_risk_part(now, universe, daily, open_trades, blocked_open, journal
                          "sizing": pf["sizing"], "positions": len(pf["positions"]),
                          "positions_by_actionability": pf["book"],
                          "returns_assets": sorted(pf["returns"]),
-                         "funding": "MISSING: the journal's funding sums count a missing settlement as zero and are "
-                                    "not an authority",
+                         "funding": "MISSING: paper settlement evidence is not prospective funding authority",
                          "qualified_closed_trades": len(closed)}
         return res
     except Exception as e:  # noqa: BLE001 - the audit must never break the scan

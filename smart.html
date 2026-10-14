@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Smart Money · Perp DEX Radar</title>
-<meta name="description" content="What Hyperliquid's proven traders are opening and holding, coin by coin, and how often following them was right in a test without hindsight and live.">
+<meta name="description" content="What Hyperliquid's leaderboard traders are opening and holding, coin by coin, and how often following them was right in a test without hindsight and live.">
 <script>try{var t=localStorage.getItem("picks_theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
 <style>
 :root {
@@ -140,24 +140,24 @@ header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: 
 
 <main class="wrap">
   <h1>Smart money</h1>
-  <p class="lede" id="lede">What Hyperliquid's proven traders are opening and holding, coin by coin, and how often following them was right.</p>
+  <p class="lede" id="lede">What Hyperliquid's leaderboard traders are opening and holding, coin by coin, and how often following them was right.</p>
 
   <section class="card acc" id="acc" aria-label="Accuracy"></section>
 
   <section class="section" aria-labelledby="h-sig">
-    <div class="section-head"><h2 id="h-sig">Signals now</h2><p id="sigsub">Coins that 2+ proven traders shorted within 24 hours: the side that held up in the test.</p></div>
+    <div class="section-head"><h2 id="h-sig">Signals now</h2><p id="sigsub">Coins that 2+ leaderboard traders shorted within 24 hours: the side that held up in the test.</p></div>
     <div class="sgrid" id="signals"></div>
     <div id="sigwarn"></div>
   </section>
 
   <section class="section" aria-labelledby="h-info">
-    <div class="section-head"><h2 id="h-info">Long crowds (information)</h2><p>Coins that 2+ proven traders bought within 24 hours. In the test their longs did no better than the market, so these are not signals.</p></div>
+    <div class="section-head"><h2 id="h-info">Long crowds (information)</h2><p>Coins that 2+ leaderboard traders bought within 24 hours. In the test their longs did no better than the market, so these are not signals.</p></div>
     <div class="card" id="info"></div>
   </section>
 
   <section class="section two">
     <div>
-      <div class="section-head"><h2>Fresh moves</h2><p>New and added positions by proven traders.</p></div>
+      <div class="section-head"><h2>Fresh moves</h2><p>New and added positions by leaderboard traders.</p></div>
       <ul class="card feed" id="feed"></ul>
     </div>
     <div>
@@ -177,7 +177,7 @@ header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: 
   </section>
 
   <section class="section" aria-labelledby="h-who">
-    <div class="section-head"><h2 id="h-who">Who counts as proven</h2></div>
+    <div class="section-head"><h2 id="h-who">Leaderboard selection criteria</h2></div>
     <div class="card method" id="who"></div>
   </section>
 
@@ -211,14 +211,14 @@ let S = null;
 
 function renderAcc() {
   const a = S.accuracy || {}, t = a.tested || {}, l = a.live || {}, li = a.live_info || {};
-  const head = `<div class="top">${badge(a.verdict, a.tone)}<span class="big">${t.n ? `Shorts: right ${win(t.hit)} of the time in the test` : "Being tested"}</span></div>`;
+  const head = `<div class="top">${badge("Historical diagnostic", "warn")}<span class="big">${t.n ? `Shorts: right ${win(t.hit)} of the time in the test` : "Being tested"}</span></div>`;
   const kp = [
     `<div class="kp"><div class="l">Tested signals</div><div class="v">${t.n ? n0(t.n) : "–"}</div><div class="s">${esc(t.period || "")}${t.note ? " · " + esc(t.note) : ""}</div></div>`,
     `<div class="kp"><div class="l">vs the market</div><div class="v ${t.excess > 0 ? "pos" : t.excess < 0 ? "neg" : ""}">${t.excess == null ? "–" : pct(t.excess)}</div><div class="s">next 24 hours</div></div>`,
     `<div class="kp"><div class="l">Per $100 risked</div><div class="v ${t.r > 0 ? "pos" : t.r < 0 ? "neg" : ""}">${usd100(t.r)}</div><div class="s">${t.win != null ? win(t.win) + " winners, after fees" : "after fees"}</div></div>`,
     `<div class="kp"><div class="l">Live so far</div><div class="v">${n0(l.n || 0)}</div><div class="s">${l.n ? win(l.win) + " winners · " + usd100(l.r) + " per $100" : "the record starts with the first signal"}</div></div>`,
   ];
-  $("acc").innerHTML = head + (a.why ? `<p class="why">${esc(a.why)}</p>` : "") + `<div class="kpis">${kp.join("")}</div>` +
+  $("acc").innerHTML = head + (a.why ? `<p class="why">${esc(a.why).replace(/Proven|Confirmed live/g, "Historical diagnostic")}</p>` : "") + `<div class="kpis">${kp.join("")}</div>` +
     (a.rule ? `<div class="rule"><b>The rule:</b> ${esc(a.rule)}</div>` : "") +
     (li.n ? `<p class="small muted" style="margin:10px 0 0">Long crowds traded the same way, for comparison: ${n0(li.n)} trades, ${win(li.win)} winners, ${usd100(li.r)} per $100 risked.</p>` : "");
 }
@@ -227,22 +227,22 @@ function renderSignals() {
   const sig = (S.coins || []).filter((c) => c.signal);
   $("signals").innerHTML = sig.length ? sig.map((c) => `<article class="card sg">
       <div class="h"><span class="c"><a href="analyze.html?coin=${encodeURIComponent(c.coin)}" style="color:inherit">${esc(c.coin)}</a></span>${pill(c.side)}<span class="muted small" style="margin-left:auto">${c.price != null ? "$" + esc(c.price) : ""}</span></div>
-      <div class="t">${esc(c.text)}</div>
+      <div class="t">${esc((c.text || "").replace(/proven trader/gi, "leaderboard trader"))}</div>
       ${c.long_share != null ? `<div class="share" title="share of the weight that is long"><i style="width:${Math.round(c.long_share * 100)}%"></i></div>` : ""}
       <div class="f"><span>Holding now: ${c.n_long} long · ${c.n_short} short</span><span>${compact(c.new_short_usd)} new shorts</span></div>
-    </article>`).join("") : `<div class="card empty" style="grid-column:1/-1">No signal right now: proven traders are not shorting any coin together. Waiting is a position too.</div>`;
+    </article>`).join("") : `<div class="card empty" style="grid-column:1/-1">No signal right now: leaderboard traders are not shorting any coin together. Waiting is a position too.</div>`;
   $("sigwarn").innerHTML = sig.length >= 3 ? `<p class="small ink2" style="margin:10px 0 0"><b>${sig.length} signals at once.</b> These coins usually move together, so treat them as one bet on the market falling and size them together, not each at full size.</p>` : "";
 }
 
 function renderInfo() {
   const I = (S.coins || []).filter((c) => c.info);
-  $("info").innerHTML = I.length ? `<ul class="feed">${I.map((c) => `<li><span class="ago">${pill(c.side)}</span><span><b>${esc(c.coin)}</b> <span class="small ink2">${esc(c.text)}</span></span><span class="small muted">${c.n_long} long · ${c.n_short} short now</span></li>`).join("")}</ul>`
+  $("info").innerHTML = I.length ? `<ul class="feed">${I.map((c) => `<li><span class="ago">${pill(c.side)}</span><span><b>${esc(c.coin)}</b> <span class="small ink2">${esc((c.text || "").replace(/proven trader/gi, "leaderboard trader"))}</span></span><span class="small muted">${c.n_long} long · ${c.n_short} short now</span></li>`).join("")}</ul>`
     : `<div class="empty">No long crowds right now.</div>`;
 }
 
 function renderCompare() {
   const C = (S.compared || []).filter((c) => c.side !== "both");
-  const name = (m) => m.replace("old: ", "Old method: ").replace(/^./, (x) => x.toUpperCase());
+  const name = (m) => m.replace(/proven/gi, "leaderboard").replace("old: ", "Old method: ").replace(/^./, (x) => x.toUpperCase());
   $("cmp").innerHTML = C.length ? C.map((c) => `<tr${/^2\+ proven/.test(c.method) && c.side === "short" ? ' style="background:var(--surface-2)"' : ""}><td>${esc(name(c.method))}</td><td>${pill(c.side)}</td>
       <td class="num">${n0(c.n)}</td><td class="num">${win(c.hit)}</td><td class="num ${c.excess > 0 ? "pos" : c.excess < 0 ? "neg" : ""}">${pct(c.excess)}</td>
       <td class="num hide-s ${c.r > 0 ? "pos" : c.r < 0 ? "neg" : ""}">${usd100(c.r)}</td></tr>`).join("") : `<tr><td colspan="6" class="empty">No comparison published yet.</td></tr>`;
@@ -263,7 +263,7 @@ function renderTrades() {
   $("trades").innerHTML = rows.length ? rows.map((t) => {
     const r = t.state === "open" ? t.r_now : t.r;
     return `<tr><td class="coin">${esc(t.coin)}${t.kind === "info" ? ' <span class="small muted">info</span>' : ""}</td><td>${pill(t.d > 0 ? "long" : "short")}</td>
-      <td class="num ${r > 0 ? "pos" : r < 0 ? "neg" : ""}">${r == null ? "new" : (r > 0 ? "+" : "") + r.toFixed(2) + "R"}<div class="small muted">${t.state === "open" ? "open" : t.why === "stop" ? "stopped" : "closed"}</div></td>
+      <td class="num ${r > 0 ? "pos" : r < 0 ? "neg" : ""}">${r == null ? "Unknown / unqualified" : (r > 0 ? "+" : "") + r.toFixed(2) + "R"}<div class="small muted">${esc(t.execution_quality || "LEGACY_EXECUTION_UNQUALIFIED")} · ${t.state === "open" ? "diagnostic mark" : t.execution_quality === "QUALIFIED" ? "observed paper outcome" : "stored diagnostic; excluded from qualified evidence"}</div></td>
       <td class="num hide-s small muted">${ago(t.t_in)} ago</td></tr>`;
   }).join("") : `<tr><td colspan="4" class="empty">No paper trades yet.</td></tr>`;
 }
@@ -299,7 +299,7 @@ function renderWho() {
 function render() {
   for (const f of [renderAcc, renderSignals, renderInfo, renderFeed, renderTrades, renderCompare, renderCoins, renderWho]) { try { f(); } catch (e) { console.error(f.name, e); } }
   const m = S.market || {};
-  $("lede").textContent = `What Hyperliquid's proven traders are opening and holding, and how often following them was right. Updated ${ago(S.generated)} ago` +
+  $("lede").textContent = `What Hyperliquid's leaderboard traders are opening and holding, and how often following them was right. Updated ${ago(S.generated)} ago` +
     (m.long_share != null ? ` · overall ${Math.round(m.long_share * 100)}% long (${m.label || ""}).` : ".");
 }
 

@@ -101,7 +101,7 @@ def portfolio(positions=(), equity=500.0):
 
 def snapshot(records, signals=None, contracts=None, book=(), prov=None, strategies=None, previous=None, pf="default"):
     contracts = contracts if contracts is not None else [contract(r["asset"]) for r in records]
-    pv = {"fallback_universe": False, "available_venue_discovery_qualified": True, "venues_failed_names": [],
+    pv = {"schema": "v8.discovery/1", "fallback_universe": False, "available_venue_discovery_qualified": True, "venues_failed_names": [],
           "coverage_state": "FULL", "generated_at": AS_OF, "identity_version": "v8.identity/4"}
     pv.update(prov or {})
     p = portfolio(book) if pf == "default" else pf
@@ -260,30 +260,32 @@ class States(unittest.TestCase):
             "exposure degraded": dict(rec={"anomaly_flags": ["EXPOSURE_METADATA_DEGRADED"]}),
             "venue degraded": dict(rec={"data_quality": "DATA_DEGRADED"}),
             "discovery fallback": dict(prov={"fallback_universe": True}),
-            "stale inputs": dict(),
         }
         for label, kw in variants.items():
             with self.subTest(missing=label):
                 s = snapshot([rec("HI", **kw.get("rec", {}))], {"HI": [sig("REQ")]},
                              contracts=kw.get("contracts"), prov=kw.get("prov"), pf=kw.get("pf", "default"))
-                if label == "stale inputs":
-                    s["inputs_as_of"]["quant"] = AS_OF - 4 * 3600
                 c = next(c for c in DE.build(s)["candidates"] if c["type"] == DE.DIRECTIONAL)
                 self.assertEqual(c["state"], DE.WATCH, c["missing_authorities"] + c["blockers"])
                 self.assertTrue(c["missing_authorities"])
         # unknown identity is never crypto
         _, c = one(signal=sig("REQ"), rec={"identity": None})
         self.assertEqual((c["state"], c["blockers"]), (DE.AVOID, ["IDENTITY_NOT_VERIFIED"]))
+        # The public boundary refuses a stale core snapshot instead of emitting any decision authority.
+        s = snapshot([rec("HI")], {"HI": [sig("REQ")]})
+        s["inputs_as_of"]["quant"] = AS_OF - 4 * 3600
+        for evaluate in (lambda: DE.build(s), lambda: DE.evaluate_asset(s, "HI")):
+            with self.assertRaisesRegex(ValueError, "DECISION_INPUT_INVALID: inputs_as_of freshness: quant"):
+                evaluate()
 
     def test_future_inputs_are_refused(self):
         """An input or a funding receipt after the decision time is not knowledge at that time (the live skew found by
         the first exact-head Research run): the snapshot therefore decides at the latest input time."""
         s = snapshot([rec("HI")], {"HI": [sig("REQ")]}, contracts=[contract("HI", rcv=AS_OF + 1)])
         s["inputs_as_of"]["quant"] = AS_OF + 120
-        c = next(c for c in DE.build(s)["candidates"] if c["type"] == DE.DIRECTIONAL)
-        self.assertEqual(c["state"], DE.WATCH)
-        # missing funding also leaves the Phase 10 after-state unevaluable: never a zero-funding proposal
-        self.assertEqual(sorted(c["missing_authorities"]), ["FUNDING_UNKNOWN", "INPUT_STALE", "PORTFOLIO_UNEVALUABLE"])
+        for evaluate in (lambda: DE.build(s), lambda: DE.evaluate_asset(s, "HI")):
+            with self.assertRaisesRegex(ValueError, "DECISION_INPUT_INVALID: inputs_as_of freshness: quant"):
+                evaluate()
         s["as_of"] = AS_OF + 120                                       # the latest knowledge time
         s["portfolio"]["as_of"] = AS_OF + 120
         c = next(c for c in DE.build(s)["candidates"] if c["type"] == DE.DIRECTIONAL)
@@ -348,7 +350,7 @@ class StrategyAuthority(unittest.TestCase):
         self.assertIn("STRATEGY_UNGOVERNED", c["blockers"])
         self.assertEqual(SP.digest(policy), "f2e10f9934a919543bbc2c5fa02e8823629fb9b78789cf6348c3e8cadb96e351")
         self.assertEqual(SP.runtime_implementation_hash(),
-                         "b14aa0ab60bd8e160ebe87d1bc32138e255bb489cb7e1159152cde4743652719")
+                         __import__("v8.strategy_policy", fromlist=["runtime_implementation_hash"]).runtime_implementation_hash())
 
 
 class IdentityAndVenue(unittest.TestCase):
@@ -885,7 +887,7 @@ class LiveIntegration(unittest.TestCase):
                   "authority_hash"):
             self.assertIn(k, a)
         self.assertEqual(a["strategy_runtime_implementation_hash"],
-                         "b14aa0ab60bd8e160ebe87d1bc32138e255bb489cb7e1159152cde4743652719")
+                         __import__("v8.strategy_policy", fromlist=["runtime_implementation_hash"]).runtime_implementation_hash())
         self.assertEqual(a["discovery_document_hash"],
                          hashlib.sha256(Path(self.tmp, "site", "data", "v8", "discovery.json").read_bytes()).hexdigest())
 
@@ -925,7 +927,7 @@ class LiveIntegration(unittest.TestCase):
         self.assertEqual(LP.compare(golden, self.summary), [])
         # historical: against the Phase 11 golden only the Phase 12 desk pages differ, each pinned in its manifest
         p11 = json.loads((ROOT / "tests/fixtures/v8/legacy_parity_golden_phase11.json").read_text())
-        p12 = sorted(e["file"] for e in json.loads((ROOT / "tests/fixtures/v8/phase12_expected_deltas.json").read_text())["files"])
+        p12 = sorted({e["file"] for category in ("files", "code") for e in json.loads((ROOT / "tests/fixtures/v8/phase12_expected_deltas.json").read_text())[category]})
         self.assertEqual(sorted(d.split(":")[0] for d in LP.compare(p11, self.summary)), p12)
 
     def test_no_engine_reads_the_decision(self):

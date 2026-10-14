@@ -81,20 +81,21 @@ class PaperTrades(unittest.TestCase):
     def test_short_trailing_stop_moves_after_the_close(self):
         # short at 100, trail 3% (=3): closes 100, 94 -> stop moves to 97 from the third hour; high 97.5 hits it
         c1 = bars([(100, 100.5, 99.5, 100), (100, 100.2, 93.5, 94), (94, 97.5, 93.8, 96)])
-        r = Q.sim_trade(trade(-1, 0.02, trail=0.03), c1, {}, self.now)
+        r = Q.sim_trade(trade(-1, 0.02, trail=0.03), c1, {x["t"]: 0.0 for x in c1}, self.now)
         self.assertEqual(r["state"], "trail")
         self.assertAlmostEqual(r["gross"], 1.5)
 
     def test_gap_through_the_stop_exits_at_the_open(self):
         c1 = bars([(100, 100.5, 99.5, 100), (95, 96, 94, 95)])
-        r = Q.sim_trade(trade(1, 0.02), c1, {}, self.now)
+        r = Q.sim_trade(trade(1, 0.02), c1, {x["t"]: 0.0 for x in c1}, self.now)
         self.assertEqual(r["state"], "gap")
         self.assertAlmostEqual(r["gross"], -2.5)
 
     def test_time_exit_and_funding(self):
         t0 = 1_700_006_400
         c1 = bars([(100, 100.4, 99.6, 100)] * 4)
-        fund = {t0 + H: 0.001}  # settles while the trade is open: longs pay, shorts receive
+        fund = {x["t"]: 0.0 for x in c1}
+        fund[t0 + H] = 0.001  # settles while the trade is open: longs pay, shorts receive
         lg = Q.sim_trade(trade(1, 0.02, hold=3), c1, fund, self.now)
         sh = Q.sim_trade(trade(-1, 0.02, hold=3), c1, fund, self.now)
         self.assertEqual(lg["state"], "time")

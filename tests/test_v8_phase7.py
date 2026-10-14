@@ -714,7 +714,8 @@ class PipelineDiscovery(unittest.TestCase):
         with open(os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase9.json")) as fh:
             p9 = json.load(fh)
         with open(os.path.join(HERE, "fixtures", "v8", "phase12_expected_deltas.json")) as fh:
-            p12 = sorted(e["file"] for e in json.load(fh)["files"])
+            manifest = json.load(fh)
+            p12 = sorted({e["file"] for category in ("files", "code") for e in manifest[category]})
         self.assertEqual(sorted(d.split(":")[0] for d in self.LP.compare(p9, self.summary)), sorted(set(p12) | {"analyze.html", "analyze.js"}))
         with open(os.path.join(HERE, "fixtures", "v8", "phase7_expected_deltas.json")) as fh:
             man = json.load(fh)

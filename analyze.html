@@ -399,9 +399,9 @@ header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: 
       <ul>
         <li><b>A Coin picks swing score of 80 or more.</b> Three-year test on 118 coins (Oct 2023 to Oct 2026): +$29 per $100 risked over 5,453 trades after fees, positive every year for longs and shorts. Exits as tested: in at the daily open, stop 2 daily ATR (kept between 5% and 25%), trailing stop 3 ATR behind the best price, out after 30 days at the latest.</li>
         <li><b>A position of the quant desk.</b> Its strategies are legacy holdovers until Phase 9 requalifies them, so its old research record is shown, not used. Exits: the desk's own stop, trailing stop and time limit.</li>
-        <li><b>Proven traders shorting together:</b> 2 or more of Hyperliquid's proven traders opening shorts on the same coin within 24 hours. Promising, not proven: +$14 per $100 risked over 31 trades in a 30-day test without hindsight. Exits: stop 1.5 times the coin's typical daily move, out after 24 hours.</li>
+        <li><b>Leaderboard traders shorting together:</b> 2 or more of Hyperliquid's leaderboard traders opening shorts on the same coin within 24 hours. Promising, not proven: +$14 per $100 risked over 31 trades in a 30-day test without hindsight. Exits: stop 1.5 times the coin's typical daily move, out after 24 hours.</li>
       </ul>
-      <p><b>The plan is the desk's trade.</b> For a Phase 11 TRADE you join the quant desk position the decision is about as it stands (same stop level, same trailing stop, same time limit). There are no profit targets. The size is set so the stop costs your chosen share of the account.</p>
+      <p><b>The plan is the exact evaluated proposal.</b> A Phase 11 TRADE displays the mark, stop, evaluated account, size, leverage, risk and costs approved by Phase 10. Chart quotes and saved browser preferences are context. A different proposal requires a new governed evaluation.</p>
       <p><b>When decisions disagree.</b> Phase 11 TRADE decisions on both sides of one coin: no call.</p>
       <p><b>The chart read is context.</b> Trend, levels, momentum and positioning on four timeframes show where the price sits and which levels matter. We tested whether it makes the calls better: on the 5,453 swing signals of the last three years, trades made +$27 per $100 risked when the 4-hour read agreed and +$38 when it disagreed (+$18 against +$45 on the daily chart), and swing shorts did worst when the 4-hour read agreed (−$1). So the chart read never confirms or blocks a call. On its own its plans were about break-even before fees and lost money after them (29,039 trades on 1-hour charts and 8,400 on 4-hour charts, one year, 118 coins).</p>
       <p><b>No guarantee.</b> A TRADE means every governed desk gate passes now, not that the trade will make money. In the legacy records above, between 38% and 61% of trades won, depending on the signal. Expect losing runs, risk the same small share every time, and never move a stop away from the price.</p>
@@ -663,7 +663,7 @@ function optsFor() {
 function livePrice() { const b = S.data && S.data.bars["1h"]; return b && b.length ? last(b).c : null; }
 function recompute() {
   S.all = S.data ? TA.analyzeAll(S.data, optsFor()) : null;
-  S.call = TA.decide({coin: S.coin, price: livePrice(), d1: (S.data && S.data.bars["1d"]) || [], now: Math.floor(Date.now() / 1000), account: acct(), risk: riskPct(), src: SRC});
+  S.call = TA.decide({coin: S.coin, price: livePrice(), d1: (S.data && S.data.bars["1d"]) || [], now: Math.floor(Date.now() / 1000), src: SRC});
 }
 function syncUrl() {
   const u = new URL(location.href);
@@ -778,7 +778,7 @@ const P11_TAG = {TRADE: "Phase 11 TRADE", WATCH: "Phase 11 WATCH", AVOID: "Phase
 function tierTag(t, txt) { return '<span class="tier ' + (TIER_CLS[t] || "none") + '">' + esc(txt || t) + '</span>'; }
 function sidePill(side, quiet) { return side ? '<span class="pill ' + (quiet ? "ord" : side) + '">' + (quiet ? side : side.toUpperCase()) + '</span>' : ""; }
 function whenShort(t) { return new Date(t * 1000).toLocaleString(LOCALE, {month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"}); }
-function sizeShare(p) { return (riskPct() * p.riskShare * 100).toFixed(2).replace(/\.?0+$/, "") + "%"; }
+function sizeShare(p) { return ((p.riskFraction == null ? riskPct() * p.riskShare : p.riskFraction) * 100).toFixed(2).replace(/\.?0+$/, "") + "%"; }
 function sigName(s) { return s.name + (s.src === "quant" ? " (" + s.strategy + ")" : ""); }
 function callWhy() {
   const c = S.call;
@@ -842,7 +842,7 @@ function renderSignals() {
       isLive(sw) ? tierTag(sw.tier, sw.tier + " record") : ran, recTxt(sw.rec, "swing") + (sw.rec ? ' <span class="muted">(' + sw.side + 's with a chart score of ' + sw.rec.band + ')</span>' : ""));
   } else if (swn) {
     const sc = scanOf(S.coin) || {};
-    row("dim", "Coin picks swing", "Score 80+, days to weeks", 'Score ' + Math.round(swn.score) + ' for a ' + swn.side + ' · not ready', 'A trade starts at ' + swn.readyAt + '.',
+    row("dim", "Coin picks swing", "Score 80+, days to weeks", 'Score ' + Math.round(swn.score) + ' for a ' + swn.side + ' · not ready', 'The diagnostic watchlist threshold is ' + swn.readyAt + '.',
       noSig("Not a signal"), swn.rec ? 'Tested chart score ' + Math.round(sc.core != null ? sc.core : swn.score) + ': ' + TA.usd100(swn.rec.per100) + ' per $100 risked (' +
       swn.rec.n.toLocaleString("en-US") + ' trades, ' + esc(swn.rec.tier.toLowerCase()) + ')' : "");
   } else {
@@ -864,11 +864,11 @@ function renderSignals() {
   const ss = all.find((s) => s.src === "smart"), sn = c.notes.find((n) => n.src === "smart"), srec = SRC.smart ? TA.smartRecord(SRC.smart) : null;
   if (ss) {
     const p = ss.plan;
-    row(lead(ss), "Smart money", "Proven traders shorting together", sidePill(ss.side) + esc(ss.text),
+    row(lead(ss), "Smart money", "Leaderboard traders shorting together", sidePill(ss.side) + esc(ss.text),
       isLive(ss) ? (p && p.signal.move != null ? "Signal " + agoS(p.signal.t) + ", " + pct(p.signal.move) + " for the trade since" : "Signal " + agoS(ss.t)) + (ss.cluster >= 3 ? " · " + ss.cluster + " coins at once" : "") : esc(ss.why),
       isLive(ss) ? tierTag(ss.tier, ss.tier + " record") : ran, recTxt(ss.rec) + (ss.rec && ss.rec.live && ss.rec.live.n ? ' · live: ' + ss.rec.live.n + ' trades' : ' · live record starting'));
   } else {
-    row("dim", "Smart money", "Proven traders shorting together", SRC.smart ? esc(sn ? sn.text : "No proven-trader crowd") : "Scan not loaded", "",
+    row("dim", "Smart money", "Leaderboard traders shorting together", SRC.smart ? esc(sn ? sn.text : "No leaderboard-trader crowd") : "Scan not loaded", "",
       sn && sn.side ? noSig("Information") : noSig(), srec ? 'Rule: ' + TA.usd100(srec.per100) + ' per $100 risked over ' + srec.n + ' trades (shorts)' : "");
   }
   // the chart read: context
@@ -1064,8 +1064,14 @@ function exitWhy(s, p) {
   return "24 hours after the signal, if the stop is not hit first";
 }
 function testedPlanCard(c) {
+  if (c.plan.kind === "governed") {
+    const p = c.plan;
+    return '<h2>Exact governed proposal · ' + esc(c.verdict) + '</h2><p>This plan is the proposal evaluated by Phase 10 and approved by the current decision. Browser prices and saved account preferences do not change it.</p>' +
+      '<div class="lvls"><div class="lv"><span>Evaluated mark</span><b>' + fp(p.entry) + '</b></div><div class="lv"><span>Evaluated stop</span><b>' + fp(p.stop) + '</b></div></div>' +
+      '<div class="sizebox">Evaluated account: ' + money(p.equity) + '<br>Position: ' + money(p.size) + ' · ' + p.lev.toFixed(3) + '× leverage<br>Stop risk: ' + money2(p.riskUsd) + ' · ' + (p.riskFraction * 100).toFixed(2) + '% sizing input<br>Expected fees: ' + (p.costs.fees * 100).toFixed(4) + '% of equity; slippage: ' + (p.costs.slippage * 100).toFixed(4) + '% of equity<br>Basis: ' + esc(p.sizingBasis) + '</div><p>Changing the account, entry, stop or size requires a new governed evaluation. This page cannot approve a custom proposal.</p>';
+  }
   const s = c.lead, p = c.plan, L = p.side === "long";
-  const title = s.src === "swing" ? "The tested swing trade" : s.src === "quant" ? "Join the " + s.strategy : "Join the proven traders' short";
+  const title = s.src === "swing" ? "The tested swing trade" : s.src === "quant" ? "Join the " + s.strategy : "Join the leaderboard traders' short";
   const ref = p.kind === "swing" ? {lbl: "Tested entry", px: p.tested.entry, t: p.tested.t, move: p.tested.move}
     : p.kind === "quant" ? (p.desk.entry ? {lbl: "Desk entry", px: p.desk.entry, t: p.desk.t, move: p.desk.move} : null)
     : (p.signal.entry ? {lbl: "Signal at", px: p.signal.entry, t: p.signal.t, move: p.signal.move} : null);
@@ -1121,6 +1127,12 @@ function planText() {
     const s = c.lead, p = c.plan, L = p.side === "long";
     lines.push(S.coin + " · " + c.verdict + " · Phase 11 TRADE: " + sigName(s) + ". " + s.text + ".");
     if (s.rec) lines.push("Tested: " + TA.recordTxt(s.rec) + (s.rec.period ? " (" + s.rec.period + ")" : "") + ".");
+    if (p.kind === "governed") return [S.coin + " · " + c.verdict + " · exact governed proposal",
+      "Evaluated mark " + fp(p.entry) + ", stop " + fp(p.stop),
+      "Evaluated equity " + money(p.equity) + ", size " + money(p.size) + ", leverage " + p.lev,
+      "Stop risk " + money2(p.riskUsd) + ", risk fraction " + p.riskFraction,
+      "Sizing basis " + p.sizingBasis + "; fees/equity " + p.costs.fees + "; slippage/equity " + p.costs.slippage,
+      "Valid only for the exact current governed proposal. Custom changes require a new evaluation."].join("\n");
     lines.push((L ? "Buy" : "Sell") + " at market, near " + fp(p.entry));
     lines.push("Stop " + fp(p.stop) + " (" + (L ? "−" : "+") + (p.stopPct * 100).toFixed(2) + "%): " + stopWhy(s, p).replace(/^./, (m) => m.toLowerCase()));
     if (p.trail > 0) lines.push("Trailing stop " + fp(p.trail) + " " + trailWhy(s, p));
@@ -1288,7 +1300,8 @@ function aiPayload() {
   const rec = (r) => r ? {trades: r.n, win_rate: +r.win.toFixed(3), usd_per_100_risked: r.per100, period: r.period} : null;
   const sig = (s) => ({source: sigName(s), side: s.side, legacy_label: s.tier, signal: s.text, legacy_record: rec(s.rec)});
   const p = c && c.plan, ld = c && c.lead;
-  const plan = p && ld ? {side: p.side, order: "market", entry: r2(p.entry), stop: r2(p.stop), stop_pct: +(p.stopPct * 100).toFixed(2), stop_basis: stopWhy(ld, p),
+  const plan = p && ld && p.kind === "governed" ? {authority: "EXACT_GOVERNED_PROPOSAL", side: p.side,
+    proposal: JSON.parse(JSON.stringify(p.proposal))} : p && ld ? {side: p.side, order: "market", entry: r2(p.entry), stop: r2(p.stop), stop_pct: +(p.stopPct * 100).toFixed(2), stop_basis: stopWhy(ld, p),
     trailing_stop: p.trail > 0 ? {distance: r2(p.trail), pct: +(p.trailPct * 100).toFixed(2), rule: trailWhy(ld, p)} : null,
     exit_by_utc: new Date(p.exitBy * 1000).toISOString().slice(0, 16).replace("T", " "), exit_rule: exitWhy(ld, p), profit_target: "none (the tested exits let winners run)",
     size_usd: Math.round(p.size), leverage: +p.lev.toFixed(1), risk_usd: +p.riskUsd.toFixed(2), half_size: p.riskShare < 1} : null;

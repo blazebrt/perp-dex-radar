@@ -103,7 +103,7 @@ class Accuracy(Base):
         out = self.full()
         sc = {r["name"]: r for r in out["scorecard"]}
         sw = sc["Coin picks · swing"]
-        self.assertEqual(sw["verdict"], "Proven")
+        self.assertEqual(sw["verdict"], "Unqualified historical result")
         self.assertEqual(sw["tested"]["n"], 5453)
         self.assertEqual(sw["tested"]["per100"], 29, "R 0.293 is +$29 per $100 risked")
         self.assertAlmostEqual(sw["tested"]["win"], 0.48, places=2)
@@ -128,7 +128,7 @@ class Accuracy(Base):
             "live": {"n": 3, "win": 0.67, "r": 0.2}}})
         out = self.full()
         sm = out["scorecard"][-1]
-        self.assertEqual((sm["verdict"], sm["tested"]["n"], sm["tested"]["per100"]), ("Proven", 900, 12))
+        self.assertEqual((sm["verdict"], sm["tested"]["n"], sm["tested"]["per100"]), ("Historical diagnostic", 900, 12))
         self.assertEqual(out["smart"]["source"], "engine")
 
     def test_per100_and_combine(self):
@@ -144,7 +144,7 @@ class Versions(Base):
     def test_cards_market_and_agreement(self):
         out = self.full()
         v = {x["id"]: x for x in out["versions"]}
-        self.assertEqual(v["picks"]["status"]["text"], "1 swing pick ready (80+)")
+        self.assertEqual(v["picks"]["status"]["text"], "1 swing pick at watchlist score 80+")
         self.assertEqual([i["coin"] for i in v["picks"]["items"]], ["BTC", "HYPE", "XPL", "DOGE"])
         self.assertEqual(v["quant"]["status"]["text"], "2 open: 1 long, 1 short")
         self.assertEqual(v["quant"]["items"][0]["coin"], "BTC", "newest first")

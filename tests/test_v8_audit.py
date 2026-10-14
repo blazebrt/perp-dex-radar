@@ -61,7 +61,8 @@ PHASE9_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase
 ANALYZER_CUTOVER = ("analyze.html", "analyze.js")     # Phase 11 correction: the only legacy files that changed
 # v8 Phase 12: the published desk pages, each pinned to its base and head digest in the Phase 12 manifest
 with open(os.path.join(HERE, "fixtures", "v8", "phase12_expected_deltas.json")) as _fh:
-    PHASE12_FILES = sorted(e["file"] for e in json.load(_fh)["files"])
+    _phase12 = json.load(_fh)
+    PHASE12_FILES = sorted({e["file"] for category in ("files", "code") for e in _phase12[category]})
 PHASE7_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase7.json")
 PHASE6_GOLDEN = os.path.join(HERE, "fixtures", "v8", "legacy_parity_golden_phase6.json")
 PHASE7_MANIFEST = os.path.join(HERE, "fixtures", "v8", "phase7_expected_deltas.json")
@@ -636,7 +637,7 @@ class PipelineAudit(unittest.TestCase):
                          len(J["open"]))
         self.assertEqual((jn["unqualified_n"], jn["unqualified_trades"]), (0, []))
         self.assertEqual(sm["accuracy"]["evidence"], jn["evidence"])
-        self.assertEqual(sm["accuracy"]["legacy_unqualified"]["reason"], "LEGACY_NO_IDENTITY_PROOF")
+        self.assertEqual(sm["accuracy"]["legacy_unqualified"]["reason"], "IDENTITY_OR_EXECUTION_PROOF_INCOMPLETE")
 
     def test_quant_and_radar_journal_evidence_in_the_snapshot(self):
         """v8 Phase 3 closure: the quant and radar journal evidence reaches the snapshot; on the fixture every live

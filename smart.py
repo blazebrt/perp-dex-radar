@@ -17,8 +17,8 @@ Each scan:
      wrote for this scan) can be a signal, an information-only crowd or a paper trade. Any other coin stays visible
      with its positioning and an identity_block; without a same-scan authority nothing gets signal authority;
   6. (v8 Phase 3) every new paper trade records its entry-time identity proof; only trades with that proof count in
-     the live record (accuracy live / live_info and the verdict). Trades opened before Phase 3 are kept, followed to
-     their close and reported apart as LEGACY_NO_IDENTITY_PROOF.
+     the live record when execution is also proved (accuracy live / live_info and the verdict). Old stored outcomes
+     are preserved; missing execution proof is LEGACY_EXECUTION_UNQUALIFIED, separately from identity provenance.
 
 Writes site/data/smart.json (the page and the dashboard) and site/data/smart_journal.json (read back next scan).
 Trader addresses are never published: they are replaced by a short hash.
@@ -40,6 +40,9 @@ from v8 import identity as IDENTITY
 VERSION = "1.0.0"
 ENGINE = 1
 H, DAY = 3600, 86400
+EXECUTION_SCHEMA = "smart.execution/1"
+EXECUTION_QUALIFIED = "QUALIFIED"
+LEGACY_EXECUTION_UNQUALIFIED = "LEGACY_EXECUTION_UNQUALIFIED"
 LEADERBOARD = "https://stats-data.hyperliquid.xyz/Mainnet/leaderboard"
 INFO = "https://api.hyperliquid.xyz/info"
 
@@ -284,11 +287,67 @@ def open_trade(sig, mids, now, fetch=None, cfg=CFG):
     d = 1 if sig["side"] == "long" else -1
     return {"id": f"{sig['coin']}-{now}", "coin": sig["coin"], "hl": sig["hl"], "d": d, "t_in": now, "px": px,
             "stop_pct": round(stop, 5), "stop": sc.sig6(px * (1 - d * stop)), "why": sig["text"],
-            "t_out_by": now + cfg["hold_h"] * H}
+            "t_out_by": now + cfg["hold_h"] * H, "execution_quality": "PENDING_HISTORY",
+            "execution_evidence": {"schema": EXECUTION_SCHEMA, "interval_s": H,
+                                   "entry_model": "OBSERVED_MID_AT_SCAN"}}
+
+
+def _execution_candles(candles, now):
+    """Only ordered, non-conflicting hourly observations known by now are path evidence.
+
+    A partial entry candle is retained: if it reaches the stop, its extreme's ordering is unknown. Ignoring that
+    candle would falsely claim a known path. A full candle that never reaches the stop proves absence of a stop
+    during its post-entry subset as well. Missing or malformed intervals remain missing, never interpolated.
+    """
+    bars, bad = {}, set()
+    for c in candles if isinstance(candles, list) else []:
+        if not isinstance(c, dict):
+            continue
+        stamp = sc.fnum(c.get("t"))
+        if stamp is None or stamp != int(stamp) or stamp % (H * 1000):
+            continue
+        t = int(stamp) // 1000
+        if t > now:
+            continue
+        vals = {k: sc.fnum(c.get(k)) for k in ("l", "h", "c")}
+        if any(v is None or v <= 0 for v in vals.values()) or not vals["l"] <= vals["c"] <= vals["h"]:
+            bad.add(t)
+            continue
+        if t in bars and bars[t] != vals:
+            bad.add(t)
+        bars[t] = vals
+    return {t: c for t, c in bars.items() if t not in bad}
+
+
+def _execution_state(tr, quality, reason=None, **evidence):
+    """Add evidence without retroactively upgrading an old row that lacks the new entry model."""
+    prior = tr.get("execution_evidence")
+    prior = prior if isinstance(prior, dict) else {}
+    legacy = tr.get("execution_quality") == LEGACY_EXECUTION_UNQUALIFIED or prior.get("schema") != EXECUTION_SCHEMA
+    tr["execution_quality"] = LEGACY_EXECUTION_UNQUALIFIED if legacy else quality
+    if reason:
+        tr["execution_unqualified_reason"] = reason
+    else:
+        tr.pop("execution_unqualified_reason", None)
+    tr["execution_evidence"] = dict(prior, **evidence)
+
+
+def _unqualified_close(J, tr, now, reason, mids):
+    """A terminal unknown outcome has no realized return; a current mark is diagnostic only."""
+    _execution_state(tr, reason, reason)
+    px = sc.fnum(mids.get(tr["hl"]))
+    if px is not None and px > 0:
+        tr["diagnostic_mark"] = {"as_of": now, "price": px, "qualified": False}
+    J["closed"].append(dict(tr, t_out=now, why="execution_unqualified", ret=None, r=None))
 
 
 def update_trades(J, mids, now, fetch=None, cfg=CFG):
-    """Close paper trades at the stop (hourly highs and lows since entry) or at the time limit."""
+    """Account only a continuous observed stop path or an observed close at the absolute deadline.
+
+    Mid-candle stop ordering at entry is unresolvable from hourly extrema. A mid-candle deadline has no exact
+    observed exit price. Those outcomes terminate explicitly unqualified, without R/return. Missing history is
+    retried while the trade is open, then terminates unqualified after its deadline instead of using today's mid.
+    """
     still = []
     for tr in J["open"]:
         exit_px, why = None, None
@@ -296,33 +355,53 @@ def update_trades(J, mids, now, fetch=None, cfg=CFG):
             cs = hl_candles(tr["hl"], tr["t_in"], now, fetch) or []
         except Exception:  # noqa: BLE001
             cs = []
-        for c in cs:
-            t = int(fnum(c.get("t")) / 1000)
-            if t < tr["t_in"] // H * H or t >= tr["t_out_by"]:
+        bars = _execution_candles(cs, now)
+        first, deadline = tr["t_in"] // H * H, tr["t_out_by"]
+        stop_px = tr["px"] * (1 - tr["d"] * tr["stop_pct"])
+        reason, observed_through = None, tr["t_in"]
+        for t in range(first, min(now, deadline - 1) // H * H + 1, H):
+            c = bars.get(t)
+            if c is None:
+                reason = "MISSING_HISTORY" if not bars else "MISSING_CANDLE_PATH"
+                break
+            touched = c["l"] <= stop_px if tr["d"] > 0 else c["h"] >= stop_px
+            if t == first and t < tr["t_in"] and touched:
+                reason = "ENTRY_PATH_AMBIGUOUS"
+                break
+            if t + H > deadline and now >= deadline:
+                # An extreme in this last candle could have occurred after the deadline. It cannot supply an
+                # exit, including a stop, unless a later scan recovers finer evidence (this model is hourly).
+                reason = "DEADLINE_PRICE_UNAVAILABLE"
+                break
+            if touched:
+                exit_px, why = stop_px, "stop"
+                observed_through = min(now, t + H)
+                break
+            observed_through = min(now, t + H)
+        if reason == "ENTRY_PATH_AMBIGUOUS" or (reason and now >= deadline):
+            _unqualified_close(J, tr, now, reason, mids)
+            continue
+        if exit_px is None and reason is None and now >= deadline:
+            c = bars.get(deadline - H) if deadline % H == 0 else None
+            if c is None:
+                _unqualified_close(J, tr, now, "DEADLINE_PRICE_UNAVAILABLE", mids)
                 continue
-            lo, hi = fnum(c.get("l")), fnum(c.get("h"))
-            if tr["d"] > 0 and lo and lo <= tr["px"] * (1 - tr["stop_pct"]):
-                exit_px, why = tr["px"] * (1 - tr["stop_pct"]), "stop"
-                break
-            if tr["d"] < 0 and hi and hi >= tr["px"] * (1 + tr["stop_pct"]):
-                exit_px, why = tr["px"] * (1 + tr["stop_pct"]), "stop"
-                break
-        if exit_px is None and now >= tr["t_out_by"]:
-            closes = [c for c in cs if int(fnum(c.get("t")) / 1000) + H <= tr["t_out_by"]]
-            exit_px = fnum(closes[-1].get("c")) if closes else fnum(mids.get(tr["hl"])) or None
-            why = "time"
+            exit_px, why = c["c"], "time"
         if exit_px:
+            _execution_state(tr, EXECUTION_QUALIFIED, continuous_path=True, entry_bar_checked=True,
+                             exit_price_observed=True, deadline_bound=True, observed_through=observed_through,
+                             exit_bar_start=t if why == "stop" else deadline - H)
             ret = tr["d"] * (exit_px / tr["px"] - 1) - cfg["cost"]
             J["closed"].append(dict(tr, t_out=now, exit_px=sc.sig6(exit_px), why=why, ret=round(ret, 5),
                                     r=round(ret / tr["stop_pct"], 3)))
         else:
+            _execution_state(tr, "PENDING_HISTORY", reason or "AWAITING_EXIT", observed_through=observed_through)
             px = fnum(mids.get(tr["hl"]))
             if px:
                 tr["last_px"] = px
                 tr["r_now"] = round((tr["d"] * (px / tr["px"] - 1) - cfg["cost"]) / tr["stop_pct"], 3)
             still.append(tr)
     J["open"] = still
-    J["closed"] = J["closed"][-600:]
 
 
 def live_stats(closed):
@@ -345,14 +424,13 @@ def accuracy(research, J, cfg=CFG):
     after LIVE_MIN live trades the live record decides: Proven (positive, t 2+), No edge (not positive), or the
     test's verdict while it is still unclear. Paper trades of the information side are reported separately.
 
-    v8 Phase 3: live and live_info - and so the verdict - count identity-qualified trades only (trade_qualified():
-    VERIFIED_CRYPTO proven by the same-scan identity authority when the trade was opened). Trades without that
-    entry-time proof (opened before Phase 3) are kept and reported apart in legacy_unqualified; they never reach
-    live, live_info or the verdict."""
+    Live and live_info, and thus the live verdict, require both entry-time VERIFIED_CRYPTO identity proof and
+    qualified continuous execution/exit evidence. Stored historical returns never supply missing execution proof.
+    Every unqualified record remains in the diagnostic record; it cannot reach the live verdict."""
     t = (research or {}).get("tested") or {}
     closed = J.get("closed") or []
-    qualified = [x for x in closed if trade_qualified(x)]
-    legacy = [x for x in closed if not trade_qualified(x)]
+    qualified = [x for x in closed if realized_qualified(x)]
+    legacy = [x for x in closed if not realized_qualified(x)]
     live = live_stats([x for x in qualified if x.get("kind", "signal") == "signal"])
     info = live_stats([x for x in qualified if x.get("kind") == "info"])
     if research and research.get("verdict"):
@@ -376,9 +454,10 @@ def accuracy(research, J, cfg=CFG):
             "live": live, "live_info": info, "rule": (research or {}).get("rule"),
             "longs": (research or {}).get("longs"), "full_window": (research or {}).get("full_window"),
             # v8 Phase 3: the evidence boundary (never mixed into live, live_info or the verdict above)
-            "legacy_unqualified": {"reason": LEGACY_NO_IDENTITY_PROOF,
+            "legacy_unqualified": {"reason": "IDENTITY_OR_EXECUTION_PROOF_INCOMPLETE",
                                    "signal": live_stats([x for x in legacy if x.get("kind", "signal") == "signal"]),
-                                   "info": live_stats([x for x in legacy if x.get("kind") == "info"])},
+                                   "info": live_stats([x for x in legacy if x.get("kind") == "info"]),
+                                   "rule": "Diagnostic only: missing entry identity or qualified execution proof"},
             "evidence": journal_evidence(J)}
 
 
@@ -404,15 +483,42 @@ def stamp_identity(tr, coin, auth):
 
 
 def trade_qualified(tr):
-    """Whether a paper trade belongs to the live evidence record: complete entry-time proof of VERIFIED_CRYPTO."""
+    """Entry identity qualification only; realized_qualified also requires execution evidence."""
     return (tr.get("identity_qualified") is True and tr.get("identity_state_at_entry") == IDENTITY.VERIFIED_CRYPTO
             and bool(tr.get("identity_scan_id")) and bool(tr.get("identity_version")))
+
+
+def execution_quality(tr):
+    """Read-only classification. An old stored return is never proof of how its execution path occurred."""
+    return tr.get("execution_quality") or LEGACY_EXECUTION_UNQUALIFIED
+
+
+def execution_qualified(tr):
+    ev = tr.get("execution_evidence") or {}
+    return (execution_quality(tr) == EXECUTION_QUALIFIED and isinstance(ev, dict)
+            and ev.get("schema") == EXECUTION_SCHEMA and ev.get("interval_s") == H
+            and ev.get("entry_model") == "OBSERVED_MID_AT_SCAN"
+            and all(ev.get(k) is True for k in ("continuous_path", "entry_bar_checked",
+                                               "exit_price_observed", "deadline_bound")))
+
+
+def realized_qualified(tr):
+    """The sole authority for qualified live paper returns: identity and execution, independently proved."""
+    return trade_qualified(tr) and execution_qualified(tr)
+
+
+def unqualified_reason(tr):
+    if not trade_qualified(tr):
+        return tr.get("identity_unqualified_reason") or "IDENTITY_PROOF_INCOMPLETE"
+    return tr.get("execution_unqualified_reason") or execution_quality(tr)
 
 
 def mark_legacy(J):
     """Trades with no entry-time identity provenance (opened before Phase 3) are kept unchanged - prices, returns,
     stops, times, kind - and marked identity_qualified=False, LEGACY_NO_IDENTITY_PROOF. Nothing is inferred from the
-    coin's current identity. Open ones are still followed to their close. Returns the number newly marked."""
+    coin's current identity. Old rows lacking execution proof receive only LEGACY_EXECUTION_UNQUALIFIED metadata;
+    no price, time or return is rewritten. Open ones are followed under the corrected path model.
+    Returns the number newly marked for identity (the historical API)."""
     n = 0
     for tr in (J.get("open") or []) + (J.get("closed") or []):
         if "identity_qualified" not in tr:
@@ -420,21 +526,29 @@ def mark_legacy(J):
             tr["identity_qualified"] = False
             tr["identity_unqualified_reason"] = LEGACY_NO_IDENTITY_PROOF
             n += 1
+        if "execution_quality" not in tr:
+            tr["execution_quality"] = LEGACY_EXECUTION_UNQUALIFIED
     return n
 
 
 def journal_evidence(J):
-    """Paper trades by evidence class, open and closed, signal and information side: qualified (in the live record)
-    and unqualified (kept, never counted), with the reasons."""
-    out = {"qualified": {}, "unqualified": {}, "unqualified_reasons": {}}
+    """Open entry-identity and closed realized-evidence counts, plus independent execution classes.
+
+    An identity-qualified open trade is not a realized result. Closed qualified counts require both proofs.
+    """
+    out = {"qualified": {}, "unqualified": {}, "unqualified_reasons": {}, "execution_classes": {},
+           "live_record_rule": "Closed returns require entry identity AND qualified continuous execution evidence"}
     for part in ("open", "closed"):
         for tr in J.get(part) or []:
-            q = trade_qualified(tr)
+            q = realized_qualified(tr) if part == "closed" else trade_qualified(tr)
+            quality = execution_quality(tr)
+            out["execution_classes"].setdefault(part, {})[quality] = (
+                out["execution_classes"].get(part, {}).get(quality, 0) + 1)
             key = f"{part}_{tr.get('kind', 'signal')}"
             d = out["qualified" if q else "unqualified"]
             d[key] = d.get(key, 0) + 1
             if not q:
-                why = tr.get("identity_unqualified_reason") or "IDENTITY_PROOF_INCOMPLETE"
+                why = unqualified_reason(tr)
                 out["unqualified_reasons"][why] = out["unqualified_reasons"].get(why, 0) + 1
     for d in (out["qualified"], out["unqualified"]):
         for part in ("open", "closed"):
@@ -617,8 +731,8 @@ def run(out_dir, pages_url=None, journal_path=None, fetch=None, now=None, cfg=CF
            f"{len(J['open'])} paper trades open, {len(J['closed'])} closed; "
            f"{sum(1 for c in coins if c.get('identity_block'))} crowds without crypto identity "
            f"(identity authority: {identity.why}); "
-           f"{sum(1 for t in J['open'] + J['closed'] if not trade_qualified(t))} paper trades without entry-time "
-           f"identity proof kept out of the live record ({n_legacy} marked this scan)")
+           f"{sum(1 for t in J['closed'] if not realized_qualified(t))} closed paper trades without both identity "
+           f"and execution proof kept out of the live record ({n_legacy} identity records marked this scan)")
     return out
 
 

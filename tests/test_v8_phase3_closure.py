@@ -265,7 +265,7 @@ class QuantEvidence(unittest.TestCase):
 
     def test_live_record(self):
         live = self.out["live_all"]
-        q = [t for t in self.J["closed"] if EV.qualified(t)]
+        q = [t for t in self.J["closed"] if Q.qualified_trade(t)]
         crafted = {t["id"] for t in self.J0["open"] + self.J0["closed"]}
         # the crafted qualified closes are in; trades the engine itself opened and closed this run (the fake market
         # follows the clock) are qualified too; no legacy trade is
@@ -275,14 +275,15 @@ class QuantEvidence(unittest.TestCase):
         self.assertEqual(live["n"], len(q))
         self.assertGreaterEqual(live["n"], 2)
         leg = self.out["legacy_unqualified"]
-        self.assertEqual(leg["reason"], EV.LEGACY_NO_IDENTITY_PROOF)
+        self.assertEqual(leg["reason"], "ENTRY_IDENTITY_OR_EXECUTION_UNQUALIFIED")
         self.assertEqual(leg["live_all"]["n"], 3)                         # the closing legacy one, winner, loser
         self.assertEqual(leg["live_all"]["sum"], round(3.0 - 1.0 + self.trade(LEG_CLOSES)["r"], 2))
         # the stored legacy winner and loser are unchanged except for their legacy mark
         for c in ("FAKE10", "FAKE11"):
             got = next(t for t in self.J["closed"] if t["c"] == c)
             was = next(t for t in self.J0["closed"] if t["c"] == c)
-            self.assertEqual({k: v for k, v in got.items() if not k.startswith("identity")}, was)
+            self.assertEqual({k: v for k, v in got.items() if not k.startswith("identity") and k != "execution"}, was)
+            self.assertEqual(got["execution"]["state"], Q.LEGACY_EXECUTION_UNQUALIFIED)
         ev = self.out["evidence"]
         self.assertEqual(ev["blocked_open"], 3)
         self.assertEqual(ev["blocked_coins"], sorted([LEG_UNVERIFIED, DEGRADED_OPEN, MISSING]))

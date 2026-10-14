@@ -147,11 +147,27 @@
         !Array.isArray(doc.candidates) || !Array.isArray(doc.assets) || !doc.authority || typeof doc.authority !== "object") {
       return {status: "MALFORMED", doc: null, reason: "the Phase 11 decision is not a valid " + DECISION.schema + " document"};
     }
+    if (!isNum(now) || doc.valid_until < doc.as_of || now < doc.as_of) {
+      return {status: "MALFORMED", doc: null, as_of: doc.as_of, valid_until: doc.valid_until,
+              reason: "the Phase 11 decision has an invalid or future validity window"};
+    }
+    if (doc.candidates.some((c) => c && c.type === DECISION.directional && !candidateWindow(c, doc, now))) {
+      return {status: "MALFORMED", doc: null, reason: "a directional decision has an invalid or future validity window"};
+    }
     if (!(now <= doc.valid_until)) {
       return {status: "STALE", doc: null, as_of: doc.as_of, valid_until: doc.valid_until,
               reason: "the Phase 11 decision of " + utcTxt(doc.as_of) + " is stale (valid until " + utcTxt(doc.valid_until) + ")"};
     }
     return {status: "AVAILABLE", doc, as_of: doc.as_of, valid_until: doc.valid_until, reason: null};
+  }
+  function candidateWindow(c, doc, now) {
+    // Candidate expiry can be earlier than the document, never later. Optional start authority is strict too.
+    const start = c.valid_from == null ? (c.as_of == null ? doc.as_of : c.as_of) : c.valid_from;
+    const starts = [start];
+    if (c.as_of != null) starts.push(c.as_of);
+    if (c.valid_from != null) starts.push(c.valid_from);
+    return starts.every((t) => isInt(t) && doc.as_of <= t && t <= now && t <= c.valid_until) && isInt(c.valid_until) && doc.as_of <= start && start <= now &&
+      start <= c.valid_until && c.valid_until <= doc.valid_until;
   }
   function candidateOk(c) {
     return !!c && typeof c === "object" && typeof c.id === "string" && STATE_ORDER[c.state] != null && !!sideOf(c.direction) &&
@@ -164,7 +180,7 @@
     return {id: c.id, strategy: c.strategy, side: sideOf(c.direction), state: c.state, blocking_step: c.blocking_step || null,
             blockers: c.blockers.slice(), caps: c.caps.slice(), missing: c.missing_authorities.slice(), codes, reasons: codes.map(codeTxt),
             to_become_trade: (c.explanation.to_become_trade || []).filter((x) => x && x.code).map((x) => ({step: x.step, code: x.code})),
-            valid_until: c.valid_until, expired: !(now <= c.valid_until), section: pl.section || null, rank: pl.section ? pl.rank : null};
+            proposal: c.proposal || null, valid_until: c.valid_until, expired: !(now <= c.valid_until), section: pl.section || null, rank: pl.section ? pl.rank : null};
   }
   /* The Phase 11 decision on one asset: {status, state (TRADE | WATCH | AVOID | NONE; null without an available
      decision), trade (the one current TRADE when there is one and it agrees with every other TRADE), candidates (every
@@ -268,7 +284,8 @@
     const ok = [], expired = [];
     for (const it of all) {
       const cand = it && typeof it.id === "string" ? byId.get(it.id) || null : null;
-      if (!cand || seen.has(it.id) || !itemOk(name, t, it, cand)) continue;
+      if (!cand || seen.has(it.id) || !itemOk(name, t, it, cand) ||
+          (cand.type === DECISION.directional && (!candidateOk(cand) || !candidateWindow(cand, doc, now)))) continue;
       seen.add(it.id);
       if (isNum(now) && !(now <= cand.valid_until)) { expired.push({id: it.id, rank: it.rank, valid_until: cand.valid_until}); continue; }
       ok.push({rank: it.rank, id: it.id, cand});
@@ -937,6 +954,11 @@
       const t = ad.status === "STALE" ? "Decision expired — waiting for the next governed scan." : "The decision on " + coin + " is unreadable — nothing here is actionable.";
       return {status: ad.status, state: null, html: h + stateChip("UNAVAILABLE", {big: true}) + '</div><div class="failclosed" role="alert" style="margin-top:12px"><p class="fc-t">' +
         esc(t) + '</p><p class="fc-d">' + esc(ad.reason || "") + '. The desk does not extend a decision.</p></div>'};
+    }
+    if (call && ad.trade && !call.lead) {
+      return {status: "UNAVAILABLE", state: null, html: h + stateChip("UNAVAILABLE", {big: true}) +
+        '</div><div class="failclosed" role="alert"><p>' + esc(call.headline) +
+        '</p><p>No approved plan is displayed. Restore the exact evaluated proposal or wait for a new governed evaluation.</p></div>'};
     }
     h += stateChip(state, {big: true});
     if (call && call.lead && call.side) h += dirTag(call.side) + '<span class="muted small">' + esc(call.lead.strategy) + (call.plan ? "" : " · no plan here") + '</span>';

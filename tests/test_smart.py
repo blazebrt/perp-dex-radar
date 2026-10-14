@@ -19,7 +19,11 @@ from v8 import identity as ID  # noqa: E402
 WORLD = ID.Authority.from_states({c: ID.VERIFIED_CRYPTO for c in ("BTC", "ETH", "SOL", "PEPE")})
 # entry-time identity proof of a paper trade opened under that world (smart.stamp_identity)
 QUALIFIED = {"identity_state_at_entry": ID.VERIFIED_CRYPTO, "identity_qualified": True, "identity_version": ID.VERSION,
-             "identity_scan_id": "given", "identity_decision": ID.VERIFIED_CRYPTO}
+             "identity_scan_id": "given", "identity_decision": ID.VERIFIED_CRYPTO,
+             "execution_quality": SM.EXECUTION_QUALIFIED,
+             "execution_evidence": {"schema": SM.EXECUTION_SCHEMA, "interval_s": SM.H,
+                                    "entry_model": "OBSERVED_MID_AT_SCAN", "continuous_path": True,
+                                    "entry_bar_checked": True, "exit_price_observed": True, "deadline_bound": True}}
 
 T0 = 1791000000
 
@@ -216,8 +220,10 @@ class EndToEnd(unittest.TestCase):
         shutil.copyfile(os.path.join(self.tmp, "data", "smart_journal.json"), jp)
         out3 = SM.run(self.tmp, journal_path=jp, fetch=f, now=T0 + 1200 + 25 * 3600, identity=WORLD)
         self.assertEqual(out3["open"], [], "closed after the holding time")
-        self.assertEqual((out3["accuracy"]["live"]["n"], out3["accuracy"]["live_info"]["n"]), (1, 1),
-                         "the signal and the information side are counted apart")
+        self.assertEqual((out3["accuracy"]["live"]["n"], out3["accuracy"]["live_info"]["n"]), (0, 0),
+                         "a mid-hour deadline has no exact observed exit price and cannot qualify")
+        self.assertTrue(all(c["execution_quality"] == "DEADLINE_PRICE_UNAVAILABLE" and c["r"] is None
+                            for c in out3["closed"]))
         self.assertIn(out3["accuracy"]["verdict"], ("Testing", "Promising", "Proven", "Mixed", "No edge"))
         with open(os.path.join(self.tmp, "data", "smart.json")) as fh:
             self.assertEqual(json.load(fh)["version"], SM.VERSION)

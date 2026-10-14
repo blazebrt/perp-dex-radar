@@ -1,4 +1,8 @@
-"""Parity of the paper-trade simulator: quant.sim_trade (stdlib) vs qsim (numba) on the same hourly candles."""
+"""Accounting parity on the legacy diagnostic Panel: quant.sim_trade vs qsim on the same supplied hourly values.
+
+Panel funding includes historical assumptions. Explicitly passing all its hourly values tests numerical parity;
+it does not make this legacy dataset observed/qualified funding evidence for research or production.
+"""
 import os, sys, time, random
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
 import numpy as np
@@ -31,7 +35,7 @@ for name, j, i0, d, stop, trail, hold, r in sample:
     c1 = [{"t": int(p.t[i]), "o": float(p.o[i, j]), "h": float(p.h[i, j]), "l": float(p.l[i, j]), "c": float(p.c[i, j])}
           for i in range(i0, min(p.T, i0 + hold + 2)) if not np.isnan(p.c[i, j])]
     if j not in fund_maps:
-        fund_maps[j] = {int(p.t[i]): float(p.fund[i, j]) for i in range(p.T) if p.fund[i, j] != 0}
+        fund_maps[j] = {int(p.t[i]): float(p.fund[i, j]) for i in range(p.T)}
     tr = {"d": d, "px": float(p.o[i0, j]), "t_in": int(p.t[i0]), "stop_pct": stop, "trail_pct": trail, "hold_h": hold, "slip": float(slip[j])}
     res = Q.sim_trade(tr, c1, fund_maps[j], now=int(p.t[-1]) + 3600)
     if res["state"] == "open":
@@ -44,4 +48,4 @@ for name, j, i0, d, stop, trail, hold, r in sample:
     diffs.append(abs(res["r"] - r[qsim.R_NET]))
     if not same_state and states["diff"] <= 5:
         print("state differs", name, coin, d, reason, res["state"], round(r[qsim.R_NET], 4), round(res["r"], 4))
-print(f"{len(diffs)} trades compared in {time.time()-t0:.0f}s; exit reason same {states}; max |R difference| {max(diffs):.2e}; mean {np.mean(diffs):.2e}")
+print(f"LEGACY DIAGNOSTIC PANEL / explicit supplied hourly funding values; {len(diffs)} trades compared in {time.time()-t0:.0f}s; exit reason same {states}; max |R difference| {max(diffs):.2e}; mean {np.mean(diffs):.2e}")

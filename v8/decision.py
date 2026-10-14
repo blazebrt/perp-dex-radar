@@ -62,6 +62,7 @@ RANK_FIELDS = {
 DEPLOYMENT = ("LEGACY_HOLDOVER", "ACTIVE_REQUALIFIED", "PAPER_ONLY", "DISABLED")
 RESEARCH = ("REQUALIFIED", "PROBATION", "REJECTED", "INSUFFICIENT_EVIDENCE", "INVALIDATED")
 HEALTHY = "HEALTHY"
+REQUIRED_INPUT_TIMES = ("discovery", "quant", "portfolio")
 EFFECT_TEXT = {PASS: "passes", CAP: "caps the decision at WATCH", MISSING: "authority missing: at most WATCH",
                FAIL: "known disqualifier: AVOID", INFO: "recorded", NA: "not applicable to this opportunity type"}
 
@@ -247,7 +248,7 @@ def _asset_gates(rec, snap, policy):
             "available_venue_discovery_qualified": prov.get("available_venue_discovery_qualified")}
     if not rec.get("discovery_visible") or not rec.get("contracts"):
         out.append(_gate("DISCOVERY", dinp, "an active supported perp in discovery", FAIL, "UNSUPPORTED_OR_INACTIVE_MARKET"))
-    elif prov.get("fallback_universe") or prov.get("available_venue_discovery_qualified") is False:
+    elif prov.get("fallback_universe") is not False or prov.get("available_venue_discovery_qualified") is not True:
         out.append(_gate("DISCOVERY", dinp, "discovery must be qualified (not the fallback universe)", MISSING,
                          "DISCOVERY_DEGRADED"))
     else:
@@ -341,9 +342,13 @@ def _directional_funding(asset, d, snap, policy):
 
 def _freshness(snap, policy):
     as_of, lim = snap.get("as_of"), _v(policy, "freshness", "max_input_age_s")
+    times = snap.get("inputs_as_of")
+    if not isinstance(times, dict):
+        return list(REQUIRED_INPUT_TIMES)
     stale = []
-    for k, t in sorted((snap.get("inputs_as_of") or {}).items()):
-        if not (_int(t) and 0 <= as_of - t <= lim):
+    for k in sorted(set(REQUIRED_INPUT_TIMES) | set(times), key=str):
+        t = times.get(k)
+        if not (_int(as_of) and as_of >= 0 and _int(t) and t >= 0 and 0 <= as_of - t <= lim):
             stale.append(k)
     return stale
 
@@ -497,11 +502,18 @@ def _directional(asset, rec, sig, snap, policy, base):
                        "Phase 10 evaluation of the whole open book (actionable and identity-blocked)", INFO))
     row = next((p for p in ((w or {}).get("after_result") or {}).get("positions") or []
                 if p.get("id") == proposal["id"]), None)
+    evaluated_equity = ((w or {}).get("after_result") or {}).get("equity")
     pinp = {"id": proposal["id"], "mark": proposal["mark"], "stop": proposal["stop"],
             "risk_fraction": proposal["risk_fraction"], "sizing_basis": sizing.get("basis"),
             "status": (row or {}).get("status"), "leverage": (row or {}).get("leverage"),
             "stop_risk": (row or {}).get("account_risk"), "expected_fees": (row or {}).get("expected_fees"),
-            "expected_slippage": (row or {}).get("expected_slippage")}
+            "expected_slippage": (row or {}).get("expected_slippage"),
+            # Exact Phase 10 sizing, exposed for consumers without another risk calculation. The USD stop risk is
+            # only a unit conversion of Phase 10's account-risk fraction at its evaluated equity.
+            "equity": evaluated_equity, "quantity": (row or {}).get("quantity"),
+            "notional": (row or {}).get("notional_usd"),
+            "stop_risk_usd": ((row or {}).get("account_risk") * evaluated_equity
+                              if _num((row or {}).get("account_risk")) and _num(evaluated_equity) else None)}
     if w is None:
         gates.append(_gate("PROPOSED_TRADE", pinp, "a Phase 10 portfolio input is required", MISSING,
                            "PORTFOLIO_INPUT_MISSING"))
@@ -810,14 +822,48 @@ def _changes(index, previous, info):
 
 
 # --------------------------------------------------------------------------- public API
+def _validate_inputs(snap, policy):
+    """Refuse an incomplete public snapshot before any authoritative decision can be emitted.
+
+    These are the production adapter's existing knowledge authorities, not optional gate defaults. A correctly
+    shaped but explicitly degraded discovery still follows the existing WATCH gate; an absent authority has no
+    document authority at all. Both public APIs use this same boundary and the adapter publishes failure as a gap.
+    """
+    def need(ok, field):
+        if not ok:
+            raise ValueError("DECISION_INPUT_INVALID: " + field)
+
+    need(_int(snap.get("as_of")) and snap["as_of"] >= 0, "as_of")
+    times = snap.get("inputs_as_of")
+    need(isinstance(times, dict), "inputs_as_of")
+    for name in REQUIRED_INPUT_TIMES:
+        need(name in times and _int(times[name]) and times[name] >= 0, "inputs_as_of." + name)
+    stale = _freshness(snap, policy)
+    need(not stale, "inputs_as_of freshness: " + ", ".join(str(k) for k in stale))
+    discovery = snap.get("discovery")
+    need(isinstance(discovery, dict), "discovery")
+    prov = discovery.get("provenance")
+    need(isinstance(prov, dict), "discovery.provenance")
+    need(prov.get("schema") == "v8.discovery/1", "discovery.provenance.schema")
+    for flag in ("fallback_universe", "available_venue_discovery_qualified"):
+        need(isinstance(prov.get(flag), bool), "discovery.provenance." + flag)
+    generated = prov.get("generated_at")
+    need(_int(generated) and generated >= 0 and 0 <= snap["as_of"] - generated <= _v(policy, "freshness", "max_input_age_s"),
+         "discovery.provenance.generated_at")
+    need(prov.get("identity_version") == "v8.identity/4", "discovery.provenance.identity_version")
+    need(prov.get("coverage_state") in ("FULL", "DEGRADED", "FALLBACK"), "discovery.provenance.coverage_state")
+    failed = prov.get("venues_failed_names")
+    need(isinstance(failed, list) and all(isinstance(v, str) and bool(v) for v in failed),
+         "discovery.provenance.venues_failed_names")
+
+
 def _context(snapshot, policy):
     if policy is None:
         policy = load_policy()
     else:
         validate_policy(policy)
     snap = snapshot if isinstance(snapshot, dict) else {}
-    if not _int(snap.get("as_of")):
-        raise ValueError("DECISION_INPUT_INVALID: as_of")
+    _validate_inputs(snap, policy)
     recs = {r["asset"]: r for r in (snap.get("discovery") or {}).get("assets") or [] if isinstance(r, dict)
             and isinstance(r.get("asset"), str)}
     return policy, snap, recs

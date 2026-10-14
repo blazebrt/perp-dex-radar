@@ -180,7 +180,7 @@ class Fixtures:
         def analyze(k, coin, decision, now=NOW, price=100.5, d1=None, legacy=None):
             src = legacy_sources(legacy, {"$doc": decision}, coin) if legacy else {"decision": {"$doc": decision}}
             ops.append({"k": k, "analyze": {"coin": coin, "price": price, "d1": candles() if d1 is None else d1, "now": now,
-                                            "account": 500, "risk": 0.02, "src": src}})
+                                            "src": src}})
 
         mx = mixed()
         docs["mixed"] = mx
@@ -463,7 +463,7 @@ class Adversarial(unittest.TestCase):
                     self.assertEqual(len(sig), 1)
                     self.assertEqual(sig[0][1], side)
                     if src == "swing":
-                        self.assertEqual(sig[0][2], "Proven", "the legacy record says Proven")
+                        self.assertEqual(sig[0][2], "Unqualified historical result", "positive history does not prove governed authority")
                     self.assertEqual((a["call"]["verdict"], a["call"]["side"], a["call"]["tier"], a["call"]["plan"]),
                                      (verdict, None, None, None))
                     self.assertEqual(a["panel"]["state"], state)
@@ -684,7 +684,7 @@ class Adversarial(unittest.TestCase):
         # no live price and no candles: the decision panel is unchanged, the TRADE stays a TRADE without a guessed plan
         a, b = R["an:noPrice:HI"], R["an:mixed:HI"]
         self.assertEqual(a["panel"], b["panel"])
-        self.assertEqual((a["call"]["verdict"], a["call"]["side"], a["call"]["plan"]), ("LONG", "long", None))
+        self.assertEqual((a["call"]["verdict"], a["call"]["side"], a["call"]["plan"]), ("LONG", "long", b["call"]["plan"]))
         lo = R["an:noPrice:LO"]
         self.assertEqual((lo["call"]["verdict"], lo["call"]["plan"]), ("WATCH", None))
         self.assertTrue(all(s[3] is None for s in lo["call"]["signals"]), "no levels are guessed without a price")
