@@ -359,16 +359,32 @@
       valid_until: c.valid_until, tier: c.authority_tier || null, probation: c.probation || null, proposal: c.proposal || null,
     };
   }
-  /* A TRADE's plan, exactly as the engine's Phase 10 proposal states it (entry is the current mark; the stop and the size
-     are the governed proposal's; the account is the page's default sizing, labelled as such). Nothing is recomputed. */
+  /* The account size the trader saved in the Analyzer (localStorage "picks_acct"), or null when none is saved or the
+     browser keeps no storage. Read only: the desk never writes it. */
+  function savedAccount() {
+    try {
+      const v = typeof localStorage !== "undefined" ? parseFloat(localStorage.getItem("picks_acct")) : NaN;
+      return isFinite(v) && v > 0 ? v : null;
+    } catch (e) { return null; }
+  }
+  /* A TRADE's plan, exactly as the engine's Phase 10 proposal states it (entry is the current mark; the stop, the exits
+     and the size are the governed proposal's; the account is the page's default sizing, labelled as such). The only
+     arithmetic is a unit conversion of that size to the trader's saved account: the same fractions, labelled as such. */
   function planHtml(m) {
     const p = m.proposal || {};
     if (m.state !== "TRADE" || m.type !== DECISION.directional || !isNum(p.mark) || !isNum(p.stop) || p.mark <= 0) return "";
     const parts = ['Enter near <b>' + esc(price(p.mark)) + '</b>', 'Stop <b>' + esc(price(p.stop)) + '</b> <span class="muted">(' + esc(pct(Math.abs(p.mark - p.stop) / p.mark)) + ' away)</span>'];
-    /* The strategy's own exit besides the stop, as the engine states it: the archive results assume both. */
+    /* The strategy's own exits besides the stop, as the engine states them: the archive results assume them. */
+    if (isNum(p.trailing_stop_pct) && p.trailing_stop_pct > 0) parts.push('Trailing stop <b>' + esc(pct(p.trailing_stop_pct)) + '</b> behind the best close');
     if (isInt(p.time_exit_hours) && p.time_exit_hours > 0) parts.push('Exit at the stop or <b>' + esc(durTxt(p.time_exit_hours * 3600)) + '</b> after you enter');
     if (isNum(p.risk_fraction)) parts.push('Risk <b>' + esc(pct(p.risk_fraction)) + '</b> of the account' + (isNum(p.size_multiplier) && p.size_multiplier < 1 ? ' <span class="muted">(' + esc(String(p.size_multiplier)) + '× the page size)</span>' : ""));
-    if (isNum(p.notional) && isNum(p.equity)) parts.push('Size <b>' + esc(usd(p.notional)) + '</b> <span class="muted">on a ' + esc(usd(p.equity)) + ' page account' + (isNum(p.stop_risk_usd) ? ', ' + esc(usd(p.stop_risk_usd)) + ' at the stop' : "") + '</span>');
+    if (isNum(p.notional) && isNum(p.equity) && p.equity > 0) {
+      parts.push('Size <b>' + esc(usd(p.notional)) + '</b> <span class="muted">on a ' + esc(usd(p.equity)) + ' page account' + (isNum(p.stop_risk_usd) ? ', ' + esc(usd(p.stop_risk_usd)) + ' at the stop' : "") + '</span>');
+      const acct = savedAccount(), k = acct ? acct / p.equity : null;
+      parts.push(acct
+        ? 'Your <b>' + esc(usd(acct)) + '</b> account: <b>' + esc(usd(p.notional * k)) + '</b>' + (isNum(p.stop_risk_usd) ? ', ' + esc(usd(p.stop_risk_usd * k)) + ' at the stop' : "") + ' <span class="muted">(the same fractions; the desk checked its own paper book, not your positions)</span>'
+        : '<span class="muted">Save your account size in the Analyzer to see this in your own dollars.</span>');
+    }
     const pr = m.probation || {};
     const sig = m.signal || {};
     if (m.tier === "PROBATION" && isNum(pr.entry_window_s) && isNum(sig.age_s)) parts.push('Entry window <b>' + esc(durTxt(Math.max(0, pr.entry_window_s - sig.age_s))) + ' left</b>');

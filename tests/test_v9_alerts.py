@@ -54,6 +54,13 @@ class Alerts(unittest.TestCase):
         self.assertEqual(self.posts[0][1]["chat_id"], "42")
         self.assertEqual(self.posts[1], ("https://discord.example/hook", {"content": text}))
 
+    def test_a_trailing_stop_is_stated_when_the_engine_states_one(self):
+        _, cur = docs()
+        c = V.cand(cur, "HI")
+        self.assertNotIn("Trailing stop", AL.message(c, cur))
+        trailing = dict(c, proposal=dict(c["proposal"], trailing_stop_pct=0.0625))
+        self.assertIn("Trailing stop 6.25% behind the best close", AL.message(trailing, cur))
+
     def test_nothing_without_a_channel_or_a_previous_decision(self):
         _, cur = docs()
         r = AL.run(cur, env={}, post=self.post)

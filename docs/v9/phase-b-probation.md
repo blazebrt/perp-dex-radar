@@ -122,6 +122,12 @@ it to say what to expect when nothing is trade-ready.
 - **The exit.** The proposal publishes `time_exit_hours`, the strategy's hold from quant.py (336 hours for XSMOM). The
   archive results assume both exits: the stop, and the time exit counted from the trader's own entry. That is how the
   late-entry checks (j) simulated it. No profit target is stated, because the strategy has none.
+- **The trailing stop.** The proposal publishes `trailing_stop_pct`, quant.py's `trail_pct`: the distance behind the
+  best close at which the stop follows the trade. It is None for XSMOM, which has no trailing stop. The desk, the
+  Analyzer and the alerts state it only when there is one.
+- **Your own account.** The desk converts the governed size to the account size the trader saved in the Analyzer
+  (`picks_acct`). It is a unit conversion of the same fractions, labelled as such: the desk checked its own paper
+  book, not the trader's positions. With no saved account it says where to set one and shows no number.
 - **Today.** The empty state names the authorized sides. The Portfolio panel separates the governed book from the
   legacy paper book.
 - **Portfolio page.** It lists the governed positions, then the legacy paper book as a diagnostic.

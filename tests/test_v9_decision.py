@@ -250,6 +250,7 @@ class ProbationTier(unittest.TestCase):
         self.assertAlmostEqual(c["proposal"]["notional"], full["proposal"]["notional"] / 2)
         # the exit besides the stop is the strategy's own hold, for either tier
         self.assertEqual((c["proposal"]["time_exit_hours"], full["proposal"]["time_exit_hours"]), (336, 48))
+        self.assertIsNone(c["proposal"]["trailing_stop_pct"])                  # trail_pct 0: no trailing stop
         self.assertEqual(gate(c, "STRATEGY_AUTHORITY")["result"], DE.PASS)
         self.assertIn("probation", gate(c, "STRATEGY_AUTHORITY")["rule"].lower())
         self.assertEqual(c["probation"]["expectation"], REAL_TERMS["sides"]["long"]["expectation"])
@@ -258,6 +259,10 @@ class ProbationTier(unittest.TestCase):
 
     def test_time_exit_is_stated_only_when_the_strategy_has_one(self):
         s = snap({"HI": [P.sig("PROB", age=600)]})
+        for bad_trail in (None, -0.1, "0.06", True, 0):
+            with self.subTest(trail_pct=bad_trail):
+                c = cand(DE.build(snap({"HI": [dict(P.sig("PROB", age=600), trail_pct=bad_trail)]})), "HI")
+                self.assertIsNone(c["proposal"]["trailing_stop_pct"])
         for bad in (None, 0.5, "336", True, 0, -24):
             with self.subTest(hold_h=bad):
                 s2 = json.loads(json.dumps(s))
@@ -426,6 +431,7 @@ class QuantInputs(unittest.TestCase):
 RUN = r"""
 const D = require(process.argv[1]);
 const F = JSON.parse(require("fs").readFileSync(process.argv[2], "utf8"));
+if (F.account) globalThis.localStorage = {getItem: (k) => (k === "picks_acct" ? String(F.account) : null)};
 const out = {};
 for (const [k, doc] of Object.entries(F.docs)) {
   out[k] = {today: D.views.today(doc, F.now), portfolio: D.views.portfolio(doc, F.now, null, "unavailable")};
@@ -444,10 +450,17 @@ class Desk(unittest.TestCase):
                                         contracts=[P.contract(a) for a in ("HI", "ALPHA")],
                                         recs=[P.rec("HI"), P.rec("ALPHA")])),
                 "empty": DE.build(snap({}, recs=[P.rec("HI")], book=GovernedBook.BIG))}
+        trailing = dict(P.sig("REQ", age=2 * 3600), trail_pct=0.0625)
+        docs["trail"] = DE.build(snap({"HI": [trailing]}, book=[own] + GovernedBook.BIG,
+                                      contracts=[P.contract(a) for a in ("HI", "ALPHA")],
+                                      recs=[P.rec("HI"), P.rec("ALPHA")]))
+        cls.docs = docs
         with tempfile.TemporaryDirectory() as d:
             f = Path(d) / "in.json"
             f.write_text(json.dumps({"docs": docs, "now": P.AS_OF + 60}))
             cls.out = json.loads(subprocess.check_output([NODE, "-e", RUN, str(ROOT / "desk.js"), str(f)], timeout=60))
+            f.write_text(json.dumps({"docs": {"trade": docs["trade"]}, "now": P.AS_OF + 60, "account": 2000}))
+            cls.out_acct = json.loads(subprocess.check_output([NODE, "-e", RUN, str(ROOT / "desk.js"), str(f)], timeout=60))
 
     def test_probation_trade_card(self):
         best = self.out["trade"]["today"]["best"]
@@ -466,14 +479,37 @@ class Desk(unittest.TestCase):
               "vm.runInContext(process.argv[1],ctx);const base={kind:'governed',entry:1,stop:0.9,equity:1e4,size:100,"
               "lev:1,riskUsd:5,riskFraction:0.0025,costs:{fees:0,slippage:0},sizingBasis:'b'};"
               "const out=[336,24,30,null,0].map(h=>ctx.testedPlanCard({verdict:'LONG',plan:Object.assign({},base,"
-              "{proposal:{time_exit_hours:h}})}));process.stdout.write(JSON.stringify(out));")
+              "{proposal:{time_exit_hours:h}})}));out.push(ctx.testedPlanCard({verdict:'LONG',plan:Object.assign({},"
+              "base,{proposal:{time_exit_hours:504,trailing_stop_pct:0.062}})}));process.stdout.write(JSON.stringify(out));")
         out = json.loads(subprocess.check_output([NODE, "-e", js, src], timeout=60))
         self.assertIn("<b>Exit:</b> at the stop, or 14 days after you enter, whichever comes first.", out[0])
         self.assertIn("or 1 day after you enter", out[1])
         self.assertIn("or 30 hours after you enter", out[2])
-        for html_out in out[3:]:
+        for html_out in out[3:5]:
             self.assertNotIn("Exit:", html_out)
         self.assertIn("Exact governed proposal", out[0])
+        self.assertNotIn("Trailing stop", out[0])
+        self.assertIn("<b>Trailing stop:</b> 6.20% behind the best close", out[5])
+        self.assertIn("or 21 days after you enter", out[5])
+
+    def test_trailing_stop_is_stated_when_the_signal_has_one(self):
+        c = cand(self.docs["trail"], "HI", "REQ")
+        self.assertEqual((c["state"], c["proposal"]["trailing_stop_pct"]), (DE.TRADE, 0.0625))
+        self.assertIn("Trailing stop <b>6.25%</b> behind the best close", self.out["trail"]["today"]["best"])
+        self.assertNotIn("Trailing stop", self.out["trade"]["today"]["best"])        # XSMOM-like PROB has none
+
+    def test_the_plan_in_the_traders_own_account(self):
+        p = cand(self.docs["trade"], "HI")["proposal"]
+        best = self.out_acct["trade"]["today"]["best"]
+        k = 2000 / p["equity"]
+        self.assertIn("Your <b>$2.0K</b> account: <b>", best)
+        self.assertIn("the same fractions; the desk checked its own paper book, not your positions", best)
+        notional = p["notional"] * k
+        shown = ("$" + (f"{notional / 1e3:.1f}K" if notional >= 1e3 else f"{notional:.0f}" if notional >= 100 else f"{notional:.2f}"))
+        self.assertIn("account: <b>" + shown + "</b>", best)
+        # without a saved account the desk only says where to set one, and never invents a number
+        self.assertIn("Save your account size in the Analyzer to see this in your own dollars.", self.out["trade"]["today"]["best"])
+        self.assertNotIn("Your <b>", self.out["trade"]["today"]["best"])
 
     def test_empty_state_says_what_can_trade(self):
         best = self.out["empty"]["today"]["best"]

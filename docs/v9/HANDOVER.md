@@ -394,14 +394,20 @@ How every phase D study runs (D1 set the pattern):
 
 ### Phase F: product UX
 
-- [ ] F1. Rich TRADE card: entry zone, stop, trailing rule, time stop, size for the user's account (settings stored
+- [x] F1. Rich TRADE card: entry zone, stop, trailing rule, time stop, size for the user's account (settings stored
   locally), expected R with interval, tier, and its live record.
-  - Done: the tier, expected R with its interval and the live forward test (B6). The engine's plan: entry near the
-    mark, stop, risk, size on the page account, entry window. The time exit, "exit at the stop or 14 days after you
-    enter" (`6dfc56b`): in the engine's proposal (`time_exit_hours`), on the desk, in the Analyzer and in the alerts.
-  - Left: sizing for the user's own account (stored locally), and a trailing rule for strategies that have one (none
-    of the tradable sides does today).
-- [ ] F2. Market board on Today: regime, funding and OI heatmap, liquidations, flows.
+  - The tier, the expected R with its interval and the live forward test came with B6.
+  - The engine's plan shows: entry near the mark, inside the entry window that the late-entry checks confirmed (the
+    entry zone); stop; risk; size on the page account.
+  - The time exit, "exit at the stop or 14 days after you enter" (`6dfc56b`), and the trailing stop when the signal
+    has one (`trailing_stop_pct`).
+  - The plan in the trader's own dollars, from the account size saved in the Analyzer: a labelled unit conversion of
+    the same fractions.
+  - Shown on the desk, in the Analyzer's governed card (exits only, as the owner's exact-proposal rule keeps that card
+    fixed) and in the alerts.
+- [x] F2 (first version; see phase C). Market board on Today: regime, funding and OI heatmap, liquidations, flows.
+  Today's Market context panel shows the regime inputs, funding extremes, liquidations and flows. A funding/OI
+  heatmap was not built.
 - [ ] F3. Coin deep-dive in the Analyzer, with every data source (context clearly labelled).
 - [ ] F4. Performance ledger page: every tier's live trades against expectation.
 - [x] F5 (`v9/alerts.py`, branch `v9/market-data`). A Telegram and/or Discord message for every new TRADE decision,

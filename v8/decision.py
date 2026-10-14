@@ -660,7 +660,10 @@ def _directional(asset, rec, sig, snap, policy, base):
                               if _num((row or {}).get("account_risk")) and _num(evaluated_equity) else None),
             # The strategy's exit besides the stop: the hold after entry that its runtime and archive tests close at
             # (quant.py hold_h; the late-entry checks time it from the delayed entry).
-            "time_exit_hours": hold_h if _int(hold_h := (strat or {}).get("hold_h")) and hold_h > 0 else None}
+            "time_exit_hours": hold_h if _int(hold_h := (strat or {}).get("hold_h")) and hold_h > 0 else None,
+            # The signal's trailing stop, as a fraction of the entry behind the best close (quant.py trail_pct); None
+            # when the strategy has none (XSMOM).
+            "trailing_stop_pct": trail if _num(trail := sig.get("trail_pct")) and trail > 0 else None}
     if w is None:
         gates.append(_gate("PROPOSED_TRADE", pinp, "a Phase 10 portfolio input is required", MISSING,
                            "PORTFOLIO_INPUT_MISSING"))

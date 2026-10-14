@@ -76,6 +76,8 @@ def message(c, doc, pages_url=None):
     if _num(p.get("mark")) and _num(p.get("stop")) and p["mark"] > 0:
         lines.append(f"Enter near {_price(p['mark'])} · stop {_price(p['stop'])} ({_pct(abs(p['mark'] - p['stop']) / p['mark'], 1)} away)"
                      + (f" · risk {_pct(p['risk_fraction'])} of the account" if _num(p.get("risk_fraction")) else ""))
+    if _num(p.get("trailing_stop_pct")) and p["trailing_stop_pct"] > 0:
+        lines.append(f"Trailing stop {_pct(p['trailing_stop_pct'])} behind the best close")
     if _hold(p.get("time_exit_hours")):
         lines.append(f"Exit at the stop or {_hold(p['time_exit_hours'])} after you enter, whichever comes first")
     exp = ((c.get("probation") or {}).get("expectation") or {})
