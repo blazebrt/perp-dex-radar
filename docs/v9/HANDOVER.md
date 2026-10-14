@@ -250,11 +250,20 @@ Result (evidence run `fd03198`, `tools/v9/confirm.py`):
   - Run it after a 00:00 UTC daily close on or after 2026-10-15 (`gh workflow run research.yml --ref
     v9/data-driven-desk`, then read the `research` branch).
   - Before that close, XSMOM longs are WATCH with `PROBATION_NOT_YET_EFFECTIVE`, by design.
+  - Pre-close run 38577739231 on `240830e` (2026-10-14 14:27 UTC): every mandatory step passed.
+    - The governed book was WITHIN_LIMITS while the legacy paper book was LIMIT_BREACHED (diagnostic only).
+    - The four XSMOM shorts were WATCH with `STRATEGY_SIDE_NOT_CONFIRMED`.
+    - There was no XSMOM long signal. The top five of the 58 ranked coins (BAT, STX, STRK, S, TIA) needed stops
+      wider than 20% (2.5 daily ATRs). The archive skips those too (qstrat `MAX_STOP`). The production journal shows
+      about one XSMOM long every two days.
+  - A follow-up for this check is scheduled in the session for 2026-10-15 00:40 UTC.
 - [ ] B9. Known follow-ups:
   - TREND_EMA has no edge in the archive. A reviewed policy change could mark it REJECTED (AVOID).
   - Legacy WATCH signals still feed Emerging.
   - Forward-test trades count as "qualified" only when the journal has execution and funding proof (see
     `quant.py` `qualified_trade`). The demotion rule uses every closed trade.
+  - XSMOM long only fires when a top-5 coin's stop fits within 20%. On volatile days there is honestly no trade. More
+    trades must come from more confirmed strategies (phase D), never from loosening this rule after the fact.
 
 ### Phase C: live multi-venue data layer
 
