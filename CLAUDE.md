@@ -17,10 +17,12 @@ Update its "Where things stand" table and its session log before you finish.
 ## Facts about the environment (verified, do not re-discover)
 
 - **This sandbox cannot reach exchanges or PyPI.** The egress allowlist blocks them. Data and research jobs therefore
-  run in GitHub Actions. Read their results by fetching the results branches, for example
-  `git fetch origin probe-results evidence-results archive-data` and then `git show origin/<branch>:<file>`.
-  Actions job logs and artifacts cannot be downloaded from here (blob storage is blocked), so each job commits its
-  results to a branch.
+  run in GitHub Actions. Actions job logs and artifacts cannot be downloaded from here (blob storage is blocked), so
+  each job commits its results to a branch.
+  - The local clone tracks only a few branches, so fetch a results branch with an explicit refspec:
+    `git fetch origin +refs/heads/<branch>:refs/remotes/origin/<branch>`.
+  - Then read files with `git show origin/<branch>:<file>`.
+  - Do not fetch `archive-data` here: it is large, and the research code that uses it runs in Actions.
 - **Workflow files on non-default branches cannot be dispatched.** Trigger them with a push that matches their
   `paths` filter.
 - **Running research code locally:** numpy and pandas are installed here; numba is not. For small smoke tests, use
@@ -38,6 +40,9 @@ Update its "Where things stand" table and its session log before you finish.
 | `probe-results` | `.github/workflows/probe.yml` | which data sources answer from Actions |
 | `evidence-results` | `.github/workflows/evidence.yml` | survivorship-free re-test of every strategy (`REPORT.md`, `evidence.json`, `trades.json.gz`) |
 | `archive-data` | `.github/workflows/evidence.yml` | the research dataset: 4h candles and funding for every Binance USD-M perpetual that ever traded, delisted ones included |
+| `evidence-d1-results` | `.github/workflows/evidence_d1.yml` | the phase D1 study, tested once (`REPORT_D1.md`, `evidence_d1.json`, `trades_d1.json.gz`) |
+| `market-results` | `.github/workflows/market.yml` | a check run of the market-context collector (`market.json`, `run.txt`) |
+| `v9-market-history`, `v9-market-history-dryrun` | the Scan workflow on main; `market.yml` | the hourly append-only market-context history (`market/YYYY/MM/DD/HH.json.gz`) |
 | `research`, `research-production` | `research.yml` | the v8 governed research jobs |
 | `v8-history` | the Scan workflow | the append-only point-in-time observations |
 | `journal-data` | the Scan workflow | journals |
@@ -63,6 +68,11 @@ Update its "Where things stand" table and its session log before you finish.
   `v8/quant_strategy_policy.json`.
   - Never edit a shadow-ledger record. A changed forward test is a new registration
     (`tools/v9/register_forward_test.py`).
+  - Do not edit the research files the evidence is bound to (`confirm.RESEARCH_CODE`: `tools/v9/evidence.py`,
+    `archive_fetch.py`, `tools/research/qsim.py`, `qstrat.py`, `qdata.py`, `qind.py`). New studies go in new files
+    that import them, as `tools/v9/d1.py` does.
+- **New research is pre-registered** (HANDOVER phase D): the definitions are committed before any run on market data,
+  tested once, and recorded as they come out. Strategy names must not collide with the legacy catalogue.
 - **The local clone is shallow.** `tests.test_accuracy_invariants...test_trial_census_and_candidate_count_unchanged`
   walks git history and fails here only. CI runs it on a full clone.
 - **Run the suites before every push:** `python -m unittest discover -s tests`. The CI research-checks job runs the

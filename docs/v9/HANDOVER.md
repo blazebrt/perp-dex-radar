@@ -16,23 +16,30 @@ This file is that plan. Keep it current.
 ## 0. How to resume
 
 1. Read `CLAUDE.md`. It covers environment facts, the results branches and the rules.
-2. Check the open PRs and branches:
-   - `v9/data-driven-desk`: all v9 work, draft PR #25. Main is merged into it.
-   - PR #24 (the v8 desk) was merged into main on 2026-10-14 with the owner's accuracy fixes. PR #25 still shows
-     the old phase-12 branch as its base; switching the base to `main` in the PR page is an owner click.
-3. Read the latest evidence: `git fetch origin evidence-results && git show origin/evidence-results:REPORT.md`.
+2. Check the open PRs and branches. The v9 work is three stacked draft PRs; review and merge them in this order:
+   - `v9/data-driven-desk`: phases A and B (evidence engine, probation tier, governed book), draft PR #25. Main is
+     merged into it. PR #25 still shows the old phase-12 branch as its base; switching the base to `main` in the PR
+     page is an owner click.
+   - `v9/market-data`: phase C (live market context) and F5 (trade alerts), draft PR #26 on top of #25.
+   - `v9/research-d1`: phase D1 (pre-registered funding and taker-flow research), on top of `v9/market-data`.
+   - PR #24 (the v8 desk) was merged into main on 2026-10-14 with the owner's accuracy fixes.
+3. Read the latest evidence:
+   - `git fetch origin evidence-results evidence-d1-results`;
+   - `git show origin/evidence-results:REPORT.md` (phase A/B: the legacy strategies);
+   - `git show origin/evidence-d1-results:REPORT_D1.md` (phase D1).
 4. Pick the first unchecked item in section 6 that is not blocked, and work on it.
 
 ## 1. Where things stand
 
 | Area | State | Where |
 |---|---|---|
-| v8 desk (Today, Analyzer, Funding, Portfolio, Research) | Built. Draft PR #24, not merged. | `today.html`, `desk.js`, `desk.css` |
+| v8 desk (Today, Analyzer, Funding, Portfolio, Research) | **Merged into main** (PR #24, 2026-10-14, with the owner's accuracy fixes). | `today.html`, `desk.js`, `desk.css` |
 | Data-source survey | **Done.** 102 sources probed from the Actions runner; 81 answer. | `docs/v9/data-sources.md`, branch `probe-results` |
 | Survivorship-free evidence engine | **v1 done.** 17 daily/4h strategies plus the coin-picks swing score, on 750 coins (170 delisted), 2020-01 to 2026-09. | `tools/v9/archive_fetch.py`, `tools/v9/evidence.py`, branch `evidence-results` |
 | Probation tier (first governed trades) | **Implemented** (`dada154`, PR #25, not merged). XSMOM long is CONFIRMED on (a)–(j). It trades at half size inside a 24h window. Its forward test `V9-PROBATION-XSMOM-LONG-1` starts 2026-10-15 00:00 UTC. The live check is B8. | `docs/v9/phase-b-probation.md`, `research/v9/probation_evidence.json` |
-| Live multi-venue data layer | **C1–C3 built** on the stacked branch `v9/market-data` (draft PR on top of #25): `v9/market.py`, `data/v9/market.json`, an hourly history on `v9-market-history`, a Today panel and Analyzer context | `docs/v9/market-context.md` |
-| New signal research (positioning, funding, OI, liquidations, basis, regime) | Not started | section 6, phase D |
+| Live multi-venue data layer | **C1–C3 built** on the stacked branch `v9/market-data` (draft PR #26 on top of #25): `v9/market.py`, `data/v9/market.json`, an hourly history on `v9-market-history`, a Today panel and Analyzer context. 16 of 16 sources answered from Actions. | `docs/v9/market-context.md`, branch `market-results` |
+| Trade alerts | **Built** (F5, PR #26): Telegram and/or Discord on every new TRADE. Sends nothing until the owner adds the secrets. | `v9/alerts.py` |
+| New signal research (positioning, funding, OI, liquidations, basis, regime) | **D1 done** (`8ca3f55`, branch `v9/research-d1`): XS_FUND_FADE and XS_FLOW_MOM, pre-registered and tested once on the phase B dataset. **Neither is confirmed.** Next: D2 (Binance metrics: OI, long/short). | `docs/v9/phase-d1-preregistration.md`, branch `evidence-d1-results` |
 | Decision engine v2 (expected-R ranking, regime, sizing) | Not started | section 6, phase E |
 | Pro UX (rich trade plans, market board, performance ledger, alerts) | Not started | section 6, phase F |
 
@@ -298,12 +305,45 @@ Result (evidence run `fd03198`, `tools/v9/confirm.py`):
 
 ### Phase D: signal research on the new data (each through the evidence engine; only survivors become strategies)
 
-- [ ] D1. Binance archive `metrics` (5-minute OI, top-trader and account long/short, taker ratio): OI divergence and
-  crowding fade.
-- [ ] D2. Funding-rate extremes and carry, using the archive `fundingRate` across about 800 coins. Re-test FUND_FADE
-  and FUND_CARRY properly.
-- [ ] D3. Basis / premium (archive `premiumIndexKlines`).
-- [ ] D4. Taker-flow imbalance (archive kline taker volume).
+How every phase D study runs (D1 set the pattern):
+
+1. Write the definitions and a pre-registration document, and commit them **before** any run on market data.
+   Synthetic-archive checks are allowed; they test mechanics, not hypotheses.
+2. Test once, with phase B's gate (b)–(j), and a Holm family per study.
+3. Record the result as is. A confirmed side is a probation candidate: it still needs a runtime implementation,
+   re-bound evidence, a forward-test registration and the owner's merge. A failed side is never adjusted; a changed
+   definition is a new hypothesis with a new name.
+4. Use names that do not collide with the legacy catalogue (`tools/research/qstrat.py`, `qexport.py`).
+
+- [x] D1 (`8ca3f55`; result `03e596f` on `evidence-d1-results`). Funding crowding and taker flow, cross-sectional,
+  on data the archive already holds: XS_FUND_FADE and XS_FLOW_MOM.
+  - Pre-registered in `docs/v9/phase-d1-preregistration.md`, committed before any run on market data.
+  - Code: `tools/v9/d1.py`, `tools/v9/evidence_d1.py`, `tests/test_v9_d1.py` (rankings and no look-ahead).
+  - Tested once by `evidence_d1.yml` on the `archive-data` dataset: digest `cd4651eb…`, the same as phase B's.
+  - **Result: no side is confirmed. Nothing deploys, and no definition will be changed.**
+
+  | Side | Trades | Holdout R (Holm p) | Design window R (p) | Fails |
+  |---|---|---|---|---|
+  | XS_FUND_FADE long | 916 | +0.064 (0.30) | −0.020 (0.61) | b, c, d, f |
+  | XS_FUND_FADE short | 871 | −0.071 (0.99) | −0.164 (1.00) | b, c, d, e, f, g, i, j |
+  | XS_FLOW_MOM long | 2715 | +0.042 (0.20; raw p 0.050) | +0.010 (0.34) | b, c |
+  | XS_FLOW_MOM short | 2116 | +0.001 (0.95) | −0.040 (0.98) | b, c, d, e, g, i, j |
+
+  - Shorting the coins whose longs paid the most funding lost money in both windows: crowded longs kept rising more
+    often than they unwound. That is an observation, not a tested hypothesis. Going long those coins would also pay
+    the highest funding.
+  - XS_FLOW_MOM long is positive in every window, at a 1.5× cost stress (+0.013R) and against its random twin
+    (+0.081R), but too small to be significant. It is not a strategy. It may be worth recording forward, since the
+    live data exists (D1b).
+- [ ] D1b (optional). A forward-only record of XS_FLOW_MOM long, registered in the shadow ledger before its first
+  observation, with no decision authority. It would need the live 4h candles to carry taker-buy volume, which
+  quant.py's candles may not; check that first.
+- [ ] D2. Binance archive `metrics` (5-minute OI, top-trader and account long/short, taker ratio): OI divergence and
+  crowding fade. Needs a new archive download (daily files per symbol under `data/futures/um/daily/metrics/`). Check
+  how far back they go before writing the pre-registration, since a short history may not leave a holdout.
+- [ ] D3. The legacy 1-hour funding strategies, FUND_FADE (absolute thresholds) and FUND_CARRY. They need hourly
+  candles, so they wait for A5's hourly archive.
+- [ ] D4. Basis / premium (archive `premiumIndexKlines`).
 - [ ] D5. Regime filters for the confirmed strategies: BTC trend, DVOL, ETF flows, stablecoin growth, Fear & Greed.
   Report each as a conditional result, never tuned in-sample without a holdout.
 - [ ] D6. Listing effects: Binance and Upbit new listings (archive first bar = listing time).
@@ -342,9 +382,10 @@ Result (evidence run `fd03198`, `tools/v9/confirm.py`):
   - `COINALYZE_API_KEY`: the best free liquidation history. Sign up at coinalyze.net, then API key.
   - `CRYPTOPANIC_API_KEY`: news.
   - `FRED_API_KEY`: macro.
-- Review and merge decisions on PR #25. Nothing is merged without you.
-  - Merging it is what turns XSMOM long's probation on in production; that merge is the review of the policy rows.
+- Review and merge decisions on PR #25, then PR #26, then the D1 PR. Nothing is merged without you.
+  - Merging #25 is what turns XSMOM long's probation on in production; that merge is the review of the policy rows.
   - Switch PR #25's base to `main` (PR #24 is merged).
+  - #26 adds live market context and the alerts. The D1 PR adds research only; the live desk does not change.
 - No login-only sites are needed. Every source used is a public API or public page.
 
 ## 8. Session log
@@ -362,3 +403,16 @@ Result (evidence run `fd03198`, `tools/v9/confirm.py`):
   - Forward test registered in the ledger (`ac74168`).
   - Probation tier, governed book, entered signals, desk presentation, tests and parity (`dada154`).
   - Next: B8 after the 2026-10-15 00:00 UTC close, then phase C.
+- **2026-10-14 (session 3 of v9): phases C and D1.**
+  - Phase C on `v9/market-data` (draft PR #26): `v9/market.py` collects 16 free sources from Actions into
+    `data/v9/market.json`, with an hourly append-only history. Today and the Analyzer show it as context only
+    (`281776e`). Fixed after the first live run: live tickers for the Coinbase premium, funding extremes relative to
+    the median, no partial ETF day (`9050bd8`).
+  - F5: Telegram/Discord alerts on new TRADE decisions (`f0a4316`). They need the owner's secrets.
+  - Phase D1 on `v9/research-d1`: two strategies pre-registered and committed before any market-data run
+    (`8ca3f55`), then tested once on the phase B dataset. Neither is confirmed; the result is recorded as is.
+    `FUND_FADE` was renamed `XS_FUND_FADE` before the commit, because the legacy catalogue already has a different
+    FUND_FADE.
+  - Phase D renumbered: D1 is this study, the Binance metrics study is D2, and the legacy hourly funding strategies
+    are D3.
+  - B8 is still pending: a check is scheduled in the session for 2026-10-15 00:40 UTC.
