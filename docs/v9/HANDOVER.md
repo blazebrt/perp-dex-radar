@@ -338,16 +338,31 @@ How every phase D study runs (D1 set the pattern):
 - [ ] D1b (optional). A forward-only record of XS_FLOW_MOM long, registered in the shadow ledger before its first
   observation, with no decision authority. It would need the live 4h candles to carry taker-buy volume, which
   quant.py's candles may not; check that first.
-- [ ] D2. Binance archive `metrics` (5-minute OI, top-trader and account long/short, taker ratio): OI divergence and
-  crowding fade. Needs a new archive download (daily files per symbol under `data/futures/um/daily/metrics/`). Check
-  how far back they go before writing the pre-registration, since a short history may not leave a holdout.
+- [ ] D2. Binance archive `metrics` (5-minute OI, top-trader and account long/short, taker ratio). In progress.
+  - Data: `tools/v9/metrics_fetch.py` (`6d088bf`) reduces the daily files to the archive's 4h bars. `metrics.yml`
+    saves the dataset to `archive-metrics` and the survey and log to `metrics-results`.
+  - The first download was still running at the end of session 3. It was slow: one TLS connection per file, about
+    700,000 files, and a 5-hour limit.
+  - If it timed out, `metrics-results` holds the survey and log but `archive-metrics` does not exist. Then make the
+    fetcher reuse one connection per thread (`http.client`) and push it to run again.
+  - Pre-registered before any look at the metrics data (`docs/v9/phase-d2-preregistration.md`, with `tools/v9/d2.py`
+    and `tools/v9/evidence_d2.py`; tests in `tests/test_v9_d2.py`).
+    - XS_TOP_DIV: follow the top traders where they disagree with the crowd.
+    - XS_CROWD_FADE: fade the crowd's own long/short ratio.
+    - Both use a one-day lag, because a live desk can only read the previous day's file.
+  - The run: `evidence_d2.yml` skips while `archive-metrics` does not exist. Once it exists, push a change to that
+    workflow; the study runs once and saves to `evidence-d2-results`. Record the result as is.
+  - The owner asked on 2026-10-15 whether to continue or pause. Check the conversation before running it.
 - [ ] D3. The legacy 1-hour funding strategies, FUND_FADE (absolute thresholds) and FUND_CARRY. They need hourly
   candles, so they wait for A5's hourly archive.
 - [ ] D4. Basis / premium (archive `premiumIndexKlines`).
 - [ ] D5. Regime filters for the confirmed strategies: BTC trend, DVOL, ETF flows, stablecoin growth, Fear & Greed.
   Report each as a conditional result, never tuned in-sample without a holdout.
 - [ ] D6. Listing effects: Binance and Upbit new listings (archive first bar = listing time).
-- [ ] D7. Swing-score short side: holdout +0.069R, design window +0.148R. Re-test it as a candidate with the B gate.
+- [x] D7 (answered by the phase A numbers; nothing to run). Swing-score short side, 80+, one trade per coin at a
+  time: holdout +0.069R with a one-sided p of 0.099 before any correction (2167 trades), design window +0.148R. It
+  fails check (b), holdout Holm p < 0.05, on its face. The design window is where the score was built, so it cannot
+  rescue it. Not a candidate.
 
 ### Phase E: decision engine v2
 
@@ -422,4 +437,7 @@ How every phase D study runs (D1 set the pattern):
     are D3.
   - Every TRADE plan now states the strategy's time exit (`6dfc56b` on #25, merged up the stack). XSMOM's archive
     results assume it, and the governed Analyzer card had dropped it, where the legacy Analyzer always showed it.
+  - D2: the metrics fetcher and the study were written and pre-registered (see the D2 item). The dataset download
+    was still running at the end of the session.
+  - D7 needs no run: it already fails the gate's holdout check on phase A's numbers.
   - B8 is still pending: a check is scheduled in the session for 2026-10-15 00:40 UTC.
