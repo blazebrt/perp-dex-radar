@@ -181,9 +181,9 @@ process.stdout.write(value);
                      ".github/workflows/research.yml"):
             with self.subTest(file=name):
                 self.assertEqual((ROOT / name).read_bytes(), original(name))
-        # v9 adds one step to scan.yml (the market context collector); everything else in it is unchanged
-        from tests.test_v9_scope import without_market_step
-        self.assertEqual(without_market_step((ROOT / ".github/workflows/scan.yml").read_text(encoding="utf8")),
+        # v9 adds two steps to scan.yml (market context, trade alerts); everything else in it is unchanged
+        from tests.test_v9_scope import without_v9_steps
+        self.assertEqual(without_v9_steps((ROOT / ".github/workflows/scan.yml").read_text(encoding="utf8")),
                          original(".github/workflows/scan.yml").decode())
         def research_section(raw):
             start = raw.index("  /* RESEARCH:")

@@ -181,6 +181,19 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: python -m v8.snapshot --out site --pages-url "${{ steps.pages.outputs.base_url }}" --archive-dir "$RUNNER_TEMP/v8_archive" --history-branch v8-history --history-backfill --history-repo "${{ github.repository }}"
 
+      - name: v9 trade alerts (a Telegram / Discord message when the desk gains a TRADE; nothing without the secrets)
+        # Reads only this scan's published decision (data/v8/decision.json): a candidate that is TRADE now and was not in
+        # the previous published decision is announced once, with the engine's own plan and its valid-until time.
+        # Secrets: TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID and/or DISCORD_WEBHOOK_URL. Never stops the scan.
+        if: always()
+        continue-on-error: true
+        timeout-minutes: 2
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python -m v9.alerts --decision site/data/v8/decision.json --pages-url "${{ steps.pages.outputs.base_url }}"
+
       - name: Publish production Research evidence (read only; independent of desk decisions)
         if: always() && steps.core_tests.outcome == 'success' && github.ref == 'refs/heads/main'
         continue-on-error: true

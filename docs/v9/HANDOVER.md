@@ -324,7 +324,9 @@ Result (evidence run `fd03198`, `tools/v9/confirm.py`):
 - [ ] F2. Market board on Today: regime, funding and OI heatmap, liquidations, flows.
 - [ ] F3. Coin deep-dive in the Analyzer, with every data source (context clearly labelled).
 - [ ] F4. Performance ledger page: every tier's live trades against expectation.
-- [ ] F5. Telegram alerts for new TRADE decisions (owner sets the bot token as a secret).
+- [x] F5 (`v9/alerts.py`, branch `v9/market-data`). A Telegram and/or Discord message for every new TRADE decision,
+  with the engine's plan and the valid-until time. The owner adds the secrets `TELEGRAM_BOT_TOKEN` +
+  `TELEGRAM_CHAT_ID` and/or `DISCORD_WEBHOOK_URL`; without them nothing is sent.
 
 ### Phase G: quality and operations
 
@@ -334,6 +336,8 @@ Result (evidence run `fd03198`, `tools/v9/confirm.py`):
 
 ## 7. Owner actions (only these need you)
 
+- Trade alerts (optional): add `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`, and/or `DISCORD_WEBHOOK_URL`, as
+  repository secrets. Create the bot with Telegram's @BotFather and get your chat id from the bot's getUpdates.
 - Optional, free API keys, added under GitHub repository Settings → Secrets → Actions:
   - `COINALYZE_API_KEY`: the best free liquidation history. Sign up at coinalyze.net, then API key.
   - `CRYPTOPANIC_API_KEY`: news.

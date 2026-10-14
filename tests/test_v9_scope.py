@@ -32,11 +32,12 @@ UNCHANGED = (
 )
 
 
-def without_market_step(text):
-    """scan.yml without the one step v9 adds (the market context collector): everything else must be unchanged."""
+def without_v9_steps(text):
+    """scan.yml without the steps v9 adds (the market context collector and the trade alerts): everything else must
+    be unchanged."""
     lines, out, skip = text.split("\n"), [], False
     for line in lines:
-        if line.startswith("      - name: v9 market context"):
+        if line.startswith("      - name: v9 market context") or line.startswith("      - name: v9 trade alerts"):
             skip = True
             continue
         if skip and line.startswith("      - name: "):
@@ -79,10 +80,11 @@ class V9Scope(unittest.TestCase):
             with self.subTest(file=name):
                 self.assertEqual(head(name), base(name))
 
-    def test_scan_workflow_only_gains_the_market_context_step(self):
+    def test_scan_workflow_only_gains_the_v9_steps(self):
         head_text, base_text = head(".github/workflows/scan.yml").decode(), base(".github/workflows/scan.yml").decode()
         self.assertIn("python -m v9.market --out site --history-branch v9-market-history", head_text)
-        self.assertEqual(without_market_step(head_text), base_text)
+        self.assertIn("python -m v9.alerts --decision site/data/v8/decision.json", head_text)
+        self.assertEqual(without_v9_steps(head_text), base_text)
 
     def test_strategy_policy_rows(self):
         old, new = json.loads(base("v8/quant_strategy_policy.json")), json.loads(head("v8/quant_strategy_policy.json"))
