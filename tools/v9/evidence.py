@@ -54,7 +54,7 @@ import multiple_testing as MT  # noqa: E402
 import strategy_census as census  # noqa: E402
 from v8 import strategy_authority as SA  # noqa: E402
 
-VERSION = "v9.archive-evidence/1"
+VERSION = "v9.archive-evidence/2"   # /2: runtime robustness (deployable-universe proxy, late entries), cost columns
 SLIP = 0.0010
 BAR = 14400
 DESIGN_START = int(datetime(2023, 10, 1, tzinfo=timezone.utc).timestamp())   # legacy research window start
@@ -148,8 +148,15 @@ def robustness(rows, start, end):
     }
 
 
-def trades_of(p, F, sid, fn, kw, universe):
+def trades_of(p, F, sid, fn, kw, universe, delay=0):
+    """Every simulated trade of one candidate. `delay` enters each signal that many bars late (the stop distance, hold
+    and exit rules unchanged): the live desk shows a daily signal for up to a day, so a trader may act hours after the
+    open the backtest assumes."""
     signals = fn(F, **kw)
+    if delay:
+        keep = signals["i"] + delay < p.T - 1
+        signals = {k: (np.asarray(v)[keep] if np.ndim(v) else v) for k, v in signals.items()}
+        signals["i"] = signals["i"] + delay
     s, res, tw = qsim.run(p, signals, elig=F.elig)
     rows = []
     for k in range(len(res)):
@@ -169,6 +176,75 @@ def trades_of(p, F, sid, fn, kw, universe):
                      "delisted": bool((universe.get(coin) or {}).get("delisted")),
                      "year": dt.year, "month": dt.strftime("%Y-%m")})
     return len(signals["i"]), rows
+
+
+RUNTIME_POLICY = os.path.join(ROOT, "v8", "quant_strategy_policy.json")
+TOP_N = 80          # the live quant desk ranks about 80 coins (quant.json "coins"): the deployable-universe proxy
+DELAYS = (1, 2, 3, 6)   # entry 4h, 8h, 12h and 24h late (4h bars)
+
+
+def runtime_ids():
+    """The strategies with a live implementation (quant.py), from the reviewed runtime policy."""
+    try:
+        return [r["strategy_id"] for r in json.load(open(RUNTIME_POLICY))["strategies"]]
+    except Exception:  # noqa: BLE001
+        return ["TSMOM", "TREND_EMA", "XSMOM"]
+
+
+def top_n_eligibility(F, n=TOP_N):
+    """Point-in-time: among the coins eligible at a bar, only the n with the largest trailing 7-day volume."""
+    import pandas as pd
+    v = np.where(F.elig, F.vol24, np.nan)
+    rank = pd.DataFrame(v).rank(axis=1, ascending=False, method="first").to_numpy()
+    return F.elig & (rank <= n)
+
+
+def side_windows(rows, start, end):
+    """Per side: all, holdout (before the design window), design window, the most recent third."""
+    if not rows:
+        return {}
+    net = np.array([r["net_R"] for r in rows], float)
+    days = np.array([r["decision_time"] // 86400 for r in rows])
+    dt = np.array([r["decision_time"] for r in rows])
+    d = np.array([r["direction"] for r in rows])
+    oos_start = start + (end - start) * (1 - SA.GATE["oos_fraction"])
+    out = {}
+    for side, sgn in (("long", 1), ("short", -1)):
+        m = d == sgn
+        out[side] = {w: clustered(net[m & sel], days[m & sel]) for w, sel in
+                     (("all", np.ones(len(rows), bool)), ("pre_design", dt < DESIGN_START),
+                      ("design_window", dt >= DESIGN_START), ("recent_third", dt >= oos_start))}
+    return out
+
+
+def runtime_robustness(p, F, universe, start, end, catalog_kw):
+    """For each runtime strategy: the same definition on the deployable-universe proxy (top TOP_N coins by trailing
+    volume, point in time) and with late entries (DELAYS bars). Pre-registered in docs/v9/HANDOVER.md (phase B gate i
+    and j) before these results were seen. Returns (summary, {"SID@variant": rows})."""
+    import copy as _copy
+    F_top = _copy.copy(F)
+    F_top.elig = top_n_eligibility(F)
+    summary, rows_by = {}, {}
+    for sid in runtime_ids():
+        if sid not in catalog_kw:
+            continue
+        fn, kw = catalog_kw[sid]
+        variants = {f"top{TOP_N}": (F_top, 0)}
+        variants.update({f"delay{k}": (F, k) for k in DELAYS})
+        summary[sid] = {}
+        for name, (FF, delay) in variants.items():
+            _, rows = trades_of(p, FF, sid, fn, kw, universe, delay=delay)
+            rows = [r for r in rows if r["decision_time"] >= start]
+            rows_by[f"{sid}@{name}"] = rows
+            summary[sid][name] = {"trades": len(rows), "entry_delay_hours": delay * BAR // 3600,
+                                  "universe": f"top {TOP_N} by trailing 7-day volume" if FF is F_top else "all eligible",
+                                  "sides": side_windows(rows, start, end)}
+            s = summary[sid][name]["sides"].get("long", {})
+            print(f"  {sid}@{name:7s} trades {len(rows):6d} long all "
+                  f"{((s.get('all') or {}).get('mean_R') or float('nan')):+.3f} pre "
+                  f"{((s.get('pre_design') or {}).get('mean_R') or float('nan')):+.3f} design "
+                  f"{((s.get('design_window') or {}).get('mean_R') or float('nan')):+.3f}", flush=True)
+    return summary, rows_by
 
 
 def numeric_gate(e):
@@ -378,6 +454,9 @@ def main(argv=None):
         cand.update(dsr=dsr, evidence=e, numeric_gate=gate, failing_checks=failing, not_measured=not_measured,
                     archive_verdict=("PASSES_MEASURED_GATE" if not failing else "FAILS_MEASURED_GATE"),
                     governed_adjudication=SA.adjudicate(e, catalog[k]))
+    print("runtime robustness (deployable-universe proxy, late entries):", flush=True)
+    robust, robust_rows = runtime_robustness(p, F, universe, start, end,
+                                             {c["strategy_id"]: TESTED[c["strategy_id"]][:2] for c in catalog})
     swing = None
     if not a.skip_swing:
         try:
@@ -393,14 +472,20 @@ def main(argv=None):
            "design_window_start": DESIGN_START, "warmup_days": WARMUP_DAYS,
            "family": {"tests": family, "pbo": pbo, "trial_count_for_dsr": trials, "trial_sharpe_variance": trial_var,
                       "window_days": int(ndays)},
-           "candidates": cands, "swing_picks": swing}
+           "candidates": cands, "swing_picks": swing,
+           "runtime_robustness": {"top_n": TOP_N, "delays_bars": list(DELAYS), "bar_seconds": BAR,
+                                  "strategies": robust,
+                                  "note": "pre-registered checks (HANDOVER phase B, gate i and j): the deployable-"
+                                          "universe proxy and late entries, for the strategies with a live "
+                                          "implementation only"}}
     with open(os.path.join(a.out, "evidence.json"), "w") as fh:
         json.dump(doc, fh, indent=1, sort_keys=True, default=lambda x: x.item() if hasattr(x, "item") else None)
     import gzip
-    keep = ("asset", "decision_time", "exit_time", "direction", "net_R", "gross_R", "funding_R", "twin_net_R", "reason")
+    keep = ("asset", "decision_time", "exit_time", "direction", "net_R", "gross_R", "funding_R", "twin_net_R", "reason",
+            "adverse_cost_R", "delisted")
     with gzip.open(os.path.join(a.out, "trades.json.gz"), "wt") as fh:
-        json.dump({sid: [[r[k] for k in keep] for r in rows] for sid, rows in all_rows.items()} | {"_columns": list(keep)},
-                  fh, separators=(",", ":"))
+        json.dump({sid: [[r[k] for k in keep] for r in rows] for sid, rows in (all_rows | robust_rows).items()}
+                  | {"_columns": list(keep)}, fh, separators=(",", ":"))
     write_report(doc, os.path.join(a.out, "REPORT.md"))
     print(f"done in {time.time() - t0:.0f}s")
 
@@ -467,6 +552,22 @@ def write_report(doc, path):
                     f"{y} {fmt(v['mean_R'])} ({v['n']})" for y, v in rd["years"].items()) + ".")
     elif sw:
         L += ["", f"Swing score: {sw.get('error')}"]
+    rr = doc.get("runtime_robustness") or {}
+    if rr.get("strategies"):
+        L += ["", f"## Runtime strategies: deployable-universe proxy (top {rr['top_n']} by volume) and late entries", "",
+              "Pre-registered before these were seen. Late entry = the same signal entered N hours after the open the "
+              "backtest assumes (the desk shows a daily signal for up to a day).", "",
+              "| Strategy | Variant | Side | Trades | All | 95% low | Holdout | Design window | Recent third |",
+              "|---|---|---|---|---|---|---|---|---|"]
+        for sid, variants in rr["strategies"].items():
+            for name, v in variants.items():
+                for side in ("long", "short"):
+                    s = (v.get("sides") or {}).get(side) or {}
+                    g = lambda w: (s.get(w) or {})  # noqa: E731
+                    L.append(f"| {sid} | {name} | {side} | {g('all').get('n', 0)} | {fmt(g('all').get('mean_R'))} | "
+                             f"{fmt(g('all').get('lower_95'))} | {fmt(g('pre_design').get('mean_R'))} | "
+                             f"{fmt(g('design_window').get('mean_R'))} | {fmt(g('recent_third').get('mean_R'))} |")
+        L.append("")
     with open(path, "w") as fh:
         fh.write("\n".join(L) + "\n")
 

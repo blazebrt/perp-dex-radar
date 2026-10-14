@@ -191,7 +191,20 @@ Probation gate, per (strategy, side). All of these must hold on archive evidence
 - (g) The Phase 9 concentration limits hold.
 - (h) At least 500 trades in total and 100 in the holdout.
 
-Expected result on today's evidence: **XSMOM long passes; everything else stays WATCH.**
+Added on 2026-10-14, before the evidence run that first measures them (`evidence.py` v9.archive-evidence/2,
+`runtime_robustness`):
+
+- (i) Deployable universe. The live desk ranks about 80 coins, while the archive ranks every eligible Binance perp.
+  On a point-in-time proxy (the 80 eligible coins with the largest trailing 7-day volume at each bar), the side's mean
+  R must be > 0 in both the holdout and the design window.
+- (j) Late entry. A daily signal stays on the desk for up to a day, so a trader may enter hours after the open the
+  backtest assumes. The same signals entered 4h, 8h, 12h and 24h late are tested. A delay passes when the side's mean
+  R over all windows is > 0 and its holdout mean R is > 0.
+  - The probation TRADE window is the longest tested delay such that it and every shorter tested delay pass. After
+    the window, the signal is WATCH (`PROBATION_ENTRY_WINDOW_PASSED`).
+  - If the 4h delay fails, the side is not confirmed.
+
+Expected result on today's evidence: **XSMOM long passes (a)–(h); (i) and (j) are not yet measured.**
 
 - [ ] B1. `tools/v9/confirm.py` writes `research/v9/probation_evidence.json`. It is hash-bound to the archive dataset
   hash, the research code hash and `runtime_implementation_hash`, and carries per-hypothesis statistics and verdicts.
