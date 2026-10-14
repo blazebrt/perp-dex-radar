@@ -1,0 +1,304 @@
+# v9 handover: from a governed desk with no trades to a data-driven desk that earns its trades
+
+The owner's brief (2026-10-14) asked for four things:
+
+- The v8 desk's interface is clean, but its data use, signal quality and evaluation methods are worse than the
+  legacy product's.
+- It recommends no trades at all.
+- Rebuild it from the legacy product using every free crypto data source, with a data-driven decision engine. It
+  should be "world class", the kind of tool someone would pay $1,000 for.
+- Leave a plan so that later sessions do not get lost.
+
+Work autonomously, and ask the owner only when a login is needed.
+
+This file is that plan. Keep it current.
+
+## 0. How to resume
+
+1. Read `CLAUDE.md`. It covers environment facts, the results branches and the rules.
+2. Check the open PRs and branches:
+   - `v9/data-driven-desk`: all v9 work, as a draft PR.
+   - PR #24 (`v8/phase-12-final-production-experience`): the v8 desk. It is a draft, not merged, and awaits the
+     owner's review.
+3. Read the latest evidence: `git fetch origin evidence-results && git show origin/evidence-results:REPORT.md`.
+4. Pick the first unchecked item in section 6 that is not blocked, and work on it.
+
+## 1. Where things stand
+
+| Area | State | Where |
+|---|---|---|
+| v8 desk (Today, Analyzer, Funding, Portfolio, Research) | Built. Draft PR #24, not merged. | `today.html`, `desk.js`, `desk.css` |
+| Data-source survey | **Done.** 102 sources probed from the Actions runner; 81 answer. | `docs/v9/data-sources.md`, branch `probe-results` |
+| Survivorship-free evidence engine | **v1 done.** 17 daily/4h strategies plus the coin-picks swing score, on 750 coins (170 delisted), 2020-01 to 2026-09. | `tools/v9/archive_fetch.py`, `tools/v9/evidence.py`, branch `evidence-results` |
+| Probation tier (first governed trades) | **Designed, not implemented** (see section 6, phase B). Its gate was designed after a first look at the data; section 3 explains why this is acceptable only with a forward test. | this file |
+| Live multi-venue data layer | Not started | section 6, phase C |
+| New signal research (positioning, funding, OI, liquidations, basis, regime) | Not started | section 6, phase D |
+| Decision engine v2 (expected-R ranking, regime, sizing) | Not started | section 6, phase E |
+| Pro UX (rich trade plans, market board, performance ledger, alerts) | Not started | section 6, phase F |
+
+## 2. Diagnosis: why there are no trades, and what got worse
+
+### Why the desk shows zero TRADE
+
+All three causes come from the v8 design itself, not from the market.
+
+1. **The strategy-authority gate cannot be passed.**
+   - A strategy may produce a TRADE only when its policy row says `ACTIVE_REQUALIFIED` / `REQUALIFIED`.
+   - Requalification needs every check in `v8/strategy_authority.py`, and two of them cannot pass:
+     - `trial_census_complete` must be true, but `tools/research/strategy_census.build()` always returns
+       `complete: False`. The historical research was imported as one commit, so earlier trials can never be
+       counted.
+     - A 180-day prospective registration must also pass, and none has been registered.
+   - So no strategy can ever be requalified under v8 rules.
+   - The three runtime strategies (TSMOM, TREND_EMA, XSMOM) are `LEGACY_HOLDOVER`, so their signals cap at WATCH.
+     The other 21 candidates are `DISABLED`.
+2. **The paper book is over its limits.**
+   - The quant desk's legacy-holdover paper positions put the Phase 10 portfolio in `LIMIT_BREACHED`.
+   - Every new directional signal is therefore AVOID (`PORTFOLIO_LIMIT_BREACHED`), even one that would otherwise
+     qualify.
+   - The book being measured holds positions the desk never recommended.
+3. **The other legacy signals were never decision candidates.** The coin-picks swing score, the 15-minute radar
+   and smart money only appear as "diagnostic" pages. Emerging and funding opportunities are capped at WATCH by
+   policy.
+
+### What got worse compared with the legacy product
+
+- **Signals.**
+  - The legacy picks gave entry, stop, three targets, size and 18 explained checks.
+  - It also used OI, liquidations, the top-trader long/short ratio, funding, unlocks and smart money as score inputs.
+  - v8 uses none of these market inputs in its decision (only funding, as a cost).
+- **Evaluation.**
+  - The legacy research tested today's coin list, which carries survivorship bias. v8 labelled those results
+    `LEGACY_SURVIVORSHIP_UNQUALIFIED`, which was correct.
+  - But v8 then waited for its own point-in-time history: 0 days on 2026-10-13, 180 needed. That left nothing to
+    qualify with.
+  - A survivorship-free public archive already existed. That is the gap phase A closes.
+- **Data.**
+  - v8 publishes a 9.8 MB audit per scan, yet the decision shows little market insight per coin.
+  - Binance and Bybit APIs are blocked from the US runners, so the legacy fetchers fell back to MEXC, Gate and
+    Hyperliquid for history, again on the current coin list only.
+
+## 3. Evidence so far (survivorship-free, run of 2026-10-14)
+
+The full table is in `docs/v9/evidence-2026-10-14.md`; the latest run is on the `evidence-results` branch.
+
+**Setup.**
+
+- Universe: every Binance USD-M perpetual that ever traded, 2020-01 to 2026-09. That is 750 coins in the panel, 170
+  of them delisted. TradFi, index and stablecoin contracts are excluded.
+- Costs: 0.045% taker fee plus 0.10% slippage on each side, and observed funding.
+- Eligibility is point-in-time: $5M or more a day over the last 7 days, and at least 30 days listed.
+- The legacy strategies were designed on Oct 2023 to Oct 2026 data. So **Jan 2020 to Sep 2023 is a holdout** they
+  never saw, out of sample in time, and the delisted coins are out of sample in the cross-section.
+
+**What holds up.** R is the net result in units of the stop distance, per trade.
+
+| Hypothesis | Holdout 2020-01..2023-09 | Design window 2023-10..2026-09 | Since 2025-01 |
+|---|---|---|---|
+| **XSMOM long** (momentum rotation, longs) | **+0.167R, 95% low +0.030, p=0.009, 503 trades** | **+0.231R, 95% low +0.014, p=0.018, 443 trades** | +0.139R, p=0.15, 206 trades |
+| XSMOM short | +0.068R (p=0.06) | **−0.131R (significantly negative)** | −0.029R |
+| TSMOM short | +0.163R (p=0.001) | −0.001R | +0.106R (p=0.03) |
+| TSMOM long | +0.009R | +0.062R | −0.064R |
+| TREND_EMA (both sides) | −0.012R | +0.012R | −0.001R |
+| Swing score, short 80+, one trade per coin at a time | +0.069R | +0.148R | 2024 +0.10, 2025 +0.27 |
+| Swing score, long 80+ | **−0.128R** | +0.303R | mixed |
+
+**What it means.**
+
+- **Most legacy claims do not survive.**
+  - TREND_EMA (legacy claim +0.095R) is flat.
+  - The swing score's long side only works in the window it was built on; it loses in the holdout, a classic sign of
+    overfitting.
+  - 14 of 17 candidates have no positive 95% lower bound (only TSMOM, XSMOM and TSMOM_SLOW do).
+- **XSMOM longs are the strongest result.** They are positive and significant in two independent windows.
+  - In the holdout, among the 6 side-level hypotheses of the 3 runtime strategies, Holm-adjusted: TSMOM short
+    p=0.006 and XSMOM long p=0.043 survive.
+  - Only XSMOM long is also confirmed in the design window.
+- **The family-wide tests do not pass.** Across all 17 candidates, White Reality Check p=0.76, Hansen SPA p=0.16 and
+  PBO 0.28 (the gate needs ≤ 0.20).
+  - Those tests ask whether the best of 17 in-sample is real.
+  - The holdout test asks a different question: does a strategy chosen on other data work on unseen data? That is
+    the right test for strategies whose selection happened in 2023-2026.
+- **Caveat.** The side-level gate in phase B was written after this first look. Its protection is therefore the
+  forward test (registered before any probation trade) and a reduced size, not the backtest alone.
+
+## 4. Target product: what "world class" means here
+
+A trader opens Today and, in ten seconds, knows:
+
+- **What can be traded now**, as at most five trades. Each has its evidence tier (Validated or Probation), a full
+  plan (entry zone, stop, trailing rule, time stop, size for the user's own account), and the expected R with its
+  confidence interval from survivorship-free tests.
+- **Why**, from the decision trace in plain words.
+- **What the market regime is:** trend, volatility (DVOL), funding and OI crowding, liquidations, ETF and stablecoin
+  flows, fear and greed.
+- **What to watch next:** WATCH opportunities with the exact change that would make them trades.
+- **How the desk itself is doing:** the live record of every tier against its backtest expectation, with automatic
+  demotion when live results fall outside the expected band.
+
+Plus:
+
+- a coin deep-dive with every data source;
+- Telegram alerts (the hook already exists in `scanner.py`);
+- a funding desk with multi-venue spreads;
+- a portfolio console for the governed book.
+
+Everything is honest about uncertainty and nothing places orders.
+
+## 5. Architecture (v9)
+
+```
+  data layer (Actions, every scan)          evidence engine (Actions, daily/weekly)        decision engine
+  ─────────────────────────────────         ──────────────────────────────────────        ───────────────
+  venues: HL, OKX, Gate, Bitget, MEXC,       archive_fetch.py  ──►  md_bn (archive-data)    v8/decision.py + v9 tiers
+  HTX, KuCoin, Kraken, dYdX, Aster,          evidence.py       ──►  evidence-results         (TRADE needs a tier:
+  Deribit, CoinGecko derivatives             confirm.py (B)    ──►  research/v9/*.json         FULL or PROBATION)
+  market: DVOL, F&G, ETF flows,              + new signal studies (phase D)                  governed book only
+  stablecoins, DefiLlama OI,                                                                 sizing x tier multiplier
+  Coinbase/Korea premium                                                                     ─► decision.json ─► desk
+  → data/v9/market.json (phase C)
+```
+
+## 6. Roadmap (in order; tick items as they land, with the commit)
+
+### Phase A: evidence engine (survivorship-free)
+
+- [x] A1. Probe every free source from Actions (`probe.yml`, `docs/v9/data-sources.md`).
+- [x] A2. Binance archive fetcher, point-in-time universe including delisted coins (`archive_fetch.py`).
+  - Only bars with volume count.
+  - A gap of more than 7 days splits a coin into separate lives.
+  - Non-ASCII tickers are URL-quoted.
+- [x] A3. Re-test the 17 4h/daily candidates and the swing score (`evidence.py`), with Phase 9 statistics.
+- [ ] A4. Run all census trials (the qgrid grids, 199 or more) on the archive. That gives a complete known-trial
+  return matrix, so DSR uses the real across-trial Sharpe variance and PBO covers the whole family.
+- [ ] A5. Run the 1h candidates on an hourly archive for the liquid subset (top 150 by point-in-time volume).
+- [ ] A6. Use 50 matched controls per signal (time, liquidity bucket, listing-age bucket; listing age is known from
+  the archive) to meet the Phase 9 matched-control gate.
+- [ ] A7. Cross-check on the execution venue: Hyperliquid candles, delisted coins included (56 of 234 perps are
+  `isDelisted` and their candles still load). Daily from 2022, 4h for about 830 days.
+- [ ] A8. Pin the evidence run to a dataset hash and keep the history of evidence runs.
+
+### Phase B: evidence tiers, the first governed trades (next session's main task)
+
+Probation gate, per (strategy, side). All of these must hold on archive evidence:
+
+- (a) The definition was fixed before the holdout was examined. This is true for the three runtime strategies.
+- (b) Holdout mean R > 0, Holm-adjusted one-sided p < 0.05 over all side-hypotheses submitted.
+- (c) Design-window mean R > 0, one-sided p < 0.10 (consistent, not contradicted).
+- (d) The most recent third has mean R > 0.
+- (e) Cost stress ×1.5 keeps mean R > 0.
+- (f) The edge over the random twin is positive.
+- (g) The Phase 9 concentration limits hold.
+- (h) At least 500 trades in total and 100 in the holdout.
+
+Expected result on today's evidence: **XSMOM long passes; everything else stays WATCH.**
+
+- [ ] B1. `tools/v9/confirm.py` writes `research/v9/probation_evidence.json`. It is hash-bound to the archive dataset
+  hash, the research code hash and `runtime_implementation_hash`, and carries per-hypothesis statistics and verdicts.
+- [ ] B2. Register the forward test in the shadow ledger (`v8/shadow_ledger.py`) **before** any probation trade.
+  Primary metric: live net R of probation trades. Demotion rule: after 30 or more trades, demote if the live mean R
+  falls below the archive's 5th-percentile band (bootstrap); promotion to full after the Phase 9 gate's 180 days.
+- [ ] B3. Policy changes:
+  - `quant_strategy_policy.json`: XSMOM becomes `ACTIVE_PROBATION` / `PROBATION`, with `probation: {sides: ["long"],
+    risk_multiplier: 0.5, evidence, evidence_hash}`.
+  - `v8/strategy_policy.py` validates it fail-closed: the evidence file must exist, its hash must match, its verdict
+    must be CONFIRMED, and the runtime hash must be equal.
+- [ ] B4. Decision engine:
+  - `decision_policy.json` gains `probation_deployment_states` and `probation_research_states`.
+  - The `v8/decision.py` STRATEGY_AUTHORITY gate passes with `tier: PROBATION` for a confirmed side, and caps the
+    other side at WATCH (`STRATEGY_SIDE_NOT_CONFIRMED`).
+  - PROPOSED_TRADE risk becomes `risk_per_trade × risk_multiplier`.
+  - Candidates carry `authority_tier`.
+- [ ] B5. Governed book:
+  - The Phase 10 gates evaluate only the positions of trade-authorized strategy sides.
+  - The legacy-holdover positions stay visible as a "legacy diagnostic book" on Portfolio.
+  - Keep the audit binding consistent: compare full-book states for consistency, and gate on the governed book.
+- [ ] B6. Desk:
+  - A "Trade · probation (half size)" chip and explanation.
+  - The Research page shows the evidence tiers and the forward test.
+- [ ] B7. Tests:
+  - New invariants: only ACTIVE_REQUALIFIED/REQUALIFIED or ACTIVE_PROBATION/PROBATION can TRADE.
+  - Probation requires a bound CONFIRMED record.
+  - The unconfirmed side is WATCH.
+  - Size is halved.
+  - The governed book excludes holdovers.
+  - Update the Phase 9, 10, 11 and 12 tests and goldens, with a delta manifest that pins the decision changes.
+- [ ] B8. Live check: the Research run on the exact head shows XSMOM long TRADE candidates whenever the signal fires
+  and every other gate passes.
+
+### Phase C: live multi-venue data layer
+
+- [ ] C1. `v9/market_data.py` (the Scan workflow, every run) collects, per coin and as compact JSON:
+  - funding from HL, OKX, Gate, Bitget, MEXC, dYdX, Kraken and Bitfinex, plus CoinGecko derivatives for
+    Binance/Bybit values;
+  - OI (OKX, Gate, Bitget, HTX, HL);
+  - long/short ratios (OKX, Gate, Bitget, HTX);
+  - liquidations (OKX, Gate public orders);
+  - basis / premium (HL `metaAndAssetCtxs`).
+- [ ] C2. Market regime inputs:
+  - Deribit DVOL and options summary;
+  - alternative.me Fear & Greed;
+  - Farside ETF flows (HTML table);
+  - DefiLlama stablecoin supply and OI;
+  - CoinGecko global;
+  - Coinbase premium (Coinbase versus `data-api.binance.vision` spot);
+  - Korea premium (Upbit/Bithumb plus FX);
+  - Upbit new KRW listings.
+- [ ] C3. An append-only history of C1 and C2 on a data branch, so that forward history accumulates from day one
+  (each record keeps the source and fetch time).
+- [ ] C4. Optional keys (owner action, free): `COINALYZE_API_KEY` (aggregated liquidation, OI and funding history),
+  `CRYPTOPANIC_API_KEY`, `FRED_API_KEY`. The probe already checks for them.
+
+### Phase D: signal research on the new data (each through the evidence engine; only survivors become strategies)
+
+- [ ] D1. Binance archive `metrics` (5-minute OI, top-trader and account long/short, taker ratio): OI divergence and
+  crowding fade.
+- [ ] D2. Funding-rate extremes and carry, using the archive `fundingRate` across about 800 coins. Re-test FUND_FADE
+  and FUND_CARRY properly.
+- [ ] D3. Basis / premium (archive `premiumIndexKlines`).
+- [ ] D4. Taker-flow imbalance (archive kline taker volume).
+- [ ] D5. Regime filters for the confirmed strategies: BTC trend, DVOL, ETF flows, stablecoin growth, Fear & Greed.
+  Report each as a conditional result, never tuned in-sample without a holdout.
+- [ ] D6. Listing effects: Binance and Upbit new listings (archive first bar = listing time).
+- [ ] D7. Swing-score short side: holdout +0.069R, design window +0.148R. Re-test it as a candidate with the B gate.
+
+### Phase E: decision engine v2
+
+- [ ] E1. Rank TRADE candidates by expected net R with intervals, calibrated from the evidence engine. No opaque
+  scores.
+- [ ] E2. Size by tier and volatility (risk parity across open trades), within the Phase 10 limits.
+- [ ] E3. Regime-aware gating from D5, only where it is confirmed.
+- [ ] E4. Monitor live tiers against archive expectation and demote automatically (B2's rule, then generalised).
+
+### Phase F: product UX
+
+- [ ] F1. Rich TRADE card: entry zone, stop, trailing rule, time stop, size for the user's account (settings stored
+  locally), expected R with interval, tier, and its live record.
+- [ ] F2. Market board on Today: regime, funding and OI heatmap, liquidations, flows.
+- [ ] F3. Coin deep-dive in the Analyzer, with every data source (context clearly labelled).
+- [ ] F4. Performance ledger page: every tier's live trades against expectation.
+- [ ] F5. Telegram alerts for new TRADE decisions (owner sets the bot token as a secret).
+
+### Phase G: quality and operations
+
+- [ ] G1. Freshness monitors and failure alerts for every source.
+- [ ] G2. Keep the published artifacts small (gzip, compact JSON); trim the 9.8 MB audit or load it lazily.
+- [ ] G3. CI covers every v9 module; parity manifests for every published change.
+
+## 7. Owner actions (only these need you)
+
+- Optional, free API keys, added under GitHub repository Settings → Secrets → Actions:
+  - `COINALYZE_API_KEY`: the best free liquidation history. Sign up at coinalyze.net, then API key.
+  - `CRYPTOPANIC_API_KEY`: news.
+  - `FRED_API_KEY`: macro.
+- Review and merge decisions: PR #24 (the v8 desk) and the v9 draft PR. Nothing is merged without you.
+- No login-only sites are needed. Every source used is a public API or public page.
+
+## 8. Session log
+
+- **2026-10-14 (session 1 of v9).**
+  - Probed 102 data sources from Actions.
+  - Built the survivorship-free archive (900 USDT perpetual symbols, 781 research coins) and the evidence engine.
+  - First results: XSMOM long confirmed out of sample; most legacy claims (TREND_EMA, the swing long score) do not
+    survive. Diagnosis written.
+  - Plan and this handover. Tests in `tests/test_v9_evidence.py`.
