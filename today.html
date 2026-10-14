@@ -43,7 +43,8 @@
         <div id="avoided"></div>
       </section>
     </div>
-    <aside class="rail" aria-label="Portfolio, funding and system state">
+    <aside class="rail" aria-label="Market context, portfolio, funding and system state">
+      <section class="panel" aria-labelledby="mk-h"><h2 id="mk-h">Market context</h2><div id="market"><div class="skel">Loading…</div></div></section>
       <section class="panel" aria-labelledby="pf-h"><h2 id="pf-h">Portfolio</h2><div id="pf"></div></section>
       <section class="panel" aria-labelledby="fd-h"><h2 id="fd-h">Funding spreads</h2><div id="fund"></div></section>
       <section class="panel" aria-labelledby="sy-h"><h2 id="sy-h">System</h2><div id="sys"></div></section>
@@ -79,9 +80,14 @@
     $("#av-sec").hidden = v.avHidden; $("#av-n").textContent = v.avN; $("#avoided").innerHTML = v.avoided;
     $("#pf").innerHTML = v.pf; $("#fund").innerHTML = v.fund; $("#sys").innerHTML = v.sys; $("#ver").textContent = v.ver;
   }
+  // market context (v9): its own file, context only; it never changes a decision region
+  let MK = null;
+  async function refreshMarket() { MK = await D.loadMarket(); $("#market").innerHTML = D.views.market(MK, D.nowS()); }
   refresh();
+  refreshMarket();
   setInterval(() => render(false), 30000);                    // re-check validity: an expired decision fails closed
   setInterval(refresh, 5 * 60000);                            // revalidate the file (a 304 when it has not changed)
+  setInterval(refreshMarket, 5 * 60000);
   let hiddenAt = 0;
   document.addEventListener("visibilitychange", () => { if (document.hidden) hiddenAt = Date.now(); else if (Date.now() - hiddenAt > 60000) refresh(); });
 })();

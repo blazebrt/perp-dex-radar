@@ -130,6 +130,11 @@ h3 { font-size: 14px; line-height: 1.35; margin: 0; font-weight: 650; }
 .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 10px 0 0; font-size: 14px; }
 .kv dt { color: var(--muted); }
 .kv dd { margin: 0; text-align: right; font-weight: 600; }
+/* v9: market context, a fact list read left to right (label, value, and its source detail beneath) */
+.kv.mk { grid-template-columns: minmax(7.5em, auto) 1fr; font-size: 13px; gap: 6px 12px; }
+.kv.mk dd { text-align: left; font-weight: 400; color: var(--ink-2); overflow-wrap: anywhere; }
+.kv.mk dd b { color: var(--ink); font-weight: 650; }
+.kv.mk dd .muted { display: block; font-size: 12px; }
 .more { display: inline-block; margin-top: 10px; font-size: 14px; font-weight: 600; }
 
 /* ---- opportunity cards */

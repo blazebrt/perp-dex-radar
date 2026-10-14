@@ -1202,6 +1202,75 @@
     return A.status + "|" + A.as_of + "|" + SECTIONS.map((n) => section(A.doc, n, now).expired.length).join(",");
   }
 
+  /* MARKET CONTEXT (v9.market/1, data/v9/market.json): free public market data shown as context. It is never a
+     decision: nothing here changes a state, a rank or a section, and the panel says so. A missing or stale file shows as
+     such; a missing value shows as "–", never as zero. */
+  const MARKET = {schema: "v9.market/1", file: "data/v9/market.json"};      // staleness: the file's own fresh_until
+  const signed = (x, f) => isNum(x) ? (x > 0 ? "+" : x < 0 ? "−" : "") + f(Math.abs(x)) : "–";
+  const listTxt = (rows, f) => (Array.isArray(rows) ? rows : []).filter((r) => Array.isArray(r) && r.length === 2)
+    .map((r) => esc(r[0]) + " " + esc(f(r[1]))).join(", ") || "–";
+  function marketOk(m) {
+    return !!m && typeof m === "object" && m.schema === MARKET.schema && isInt(m.as_of) && isInt(m.fresh_until) && !!m.regime && typeof m.regime === "object";
+  }
+  function vMarket(m, now) {
+    if (!marketOk(m)) return '<p class="muted small" style="margin:0">Market context is not available right now. It is context only: no decision depends on it.</p>';
+    const r = m.regime, rows = [];
+    const row = (label, value, sub) => rows.push('<dt>' + esc(label) + '</dt><dd>' + value + (sub ? ' <span class="muted">' + sub + '</span>' : "") + '</dd>');
+    const fg = r.sentiment || null;
+    if (fg && isNum(fg.value)) row("Fear & Greed", '<b>' + esc(fg.value) + '</b> ' + esc(fg.label || ""), Array.isArray(fg.last_7d) ? esc("7 days: " + fg.last_7d.slice().reverse().join(" · ")) : "");
+    const vol = r.volatility || {};
+    for (const [k, label] of [["btc_dvol", "BTC implied vol"], ["eth_dvol", "ETH implied vol"]]) {
+      const v = vol[k];
+      if (v && isNum(v.value)) row(label, '<b>' + esc(v.value.toFixed(1)) + '</b> DVOL', esc("24h " + signed(v.chg_24h, (x) => x.toFixed(1)) + " · 7d " + signed(v.chg_7d, (x) => x.toFixed(1))));
+    }
+    const f = r.funding;
+    if (f && isNum(f.median_8h)) row("Funding (Hyperliquid)", '<b>' + esc(signed(f.median_8h, (x) => pct(x))) + '</b> median / 8h', esc(pct(f.share_positive, 0) + " of " + f.liquid_coins + " liquid coins positive; BTC " + signed(f.btc_8h, (x) => pct(x)) + ", ETH " + signed(f.eth_8h, (x) => pct(x))));
+    if (f && (f.highest || []).length) row("Highest funding", listTxt(f.highest, (x) => signed(x, (y) => pct(y))), "");
+    if (f && (f.lowest || []).length) row("Lowest funding", listTxt(f.lowest, (x) => signed(x, (y) => pct(y))), "");
+    const b = r.breadth;
+    if (b && isNum(b.share_up_24h)) row("Breadth", '<b>' + esc(pct(b.share_up_24h, 0)) + '</b> of liquid coins up over 24h', esc("median " + signed(b.median_chg_24h, (x) => pct(x))));
+    const sc = r.stablecoins;
+    if (sc && isNum(sc.total_usd)) row("Stablecoin supply", '<b>' + esc(usd(sc.total_usd)) + '</b>', esc("7d " + signed(sc.chg_7d, (x) => pct(x)) + " · 30d " + signed(sc.chg_30d, (x) => pct(x))));
+    const etf = r.etf_flows;
+    if (etf && isNum(etf.last_total_musd)) row("US spot BTC ETFs", '<b>' + esc(signed(etf.last_total_musd * 1e6, usd)) + '</b> net on ' + esc(utcTxt(etf.last_date).slice(0, 10)), isNum(etf.sum_5d_musd) ? esc("last 5 days " + signed(etf.sum_5d_musd * 1e6, usd)) : "");
+    const pr = r.premiums || {};
+    if (isNum(pr.coinbase) || isNum(pr.korea)) row("BTC premiums", 'Coinbase <b>' + esc(signed(pr.coinbase, (x) => pct(x))) + '</b> · Korea <b>' + esc(signed(pr.korea, (x) => pct(x))) + '</b>', "vs Binance spot");
+    const mg = r.btc_margin;
+    if (mg && mg.longs && mg.shorts) row("BTC margin (Bitfinex)", 'longs <b>' + esc(Math.round(mg.longs.btc).toLocaleString("en-US")) + '</b> · shorts <b>' + esc(Math.round(mg.shorts.btc).toLocaleString("en-US")) + '</b> BTC', esc("24h " + signed(mg.longs.chg_24h, (x) => pct(x)) + " / " + signed(mg.shorts.chg_24h, (x) => pct(x))));
+    const pos = r.positioning;
+    if (pos && pos.liquidations_24h_usd) row("Liquidations 24h", 'longs <b>' + esc(usd(pos.liquidations_24h_usd.long)) + '</b> · shorts <b>' + esc(usd(pos.liquidations_24h_usd.short)) + '</b>', esc(pos.liquidations_24h_usd.coins + " most traded coins on Gate"));
+    if (pos && (pos.largest_oi_increase_24h || []).length) row("Open interest 24h", "up: " + listTxt(pos.largest_oi_increase_24h, (x) => signed(x, (y) => pct(y, 0))), "down: " + listTxt(pos.largest_oi_decrease_24h, (x) => signed(x, (y) => pct(y, 0))));
+    if (Array.isArray(r.at_oi_cap) && r.at_oi_cap.length) row("At OI cap (Hyperliquid)", esc(r.at_oi_cap.slice(0, 8).join(", ") + (r.at_oi_cap.length > 8 ? " +" + (r.at_oi_cap.length - 8) : "")), "");
+    const g = r.global;
+    if (g && isNum(g.total_mcap_usd)) row("Crypto market cap", '<b>' + esc(usd(g.total_mcap_usd)) + '</b>', esc("24h " + signed(g.mcap_chg_24h, (x) => pct(x)) + " · BTC dominance " + pct(g.btc_dominance)));
+    const src = m.sources && typeof m.sources === "object" ? Object.values(m.sources) : [];
+    const ok = src.filter((x) => x && x.status === "OK").length;
+    let h = now > m.fresh_until ? '<p class="note" role="status">This market context is from ' + esc(agoTxt(m.as_of, now)) + ' and past its own freshness time; the next scan refreshes it.</p>' : "";
+    h += rows.length ? '<dl class="kv mk">' + rows.join("") + '</dl>' : '<p class="muted small" style="margin:0">No market source answered in this scan.</p>';
+    return h + '<p class="note">Context from free public sources (' + ok + ' of ' + src.length + ' answered, ' + esc(timeTxt(m.as_of)) +
+      '). It informs; it is not a trade signal and changes no decision.</p>';
+  }
+  /* One coin's market context for the Analyzer (Hyperliquid, Binance and Bybit funding, open interest, Gate positioning). */
+  function vMarketAsset(m, coin, now) {
+    if (!marketOk(m) || !m.assets || typeof m.assets !== "object") return "";
+    const a = m.assets[coin];
+    if (!a || typeof a !== "object") return '<p class="muted small" style="margin:0">' + esc(coin) + ' is not in the market context (it is not a listed Hyperliquid perp).</p>';
+    const rows = [], row = (l, v) => rows.push('<dt>' + esc(l) + '</dt><dd>' + v + '</dd>');
+    const fr = (x) => signed(x, (y) => pct(y)) + " / 8h";
+    row("Funding", 'Hyperliquid <b>' + esc(fr(a.funding_8h)) + '</b> · Binance <b>' + esc(fr(a.funding_8h_binance)) + '</b> · Bybit <b>' + esc(fr(a.funding_8h_bybit)) + '</b>');
+    row("Open interest", '<b>' + esc(usd(a.oi_usd)) + '</b> on Hyperliquid' + (a.at_oi_cap ? ' <span class="tag warn">at its OI cap</span>' : ""));
+    row("24h", 'volume <b>' + esc(usd(a.vol_24h_usd)) + '</b> · change <b>' + esc(signed(a.chg_24h, (x) => pct(x))) + '</b> · premium ' + esc(signed(a.premium, (x) => pct(x))));
+    const gt = a.gate;
+    if (gt && typeof gt === "object") {
+      row("Positioning (Gate)", 'accounts long/short <b>' + esc(isNum(gt.lsr_account) ? gt.lsr_account.toFixed(2) : "–") + '</b> · top traders <b>' + esc(isNum(gt.lsr_top_account) ? gt.lsr_top_account.toFixed(2) : "–") +
+        '</b> · taker buy/sell 24h <b>' + esc(isNum(gt.lsr_taker_24h) ? gt.lsr_taker_24h.toFixed(2) : "–") + '</b>');
+      row("Open interest (Gate)", '<b>' + esc(usd(gt.oi_usd)) + '</b> · 24h ' + esc(signed(gt.oi_chg_24h, (x) => pct(x))));
+      row("Liquidations 24h", 'longs <b>' + esc(usd(gt.liq_long_24h_usd)) + '</b> · shorts <b>' + esc(usd(gt.liq_short_24h_usd)) + '</b>');
+    }
+    return '<dl class="kv mk">' + rows.join("") + '</dl><p class="note">Market context of ' + esc(timeTxt(m.as_of)) + (now > m.fresh_until ? " (stale)" : "") +
+      ' from free public sources. Context only: it is not part of the decision above.</p>';
+  }
+
   // ------------------------------------------------------------------ browser loading
   const nowS = () => Math.floor(Date.now() / 1000);
   /* GET a JSON file. Revalidated on every call (cache "no-cache": a 304 when unchanged). Returns {status: OK | MISSING
@@ -1213,6 +1282,10 @@
     } catch (e) { return {status: "MISSING", data: null, error: String(e && e.message || e)}; }
     if (!r.ok) return {status: "MISSING", data: null, error: "HTTP " + r.status};
     try { return {status: "OK", data: await r.json()}; } catch (e) { return {status: "MALFORMED", data: "MALFORMED", error: "not JSON"}; }
+  }
+  async function loadMarket() {
+    const r = await getJSON(MARKET.file);
+    return r.status === "OK" ? r.data : r.status === "MALFORMED" ? "MALFORMED" : null;
   }
   async function loadDecision() {
     const r = await getJSON(DECISION.file);
@@ -1250,7 +1323,8 @@
     traceRows, strip, stripSummary, counts, degradations, zeroTrade, avoidSummary, portfolioView, changes,
     fmt: {esc, pct, lev, usd, price, rate8h, utc: utcTxt, time: timeTxt, dur: durTxt, ago: agoTxt, title: titleCase, limit: limitValue},
     html: {stateChip, pfChip, dirTag, resultTag, gateStrip, traceTable, traceDetails, needsList, failClosed, freshness, oppCard, fundingCard},
-    views: {research: vResearch, researchPublication: vResearchPublication, status: vStatus, today: vToday, funding: vFunding, fundingMarket: vFundingMarket, portfolio: vPortfolio, assetPanel: vAssetPanel, boundDetail},
-    timeKey, bindTraces, getJSON, loadDecision, loadAudit, shell, nowS, esc, sideOf,
+    views: {research: vResearch, researchPublication: vResearchPublication, status: vStatus, today: vToday, funding: vFunding, fundingMarket: vFundingMarket, portfolio: vPortfolio, assetPanel: vAssetPanel, boundDetail,
+            market: vMarket, marketAsset: vMarketAsset},
+    MARKET, timeKey, bindTraces, getJSON, loadDecision, loadMarket, loadAudit, shell, nowS, esc, sideOf,
   };
 });

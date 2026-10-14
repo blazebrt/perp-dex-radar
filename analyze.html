@@ -358,6 +358,7 @@ header .wrap.abwrap { display: flex; align-items: center; gap: 10px; flex-wrap: 
     <div id="ctx" hidden>
     <div class="ctxlabel"><h2>Context</h2><span class="muted">Price, chart, legacy signals and sentiment. None of it is decision authority.</span></div>
     <div class="card head" id="head"></div>
+    <div class="card" id="mktctx" style="margin-top:12px" hidden></div>
     <div class="cols">
       <div class="card chartcard">
         <div class="ctools">
@@ -470,9 +471,9 @@ async function getData(name, fresh) {
 let SCANS_AT = 0;
 async function loadScans() {
   SCANS_AT = Date.now();
-  const [dc, pk, pr, q, qr, sm] = await Promise.all([D ? D.loadDecision().then((r) => r.doc) : Promise.resolve(null), getData("picks.json", true), getData("picks_research.json"),
-    getData("quant.json", true), getData("quant_research.json"), getData("smart.json", true)]);
-  Object.assign(SRC, {decision: dc, picks: pk, picksResearch: pr, quant: q, quantResearch: qr, smart: sm});
+  const [dc, pk, pr, q, qr, sm, mk] = await Promise.all([D ? D.loadDecision().then((r) => r.doc) : Promise.resolve(null), getData("picks.json", true), getData("picks_research.json"),
+    getData("quant.json", true), getData("quant_research.json"), getData("smart.json", true), D && D.loadMarket ? D.loadMarket() : Promise.resolve(null)]);
+  Object.assign(SRC, {decision: dc, picks: pk, picksResearch: pr, quant: q, quantResearch: qr, smart: sm, market: mk});
   const DA = D ? D.authority(dc, Math.floor(Date.now() / 1000)) : {status: "MISSING"};
   DISC = DA.status === "AVAILABLE" ? DA.doc.assets.filter((a) => a && typeof a.asset === "string").map((a) => ({sym: a.asset, state: a.state})).sort((a, b) => (a.sym < b.sym ? -1 : 1)) : [];
   PK = pk;
@@ -763,7 +764,7 @@ function liveBar() {
 function renderAll(keepRange) {
   if (!S.all || !S.all[S.tf]) return;
   // one section failing (odd data from a source) must not take the rest of the page down
-  for (const f of [renderDecision, renderHead, renderSignals, renderAlign, () => renderChart(keepRange), renderPlan, renderRead, renderScore, renderChecks, renderSent, renderAI]) {
+  for (const f of [renderDecision, renderHead, renderMarket, renderSignals, renderAlign, () => renderChart(keepRange), renderPlan, renderRead, renderScore, renderChecks, renderSent, renderAI]) {
     try { f(); } catch (e) { console.error("render", e); }
   }
 }
@@ -801,6 +802,14 @@ function renderDecision() {
   el.innerHTML = v.html;
 }
 if (D) D.bindTraces(document.getElementById("decision"), () => { const A = D.authority(SRC.decision, Math.floor(Date.now() / 1000)); return A.status === "AVAILABLE" ? A.doc : null; });
+/* v9 market context for the coin (data/v9/market.json through desk.js): context only, never part of the call. */
+function renderMarket() {
+  const el = $("#mktctx");
+  if (!el || !D || !D.views.marketAsset) return;
+  const h = S.coin ? D.views.marketAsset(SRC.market, S.coin, Math.floor(Date.now() / 1000)) : "";
+  el.hidden = !h;
+  el.innerHTML = h ? '<h2>Market context <span class="small muted" style="font-weight:500">funding across venues, open interest and positioning; context, not part of the call</span></h2>' + h : "";
+}
 function renderHead() {
   const d = S.data, m = S.meta && !S.meta.mismatch ? S.meta : null;
   if (!d) return;

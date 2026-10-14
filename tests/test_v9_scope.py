@@ -29,8 +29,21 @@ UNCHANGED = (
     "tools/research/strategy_census.py", "tools/research/strategy_adjudication.py",
     "tools/research/multiple_testing.py", "tools/research/matched_controls.py",
     "tools/research/production_publication.py", "research.html", ".github/workflows/research.yml",
-    ".github/workflows/scan.yml",
 )
+
+
+def without_market_step(text):
+    """scan.yml without the one step v9 adds (the market context collector): everything else must be unchanged."""
+    lines, out, skip = text.split("\n"), [], False
+    for line in lines:
+        if line.startswith("      - name: v9 market context"):
+            skip = True
+            continue
+        if skip and line.startswith("      - name: "):
+            skip = False
+        if not skip:
+            out.append(line)
+    return "\n".join(out)
 
 
 def base(name):
@@ -65,6 +78,11 @@ class V9Scope(unittest.TestCase):
         for name in UNCHANGED:
             with self.subTest(file=name):
                 self.assertEqual(head(name), base(name))
+
+    def test_scan_workflow_only_gains_the_market_context_step(self):
+        head_text, base_text = head(".github/workflows/scan.yml").decode(), base(".github/workflows/scan.yml").decode()
+        self.assertIn("python -m v9.market --out site --history-branch v9-market-history", head_text)
+        self.assertEqual(without_market_step(head_text), base_text)
 
     def test_strategy_policy_rows(self):
         old, new = json.loads(base("v8/quant_strategy_policy.json")), json.loads(head("v8/quant_strategy_policy.json"))

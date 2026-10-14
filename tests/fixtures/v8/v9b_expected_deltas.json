@@ -11,7 +11,8 @@
  "rules": {
   "V9_XSMOM_LONG_PROBATION": "The reviewed strategy policy (v8.quant-strategy-policy/2) puts XSMOM on ACTIVE_PROBATION / PROBATION: its archive-confirmed long side may trade at half size inside its 24h entry window, bound to research/v9/probation_evidence.json and to the forward-test registration V9-PROBATION-XSMOM-LONG-1. quant.json publishes the new states, schema and policy hash; quant.py, its signals, universe and journal are unchanged.",
   "V9_PROBATION_LABEL": "The Analyzer's and the Quant desk page's strategy label read ACTIVE_PROBATION as 'Probation (confirmed side only)' instead of 'Legacy holdover'. Wording only; the call still comes from the decision alone.",
-  "V9_DESK_PROBATION_PRESENTATION": "desk.js and desk.css show a TRADE's tier (Probation, reduced size), the engine's own proposal as a plan (entry near the mark, stop, risk, size on the page account, entry window left), the bound archive evidence and the live forward test, which strategy sides may trade, and the governed book (the legacy paper book as a diagnostic on Portfolio). Presentation only: nothing is decided in the page."
+  "V9_DESK_PROBATION_PRESENTATION": "desk.js and desk.css show a TRADE's tier (Probation, reduced size), the engine's own proposal as a plan (entry near the mark, stop, risk, size on the page account, entry window left), the bound archive evidence and the live forward test, which strategy sides may trade, and the governed book (the legacy paper book as a diagnostic on Portfolio). Presentation only: nothing is decided in the page. With the market branch, desk.js and desk.css also render the market context (V9_MARKET_CONTEXT_PRESENTATION).",
+  "V9_MARKET_CONTEXT_PRESENTATION": "Today (published as index.html) gains a Market context panel and the Analyzer a per-coin market context block. Both read data/v9/market.json (v9.market/1, written by the Scan workflow's new context-only step) through desk.js, label it context, show a missing value as missing and never change a decision region."
  },
  "universe": [],
  "dex_status": [],
@@ -66,6 +67,12 @@
  "decisions": [],
  "files": [
   {
+   "file": "analyze.html",
+   "base_sha256": "d89addb637899b76b9e2ecc13963908d893ac8612fb59b47e49135b66df35c49",
+   "head_sha256": "2613d835b768b880f888a4ab09d12fb687530a2f8abfa699fa5b434d0146a89d",
+   "rule": "V9_MARKET_CONTEXT_PRESENTATION"
+  },
+  {
    "file": "analyze.js",
    "base_sha256": "70776f17b73789252c1968616ccb3d6db78325583c35c9b21fcc8dc40ec7a1dd",
    "head_sha256": "14b29b44c2270833374c21100be82d13ab542d0951a570e4b6a4153e12f9b491",
@@ -74,14 +81,20 @@
   {
    "file": "desk.css",
    "base_sha256": "3cab76b9106aa5ef9756efcb1546a866f6e72574181b824da59ff9a6eb0aca7d",
-   "head_sha256": "b36fd744b5a50bff7213368d1444f911e738908fd126d82b35e2323b4abac88a",
+   "head_sha256": "5042c8811dcd21751df30ef679b5d0a39f1bfa509ee82666d5fc9985d5723818",
    "rule": "V9_DESK_PROBATION_PRESENTATION"
   },
   {
    "file": "desk.js",
    "base_sha256": "4ee60cecc35844b053ad2b9a4a3f40c51a2eb3a8546f4268c3a27e3846833fb1",
-   "head_sha256": "4a2adcf4d120abbc87f48b9665ab59e0fd5314f3bdcc9480051199a86024317c",
+   "head_sha256": "c37daa61a005426d856d71f7b74bf1072a3a1bacde2028752f03641a4b0990d6",
    "rule": "V9_DESK_PROBATION_PRESENTATION"
+  },
+  {
+   "file": "index.html",
+   "base_sha256": "99ff267701d1804d4be6d7a050c24abc49b9ec13b60d41b3da0ffc6151293e7c",
+   "head_sha256": "42bffca57286fa0d137994b11ec31391a8002a7abea70d48d9b32afbab928bc8",
+   "rule": "V9_MARKET_CONTEXT_PRESENTATION"
   },
   {
    "file": "quant.html",

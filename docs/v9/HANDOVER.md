@@ -31,7 +31,7 @@ This file is that plan. Keep it current.
 | Data-source survey | **Done.** 102 sources probed from the Actions runner; 81 answer. | `docs/v9/data-sources.md`, branch `probe-results` |
 | Survivorship-free evidence engine | **v1 done.** 17 daily/4h strategies plus the coin-picks swing score, on 750 coins (170 delisted), 2020-01 to 2026-09. | `tools/v9/archive_fetch.py`, `tools/v9/evidence.py`, branch `evidence-results` |
 | Probation tier (first governed trades) | **Implemented** (`dada154`, PR #25, not merged). XSMOM long is CONFIRMED on (a)–(j). It trades at half size inside a 24h window. Its forward test `V9-PROBATION-XSMOM-LONG-1` starts 2026-10-15 00:00 UTC. The live check is B8. | `docs/v9/phase-b-probation.md`, `research/v9/probation_evidence.json` |
-| Live multi-venue data layer | Not started | section 6, phase C |
+| Live multi-venue data layer | **C1–C3 built** on the stacked branch `v9/market-data` (draft PR on top of #25): `v9/market.py`, `data/v9/market.json`, an hourly history on `v9-market-history`, a Today panel and Analyzer context | `docs/v9/market-context.md` |
 | New signal research (positioning, funding, OI, liquidations, basis, regime) | Not started | section 6, phase D |
 | Decision engine v2 (expected-R ranking, regime, sizing) | Not started | section 6, phase E |
 | Pro UX (rich trade plans, market board, performance ledger, alerts) | Not started | section 6, phase F |
@@ -267,14 +267,19 @@ Result (evidence run `fd03198`, `tools/v9/confirm.py`):
 
 ### Phase C: live multi-venue data layer
 
-- [ ] C1. `v9/market_data.py` (the Scan workflow, every run) collects, per coin and as compact JSON:
+- [x] C1 (`v9/market.py`, branch `v9/market-data`). Hyperliquid funding, OI and premium; Binance and Bybit funding
+  through Hyperliquid's predicted-funding feed; Gate OI, long/short ratios and liquidations for the 30 most traded
+  coins. The rest of this item's list is left for C1b. The Scan workflow runs it on every scan and publishes
+  `data/v9/market.json`, context only:
   - funding from HL, OKX, Gate, Bitget, MEXC, dYdX, Kraken and Bitfinex, plus CoinGecko derivatives for
     Binance/Bybit values;
   - OI (OKX, Gate, Bitget, HTX, HL);
   - long/short ratios (OKX, Gate, Bitget, HTX);
   - liquidations (OKX, Gate public orders);
   - basis / premium (HL `metaAndAssetCtxs`).
-- [ ] C2. Market regime inputs:
+- [x] C2 (`v9/market.py`). Deribit DVOL, Fear & Greed, stablecoin supply, Coinbase and Korea premiums, Bitfinex BTC
+  margin, CoinGecko global and Farside ETF flows. Options summary and Upbit listings remain open. Market regime
+  inputs:
   - Deribit DVOL and options summary;
   - alternative.me Fear & Greed;
   - Farside ETF flows (HTML table);
@@ -283,8 +288,11 @@ Result (evidence run `fd03198`, `tools/v9/confirm.py`):
   - Coinbase premium (Coinbase versus `data-api.binance.vision` spot);
   - Korea premium (Upbit/Bithumb plus FX);
   - Upbit new KRW listings.
-- [ ] C3. An append-only history of C1 and C2 on a data branch, so that forward history accumulates from day one
-  (each record keeps the source and fetch time).
+- [x] C3 (`v9-market-history`, one record per UTC hour from the first scan after the market branch is merged). An
+  append-only history of C1 and C2 on a data branch, so that forward history accumulates from day one (each record
+  keeps the source and fetch time).
+- [x] F2 (first version): Today's "Market context" panel and the Analyzer's per-coin market context (`desk.js`
+  `views.market` / `views.marketAsset`).
 - [ ] C4. Optional keys (owner action, free): `COINALYZE_API_KEY` (aggregated liquidation, OI and funding history),
   `CRYPTOPANIC_API_KEY`, `FRED_API_KEY`. The probe already checks for them.
 
