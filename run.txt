@@ -1,0 +1,18 @@
+/home/runner/work/perp-dex-radar/perp-dex-radar/tools/research/qdata.py:130: RuntimeWarning: All-NaN slice encountered
+  h = np.nanmax(p.h[sl].reshape(sh), axis=1)
+/home/runner/work/perp-dex-radar/perp-dex-radar/tools/research/qdata.py:131: RuntimeWarning: All-NaN slice encountered
+  l = np.nanmin(p.l[sl].reshape(sh), axis=1)
+panel 14790 x 750 (34s); metrics for 748 coins; dataset cd4651ebb5d6; coverage XS_TOP_DIV 79%, XS_CROWD_FADE 89%
+  XS_TOP_DIV               trades   2351 (37s)
+  XS_TOP_DIV@top80         trades   2460 (38s)
+  XS_TOP_DIV@delay1        trades   2356 (39s)
+  XS_TOP_DIV@delay2        trades   2361 (40s)
+  XS_TOP_DIV@delay3        trades   2365 (41s)
+  XS_TOP_DIV@delay6        trades   2364 (41s)
+  XS_CROWD_FADE            trades   2423 (42s)
+  XS_CROWD_FADE@top80      trades   2734 (43s)
+  XS_CROWD_FADE@delay1     trades   2427 (44s)
+  XS_CROWD_FADE@delay2     trades   2427 (44s)
+  XS_CROWD_FADE@delay3     trades   2430 (45s)
+  XS_CROWD_FADE@delay6     trades   2431 (46s)
+done in 47s; confirmed: none
