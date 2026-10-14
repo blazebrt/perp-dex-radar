@@ -1,0 +1,43 @@
+/home/runner/work/perp-dex-radar/perp-dex-radar/tools/research/qdata.py:130: RuntimeWarning: All-NaN slice encountered
+  h = np.nanmax(p.h[sl].reshape(sh), axis=1)
+/home/runner/work/perp-dex-radar/perp-dex-radar/tools/research/qdata.py:131: RuntimeWarning: All-NaN slice encountered
+  l = np.nanmin(p.l[sl].reshape(sh), axis=1)
+panel 14790 x 750 (16s); 750 coins; eligible coin-bars 2536514
+TSMOM        trades   6792 mean +0.059R lo95 +0.009 pre-design +0.092 design +0.040 twin edge +0.041 (18s)
+TREND_EMA    trades  18832 mean +0.004R lo95 -0.055 pre-design -0.012 design +0.012 twin edge +0.015 (19s)
+XSMOM        trades   1817 mean +0.099R lo95 +0.030 pre-design +0.116 design +0.076 twin edge +0.092 (19s)
+XSMOM_7D     trades   3794 mean +0.007R lo95 -0.018 pre-design +0.013 design -0.002 twin edge +0.039 (20s)
+XSMOM_14D_7  trades   2223 mean +0.015R lo95 -0.023 pre-design +0.054 design -0.039 twin edge +0.040 (20s)
+TREND_DC55   trades  41259 mean -0.059R lo95 -0.120 pre-design -0.076 design -0.051 twin edge -0.017 (21s)
+TREND_DC20   trades  64682 mean -0.026R lo95 -0.081 pre-design -0.029 design -0.024 twin edge +0.004 (23s)
+DC20_D       trades   9315 mean -0.014R lo95 -0.096 pre-design +0.100 design -0.064 twin edge -0.020 (23s)
+DC55_D       trades   5085 mean -0.032R lo95 -0.124 pre-design +0.010 design -0.051 twin edge +0.029 (23s)
+EMA5_20_D    trades   8665 mean +0.028R lo95 -0.052 pre-design +0.123 design -0.016 twin edge +0.019 (23s)
+EMA10_50_D   trades   5338 mean +0.053R lo95 -0.030 pre-design +0.205 design -0.014 twin edge +0.039 (24s)
+TSMOM_FAST   trades  14981 mean +0.002R lo95 -0.040 pre-design +0.054 design -0.024 twin edge +0.025 (24s)
+TSMOM_SLOW   trades   4237 mean +0.115R lo95 +0.033 pre-design +0.051 design +0.149 twin edge +0.104 (24s)
+SQZ_4H       trades  17426 mean +0.007R lo95 -0.076 pre-design -0.063 design +0.051 twin edge +0.018 (26s)
+SQZ_D        trades   3532 mean +0.029R lo95 -0.100 pre-design -0.002 design +0.047 twin edge +0.044 (27s)
+RS_BRK       trades  13352 mean -0.074R lo95 -0.137 pre-design -0.063 design -0.079 twin edge -0.028 (28s)
+XSREV_1D     trades   4730 mean -0.020R lo95 -0.033 pre-design -0.027 design -0.006 twin edge -0.002 (28s)
+runtime robustness (deployable-universe proxy, late entries):
+  TSMOM@top80   trades   2924 long all +0.095 pre +0.040 design +0.136
+  TSMOM@delay1  trades   6837 long all +0.045 pre +0.001 design +0.062
+  TSMOM@delay2  trades   6889 long all +0.040 pre -0.018 design +0.062
+  TSMOM@delay3  trades   6903 long all +0.042 pre +0.018 design +0.051
+  TSMOM@delay6  trades   7266 long all +0.048 pre +0.011 design +0.062
+  TREND_EMA@top80   trades   7612 long all -0.045 pre -0.118 design +0.035
+  TREND_EMA@delay1  trades  18664 long all -0.058 pre -0.105 design -0.034
+  TREND_EMA@delay2  trades  18449 long all -0.057 pre -0.095 design -0.037
+  TREND_EMA@delay3  trades  18285 long all -0.058 pre -0.073 design -0.051
+  TREND_EMA@delay6  trades  17897 long all -0.060 pre -0.056 design -0.063
+  XSMOM@top80   trades   1697 long all +0.200 pre +0.193 design +0.211
+  XSMOM@delay1  trades   1823 long all +0.203 pre +0.158 design +0.254
+  XSMOM@delay2  trades   1837 long all +0.189 pre +0.131 design +0.255
+  XSMOM@delay3  trades   1838 long all +0.197 pre +0.174 design +0.224
+  XSMOM@delay6  trades   1868 long all +0.184 pre +0.154 design +0.217
+/home/runner/work/perp-dex-radar/perp-dex-radar/tools/research/qdata.py:130: RuntimeWarning: All-NaN slice encountered
+  h = np.nanmax(p.h[sl].reshape(sh), axis=1)
+/home/runner/work/perp-dex-radar/perp-dex-radar/tools/research/qdata.py:131: RuntimeWarning: All-NaN slice encountered
+  l = np.nanmin(p.l[sl].reshape(sh), axis=1)
+done in 69s

@@ -1,0 +1,12 @@
+[11:46:02] 900 USDT perpetual symbols in the archive
+[11:46:12]   100/900 symbols (0 files downloaded, 8607 cached, 0 failed)
+[11:46:17]   200/900 symbols (0 files downloaded, 13318 cached, 0 failed)
+[11:46:23]   300/900 symbols (0 files downloaded, 18735 cached, 0 failed)
+[11:46:29]   400/900 symbols (0 files downloaded, 23519 cached, 0 failed)
+[11:46:33]   500/900 symbols (0 files downloaded, 27377 cached, 0 failed)
+[11:46:39]   600/900 symbols (0 files downloaded, 32522 cached, 0 failed)
+[11:46:44]   700/900 symbols (0 files downloaded, 36971 cached, 0 failed)
+[11:46:50]   800/900 symbols (8 files downloaded, 41959 cached, 0 failed)
+[11:46:54]   900/900 symbols (62 files downloaded, 43278 cached, 0 failed)
+[11:46:54] downloaded 62, cached 43278, failed 0 (53s)
+[11:46:54] wrote 781 research coins (170 delisted), excluded {'TRADFI': 125, 'INDEX': 5, 'STABLECOIN': 1} (53s)
