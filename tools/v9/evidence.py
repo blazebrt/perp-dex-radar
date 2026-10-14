@@ -244,9 +244,11 @@ def swing_picks(md, slip):
             v = np.array([x[2] for x in trades])
             dd = np.array([x[0] for x in trades])
             tt = t[dd]
+            yy = years[dd]
             ready = {"trades": len(trades), "all": clustered(v, dd),
                      "pre_design": clustered(v[tt < DESIGN_START], dd[tt < DESIGN_START]),
-                     "design_window": clustered(v[tt >= DESIGN_START], dd[tt >= DESIGN_START])}
+                     "design_window": clustered(v[tt >= DESIGN_START], dd[tt >= DESIGN_START]),
+                     "years": {str(y): clustered(v[yy == y], dd[yy == y]) for y in sorted(set(yy.tolist()))}}
         else:
             ready = {"trades": 0}
         out[side] = {"bands": bands, "ready_80_one_at_a_time": ready}
@@ -325,6 +327,17 @@ def main(argv=None):
     family, pbo = {"status": "UNAVAILABLE"}, {"status": "UNAVAILABLE"}
     if len(cands) >= 2:
         family = MT.bootstrap_tests(matrix, provenance, a.replications, SA.GATE["block_days"])
+        if family.get("status") != "AVAILABLE":
+            # a candidate without trades has zero long-run variance; test the others and name the ones left out
+            live = [k for k in range(len(cands)) if matrix[:, k].std() > 0]
+            if len(live) >= 2:
+                sub = MT.bootstrap_tests(matrix[:, live], provenance, a.replications, SA.GATE["block_days"])
+                if sub.get("status") == "AVAILABLE":
+                    by_q = [None] * len(cands)
+                    for pos, k in enumerate(live):
+                        by_q[k] = sub["fdr"]["by_q"][pos]
+                    family = dict(sub, fdr=dict(sub["fdr"], by_q=by_q), note="candidates without trades left out",
+                                  left_out=[names[k] for k in range(len(cands)) if k not in live])
         pbo = MT.pbo(matrix, names, SA.GATE["cscv_segments"], SA.GATE["cscv_min_segment_days"])
         if pbo.get("status") != "AVAILABLE":
             # a sparse candidate with no trade in some half of a split has zero variance there; report PBO over the
@@ -422,6 +435,16 @@ def write_report(doc, path):
     L += ["", f"Family tests over {len(doc['candidates'])} candidates, {fam['window_days']} days: White RC p "
           f"{t.get('white_rc_p')}, Hansen SPA p {t.get('hansen_spa_p')}, PBO {(fam['pbo'] or {}).get('pbo')}; "
           f"DSR uses {fam['trial_count_for_dsr']} trials (the census lower bound).", ""]
+    strong = [c for c in doc["candidates"] if (c["aggregate"].get("lower_95") or -1) > 0]
+    if strong:
+        yrs = sorted({y for c in strong for y in ((c["robustness"] or {}).get("years") or {})})
+        L += ["## Year by year (candidates whose 95% lower bound is above zero)", "",
+              "| Strategy | " + " | ".join(yrs) + " |", "|---|" + "---|" * len(yrs)]
+        for c in strong:
+            ys = (c["robustness"] or {}).get("years") or {}
+            L.append(f"| {c['strategy_id']} | " + " | ".join(
+                f"{fmt((ys.get(y) or {}).get('mean_R'))} ({(ys.get(y) or {}).get('n', 0)})" for y in yrs) + " |")
+        L.append("")
     sw = doc.get("swing_picks") or {}
     if sw and "error" not in sw:
         L += ["## Coin-picks swing score on the survivorship-free universe", "",
@@ -436,6 +459,12 @@ def write_report(doc, path):
             if rd.get("trades"):
                 L.append(f"| {side} | 80+ one at a time | {rd['trades']} trades | {fmt(rd['all']['mean_R'])} | "
                          f"{fmt(rd['all']['lower_95'])} | {fmt(rd['pre_design']['mean_R'])} | {fmt(rd['design_window']['mean_R'])} |")
+        L.append("")
+        for side in ("long", "short"):
+            rd = sw[side]["ready_80_one_at_a_time"]
+            if rd.get("years"):
+                L.append(f"{side.title()} 80+ one at a time, by year: " + ", ".join(
+                    f"{y} {fmt(v['mean_R'])} ({v['n']})" for y, v in rd["years"].items()) + ".")
     elif sw:
         L += ["", f"Swing score: {sw.get('error')}"]
     with open(path, "w") as fh:

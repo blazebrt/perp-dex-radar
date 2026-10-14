@@ -9,7 +9,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main, "v8/**"]
+    branches: [main, "v8/**", "v9/**"]
   workflow_dispatch:
 
 permissions:
@@ -94,7 +94,7 @@ jobs:
         run: python tools/research/test_qsim.py
 
       - name: Point-in-time research tests (v8 Phase 8 and its post-merge hotfix; time-varying slippage, observed funding, qualification, parity with qsim, the day-pick selection authority, cutoffs before the history, liquidity precision)
-        run: python -m unittest tests.test_v8_phase8 tests.test_v8_phase8_hotfix tests.test_v8_phase9 tests.test_v8_phase10 tests.test_v8_phase11 -v
+        run: python -m unittest tests.test_v8_phase8 tests.test_v8_phase8_hotfix tests.test_v8_phase9 tests.test_v8_phase10 tests.test_v8_phase11 tests.test_v9_evidence -v
 
       - name: No-edge check (no strategy may make money on a random market)
         run: python tools/no_edge_check.py

@@ -3,7 +3,7 @@
     python tools/v9/archive_fetch.py --out md_bn --cache bn_cache [--interval 4h] [--workers 48]
 
 Every USD-M perpetual that ever traded on Binance Futures is in the archive, including the ones that were later
-delisted (900 USDT perpetuals in October 2026, about 400 of them no longer listed). A coin is in the research
+delisted (900 USDT perpetuals in the October 2026 listing; universe.json counts the delisted ones). A coin is in the research
 universe exactly while it has candles: from its listing to its delisting. That is a point-in-time universe without a
 hand-picked coin list, so a backtest on it does not inherit survivorship bias.
 
@@ -13,9 +13,11 @@ Writes, in the legacy research layout that tools/research/qdata.Panel reads:
   md_bn/universe.json           every coin: symbol, first/last bar, listed or delisted, excluded (TradFi/index/stable)
   md_bn/meta.json               provenance: every archive file used with its S3 ETag and size, counts, timing
 
-A symbol relisted after a gap of more than 7 days is split into separate coins (NAME, NAME~2, ...), so a delisting
-gap is never filled with flat prices. TradFi perpetuals (stocks, commodities, FX), indices and stablecoins are
-excluded from the crypto research universe and listed in universe.json with the reason.
+Only bars with trading volume count: the archive keeps writing flat, zero-volume candles for many contracts after
+they stop trading, so a coin's life is its first to last bar with volume, and a symbol relisted after more than 7 days
+without trading is split into separate coins (NAME, NAME~2, ...). A delisting gap is never filled with flat prices.
+A coin is "listed" when it traded within the last 3 days of the archive. TradFi perpetuals (stocks, commodities, FX),
+indices and stablecoins are excluded from the crypto research universe and listed in universe.json with the reason.
 
 Runs on GitHub Actions (data.binance.vision answers there; fapi.binance.com is geo-blocked for US runners)."""
 from __future__ import annotations
@@ -105,7 +107,7 @@ def cached(cache, item):
     if os.path.exists(path) and os.path.exists(tag) and open(tag).read().strip() == (item["etag"] or ""):
         with open(path, "rb") as fh:
             return fh.read(), True
-    raw = http(DL + item["key"])
+    raw = http(DL + urllib.parse.quote(item["key"]))   # some symbols are not ASCII (e.g. Chinese meme coins)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "wb") as fh:
         fh.write(raw)
@@ -207,7 +209,8 @@ def main(argv=None):
                 except (ValueError, IndexError):
                     continue
         fund = sorted(set(fund))
-        series = [bars[t] for t in sorted(bars)]
+        # only bars that traded: zero-volume candles after a delisting (or during a suspension) are not a market
+        series = [bars[t] for t in sorted(bars) if bars[t][5] > 0]
         segs = []
         if series:
             cur = [series[0]]
@@ -224,12 +227,16 @@ def main(argv=None):
             name = base if i == 0 else f"{base}~{i + 1}"
             last7 = seg[-42:]
             out.append({"t": name, "symbol": sym, "first_bar": seg[0][0], "last_bar": seg[-1][0], "bars": len(seg),
+                        "zero_volume_bars_dropped": None,
                         "segment": i + 1, "segments": len(segs), "excluded": reason,
                         "funding_settlements": sum(1 for x in fund if seg[0][0] <= x[0] <= seg[-1][0] + 14400),
                         "trade_vol": sum(r[5] for r in last7) / max(1.0, len(last7) / 6.0)})
             if not reason:
                 write(name, seg, fund)
         months = [x["key"][-11:-4] for x in klines]
+        dropped = len(bars) - len(series)
+        for c in out:
+            c["zero_volume_bars_dropped"] = dropped
         return sym, klines + funding, months, out
 
     results = []
@@ -242,19 +249,20 @@ def main(argv=None):
     log(f"downloaded {stats['downloaded']}, cached {stats['from_cache']}, failed {len(stats['failed'])} "
         f"({time.time() - t0:.0f}s)")
     latest_month = max((m for r in results for m in r[2]), default=None)
+    archive_end = max((c["last_bar"] for r in results for c in r[3]), default=0)
     total = sum(len(r[1]) for r in results)
 
     # 2. the universe: listed at the archive's end, or delisted (a later segment of a relisted symbol is the listed one)
     coins, used = [], {}
     for sym, items, months, out in results:
         for c in out:
-            c["listed_at_archive_end"] = bool(c["segment"] == c["segments"] and months and months[-1] == latest_month)
+            c["listed_at_archive_end"] = bool(c["segment"] == c["segments"] and c["last_bar"] >= archive_end - 3 * 86400)
             c["delisted"] = not c["listed_at_archive_end"]
             coins.append(c)
             used[c["t"]] = items
     research = [c for c in coins if not c["excluded"]]
     uni = {"schema": VERSION, "source": "data.binance.vision (Binance USD-M futures public archive)",
-           "interval": a.interval, "archive_end_month": latest_month, "time": int(time.time()),
+           "interval": a.interval, "archive_end_month": latest_month, "archive_end_bar": archive_end, "time": int(time.time()),
            "min_vol": None, "trade_dexes": [], "coins": coins,
            "counts": {"symbols": len(symbols), "coins": len(coins), "research_coins": len(research),
                       "delisted_research_coins": sum(c["delisted"] for c in research),
