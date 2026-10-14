@@ -1072,11 +1072,18 @@ function exitWhy(s, p) {
   if (p.kind === "quant") return "the " + p.desk.holdDays + "-day limit of the " + s.strategy + ", if the stop is not hit first";
   return "24 hours after the signal, if the stop is not hit first";
 }
+/* The strategy's time exit as the engine's proposal states it (time_exit_hours), or "" when it states none. */
+function govExitTxt(p) {
+  const h = (p.proposal || {}).time_exit_hours;
+  if (!Number.isInteger(h) || h <= 0) return "";
+  return h % 24 ? h + " hours" : h === 24 ? "1 day" : h / 24 + " days";
+}
 function testedPlanCard(c) {
   if (c.plan.kind === "governed") {
-    const p = c.plan;
+    const p = c.plan, ex = govExitTxt(p);
     return '<h2>Exact governed proposal · ' + esc(c.verdict) + '</h2><p>This plan is the proposal evaluated by Phase 10 and approved by the current decision. Browser prices and saved account preferences do not change it.</p>' +
       '<div class="lvls"><div class="lv"><span>Evaluated mark</span><b>' + fp(p.entry) + '</b></div><div class="lv"><span>Evaluated stop</span><b>' + fp(p.stop) + '</b></div></div>' +
+      (ex ? '<p><b>Exit:</b> at the stop, or ' + esc(ex) + ' after you enter, whichever comes first. The engine states no profit target.</p>' : '') +
       '<div class="sizebox">Evaluated account: ' + money(p.equity) + '<br>Position: ' + money(p.size) + ' · ' + p.lev.toFixed(3) + '× leverage<br>Stop risk: ' + money2(p.riskUsd) + ' · ' + (p.riskFraction * 100).toFixed(2) + '% sizing input<br>Expected fees: ' + (p.costs.fees * 100).toFixed(4) + '% of equity; slippage: ' + (p.costs.slippage * 100).toFixed(4) + '% of equity<br>Basis: ' + esc(p.sizingBasis) + '</div><p>Changing the account, entry, stop or size requires a new governed evaluation. This page cannot approve a custom proposal.</p>';
   }
   const s = c.lead, p = c.plan, L = p.side === "long";
@@ -1138,6 +1145,7 @@ function planText() {
     if (s.rec) lines.push("Tested: " + TA.recordTxt(s.rec) + (s.rec.period ? " (" + s.rec.period + ")" : "") + ".");
     if (p.kind === "governed") return [S.coin + " · " + c.verdict + " · exact governed proposal",
       "Evaluated mark " + fp(p.entry) + ", stop " + fp(p.stop),
+      ...(govExitTxt(p) ? ["Exit at the stop or " + govExitTxt(p) + " after entry, whichever comes first; no profit target stated"] : []),
       "Evaluated equity " + money(p.equity) + ", size " + money(p.size) + ", leverage " + p.lev,
       "Stop risk " + money2(p.riskUsd) + ", risk fraction " + p.riskFraction,
       "Sizing basis " + p.sizingBasis + "; fees/equity " + p.costs.fees + "; slippage/equity " + p.costs.slippage,

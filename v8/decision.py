@@ -657,7 +657,10 @@ def _directional(asset, rec, sig, snap, policy, base):
             "equity": evaluated_equity, "quantity": (row or {}).get("quantity"),
             "notional": (row or {}).get("notional_usd"),
             "stop_risk_usd": ((row or {}).get("account_risk") * evaluated_equity
-                              if _num((row or {}).get("account_risk")) and _num(evaluated_equity) else None)}
+                              if _num((row or {}).get("account_risk")) and _num(evaluated_equity) else None),
+            # The strategy's exit besides the stop: the hold after entry that its runtime and archive tests close at
+            # (quant.py hold_h; the late-entry checks time it from the delayed entry).
+            "time_exit_hours": hold_h if _int(hold_h := (strat or {}).get("hold_h")) and hold_h > 0 else None}
     if w is None:
         gates.append(_gate("PROPOSED_TRADE", pinp, "a Phase 10 portfolio input is required", MISSING,
                            "PORTFOLIO_INPUT_MISSING"))

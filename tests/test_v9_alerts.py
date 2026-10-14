@@ -40,9 +40,12 @@ class Alerts(unittest.TestCase):
         text = r["alerts"][0]["text"]
         c = V.cand(cur, "HI")
         for part in ("new TRADE", "HI LONG", "probation, reduced size", "Enter near", "stop", "risk 0.25% of the account",
+                     "Exit at the stop or 14 days after you enter, whichever comes first",
                      "R per trade out of sample", "past results do not promise future ones", "You decide and place every order",
                      "https://example.github.io/desk/analyze.html?coin=HI"):
             self.assertIn(part, text)
+        self.assertEqual([AL._hold(h) for h in (336, 24, 30, 0, None, True, "336")],
+                         ["14 days", "1 day", "30 hours", None, None, None, None])
         self.assertIn(AL._price(c["proposal"]["mark"]), text)
         for banned in ("guaranteed", "risk-free", "certain", "sure"):
             self.assertNotIn(banned, text.lower())
