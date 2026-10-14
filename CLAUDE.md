@@ -73,6 +73,9 @@ Update its "Where things stand" table and its session log before you finish.
     that import them, as `tools/v9/d1.py` does.
 - **New research is pre-registered** (HANDOVER phase D): the definitions are committed before any run on market data,
   tested once, and recorded as they come out. Strategy names must not collide with the legacy catalogue.
+- **Every evidence run is recorded** in `research/v9/evidence_runs.jsonl` (hash-chained, append-only) with
+  `python tools/v9/record_run.py --study <study>`. The results branches keep only the latest run. Never edit a
+  pre-registration document after its run; the test fails if one changes.
 - **The local clone is shallow.** `tests.test_accuracy_invariants...test_trial_census_and_candidate_count_unchanged`
   walks git history and fails here only. CI runs it on a full clone.
 - **Run the suites before every push:** `python -m unittest discover -s tests`. The CI research-checks job runs the

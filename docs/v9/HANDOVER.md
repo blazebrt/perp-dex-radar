@@ -39,7 +39,7 @@ This file is that plan. Keep it current.
 | Probation tier (first governed trades) | **Implemented** (`dada154`, PR #25, not merged). XSMOM long is CONFIRMED on (a)–(j). It trades at half size inside a 24h window. Its forward test `V9-PROBATION-XSMOM-LONG-1` starts 2026-10-15 00:00 UTC. The live check is B8. | `docs/v9/phase-b-probation.md`, `research/v9/probation_evidence.json` |
 | Live multi-venue data layer | **C1–C3 built** on the stacked branch `v9/market-data` (draft PR #26 on top of #25): `v9/market.py`, `data/v9/market.json`, an hourly history on `v9-market-history`, a Today panel and Analyzer context. 16 of 16 sources answered from Actions. | `docs/v9/market-context.md`, branch `market-results` |
 | Trade alerts | **Built** (F5, PR #26): Telegram and/or Discord on every new TRADE. Sends nothing until the owner adds the secrets. | `v9/alerts.py` |
-| New signal research (positioning, funding, OI, liquidations, basis, regime) | **D1 done** (`8ca3f55`, branch `v9/research-d1`): XS_FUND_FADE and XS_FLOW_MOM, pre-registered and tested once on the phase B dataset. **Neither is confirmed.** Next: D2 (Binance metrics: OI, long/short). | `docs/v9/phase-d1-preregistration.md`, branch `evidence-d1-results` |
+| New signal research (positioning, funding, OI, liquidations, basis, regime) | **D1 and D2 done, D7 answered.** Four strategies (funding fade, taker flow, top-trader divergence, crowd fade) were pre-registered and each tested once on the phase B dataset. **None is confirmed.** XSMOM long remains the only tradable side. | `docs/v9/phase-d1-preregistration.md`, `docs/v9/phase-d2-preregistration.md`, branches `evidence-d1-results`, `evidence-d2-results` |
 | Decision engine v2 (expected-R ranking, regime, sizing) | Not started | section 6, phase E |
 | Pro UX (rich trade plans, market board, performance ledger, alerts) | Not started | section 6, phase F |
 
@@ -183,7 +183,18 @@ Everything is honest about uncertainty and nothing places orders.
   the archive) to meet the Phase 9 matched-control gate.
 - [ ] A7. Cross-check on the execution venue: Hyperliquid candles, delisted coins included (56 of 234 perps are
   `isDelisted` and their candles still load). Daily from 2022, 4h for about 830 days.
-- [ ] A8. Pin the evidence run to a dataset hash and keep the history of evidence runs.
+- [x] A8. Pin the evidence run to a dataset hash and keep the history of evidence runs.
+  - `research/v9/evidence_runs.jsonl` holds one record per run: phase A/B, D1 and D2 so far. Each record pins the code
+    commit, the dataset digest, the data branches read, the sha256 of the evidence, report and trades files, the
+    pre-registration hash and what was confirmed.
+  - Records are hash-chained, so an edited or removed record breaks the chain.
+  - `tests/test_v9_evidence_runs.py` (in CI) verifies the following:
+    - the chain is intact;
+    - the phase A/B record is the run the probation tier is bound to;
+    - every study ran on phase B's candles and funding;
+    - no pre-registration document changed after its run.
+  - After every new evidence run, append its record with `python tools/v9/record_run.py --study <A/B|D1|D2>`. Fetch the
+    results branch first.
 
 ### Phase B: evidence tiers, the first governed trades (next session's main task)
 
@@ -338,21 +349,30 @@ How every phase D study runs (D1 set the pattern):
 - [ ] D1b (optional). A forward-only record of XS_FLOW_MOM long, registered in the shadow ledger before its first
   observation, with no decision authority. It would need the live 4h candles to carry taker-buy volume, which
   quant.py's candles may not; check that first.
-- [ ] D2. Binance archive `metrics` (5-minute OI, top-trader and account long/short, taker ratio). In progress.
-  - Data: `tools/v9/metrics_fetch.py` (`6d088bf`) reduces the daily files to the archive's 4h bars. `metrics.yml`
-    saves the dataset to `archive-metrics` and the survey and log to `metrics-results`.
-  - The first download was still running at the end of session 3. It was slow: one TLS connection per file, about
-    700,000 files, and a 5-hour limit.
-  - If it timed out, `metrics-results` holds the survey and log but `archive-metrics` does not exist. Then make the
-    fetcher reuse one connection per thread (`http.client`) and push it to run again.
-  - Pre-registered before any look at the metrics data (`docs/v9/phase-d2-preregistration.md`, with `tools/v9/d2.py`
-    and `tools/v9/evidence_d2.py`; tests in `tests/test_v9_d2.py`).
-    - XS_TOP_DIV: follow the top traders where they disagree with the crowd.
-    - XS_CROWD_FADE: fade the crowd's own long/short ratio.
-    - Both use a one-day lag, because a live desk can only read the previous day's file.
-  - The run: `evidence_d2.yml` skips while `archive-metrics` does not exist. Once it exists, push a change to that
-    workflow; the study runs once and saves to `evidence-d2-results`. Record the result as is.
-  - The owner asked on 2026-10-15 whether to continue or pause. Check the conversation before running it.
+- [x] D2 (pre-registered in `aa6f75a`; result `950d75d` on `evidence-d2-results`). Binance positioning: XS_TOP_DIV
+  (follow the top traders where they disagree with the crowd) and XS_CROWD_FADE (fade the crowd's own long/short
+  ratio). Both use a one-day lag, because a live desk can only read the previous day's file.
+  - Data: `tools/v9/metrics_fetch.py` (`6d088bf`) through `metrics.yml` to `archive-metrics`: 532,738 daily files and
+    778 coins, with none failed, in 2.7 hours. The metrics start in 2020-09. The survey and log are on
+    `metrics-results`.
+  - Order of events: the download finished at 18:37 UTC and the pre-registration was committed at 18:40, with nothing
+    from the dataset fetched or read. The study ran once, at 18:41, triggered by that commit. The document's line
+    "its download was still running" was true when written, not at commit time. The document is left unedited because
+    its hash is in the result.
+  - It used the same candles and funding as phase B (digest `cd4651eb…`). Signal coverage was 79% / 89% of eligible
+    coin-days, from 2020-09-04.
+  - **Result: no side is confirmed. Nothing deploys, and no definition will be changed.**
+
+  | Side | Trades | Holdout R (Holm p) | Design window R (p) | Fails |
+  |---|---|---|---|---|
+  | XS_TOP_DIV long | 1069 | +0.025 (0.49) | −0.032 (0.86) | b, c, e, f, g, i, j |
+  | XS_TOP_DIV short | 1282 | −0.021 (0.88) | −0.093 (1.00) | b, c, d, e, f, g, i, j |
+  | XS_CROWD_FADE long | 1050 | +0.041 (0.16; raw p 0.039) | −0.005 (0.57) | b, c, d, f, i |
+  | XS_CROWD_FADE short | 1373 | +0.004 (0.88) | −0.019 (0.79) | b, c, e, f, g, i, j |
+
+  - Neither definition shows an edge after costs in either window. The legacy picks used these ratios as score inputs;
+    as daily rotations on survivorship-free data, they do not hold up. Open interest and the taker ratio are in the
+    dataset but were not part of this study.
 - [ ] D3. The legacy 1-hour funding strategies, FUND_FADE (absolute thresholds) and FUND_CARRY. They need hourly
   candles, so they wait for A5's hourly archive.
 - [ ] D4. Basis / premium (archive `premiumIndexKlines`).
@@ -437,7 +457,7 @@ How every phase D study runs (D1 set the pattern):
     are D3.
   - Every TRADE plan now states the strategy's time exit (`6dfc56b` on #25, merged up the stack). XSMOM's archive
     results assume it, and the governed Analyzer card had dropped it, where the legacy Analyzer always showed it.
-  - D2: the metrics fetcher and the study were written and pre-registered (see the D2 item). The dataset download
-    was still running at the end of the session.
+  - D2: Binance metrics fetched (532,738 files) and two positioning strategies pre-registered and tested once. Neither
+    is confirmed (see the D2 item).
   - D7 needs no run: it already fails the gate's holdout check on phase A's numbers.
   - B8 is still pending: a check is scheduled in the session for 2026-10-15 00:40 UTC.
