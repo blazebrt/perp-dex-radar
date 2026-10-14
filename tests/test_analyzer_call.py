@@ -57,7 +57,7 @@ const smart = (row, trade, verdict) => ({generated: NOW - 3 * H, traders_n: 200,
   coins: row ? [Object.assign({coin: "AAA", hl: "AAA", side: "short", signal: true, info: false, proven: false, text: "3 proven traders opened shorts in 24 h",
     traders: 10, n_long: 4, n_short: 6, identity: "VERIFIED_CRYPTO"}, row)] : [],
   open: trade ? [Object.assign({coin: "AAA", hl: "AAA", d: -1, t_in: NOW - 3 * H, px: 101, last_px: 100.4, stop_pct: 0.03, t_out_by: NOW + 21 * H, kind: "signal"}, trade)] : []});
-const call = (src, o) => TA.decide(Object.assign({coin: "AAA", price: 100.5, d1: d1(), now: NOW, account: 500, risk: 0.02, src}, o || {}));
+const call = (src, o) => TA.decide(Object.assign({coin: "AAA", price: 100.5, d1: d1(), now: NOW, src}, o || {}));
 const brief = (r) => ({verdict: r.verdict, side: r.side, tier: r.tier, lead: r.lead && r.lead.src, plan: r.plan, conflict: r.conflict, headline: r.headline,
   signals: r.signals.map((s) => [s.src, s.side, s.tier]), sigPlans: r.signals.map((s) => s.plan), sigErrors: r.signals.map((s) => s.planError),
   expired: r.expired.map((s) => [s.src, s.why]), against: r.against.map((s) => s.src), status: r.authority.status,
@@ -148,7 +148,7 @@ class AnalyzerCall(unittest.TestCase):
         R = self.R
         r = R["swing"]
         self.no_call(r)
-        self.assertEqual(r["signals"], [["swing", "long", "Proven"]])           # the picks research's own label
+        self.assertEqual(r["signals"], [["swing", "long", "Unqualified historical result"]])           # the picks research's own label
         p = r["sigPlans"][0]
         self.assertEqual(p["kind"], "swing")
         self.assertAlmostEqual(p["tested"]["entry"], 100.0)                  # today's open
@@ -215,7 +215,7 @@ class AnalyzerCall(unittest.TestCase):
         fresh = R["smartNoTrade"]["sigPlans"][0]                            # no paper trade yet: a fresh stop and window
         self.assertAlmostEqual(fresh["stopPct"], 0.015, places=9)           # flat daily closes: the 1.5% minimum
         self.assertEqual(fresh["exitBy"], R["NOW"] - 3 * 3600 + 24 * 3600)
-        self.assertEqual(R["smartProvenLive"]["signals"], [["smart", "short", "Proven"]])   # smart.json's own label
+        self.assertEqual(R["smartProvenLive"]["signals"], [["smart", "short", "Unqualified historical result"]])   # smart.json's own label
         self.no_call(R["smartProvenLive"])
 
     def test_smart_signal_needs_verified_crypto_identity(self):
@@ -285,7 +285,7 @@ const quantResearch = {window_3y: [1703793600, 1791072000], strategies: Object.f
   [k, {verdict: "live", three_year: {n: 1181, wr: 0.4141, avg: 0.0564}, years: [{from: 1759536000, to: 1791072000, n: 483, avg: 0.0977}]}]))};
 const excellent = (side, extra) => Object.assign({picks: picks(side), picksResearch, smart: smart(side), quantResearch,
   quant: quant([pos("TSMOM", side === "long" ? 1 : -1)].concat(extra || []))}, {});
-const call = (src, o) => TA.decide(Object.assign({coin: COIN, price: 100.5, d1: d1(), now: NOW, account: 500, risk: 0.02, src}, o || {}));
+const call = (src, o) => TA.decide(Object.assign({coin: COIN, price: 100.5, d1: d1(), now: NOW, src}, o || {}));
 const all = (o) => JSON.stringify(o);
 const brief = (r) => ({verdict: r.verdict, side: r.side, tier: r.tier, lead: r.lead && {src: r.lead.src, tier: r.lead.tier, side: r.lead.side,
     authority: r.lead.authority.id, planError: r.lead.planError || null}, plan: r.plan, conflict: r.conflict, headline: r.headline,
@@ -433,13 +433,13 @@ class Phase11Authority(unittest.TestCase):
     def test_3_proven_swing_record_cannot_override_watch_or_avoid(self):
         for case, verdict in (("swingWatch", "WATCH"), ("swingAvoid", "AVOID")):
             r = self.R[case]
-            self.assertEqual([(s["src"], s["side"], s["tier"]) for s in r["signals"]], [("swing", "long", "Proven")], case)
+            self.assertEqual([(s["src"], s["side"], s["tier"]) for s in r["signals"]], [("swing", "long", "Unqualified historical result")], case)
             self.no_call(r, verdict)
 
     def test_4_proven_smart_money_record_cannot_override_watch_or_avoid(self):
         for case, verdict in (("smartWatch", "WATCH"), ("smartAvoid", "AVOID")):
             r = self.R[case]
-            self.assertEqual([(s["src"], s["side"], s["tier"]) for s in r["signals"]], [("smart", "short", "Proven")], case)
+            self.assertEqual([(s["src"], s["side"], s["tier"]) for s in r["signals"]], [("smart", "short", "Unqualified historical result")], case)
             self.no_call(r, verdict)
 
     def test_5_a_phase11_trade_permits_the_matching_direction(self):
@@ -449,17 +449,17 @@ class Phase11Authority(unittest.TestCase):
         self.assertEqual((r["verdict"], r["side"], r["tier"], r["status"], r["state"]), ("LONG", "long", "TRADE", "AVAILABLE", "TRADE"))
         self.assertEqual(r["lead"], {"src": "quant", "tier": "TRADE", "side": "long", "authority": trade_id, "planError": None})
         p = r["plan"]
-        self.assertEqual((p["kind"], p["side"], p["riskShare"]), ("quant", "long", 1))
-        self.assertAlmostEqual(p["stop"], 90.0, places=9)                   # the desk position's own stop
-        self.assertAlmostEqual(p["size"] * p["stopPct"], 500 * 0.02, places=9, msg="the stop costs exactly the chosen risk")
-        self.assertIn("Phase 11 decision: TRADE", r["headline"])
-        self.assertEqual(R["tradeCoins"], [{"coin": "HI", "side": "long", "tier": "TRADE", "srcs": ["phase11"], "strategy": "REQ", "rank": 1}])
-        nd = R["tradeNoDesk"]                                               # no desk position loaded: the call, no plan
-        self.assertEqual((nd["verdict"], nd["plan"], nd["lead"]["src"]), ("LONG", None, "phase11"))
-        self.assertIn("not in the loaded scan", nd["lead"]["planError"])
-        st = R["tradeStopped"]                                              # the desk's stop was hit since the decision
-        self.no_call(st, "WAIT")
-        self.assertIn("No call until the next decision", st["headline"])
+        expected = next(c['proposal'] for c in self.docs['tradeLong']['candidates'] if c['state']=='TRADE')
+        self.assertEqual((p['kind'],p['side'],p['riskShare']), ('governed','long',1))
+        self.assertEqual(p['entry'], expected['mark'])
+        self.assertEqual(p['stop'], expected['stop'])
+        self.assertEqual(p['size'], expected['notional'])
+        self.assertEqual(p['riskUsd'], expected['stop_risk_usd'])
+        self.assertIn('Phase 11 decision: TRADE', r['headline'])
+        nd=R['tradeNoDesk']
+        self.assertEqual((nd['verdict'],nd['plan'],nd['lead']['src']), ('LONG',p,'phase11'))
+        # A legacy paper position's newer stop cannot reprice the approved proposal.
+        self.assertEqual(R['tradeStopped']['plan'],p)
 
     def test_6_avoid_blocks_even_when_every_legacy_input_looks_excellent(self):
         for case, code in (("avoidExcellent", "STRATEGY_DISABLED"), ("breachExcellent", "PORTFOLIO_LIMIT_BREACHED")):
@@ -481,7 +481,7 @@ class Phase11Authority(unittest.TestCase):
         want = {"missing": "MISSING", "nul": "MISSING", "stale": "STALE", "schema": "MALFORMED", "noValid": "MALFORMED",
                 "noCands": "MALFORMED", "noAssets": "MALFORMED", "notObject": "MALFORMED", "noAuthority": "MALFORMED",
                 "candState": "MALFORMED", "candDir": "MALFORMED", "candValid": "MALFORMED", "candExpired": "STALE",
-                "candBlockers": "MALFORMED", "staleDoc": "STALE", "staleWatch": "STALE"}
+                "candBlockers": "MALFORMED", "staleDoc": "MALFORMED", "staleWatch": "STALE"}
         self.assertEqual(set(R["failClosed"]), set(want))
         for k, status in want.items():
             with self.subTest(authority=k):
@@ -513,10 +513,10 @@ class Phase11Authority(unittest.TestCase):
         R = self.R
         self.assertEqual(R["riskShare"], {"TRADE": 1}, "only a Phase 11 TRADE has a risk share")
         r = R["provenEverywhere"]
-        self.assertTrue(any(s["tier"] == "Proven" for s in r["signals"]))
+        self.assertTrue(any(s["tier"] == "Unqualified historical result" for s in r["signals"]))
         self.no_call(r, "WAIT")
         sized = [k for k, v in R.items() if isinstance(v, dict) and v.get("plan")]
-        self.assertEqual(sorted(sized), ["longTradeLegacyShort", "shortTradeLegacyLong", "trade"],
+        self.assertEqual(sorted(sized), ["longTradeLegacyShort", "shortTradeLegacyLong", "trade", "tradeNoDesk", "tradeStopped"],
                          "a sized plan exists only for a current Phase 11 TRADE")
         for k in sized:
             self.assertEqual((R[k]["tier"], R[k]["plan"]["riskShare"]), ("TRADE", 1), k)

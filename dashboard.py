@@ -114,7 +114,7 @@ def picks_accuracy(P, PR):
     live = rec(ls.get("n"), ls.get("wr"), ls.get("avg"), ls.get("avg_ret"),
                f"since {month_year(rp.get('since'))}" if rp.get("since") else None)
     if t["n"] and (t.get("r") or 0) > 0 and years_n and years_ok == years_n:
-        verdict, tone = "Proven", "good"
+        verdict, tone = "Unqualified historical result", "warn"
         why = (f"Positive after fees in every test year, longs and shorts ({years_ok} of {years_n}). "
                "Only picks scoring 80+ count; lower scores show what is setting up.")
     elif t["n"]:
@@ -208,7 +208,7 @@ def radar_accuracy(R):
     passed = [s for s in st if s.get("status") == "passed" and not s.get("variant")]
     base = [s for s in st if not s.get("variant")]
     if passed:
-        verdict, tone = "Passed", "good"
+        verdict, tone = "Historical diagnostic", "warn"
         why = f"{len(passed)} of {len(base)} strategies passed live paper trading; only those are published."
     elif base:
         verdict, tone = "Not proven", "warn"
@@ -228,10 +228,10 @@ def smart_accuracy(S, R):
     acc = (S or {}).get("accuracy") or {}
     if acc:
         t, lv = acc.get("tested") or {}, acc.get("live") or {}
-        return {"name": "Smart money", "sub": acc.get("sub") or "Hyperliquid's proven traders", "page": "smart.html",
+        return {"name": "Smart money", "sub": (acc.get("sub") or "Hyperliquid's leaderboard traders").replace("proven traders", "leaderboard traders"), "page": "smart.html",
                 "tested": rec(t.get("n"), t.get("win"), t.get("r"), t.get("ret"), t.get("period"), t.get("note")),
                 "live": rec(lv.get("n"), lv.get("win"), lv.get("r"), lv.get("ret"), lv.get("period"), lv.get("note")),
-                "verdict": acc.get("verdict") or "Testing", "tone": acc.get("tone") or "warn",
+                "verdict": "Historical diagnostic", "tone": "warn",
                 "why": acc.get("why_short") or acc.get("why") or ""}
     j = (R or {}).get("journal") or {}
     les = next((x for x in j.get("lessons") or [] if x.get("bucket") == "sm_long"), None)
@@ -284,17 +284,17 @@ def picks_card(P, acc_swing, acc_day):
     st = (P or {}).get("settings") or {}
     ready_at = st.get("ready") or 80
     ready = [r for r in sw if (r.get("score") or 0) >= ready_at]
-    items = [{"coin": r["coin"], "side": r["side"], "score": r.get("score"), "label": r.get("label"),
+    items = [{"coin": r["coin"], "side": r["side"], "score": r.get("score"), "label": "Watchlist score",
               "kind": "swing", "ready": (r.get("score") or 0) >= ready_at, "setup": r.get("setup"),
               "chg24": rnd(r.get("chg24"))} for r in sw[:5]]
     if ready:
-        status = {"tone": "good", "text": f"{len(ready)} swing pick{'s' if len(ready) > 1 else ''} ready (80+)"}
+        status = {"tone": "good", "text": f"{len(ready)} swing pick{'s' if len(ready) > 1 else ''} at watchlist score 80+"}
     else:
-        status = {"tone": "wait", "text": "No swing setup ready (80+); the closest are below"}
+        status = {"tone": "wait", "text": "No swing diagnostic at score 80+; the closest are below"}
     good_day = [r for r in dy if (r.get("score") or 0) >= 80]
     open_n = len(((P or {}).get("record") or {}).get("open") or [])
     return {"id": "picks", "name": "Coin picks", "page": "picks.html", "logo": "P",
-            "what": "Swing and day-trade scores for every coin on your DEXs, with a trade plan",
+            "what": "Swing and day-trade scores for every coin on your DEXs, with a hypothetical diagnostic plan",
             "updated": (P or {}).get("generated"), "status": status, "items": items,
             "day": [{"coin": r["coin"], "side": r["side"], "score": r.get("score")} for r in good_day[:5]],
             "open_paper": open_n, "accuracy": [acc_swing, acc_day]}
@@ -366,7 +366,7 @@ def signals(P, Q, R, S):
     for r in (((P or {}).get("swing") or {}).get("all") or [])[:10]:
         if (r.get("score") or 0) >= (st.get("watch") or 60):
             add(r.get("coin"), "swing", r.get("side"), f"{r.get('side')} {r.get('score', 0):.0f}"
-                + (" ready" if r["score"] >= ready_at else ""), r["score"] >= ready_at)
+                + (" watchlist" if r["score"] >= ready_at else ""), r["score"] >= ready_at)
     for r in (((P or {}).get("daytrade") or {}).get("all") or [])[:10]:
         if (r.get("score") or 0) >= 80:
             add(r.get("coin"), "day", r.get("side"), f"{r.get('side')} {r.get('score', 0):.0f}", False)

@@ -501,7 +501,7 @@ function renderOpen() {
   $("heroOpen").textContent = open.length;
   const longs = open.filter((x) => x.d > 0).length;
   $("heroOpenSub").textContent = open.length ? `${longs} long · ${open.length - longs} short · ${fresh.size} new this scan` : "None right now.";
-  $("sigNote").textContent = "Sizes use your account and risk above. Orders: enter at market, place the stop, move it as the trailing stop moves.";
+  $("sigNote").textContent = "Hypothetical sizes use your account and risk above. These paper positions are diagnostics, not approved orders. Use TODAY / Analyzer for current governed authority.";
   const head = el("tr", {}, ["Coin", "Side", "Strategy", "Entered", "Entry", "Stop now", "P&L", "Your size", "Exit by"].map((h, i) => el("th", { class: i >= 4 && i <= 7 ? "num" : "", text: h })));
   t.append(el("thead", {}, head));
   const body = el("tbody");
@@ -819,8 +819,9 @@ function renderClosed() {
     const side = el("span", { class: "pill " + (x.d > 0 ? "long" : "short") }, [el("span", { class: "dot" }), x.d > 0 ? "Long" : "Short"]);
     tb.append(el("tr", {}, [el("td", {}, el("b", { text: x.c })), el("td", {}, side), el("td", { class: "ink2", text: NAMES[x.s] || x.s }),
       el("td", { class: "ink2", text: dt(x.t_in) }), el("td", { class: "ink2", text: x.t_out ? dt(x.t_out) : "–" }),
-      el("td", { class: "ink2", text: why[(x.res || {}).state] || "" }),
-      el("td", { class: "num " + tone(x.r), text: sgn(x.r) + "R" })]));
+      el("td", { class: "ink2", text: (why[(x.res || {}).state] || "") + " · " + ((x.execution || {}).state || "LEGACY_EXECUTION_UNQUALIFIED") }),
+      el("td", { class: "num " + tone(x.r) }, [x.r == null ? "Unknown / unqualified" : sgn(x.r) + "R",
+        el("div", {class: "muted small", text: (x.execution || {}).state === "QUALIFIED" ? "Execution evidence qualified; current authority is on TODAY" : "Stored diagnostic; excluded from qualified evidence"})])]));
   }
   t.append(tb);
 }
