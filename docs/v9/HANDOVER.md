@@ -176,7 +176,7 @@ Everything is honest about uncertainty and nothing places orders.
 - [x] A3. Re-test the 17 4h/daily candidates and the swing score (`evidence.py`), with Phase 9 statistics.
 - [ ] A4. Run all census trials (the qgrid grids, 199 or more) on the archive. That gives a complete known-trial
   return matrix, so DSR uses measured across-trial Sharpe variance and PBO covers the known family.
-  - [x] A4.1 (2026-10-15, `v9/census-evidence`). Validate and pin all 199 trial IDs, expanded parameters, required timeframes and replay code hash. Three tests cover reproduction and corrupted identities/counts/parameters.
+  - [x] A4.1 (`7427b5e`, 2026-10-15, draft PR #30). Validate and pin all 199 trial IDs, expanded parameters, required timeframes and replay code hash. Three tests cover reproduction and corrupted identities/counts/parameters.
   - [ ] A4.2. Implement and synthetically validate the replay runner and common daily return matrix; commit its protocol before reading new market results.
   - [ ] A4.3. Run the 192 4h/daily definitions on phase B's pinned dataset, preserving each trial and explicit errors.
   - [ ] A4.4. After A5, run the seven hourly definitions and assemble all 199 columns; calculate DSR/PBO with explicit unavailable cases, record the evidence run, and review the report.
@@ -508,6 +508,7 @@ How every phase D study runs (D1 set the pattern):
 
 - **2026-10-15 (Codex continuation): A4 inventory.**
   - Started from main `0953535` on `v9/census-evidence`; read CLAUDE.md and the three A/B, D1 and D2 result reports.
-  - Completed A4.1: deterministic, fail-closed inventory of all 199 known definitions and the seven-trial dependency on A5. The plan retains historical and replay code identities separately.
+  - Completed A4.1 (`7427b5e`, draft PR #30): deterministic, fail-closed inventory of all 199 known definitions and the seven-trial dependency on A5. The plan retains historical and replay code identities separately.
   - A4 remains IN PROGRESS. No new market-data evidence run, strategy promotion, merge or deployment has occurred.
   - Next: A4.2 runner and synthetic validation, then A4.3; A5 is required before A4.4. All other unchecked roadmap items remain open.
+  - Validation on `7427b5e`: focused inventory tests pass; push CI [38709165498](https://github.com/blazebrt/perp-dex-radar/actions/runs/38709165498) and PR CI [38709216458](https://github.com/blazebrt/perp-dex-radar/actions/runs/38709216458) both pass, including research, no-edge, parity and desk checks. The dependency-enabled local Linux full suite also passes: 976 tests, no skips. The Windows full run (962 tests) encountered path-separator, CSV-newline and parity failures; CI runs on Linux.
