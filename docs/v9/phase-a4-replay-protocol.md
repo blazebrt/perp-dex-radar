@@ -42,7 +42,8 @@ strategy authority changes as a result of this study.
 
 ## Artifacts and acceptance
 
-The runner writes `trades_a4.jsonl.gz`, `daily_returns.npz`, `REPORT_A4.md`, and
+The runner writes one `trades/<trial_id>.jsonl.gz` file per completed trial,
+`trades_a4.json` binding their hashes and row counts, `daily_returns.npz`, `REPORT_A4.md`, and
 last, `evidence_a4.json` with artifact hashes. Refuse a nonempty output directory.
 An interrupted run without the final evidence document is incomplete.
 

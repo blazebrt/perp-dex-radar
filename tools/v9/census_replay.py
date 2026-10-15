@@ -95,6 +95,7 @@ def replay(panel, features, universe, plan, start, end, simulate, trade_sink):
         trade_sink(tid, rows)
         summaries.append(dict(trial_id=tid, status='REPLAYED', signals=signals, trades=len(rows),
                               total_net_R=float(matrix[:, k].sum())))
+        print(f'{k+1}/{len(trials)} {tid[:12]} replayed: {len(rows)} trades', flush=True)
     return matrix, summaries
 
 
@@ -134,12 +135,19 @@ def run(md, out, phase_b_evidence, replications=5000):
         return EV.trades_of(p, f, trial['trial_id'], getattr(qstrat, trial['implementation']),
                             trial['params'], uni)
 
-    # Stream trade records instead of retaining 192 trials' trades in memory.
-    with gzip.open(destination / 'trades_a4.jsonl.gz', 'wt', encoding='utf8', newline='\n') as fh:
-        def sink(tid, rows):
+    # One file per trial keeps artifacts below GitHub's per-file size limit.
+    # A small hashed manifest binds all files without loading all trades at once.
+    (destination / 'trades').mkdir()
+    trade_files = {}
+    def sink(tid, rows):
+        name = f'trades/{tid}.jsonl.gz'
+        with gzip.open(destination / name, 'wt', encoding='utf8', newline='\n') as fh:
             for row in rows:
                 fh.write(json.dumps(dict(row, trial_id=tid), sort_keys=True, allow_nan=False) + '\n')
-        matrix, summaries = replay(panel, features, universe, plan, start, end, simulate, sink)
+        trade_files[name] = dict(sha256=hashlib.sha256((destination / name).read_bytes()).hexdigest(),
+                                trades=len(rows))
+    matrix, summaries = replay(panel, features, universe, plan, start, end, simulate, sink)
+    (destination / 'trades_a4.json').write_text(json.dumps(trade_files, sort_keys=True), encoding='utf8')
 
     names = [r['trial_id'] for r in plan['trials']]
     done = [k for k, s in enumerate(summaries) if s['status'] == 'REPLAYED']
@@ -154,6 +162,7 @@ def run(md, out, phase_b_evidence, replications=5000):
     np.savez_compressed(destination / 'daily_returns.npz',
                         days=np.arange(start // DAY, end // DAY + 1),
                         trial_ids=np.asarray(names), returns=matrix)
+    print('Computing diagnostic family statistics', flush=True)
     doc = dict(schema='v9.census-replay/1', provenance=provenance, window=[start, end],
                historical_trial_census_complete=False, known_trial_return_matrix_complete=False,
                promotion_authority=False, confirmed=[], trials=summaries,
@@ -169,7 +178,7 @@ def run(md, out, phase_b_evidence, replications=5000):
               'Unknown historical trials remain unknown.\n')
     (destination / 'REPORT_A4.md').write_text(report, encoding='utf8')
     doc['artifacts'] = {name: hashlib.sha256((destination / name).read_bytes()).hexdigest()
-                        for name in ('daily_returns.npz', 'trades_a4.jsonl.gz', 'REPORT_A4.md')}
+                        for name in ('daily_returns.npz', 'trades_a4.json', 'REPORT_A4.md')}
     # Written last: interrupted/failed runs never have a completed evidence document.
     (destination / 'evidence_a4.json').write_text(
         json.dumps(doc, sort_keys=True, indent=2, allow_nan=False) + '\n', encoding='utf8')

@@ -95,9 +95,14 @@ class SyntheticArchive(unittest.TestCase):
                     self.assertEqual(len(set(arrays['trial_ids'])), 199)
                     sums = dict(zip(arrays['trial_ids'], np.nansum(matrix, axis=0)))
                 totals = {}
-                with gzip.open(out / 'trades_a4.jsonl.gz', 'rt') as fh:
-                    for line in fh:
-                        row = json.loads(line)
+                trade_files = json.loads((out / 'trades_a4.json').read_text())
+                self.assertEqual(len(trade_files), 192)
+                for name, info in trade_files.items():
+                    self.assertEqual(hashlib.sha256((out / name).read_bytes()).hexdigest(), info['sha256'])
+                    with gzip.open(out / name, 'rt') as fh:
+                        rows = [json.loads(line) for line in fh]
+                    self.assertEqual(len(rows), info['trades'])
+                    for row in rows:
                         totals[row['trial_id']] = totals.get(row['trial_id'], 0) + row['net_R']
                 self.assertTrue(totals, 'fixture must execute trades')
                 for row in doc['trials']:
