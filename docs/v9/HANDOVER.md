@@ -16,18 +16,9 @@ This file is that plan. Keep it current.
 ## 0. How to resume
 
 1. Read `CLAUDE.md`. It covers environment facts, the results branches and the rules.
-2. Check whether v9 is merged. **PR #28** (`v9/research-d1` → `main`, not a draft) carries all v9 work in one
-   merge:
-   - #25: phases A and B (evidence engine, probation tier, governed book);
-   - #26: phase C (live market context) and the alerts;
-   - #27: phase D research, the evidence run history and the test coverage.
-
-   The owner asked on 2026-10-15 to merge everything. The merge API call was blocked by the session's automatic
-   safety check, so the merge is the owner's click: **Merge pull request → Create a merge commit**, not squash. A
-   merge commit keeps the pre-registration commits in `main`'s history, and D1 and D2 rely on their order. After the
-   merge, close #25, #26 and #27 as merged through #28.
-
-   PR #24 (the v8 desk) was merged into main on 2026-10-14 with the owner's accuracy fixes.
+2. v9 is merged into `main` (PR #28, merge commit `f58c058`), so start from `main` and work on a new `v9/...`
+   branch with a draft PR. #25, #26 and #27 are closed as merged through #28. PR #24 (the v8 desk) was merged on
+   2026-10-14. The local clone fetches `v9/*` branches; results branches still need an explicit refspec.
 3. Read the latest evidence. Fetch each results branch with an explicit refspec (see `CLAUDE.md`), then:
    - `git show origin/evidence-results:REPORT.md` (phase A/B: the legacy strategies);
    - `git show origin/evidence-d1-results:REPORT_D1.md` and `origin/evidence-d2-results:REPORT_D2.md` (phase D);
@@ -38,7 +29,7 @@ This file is that plan. Keep it current.
 
 | Area | State | Where |
 |---|---|---|
-| Release | **All v9 work is in PR #28** (`v9/research-d1` → `main`, carrying #25, #26 and #27). Required checks and a live Research run are green. **Waiting for the owner's merge click** (Create a merge commit); the session's safety check blocked the merge API. | PR #28 |
+| Release | **v9 is merged into `main`** (PR #28, merge commit `f58c058`, 2026-10-15, at the owner's request), carrying #25, #26 and #27; those three are closed. The first production Scan on `main` published the v9 desk and the first market-history record. | PR #28 |
 | v8 desk (Today, Analyzer, Funding, Portfolio, Research) | **Merged into main** (PR #24, 2026-10-14, with the owner's accuracy fixes). | `today.html`, `desk.js`, `desk.css` |
 | Data-source survey | **Done.** 102 sources probed from the Actions runner; 81 answer. | `docs/v9/data-sources.md`, branch `probe-results` |
 | Survivorship-free evidence engine | **v1 done.** 17 daily/4h strategies plus the coin-picks swing score, on 750 coins (170 delisted), 2020-01 to 2026-09. Every run is recorded, hash-chained and pinned to its dataset (A8). | `tools/v9/archive_fetch.py`, `tools/v9/evidence.py`, `research/v9/evidence_runs.jsonl`, branch `evidence-results` |
@@ -269,18 +260,20 @@ Result (evidence run `fd03198`, `tools/v9/confirm.py`):
   - Size is halved.
   - The governed book excludes holdovers.
   - Update the Phase 9, 10, 11 and 12 tests and goldens, with a delta manifest that pins the decision changes.
-- [ ] B8. Live check: the Research run on the exact head shows XSMOM long TRADE candidates whenever the signal fires
-  and every other gate passes.
-  - Run it after a 00:00 UTC daily close on or after 2026-10-15 (`gh workflow run research.yml --ref
-    v9/data-driven-desk`, then read the `research` branch).
-  - Before that close, XSMOM longs are WATCH with `PROBATION_NOT_YET_EFFECTIVE`, by design.
-  - Pre-close run 38577739231 on `240830e` (2026-10-14 14:27 UTC): every mandatory step passed.
-    - The governed book was WITHIN_LIMITS while the legacy paper book was LIMIT_BREACHED (diagnostic only).
-    - The four XSMOM shorts were WATCH with `STRATEGY_SIDE_NOT_CONFIRMED`.
-    - There was no XSMOM long signal. The top five of the 58 ranked coins (BAT, STX, STRK, S, TIA) needed stops
-      wider than 20% (2.5 daily ATRs). The archive skips those too (qstrat `MAX_STOP`). The production journal shows
-      about one XSMOM long every two days.
-  - A follow-up for this check is scheduled in the session for 2026-10-15 00:40 UTC.
+- [x] B8. Live check, after the 2026-10-15 00:00 UTC close (Research run 38661431562 on `45e387a`, the same tree
+  as `main` `f58c058`; results `ee107d4` on the `research` branch).
+  - Every mandatory step passed. The forward test is in effect.
+  - The close produced fresh signals, all shorts:
+    - XSMOM short on ETH, SOL and XLM: WATCH with `STRATEGY_SIDE_NOT_CONFIRMED`, as designed;
+    - five TSMOM and TREND_EMA shorts: WATCH with `STRATEGY_RESEARCH_AUTHORITY_INSUFFICIENT`;
+    - one TREND_EMA short: AVOID for an economic-exposure conflict.
+  - Nothing became TRADE (24 WATCH, 336 AVOID). The governed book was WITHIN_LIMITS while the legacy paper book was
+    LIMIT_BREACHED, which is diagnostic only.
+  - quant.py emitted **no XSMOM long signal** at this close, so the live TRADE path has not fired yet. At the
+    previous close the cause was that all top-5 coins needed stops wider than 20% (the archive's rule). The path is
+    covered by `tests/test_v9_decision.py`, and the first live one will show on Today, in the journal and in the
+    alerts.
+  - Next session: on the first close with an XSMOM long signal, confirm it is TRADE, tier PROBATION, at 0.5× size.
 - [ ] B9. Known follow-ups:
   - TREND_EMA has no edge in the archive. A reviewed policy change could mark it REJECTED (AVOID).
   - Legacy WATCH signals still feed Emerging.
@@ -453,11 +446,8 @@ How every phase D study runs (D1 set the pattern):
   - `COINALYZE_API_KEY`: the best free liquidation history. Sign up at coinalyze.net, then API key.
   - `CRYPTOPANIC_API_KEY`: news.
   - `FRED_API_KEY`: macro.
-- **Merge PR #28 with "Create a merge commit".** It carries #25, #26 and #27, and its required checks are green.
-  - Merging is what turns XSMOM long's probation on in production; that merge is the review of the policy rows.
-  - The production site updates at the next Scan run on `main`. Scans are scheduled every 20 minutes but GitHub has
-    been running them every few hours; Actions → Scan → Run workflow publishes at once.
-  - Then close #25, #26 and #27 as merged through #28.
+- Nothing to merge. Watch the first XSMOM long TRADE: it appears only when a top-ranked coin's stop fits within 20%
+  at a 00:00 UTC close. The alerts tell you when it does, once the secrets are in.
 - No login-only sites are needed. Every source used is a public API or public page.
 
 ## 8. Session log
@@ -501,6 +491,10 @@ How every phase D study runs (D1 set the pattern):
     - D2 and D7, recorded above.
   - Tested on head `3fa4c91`: the full suite, CI on push and on the pull request, and live Research run 38621408999
     (every mandatory step green; four XSMOM shorts WATCH `STRATEGY_SIDE_NOT_CONFIRMED`, no XSMOM long signal yet).
-  - PR #28 (`v9/research-d1` → `main`) carries #25, #26 and #27. The merge API call was blocked by the session's
-    automatic safety check, so the merge is the owner's click (see section 0).
-  - B8 is still pending: a check is scheduled in the session for 2026-10-15 00:40 UTC.
+  - PR #28 (`v9/research-d1` → `main`) carries #25, #26 and #27. The first merge API call was blocked by the session's
+    automatic safety check; the owner then asked for the merge explicitly and it went through.
+  - B8 ran after the 2026-10-15 00:00 UTC close (see below and the B8 item).
+  - Merged at the owner's request (2026-10-15 01:35 IST): PR #28 into `main` as merge commit `f58c058`. #25 to #27
+    closed. A Scan on `main` published the v9 desk; CI on `main` is green.
+  - B8 after the 00:00 UTC close: the gates behave as designed live, nothing became TRADE, and there was no XSMOM long
+    signal at that close (see B8).
