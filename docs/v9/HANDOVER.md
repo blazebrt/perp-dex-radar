@@ -32,7 +32,7 @@ This file is that plan. Keep it current.
 | Release | **v9 is merged into `main`** (PR #28, merge commit `f58c058`, 2026-10-15, at the owner's request), carrying #25, #26 and #27; those three are closed. The first production Scan on `main` published the v9 desk and the first market-history record. | PR #28 |
 | v8 desk (Today, Analyzer, Funding, Portfolio, Research) | **Merged into main** (PR #24, 2026-10-14, with the owner's accuracy fixes). | `today.html`, `desk.js`, `desk.css` |
 | Data-source survey | **Done.** 102 sources probed from the Actions runner; 81 answer. | `docs/v9/data-sources.md`, branch `probe-results` |
-| Known-trial replay (A4) | **In progress (2026-10-15).** Validated inventory: 199 trials; 192 use the existing 4h archive, seven require A5. No new market-data replay has run. | `tools/v9/census_plan.py`, `research/v9/census_replay_plan.json` |
+| Known-trial replay (A4) | **In progress (2026-10-15).** A4.1 inventory and A4.2 replay runner implemented in draft PR #30: 199 columns retained, 192 replayed in synthetic validation, seven await A5. No new market-data replay has run. | `tools/v9/census_plan.py`, `research/v9/census_replay_plan.json` |
 | Survivorship-free evidence engine | **v1 done.** 17 daily/4h strategies plus the coin-picks swing score, on 750 coins (170 delisted), 2020-01 to 2026-09. Every run is recorded, hash-chained and pinned to its dataset (A8). | `tools/v9/archive_fetch.py`, `tools/v9/evidence.py`, `research/v9/evidence_runs.jsonl`, branch `evidence-results` |
 | Probation tier (first governed trades) | **Implemented** (`dada154`, in PR #28). XSMOM long is CONFIRMED on (a)–(j). It trades at half size inside a 24h window. Its forward test `V9-PROBATION-XSMOM-LONG-1` starts 2026-10-15 00:00 UTC. The live check is B8. | `docs/v9/phase-b-probation.md`, `research/v9/probation_evidence.json` |
 | Live multi-venue data layer | **C1–C3 built** (in PR #28): `v9/market.py`, `data/v9/market.json`, an hourly history on `v9-market-history`, a Today panel and Analyzer context. 16 of 16 sources answered from Actions. | `docs/v9/market-context.md`, branch `market-results` |
@@ -177,7 +177,7 @@ Everything is honest about uncertainty and nothing places orders.
 - [ ] A4. Run all census trials (the qgrid grids, 199 or more) on the archive. That gives a complete known-trial
   return matrix, so DSR uses measured across-trial Sharpe variance and PBO covers the known family.
   - [x] A4.1 (`7427b5e`, 2026-10-15, draft PR #30). Validate and pin all 199 trial IDs, expanded parameters, required timeframes and replay code hash. Three tests cover reproduction and corrupted identities/counts/parameters.
-  - [ ] A4.2. Implement and synthetically validate the replay runner and common daily return matrix; commit its protocol before reading new market results.
+  - [x] A4.2 (draft PR #30). Implemented `tools/v9/census_replay.py` and the common daily return matrix; synthetic validation exercises all 192 compatible definitions and retains seven missing hourly columns. The fixed protocol is `docs/v9/phase-a4-replay-protocol.md`, committed before any A4 market-data run. Full-family statistics remain unavailable; subset statistics are explicitly diagnostic.
   - [ ] A4.3. Run the 192 4h/daily definitions on phase B's pinned dataset, preserving each trial and explicit errors.
   - [ ] A4.4. After A5, run the seven hourly definitions and assemble all 199 columns; calculate DSR/PBO with explicit unavailable cases, record the evidence run, and review the report.
   - **Dependency correction:** A4 cannot finish before A5. A4.1 discovers seven hourly trials: BTC_LEAD, FAIL_BRK, FUND_CARRY, FUND_FADE, LIQ_FLUSH, PULLBACK and VOL_SPIKE.
@@ -512,3 +512,8 @@ How every phase D study runs (D1 set the pattern):
   - A4 remains IN PROGRESS. No new market-data evidence run, strategy promotion, merge or deployment has occurred.
   - Next: A4.2 runner and synthetic validation, then A4.3; A5 is required before A4.4. All other unchecked roadmap items remain open.
   - Validation on `7427b5e`: focused inventory tests pass; push CI [38709165498](https://github.com/blazebrt/perp-dex-radar/actions/runs/38709165498) and PR CI [38709216458](https://github.com/blazebrt/perp-dex-radar/actions/runs/38709216458) both pass, including research, no-edge, parity and desk checks. The dependency-enabled local Linux full suite also passes: 976 tests, no skips. The Windows full run (962 tests) encountered path-separator, CSV-newline and parity failures; CI runs on Linux.
+
+- **2026-10-15 (Codex continuation): A4 replay runner.**
+  - A4.2 implemented on the existing draft PR #30. Requires the exact phase B evidence binding and matching archive digest, validates the replay plan, streams trial-tagged trades, preserves all 199 columns, and writes the final evidence document only on success.
+  - Synthetic end-to-end validation runs all 192 compatible definitions, reconciles saved trades with the daily matrix, checks artifact hashes, and tests dataset/plan mismatch, invalid returns, interrupted execution and missing-column handling. No production signals or evidence bindings changed.
+  - A4.3 remains pending: wire the Actions run, record every result in the evidence history and review it. A5 hourly data remains required for A4.4. No market-data replay, merge or deployment has occurred in this continuation.
