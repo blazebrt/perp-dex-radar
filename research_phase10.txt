@@ -1,0 +1,95 @@
+test_accrued_funding_known_and_unknown (tests.test_v8_phase10.Arithmetic.test_accrued_funding_known_and_unknown) ... ok
+test_funding_direction_and_credits_never_reduce_risk (tests.test_v8_phase10.Arithmetic.test_funding_direction_and_credits_never_reduce_risk) ... ok
+test_gross_versus_net_and_beta_weighting (tests.test_v8_phase10.Arithmetic.test_gross_versus_net_and_beta_weighting) ... ok
+test_largest_top3_top5_concentration (tests.test_v8_phase10.Arithmetic.test_largest_top3_top5_concentration) ... ok
+test_long_only_short_only_and_offset (tests.test_v8_phase10.Arithmetic.test_long_only_short_only_and_offset) ... ok
+test_same_asset_duplicates_and_multiple_strategies (tests.test_v8_phase10.Arithmetic.test_same_asset_duplicates_and_multiple_strategies) ... ok
+test_sizing_inputs_agree (tests.test_v8_phase10.Arithmetic.test_sizing_inputs_agree) ... ok
+test_slippage_tiers_and_observed_zero_volume (tests.test_v8_phase10.Arithmetic.test_slippage_tiers_and_observed_zero_volume) ... ok
+test_trade_level_risk (tests.test_v8_phase10.Arithmetic.test_trade_level_risk) ... ok
+test_audit_never_raises (tests.test_v8_phase10.AuditIntegration.test_audit_never_raises) ... ok
+test_legacy_outputs_unchanged (tests.test_v8_phase10.AuditIntegration.test_legacy_outputs_unchanged) ... ok
+test_quant_part_carries_the_full_evaluation (tests.test_v8_phase10.AuditIntegration.test_quant_part_carries_the_full_evaluation) ... ok
+test_snapshot_manifest_and_health (tests.test_v8_phase10.AuditIntegration.test_snapshot_manifest_and_health) ... ok
+[01:00] quant: journal (file): 5 open, 0 closed, 3 marked LEGACY_NO_IDENTITY_PROOF
+[01:00] quant: 13 of 13 coins with 4h candles
+[01:00] quant: 2 signals, 2 new paper trades
+[01:00] quant: 0 trades closed this scan, 7 open
+[01:00] quant: 3 open position(s) without current crypto execution identity kept out of the actionable set: FAKE03 TSMOM (IDENTITY_UNVERIFIED), FAKE09 TSMOM (IDENTITY_AUTHORITY_MISSING), FAKE07 TSMOM (AMBIGUOUS_EXPOSURE)
+[01:00] quant: done in 0.3s: 2 new signals, 7 open trades
+[01:00] quant: journal (file): 5 open, 0 closed, 3 marked LEGACY_NO_IDENTITY_PROOF
+[01:00] quant: 16 of 16 coins with 4h candles
+[01:00] quant: 3 signals, 2 new paper trades
+[01:00] quant: 0 trades closed this scan, 7 open
+[01:00] quant: done in 0.1s: 2 new signals, 7 open trades
+[01:00] quant: journal (file): 5 open, 0 closed, 3 marked LEGACY_NO_IDENTITY_PROOF
+[01:00] quant: 13 of 13 coins with 4h candles
+[01:00] quant: 2 signals, 2 new paper trades
+[01:00] quant: 0 trades closed this scan, 7 open
+[01:00] quant: 3 open position(s) without current crypto execution identity kept out of the actionable set: FAKE03 TSMOM (IDENTITY_UNVERIFIED), FAKE09 TSMOM (IDENTITY_AUTHORITY_MISSING), FAKE07 TSMOM (AMBIGUOUS_EXPOSURE)
+[01:00] quant: done in 0.1s: 2 new signals, 7 open trades
+test_D_outside_universe_position_keeps_its_exposure (tests.test_v8_phase10.BlockedOpenBookProduction.test_D_outside_universe_position_keeps_its_exposure) ... ok
+test_F_phase3_separation_is_intact (tests.test_v8_phase10.BlockedOpenBookProduction.test_F_phase3_separation_is_intact) ... ok
+test_blocked_exposure_equals_its_verified_exposure (tests.test_v8_phase10.BlockedOpenBookProduction.test_blocked_exposure_equals_its_verified_exposure)
+The same positions with every coin verified (control): identical exposure, only the label differs. ... ok
+test_every_open_journal_position_is_in_portfolio_risk (tests.test_v8_phase10.BlockedOpenBookProduction.test_every_open_journal_position_is_in_portfolio_risk) ... ok
+test_A_blocked_exposure_changes_portfolio_risk (tests.test_v8_phase10.BlockedOpenExposure.test_A_blocked_exposure_changes_portfolio_risk) ... ok
+test_B_blocked_exposure_can_create_a_breach (tests.test_v8_phase10.BlockedOpenExposure.test_B_blocked_exposure_can_create_a_breach) ... ok
+test_C_missing_liquidity_does_not_erase_exposure (tests.test_v8_phase10.BlockedOpenExposure.test_C_missing_liquidity_does_not_erase_exposure) ... ok
+test_D_outside_the_current_universe (tests.test_v8_phase10.BlockedOpenExposure.test_D_outside_the_current_universe) ... ok
+test_E_unquantifiable_open_position_blocks_a_safe_state (tests.test_v8_phase10.BlockedOpenExposure.test_E_unquantifiable_open_position_blocks_a_safe_state) ... ok
+test_G_what_if_baseline_is_the_whole_open_book (tests.test_v8_phase10.BlockedOpenExposure.test_G_what_if_baseline_is_the_whole_open_book) ... ok
+test_actionability_is_metadata_only (tests.test_v8_phase10.BlockedOpenExposure.test_actionability_is_metadata_only) ... ok
+test_live_mark_and_stop_are_never_fabricated (tests.test_v8_phase10.BlockedOpenExposure.test_live_mark_and_stop_are_never_fabricated) ... ok
+test_byte_identical_results (tests.test_v8_phase10.Determinism.test_byte_identical_results) ... ok
+test_identical_across_processes_and_hash_seeds (tests.test_v8_phase10.Determinism.test_identical_across_processes_and_hash_seeds) ... ok
+test_legacy_planner_stays_a_labelled_diagnostic (tests.test_v8_phase10.EarlierAuthorityUnchanged.test_legacy_planner_stays_a_labelled_diagnostic) ... ok
+test_no_engine_reads_portfolio_risk (tests.test_v8_phase10.EarlierAuthorityUnchanged.test_no_engine_reads_portfolio_risk) ... ok
+test_phase9_authority_and_runtime_code_unchanged (tests.test_v8_phase10.EarlierAuthorityUnchanged.test_phase9_authority_and_runtime_code_unchanged) ... ok
+test_approach_fraction_moves_the_band (tests.test_v8_phase10.Limits.test_approach_fraction_moves_the_band) ... ok
+test_each_limit_value_decides_the_state (tests.test_v8_phase10.Limits.test_each_limit_value_decides_the_state) ... ok
+test_every_limit_at_below_above (tests.test_v8_phase10.Limits.test_every_limit_at_below_above) ... ok
+test_mutating_every_governed_value_changes_the_result (tests.test_v8_phase10.Limits.test_mutating_every_governed_value_changes_the_result)
+Every numeric policy value is consumed: changing any one changes the governed result. ... ok
+test_empty_portfolio_is_within_limits (tests.test_v8_phase10.MissingData.test_empty_portfolio_is_within_limits) ... ok
+test_invalid_portfolio_envelope (tests.test_v8_phase10.MissingData.test_invalid_portfolio_envelope) ... ok
+test_known_breach_is_reported_despite_missing_authority (tests.test_v8_phase10.MissingData.test_known_breach_is_reported_despite_missing_authority) ... ok
+test_missing_dependence_input (tests.test_v8_phase10.MissingData.test_missing_dependence_input) ... ok
+test_missing_funding_is_never_zero (tests.test_v8_phase10.MissingData.test_missing_funding_is_never_zero) ... ok
+test_missing_liquidity_is_never_zero_slippage (tests.test_v8_phase10.MissingData.test_missing_liquidity_is_never_zero_slippage) ... ok
+test_missing_stop_and_malformed_trades (tests.test_v8_phase10.MissingData.test_missing_stop_and_malformed_trades) ... ok
+test_flat_net_book_that_is_dangerous (tests.test_v8_phase10.NoFabricatedSafety.test_flat_net_book_that_is_dangerous)
+Net exposure is zero, so a naive desk calls it flat; gross, stop risk and stress say otherwise. ... ok
+test_small_positions_in_one_dependence_cluster (tests.test_v8_phase10.NoFabricatedSafety.test_small_positions_in_one_dependence_cluster)
+Every asset, strategy and side is within its limit; the co-moving cluster is not. ... ok
+test_future_and_unclosed_bars_never_change_an_evaluation (tests.test_v8_phase10.PointInTime.test_future_and_unclosed_bars_never_change_an_evaluation) ... ok
+test_historical_liquidity_comes_from_the_pit_history_only (tests.test_v8_phase10.PointInTime.test_historical_liquidity_comes_from_the_pit_history_only) ... ok
+test_live_adapter_uses_only_the_scan_inputs (tests.test_v8_phase10.PointInTime.test_live_adapter_uses_only_the_scan_inputs) ... ok
+test_window_ends_at_as_of (tests.test_v8_phase10.PointInTime.test_window_ends_at_as_of) ... ok
+test_costs_match_the_governed_cost_constants (tests.test_v8_phase10.Policy.test_costs_match_the_governed_cost_constants) ... ok
+test_empirical_basis_and_malformed_policy_fail_closed (tests.test_v8_phase10.Policy.test_empirical_basis_and_malformed_policy_fail_closed) ... ok
+test_no_threshold_literal_in_the_authority (tests.test_v8_phase10.Policy.test_no_threshold_literal_in_the_authority)
+Every threshold is read from the policy: the module's numeric literals are only arithmetic/definitional ... ok
+test_policy_is_governed_and_labelled (tests.test_v8_phase10.Policy.test_policy_is_governed_and_labelled) ... ok
+test_adverse_slippage_cost_liquidity_and_funding (tests.test_v8_phase10.Stress.test_adverse_slippage_cost_liquidity_and_funding) ... ok
+test_correlated_market_move (tests.test_v8_phase10.Stress.test_correlated_market_move) ... ok
+test_correlation_spike_has_no_offset_for_hedges (tests.test_v8_phase10.Stress.test_correlation_spike_has_no_offset_for_hedges) ... ok
+test_diversification_appears_normal_but_fails_under_stress (tests.test_v8_phase10.Stress.test_diversification_appears_normal_but_fails_under_stress) ... ok
+test_stress_scenarios_are_all_named_and_governed (tests.test_v8_phase10.Stress.test_stress_scenarios_are_all_named_and_governed) ... ok
+test_stop_realism_and_empirical_tail (tests.test_v8_phase10.Trace.test_stop_realism_and_empirical_tail) ... ok
+test_trace_contract (tests.test_v8_phase10.Trace.test_trace_contract) ... ok
+test_add_raises_risk_and_reports_leverage_after (tests.test_v8_phase10.WhatIf.test_add_raises_risk_and_reports_leverage_after) ... ok
+test_add_that_breaches_a_limit (tests.test_v8_phase10.WhatIf.test_add_that_breaches_a_limit) ... ok
+test_add_without_authority (tests.test_v8_phase10.WhatIf.test_add_without_authority) ... ok
+test_hedge_is_mixed_not_safe (tests.test_v8_phase10.WhatIf.test_hedge_is_mixed_not_safe) ... ok
+test_invalid_proposals (tests.test_v8_phase10.WhatIf.test_invalid_proposals) ... ok
+test_no_change (tests.test_v8_phase10.WhatIf.test_no_change) ... ok
+test_no_ranking_or_execution_surface (tests.test_v8_phase10.WhatIf.test_no_ranking_or_execution_surface) ... ok
+test_reduce_lowers_risk (tests.test_v8_phase10.WhatIf.test_reduce_lowers_risk) ... ok
+
+----------------------------------------------------------------------
+Ran 66 tests in 21.689s
+
+OK
+LIMIT_BREACHED ['max_asset_stop_risk', 'max_cluster_stop_risk', 'max_executable_risk', 'max_side_stop_risk', 'max_strategy_stop_risk', 'max_stressed_loss'] 10
+exit 0

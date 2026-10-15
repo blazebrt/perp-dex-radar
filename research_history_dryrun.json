@@ -1,0 +1,41 @@
+{
+ "append_integrity": "VERIFIED_TAIL",
+ "backfill": {
+  "already_recorded": 48,
+  "appended": 0,
+  "available": 48,
+  "deferred": 0,
+  "downloaded": 0,
+  "errors": []
+ },
+ "branch": "v8-history-dryrun",
+ "history_branch_commit": "60be82953d90a999544c47f8cdaf1573ab7be9b8",
+ "liquidity_precision": {
+  "rounding": "NONE",
+  "significant_digits": 8,
+  "source": "audit registry contract volume"
+ },
+ "observation": {
+  "content_hash": "c556c115437087b7d7e7248cca36b0ba423f345ce7c29f6676aa1ce03cdc49f1",
+  "liquidity": true,
+  "obs_hash": "cce0ba02a23bd9c341f07a8fbf9695e9c5040f30705a0342f5323974b13fd80a",
+  "path": "obs/2026/10/15/00000049-gh-38661431562-1.json.gz",
+  "schema": "v8.history/2",
+  "seq": 49,
+  "state_mode": "DELTA"
+ },
+ "observation_timestamp": 1792024994,
+ "persistence_state": "PERSISTED",
+ "readable_schemas": [
+  "v8.history/1",
+  "v8.history/2"
+ ],
+ "reason": null,
+ "source_main_sha": "45e387a4a2393e18cd52ba2b7c5be355afb14c08",
+ "source_scan": "gh-38661431562-1",
+ "storage_size": {
+  "bytes": 1311325,
+  "observations": 49
+ },
+ "version": "v8.history/2"
+}

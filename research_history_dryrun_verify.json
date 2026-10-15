@@ -1,0 +1,18 @@
+{
+ "backfilled": 30,
+ "bytes": 1311325,
+ "checkpoints": 33,
+ "first_observed_at": 1791313657,
+ "head_hash": "cce0ba02a23bd9c341f07a8fbf9695e9c5040f30705a0342f5323974b13fd80a",
+ "last_observed_at": 1792024994,
+ "liquidity_observations": 43,
+ "observations": 49,
+ "ok": true,
+ "problem_count": 0,
+ "problems": [],
+ "schema_regressions": 0,
+ "schemas": {
+  "v8.history/1": 35,
+  "v8.history/2": 14
+ }
+}

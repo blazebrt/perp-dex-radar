@@ -1,0 +1,66 @@
+test_01_watch_cannot_visually_become_a_trade (tests.test_v8_phase12.Adversarial.test_01_watch_cannot_visually_become_a_trade) ... ok
+test_02_avoid_cannot_visually_become_watch_or_trade (tests.test_v8_phase12.Adversarial.test_02_avoid_cannot_visually_become_watch_or_trade) ... ok
+test_03_stale_decision_cannot_appear_actionable (tests.test_v8_phase12.Adversarial.test_03_stale_decision_cannot_appear_actionable) ... ok
+test_04_missing_decision_cannot_fall_back_to_legacy (tests.test_v8_phase12.Adversarial.test_04_missing_decision_cannot_fall_back_to_legacy) ... ok
+test_05_swing_proven_cannot_create_a_trade (tests.test_v8_phase12.Adversarial.test_05_swing_proven_cannot_create_a_trade) ... ok
+test_06_smart_money_proven_cannot_create_a_trade (tests.test_v8_phase12.Adversarial.test_06_smart_money_proven_cannot_create_a_trade) ... ok
+test_07_legacy_holdover_never_looks_requalified (tests.test_v8_phase12.Adversarial.test_07_legacy_holdover_never_looks_requalified) ... ok
+test_08_portfolio_state_is_shown_truthfully (tests.test_v8_phase12.Adversarial.test_08_portfolio_state_is_shown_truthfully) ... ok
+test_09_zero_trade_shows_no_fallback_cards (tests.test_v8_phase12.Adversarial.test_09_zero_trade_shows_no_fallback_cards) ... ok
+test_10_decision_trace_is_rendered_verbatim (tests.test_v8_phase12.Adversarial.test_10_decision_trace_is_rendered_verbatim) ... ok
+test_11_degraded_funding_legs_never_appear_qualified (tests.test_v8_phase12.Adversarial.test_11_degraded_funding_legs_never_appear_qualified) ... ok
+test_12_top_five_never_exceeds_five (tests.test_v8_phase12.Adversarial.test_12_top_five_never_exceeds_five) ... ok
+test_13_analyzer_and_today_show_the_same_state (tests.test_v8_phase12.Adversarial.test_13_analyzer_and_today_show_the_same_state) ... ok
+test_14_valid_until_fails_closed_without_a_local_ttl (tests.test_v8_phase12.Adversarial.test_14_valid_until_fails_closed_without_a_local_ttl) ... ok
+test_15_optional_external_failure_keeps_the_core_decision (tests.test_v8_phase12.Adversarial.test_15_optional_external_failure_keeps_the_core_decision) ... ok
+test_hostile_strings_are_escaped_everywhere (tests.test_v8_phase12.Escaping.test_hostile_strings_are_escaped_everywhere) ... ok
+test_no_raw_html_insertion_of_artifact_strings (tests.test_v8_phase12.Escaping.test_no_raw_html_insertion_of_artifact_strings) ... ok
+test_navigation_is_exactly_the_five_surfaces (tests.test_v8_phase12.StaticContract.test_navigation_is_exactly_the_five_surfaces) ... ok
+test_no_forbidden_or_overconfident_copy (tests.test_v8_phase12.StaticContract.test_no_forbidden_or_overconfident_copy) ... ok
+test_published_desk (tests.test_v8_phase12.StaticContract.test_published_desk) ... ok
+test_responsive_and_accessible_foundations (tests.test_v8_phase12.StaticContract.test_responsive_and_accessible_foundations) ... ok
+test_the_core_decides_nothing (tests.test_v8_phase12.StaticContract.test_the_core_decides_nothing) ... ok
+test_the_core_loads_before_every_page_script (tests.test_v8_phase12.StaticContract.test_the_core_loads_before_every_page_script) ... ok
+test_atomic_channel_publication_simulation (tests.test_v8_research_publication.Browser.test_atomic_channel_publication_simulation) ... To /tmp/tmpsvn3mpwo/remote.git
+ * [new branch]      5048f9c8fe348dc596720ac2d57de015e3566e4a -> research-production
+ok
+test_baseline_missing_failed_and_stale_states (tests.test_v8_research_publication.Browser.test_baseline_missing_failed_and_stale_states) ... ok
+test_current_and_each_authority_mismatch (tests.test_v8_research_publication.Browser.test_current_and_each_authority_mismatch) ... ok
+test_daily_schedule_and_structural_production_guard (tests.test_v8_research_publication.Browser.test_daily_schedule_and_structural_production_guard) ... ok
+test_every_required_validation_failure_refuses_new_snapshot (tests.test_v8_research_publication.Browser.test_every_required_validation_failure_refuses_new_snapshot) ... ok
+test_failed_new_run_preserves_previous_bytes_and_policy (tests.test_v8_research_publication.Browser.test_failed_new_run_preserves_previous_bytes_and_policy) ... ok
+test_file_tampering_and_generic_review_source_rejected (tests.test_v8_research_publication.Browser.test_file_tampering_and_generic_review_source_rejected) ... ok
+test_final_phase9_policy_and_adjudication_method_unchanged (tests.test_v8_research_publication.Browser.test_final_phase9_policy_and_adjudication_method_unchanged) ... ok
+test_generic_review_and_future_snapshot_refused (tests.test_v8_research_publication.Browser.test_generic_review_and_future_snapshot_refused) ... ok
+test_missing_or_invalid_evidence_never_uses_review_result (tests.test_v8_research_publication.Browser.test_missing_or_invalid_evidence_never_uses_review_result) ... ok
+test_phase_branch_cannot_build_production_snapshot (tests.test_v8_research_publication.Browser.test_phase_branch_cannot_build_production_snapshot) ... ok
+test_phase_result_with_main_ref_spoof_still_rejected (tests.test_v8_research_publication.Browser.test_phase_result_with_main_ref_spoof_still_rejected) ... ok
+test_policy_runtime_and_method_hash_tampering_rejected (tests.test_v8_research_publication.Browser.test_policy_runtime_and_method_hash_tampering_rejected) ... ok
+test_production_main_result_accepted (tests.test_v8_research_publication.Browser.test_production_main_result_accepted) ... ok
+test_requalified_evidence_cannot_promote_runtime_or_create_trade_label (tests.test_v8_research_publication.Browser.test_requalified_evidence_cannot_promote_runtime_or_create_trade_label) ... ok
+test_research_loading_has_no_effect_on_today_or_analyzer (tests.test_v8_research_publication.Browser.test_research_loading_has_no_effect_on_today_or_analyzer) ... ok
+test_site_matching_authority_and_mismatch (tests.test_v8_research_publication.Browser.test_site_matching_authority_and_mismatch) ... ok
+test_strings_and_provenance_are_escaped (tests.test_v8_research_publication.Browser.test_strings_and_provenance_are_escaped) ... ok
+test_workflow_ref_and_remote_main_and_default_branch_are_required (tests.test_v8_research_publication.Browser.test_workflow_ref_and_remote_main_and_default_branch_are_required) ... ok
+test_atomic_channel_publication_simulation (tests.test_v8_research_publication.Publication.test_atomic_channel_publication_simulation) ... To /tmp/tmp3pvfd936/remote.git
+ * [new branch]      61fdd19f05f8612b153457ffcdcadb3adf15effc -> research-production
+ok
+test_daily_schedule_and_structural_production_guard (tests.test_v8_research_publication.Publication.test_daily_schedule_and_structural_production_guard) ... ok
+test_every_required_validation_failure_refuses_new_snapshot (tests.test_v8_research_publication.Publication.test_every_required_validation_failure_refuses_new_snapshot) ... ok
+test_failed_new_run_preserves_previous_bytes_and_policy (tests.test_v8_research_publication.Publication.test_failed_new_run_preserves_previous_bytes_and_policy) ... ok
+test_file_tampering_and_generic_review_source_rejected (tests.test_v8_research_publication.Publication.test_file_tampering_and_generic_review_source_rejected) ... ok
+test_final_phase9_policy_and_adjudication_method_unchanged (tests.test_v8_research_publication.Publication.test_final_phase9_policy_and_adjudication_method_unchanged) ... ok
+test_missing_or_invalid_evidence_never_uses_review_result (tests.test_v8_research_publication.Publication.test_missing_or_invalid_evidence_never_uses_review_result) ... ok
+test_phase_branch_cannot_build_production_snapshot (tests.test_v8_research_publication.Publication.test_phase_branch_cannot_build_production_snapshot) ... ok
+test_phase_result_with_main_ref_spoof_still_rejected (tests.test_v8_research_publication.Publication.test_phase_result_with_main_ref_spoof_still_rejected) ... ok
+test_policy_runtime_and_method_hash_tampering_rejected (tests.test_v8_research_publication.Publication.test_policy_runtime_and_method_hash_tampering_rejected) ... ok
+test_production_main_result_accepted (tests.test_v8_research_publication.Publication.test_production_main_result_accepted) ... ok
+test_site_matching_authority_and_mismatch (tests.test_v8_research_publication.Publication.test_site_matching_authority_and_mismatch) ... ok
+test_workflow_ref_and_remote_main_and_default_branch_are_required (tests.test_v8_research_publication.Publication.test_workflow_ref_and_remote_main_and_default_branch_are_required) ... ok
+
+----------------------------------------------------------------------
+Ran 55 tests in 3.401s
+
+OK
+{"schema":"v8.desk-check/1","decision_as_of":1792025218,"valid_until":1792028594,"authority":"AVAILABLE","opportunity_states":{"AVOID":336,"TRADE":0,"WATCH":24},"best_trades_now":{"file":0,"shown":0},"emerging":{"file":5,"shown":5},"funding":{"file":0,"shown":0},"zero_trade":true,"zero_trade_message_shown":true,"portfolio_state":"WITHIN_LIMITS","traces_checked":360,"analyzer_panels_checked":859,"problems":0}
+exit 0

@@ -1,0 +1,965 @@
+{
+ "as_of": 1792025218,
+ "authority": {
+  "authority_hash": "43e96cd0f75cfe4b68251d7139dff57495df167746ec1394d22f8920541433f1",
+  "decision_implementation_hash": "b26e089b0793df59e37287c1f6830c6b09bed8f83684b90b3736b1d4ea67076e",
+  "decision_policy_hash": "393434bac21fc2b542da8831467f9f2f975bb9df0c17cbee4d48e80a94174bbb",
+  "decision_policy_review_status": "POLICY_REVIEWED_V2_PROBATION",
+  "decision_policy_schema": "v8.decision-policy/1",
+  "decision_schema": "v8.decision/1",
+  "discovery_document_hash": "7ec6470775a899f39c612fb7215d186e40157882a74ac581c13ad60fa838ecba",
+  "discovery_schema": "v8.discovery/1",
+  "identity_config_hash": "96a10dc22e22d0bcf2c6ed1970ea1de72307426dfad2b53020a2b998c125d12c",
+  "identity_version": "v8.identity/4",
+  "phase9_authority": {
+   "gate_hash": "ea498541347db505f1a87a599e2e7ff1831492f040afc938e230257f50658d2a",
+   "implementation_hash": "fc157b094d76ca734cd020f6a047f1a4e8f27a024a47b443155678b36369f879",
+   "version": "v8.strategy-research/1"
+  },
+  "portfolio_implementation_hash": "1b7385f0835cbdcc1441daca75dc1e48f14e5af6e03018fc69a99be178bb6e3f",
+  "portfolio_policy_hash": "86c8c85522ec695cdee917adf2ba5f242b3b2fd755c426d0443981193d1ac2f2",
+  "portfolio_schema": "v8.portfolio-risk/1",
+  "strategy_policy_hash": "67aa8122ae4a033af7352f0cf900e10d4bc1a2b744c545cc69c4c09b18ccf49e",
+  "strategy_policy_schema": "v8.quant-strategy-policy/2",
+  "strategy_runtime_implementation_hash": "11d11d136c0bf5a11950b87d53e3b5a2641df12d258edbedd38b752d598af0ca"
+ },
+ "changes": {
+  "note": "no earlier governed Phase 11 decision snapshot: no past state or rank is inferred",
+  "previous_available": false,
+  "reason": "NO_PREVIOUS_PHASE11_AUTHORITY"
+ },
+ "directional_candidates": [
+  {
+   "blockers": [],
+   "blocking_step": null,
+   "caps": [
+    "STRATEGY_RESEARCH_AUTHORITY_INSUFFICIENT"
+   ],
+   "id": "DIRECTIONAL_STRATEGY:ASTER:TSMOM:SHORT",
+   "missing_authorities": [],
+   "placement": {
+    "candidate_for": "best_trades_now",
+    "rank": null,
+    "reason": "NOT_ELIGIBLE: state WATCH",
+    "section": null
+   },
+   "ranking_inputs": {
+    "after_executable_risk": 0.005062456034239056,
+    "asset": "ASTER",
+    "direction": -1,
+    "signal_age_s": 2818,
+    "signal_kind_order": 0,
+    "slippage_rate": 0.0005,
+    "strategy": "TSMOM"
+   },
+   "state": "WATCH"
+  },
+  {
+   "blockers": [],
+   "blocking_step": null,
+   "caps": [
+    "STRATEGY_RESEARCH_AUTHORITY_INSUFFICIENT"
+   ],
+   "id": "DIRECTIONAL_STRATEGY:DOGE:TSMOM:SHORT",
+   "missing_authorities": [],
+   "placement": {
+    "candidate_for": "best_trades_now",
+    "rank": null,
+    "reason": "NOT_ELIGIBLE: state WATCH",
+    "section": null
+   },
+   "ranking_inputs": {
+    "after_executable_risk": 0.005054272688840392,
+    "asset": "DOGE",
+    "direction": -1,
+    "signal_age_s": 2818,
+    "signal_kind_order": 0,
+    "slippage_rate": 0.0005,
+    "strategy": "TSMOM"
+   },
+   "state": "WATCH"
+  },
+  {
+   "blockers": [],
+   "blocking_step": null,
+   "caps": [
+    "STRATEGY_RESEARCH_AUTHORITY_INSUFFICIENT"
+   ],
+   "id": "DIRECTIONAL_STRATEGY:ETH:TSMOM:SHORT",
+   "missing_authorities": [],
+   "placement": {
+    "candidate_for": "best_trades_now",
+    "rank": null,
+    "reason": "NOT_ELIGIBLE: state WATCH",
+    "section": null
+   },
+   "ranking_inputs": {
+    "after_executable_risk": 0.005082007544694111,
+    "asset": "ETH",
+    "direction": -1,
+    "signal_age_s": 2818,
+    "signal_kind_order": 0,
+    "slippage_rate": 0.0005,
+    "strategy": "TSMOM"
+   },
+   "state": "WATCH"
+  },
+  {
+   "blockers": [],
+   "blocking_step": null,
+   "caps": [
+    "STRATEGY_SIDE_NOT_CONFIRMED"
+   ],
+   "id": "DIRECTIONAL_STRATEGY:ETH:XSMOM:SHORT",
+   "missing_authorities": [],
+   "placement": {
+    "candidate_for": "best_trades_now",
+    "rank": null,
+    "reason": "NOT_ELIGIBLE: state WATCH",
+    "section": null
+   },
+   "ranking_inputs": {
+    "after_executable_risk": 0.002549204441866247,
+    "asset": "ETH",
+    "direction": -1,
+    "signal_age_s": 2818,
+    "signal_kind_order": 0,
+    "slippage_rate": 0.0005,
+    "strategy": "XSMOM"
+   },
+   "state": "WATCH"
+  },
+  {
+   "blockers": [],
+   "blocking_step": null,
+   "caps": [
+    "STRATEGY_RESEARCH_AUTHORITY_INSUFFICIENT"
+   ],
+   "id": "DIRECTIONAL_STRATEGY:JUP:TREND_EMA:SHORT",
+   "missing_authorities": [],
+   "placement": {
+    "candidate_for": "best_trades_now",
+    "rank": null,
+    "reason": "NOT_ELIGIBLE: state WATCH",
+    "section": null
+   },
+   "ranking_inputs": {
+    "after_executable_risk": 0.005283459262057675,
+    "asset": "JUP",
+    "direction": -1,
+    "signal_age_s": 2818,
+    "signal_kind_order": 0,
+    "slippage_rate": 0.0005,
+    "strategy": "TREND_EMA"
+   },
+   "state": "WATCH"
+  },
+  {
+   "blockers": [
+    "ECONOMIC_EXPOSURE_CONFLICT"
+   ],
+   "blocking_step": "ECONOMIC_EXPOSURE",
+   "caps": [
+    "STRATEGY_RESEARCH_AUTHORITY_INSUFFICIENT"
+   ],
+   "id": "DIRECTIONAL_STRATEGY:QNT:TREND_EMA:SHORT",
+   "missing_authorities": [],
+   "placement": {
+    "candidate_for": "best_trades_now",
+    "rank": null,
+    "reason": "NOT_ELIGIBLE: state AVOID (rejected at ECONOMIC_EXPOSURE)",
+    "section": null
+   },
+   "ranking_inputs": {
+    "after_executable_risk": 0.005080448479100333,
+    "asset": "QNT",
+    "direction": -1,
+    "signal_age_s": 2818,
+    "signal_kind_order": 0,
+    "slippage_rate": 0.0005,
+    "strategy": "TREND_EMA"
+   },
+   "state": "AVOID"
+  },
+  {
+   "blockers": [],
+   "blocking_step": null,
+   "caps": [
+    "STRATEGY_SIDE_NOT_CONFIRMED"
+   ],
+   "id": "DIRECTIONAL_STRATEGY:SOL:XSMOM:SHORT",
+   "missing_authorities": [],
+   "placement": {
+    "candidate_for": "best_trades_now",
+    "rank": null,
+    "reason": "NOT_ELIGIBLE: state WATCH",
+    "section": null
+   },
+   "ranking_inputs": {
+    "after_executable_risk": 0.0026108040598824605,
+    "asset": "SOL",
+    "direction": -1,
+    "signal_age_s": 2818,
+    "signal_kind_order": 0,
+    "slippage_rate": 0.0005,
+    "strategy": "XSMOM"
+   },
+   "state": "WATCH"
+  },
+  {
+   "blockers": [],
+   "blocking_step": null,
+   "caps": [
+    "STRATEGY_RESEARCH_AUTHORITY_INSUFFICIENT"
+   ],
+   "id": "DIRECTIONAL_STRATEGY:XLM:TSMOM:SHORT",
+   "missing_authorities": [],
+   "placement": {
+    "candidate_for": "best_trades_now",
+    "rank": null,
+    "reason": "NOT_ELIGIBLE: state WATCH",
+    "section": null
+   },
+   "ranking_inputs": {
+    "after_executable_risk": 0.005048750949360593,
+    "asset": "XLM",
+    "direction": -1,
+    "signal_age_s": 2818,
+    "signal_kind_order": 0,
+    "slippage_rate": 0.0005,
+    "strategy": "TSMOM"
+   },
+   "state": "WATCH"
+  },
+  {
+   "blockers": [],
+   "blocking_step": null,
+   "caps": [
+    "STRATEGY_SIDE_NOT_CONFIRMED"
+   ],
+   "id": "DIRECTIONAL_STRATEGY:XLM:XSMOM:SHORT",
+   "missing_authorities": [],
+   "placement": {
+    "candidate_for": "best_trades_now",
+    "rank": null,
+    "reason": "NOT_ELIGIBLE: state WATCH",
+    "section": null
+   },
+   "ranking_inputs": {
+    "after_executable_risk": 0.0025292505696163556,
+    "asset": "XLM",
+    "direction": -1,
+    "signal_age_s": 2818,
+    "signal_kind_order": 0,
+    "slippage_rate": 0.0005,
+    "strategy": "XSMOM"
+   },
+   "state": "WATCH"
+  },
+  {
+   "blockers": [],
+   "blocking_step": null,
+   "caps": [
+    "STRATEGY_RESEARCH_AUTHORITY_INSUFFICIENT"
+   ],
+   "id": "DIRECTIONAL_STRATEGY:XRP:TSMOM:SHORT",
+   "missing_authorities": [],
+   "placement": {
+    "candidate_for": "best_trades_now",
+    "rank": null,
+    "reason": "NOT_ELIGIBLE: state WATCH",
+    "section": null
+   },
+   "ranking_inputs": {
+    "after_executable_risk": 0.0050613445432414455,
+    "asset": "XRP",
+    "direction": -1,
+    "signal_age_s": 2818,
+    "signal_kind_order": 0,
+    "slippage_rate": 0.0005,
+    "strategy": "TSMOM"
+   },
+   "state": "WATCH"
+  }
+ ],
+ "implementation_hash": "b26e089b0793df59e37287c1f6830c6b09bed8f83684b90b3736b1d4ea67076e",
+ "market_summary": {
+  "asset_states": {
+   "AVOID": 843,
+   "TRADE": 0,
+   "WATCH": 16
+  },
+  "best_trades_now": 0,
+  "current_strategy_signals": 10,
+  "discovered_assets": 859,
+  "emerging_opportunities": 5,
+  "evaluated_assets": 859,
+  "execution_blocked_assets": 700,
+  "full_paper_book_state": "LIMIT_BREACHED",
+  "funding_opportunities": 0,
+  "identity_blocked_assets": 426,
+  "major_missing_authorities": {
+   "PORTFOLIO_HEDGE_MODEL_UNAVAILABLE": 335
+  },
+  "opportunities": 360,
+  "opportunity_states": {
+   "AVOID": 336,
+   "TRADE": 0,
+   "WATCH": 24
+  },
+  "opportunity_states_by_type": {
+   "DIRECTIONAL_STRATEGY": {
+    "AVOID": 1,
+    "TRADE": 0,
+    "WATCH": 9
+   },
+   "EMERGING_OBSERVATION": {
+    "AVOID": 0,
+    "TRADE": 0,
+    "WATCH": 15
+   },
+   "FUNDING_SPREAD": {
+    "AVOID": 335,
+    "TRADE": 0,
+    "WATCH": 0
+   }
+  },
+  "portfolio_state": "WITHIN_LIMITS",
+  "trade_by_tier": {
+   "FULL": 0,
+   "PROBATION": 0
+  },
+  "venue_degradation": {
+   "coverage_state": "DEGRADED",
+   "fallback_universe": false,
+   "venues_failed": [
+    "edgex"
+   ]
+  },
+  "zero_trade": true
+ },
+ "policy_hash": "393434bac21fc2b542da8831467f9f2f975bb9df0c17cbee4d48e80a94174bbb",
+ "portfolio": {
+  "binding": {
+   "book": {
+    "ACTIONABLE": 10,
+    "IDENTITY_BLOCKED": 0
+   },
+   "consistent": true,
+   "engine_book_state": "LIMIT_BREACHED",
+   "governed_input_hash": "391fa171bb95f2ad68abae4d6b0fe594c40c53ee3781a0f26c1507d983232371",
+   "phase10_audit_state": "LIMIT_BREACHED",
+   "portfolio_input_hash": "349e5a9139edf2473688b361c6faf4ccfade02954a543bdcea18a24703b42ad3"
+  },
+  "full_paper_book": {
+   "approaching": [],
+   "as_of": 1792025218,
+   "breached": [
+    "max_asset_stop_risk",
+    "max_cluster_stop_risk",
+    "max_executable_risk",
+    "max_side_stop_risk",
+    "max_strategy_stop_risk",
+    "max_stressed_loss"
+   ],
+   "exposure": {
+    "by_actionability": {
+     "ACTIONABLE": {
+      "gross_leverage": 0.39074152401253615,
+      "net_leverage": -0.39074152401253615,
+      "positions": 10,
+      "quantified": 10,
+      "stop_risk": 0.049999997927384895,
+      "unquantified": []
+     }
+    },
+    "gross_leverage": 0.3907415240125362,
+    "gross_long_usd": 0.0,
+    "gross_notional_usd": 195.3707620062681,
+    "gross_short_usd": 195.3707620062681,
+    "long_leverage": 0.0,
+    "max_position_leverage": 0.0629643621710112,
+    "net_leverage": -0.3907415240125362,
+    "net_usd": -195.3707620062681,
+    "short_leverage": 0.3907415240125362,
+    "unquantified_open_positions": []
+   },
+   "limits": {
+    "max_asset_stop_risk": {
+     "limit": 0.01,
+     "metric": 0.010000000101238731,
+     "status": "BREACHED"
+    },
+    "max_cluster_stop_risk": {
+     "limit": 0.02,
+     "metric": 0.03499999882645839,
+     "status": "BREACHED"
+    },
+    "max_executable_risk": {
+     "limit": 0.03,
+     "metric": 0.049999997927384895,
+     "status": "BREACHED"
+    },
+    "max_gross_leverage": {
+     "limit": 3.0,
+     "metric": 0.3907415240125362,
+     "status": "OK"
+    },
+    "max_net_leverage": {
+     "limit": 1.5,
+     "metric": 0.3907415240125362,
+     "status": "OK"
+    },
+    "max_position_leverage": {
+     "limit": 2.0,
+     "metric": 0.0629643621710112,
+     "status": "OK"
+    },
+    "max_side_stop_risk": {
+     "limit": 0.025,
+     "metric": 0.049999997927384895,
+     "status": "BREACHED"
+    },
+    "max_strategy_stop_risk": {
+     "limit": 0.02,
+     "metric": 0.025000000154151627,
+     "status": "BREACHED"
+    },
+    "max_stressed_loss": {
+     "limit": 0.06,
+     "metric": 0.07537120133888925,
+     "status": "BREACHED"
+    }
+   },
+   "missing_authorities": [
+    "FUNDING_UNKNOWN:ASTER-TSMOM-1792022400",
+    "FUNDING_UNKNOWN:DOGE-TSMOM-1792022400",
+    "FUNDING_UNKNOWN:ETH-TSMOM-1792022400",
+    "FUNDING_UNKNOWN:ETH-XSMOM-1792022400",
+    "FUNDING_UNKNOWN:JUP-TREND_EMA-1792022400",
+    "FUNDING_UNKNOWN:QNT-TREND_EMA-1792022400",
+    "FUNDING_UNKNOWN:SOL-XSMOM-1792022400",
+    "FUNDING_UNKNOWN:XLM-TSMOM-1792022400",
+    "FUNDING_UNKNOWN:XLM-XSMOM-1792022400",
+    "FUNDING_UNKNOWN:XRP-TSMOM-1792022400"
+   ],
+   "missing_authority_count": 10,
+   "policy_hash": "86c8c85522ec695cdee917adf2ba5f242b3b2fd755c426d0443981193d1ac2f2",
+   "policy_review_status": "POLICY_REVIEWED_INITIAL_V1",
+   "policy_schema": "v8.portfolio-risk-policy/1",
+   "positions": 10,
+   "schema": "v8.portfolio-risk/1",
+   "state": "LIMIT_BREACHED",
+   "stress": {
+    "CORRELATED_MARKET_MOVE": 0.04262879062581645,
+    "DIVERSIFICATION_FAILURE": 0.0503712023751968,
+    "EXECUTION_COST": 0.050742406823008714,
+    "FUNDING_DETERIORATION": 0.06279169573380476,
+    "LIQUIDITY_DEGRADATION": 0.05056657313720307,
+    "STOP_SLIPPAGE": 0.07537120133888925
+   }
+  },
+  "gating_book": "GOVERNED_TRADE_AUTHORIZED",
+  "governed": {
+   "excluded_paper_positions": 10,
+   "full_paper_book": {
+    "ACTIONABLE": 10,
+    "IDENTITY_BLOCKED": 0
+   },
+   "gating_book": "GOVERNED_TRADE_AUTHORIZED",
+   "governed_positions": 0
+  },
+  "governed_positions": [],
+  "phase10": {
+   "approaching": [],
+   "as_of": 1792025218,
+   "breached": [],
+   "exposure": {
+    "by_actionability": {},
+    "gross_leverage": 0.0,
+    "gross_long_usd": 0.0,
+    "gross_notional_usd": 0.0,
+    "gross_short_usd": 0.0,
+    "long_leverage": 0.0,
+    "max_position_leverage": 0.0,
+    "net_leverage": 0.0,
+    "net_usd": 0.0,
+    "short_leverage": 0.0,
+    "unquantified_open_positions": []
+   },
+   "limits": {
+    "max_asset_stop_risk": {
+     "limit": 0.01,
+     "metric": 0.0,
+     "status": "OK"
+    },
+    "max_cluster_stop_risk": {
+     "limit": 0.02,
+     "metric": 0.0,
+     "status": "OK"
+    },
+    "max_executable_risk": {
+     "limit": 0.03,
+     "metric": 0.0,
+     "status": "OK"
+    },
+    "max_gross_leverage": {
+     "limit": 3.0,
+     "metric": 0.0,
+     "status": "OK"
+    },
+    "max_net_leverage": {
+     "limit": 1.5,
+     "metric": 0.0,
+     "status": "OK"
+    },
+    "max_position_leverage": {
+     "limit": 2.0,
+     "metric": 0.0,
+     "status": "OK"
+    },
+    "max_side_stop_risk": {
+     "limit": 0.025,
+     "metric": 0.0,
+     "status": "OK"
+    },
+    "max_strategy_stop_risk": {
+     "limit": 0.02,
+     "metric": 0.0,
+     "status": "OK"
+    },
+    "max_stressed_loss": {
+     "limit": 0.06,
+     "metric": 0.0,
+     "status": "OK"
+    }
+   },
+   "missing_authorities": [],
+   "missing_authority_count": 0,
+   "policy_hash": "86c8c85522ec695cdee917adf2ba5f242b3b2fd755c426d0443981193d1ac2f2",
+   "policy_review_status": "POLICY_REVIEWED_INITIAL_V1",
+   "policy_schema": "v8.portfolio-risk-policy/1",
+   "positions": 0,
+   "schema": "v8.portfolio-risk/1",
+   "state": "WITHIN_LIMITS",
+   "stress": {
+    "CORRELATED_MARKET_MOVE": 0.0,
+    "DIVERSIFICATION_FAILURE": 0.0,
+    "EXECUTION_COST": 0.0,
+    "FUNDING_DETERIORATION": 0.0,
+    "LIQUIDITY_DEGRADATION": 0.0,
+    "STOP_SLIPPAGE": 0.0
+   }
+  }
+ },
+ "schema": "v8.decision/1",
+ "sections": {
+  "best_trades_now": {
+   "count": 0,
+   "items": [],
+   "selection_trace": {
+    "cutoff": null,
+    "eligible": 0,
+    "eligible_states": [
+     "TRADE"
+    ],
+    "excluded_after_cutoff": [],
+    "fewer_than_max": true,
+    "max": 5,
+    "order": [],
+    "ranking_rules": [
+     [
+      "signal_kind_order",
+      "asc"
+     ],
+     [
+      "signal_age_s",
+      "asc"
+     ],
+     [
+      "slippage_rate",
+      "asc"
+     ],
+     [
+      "after_executable_risk",
+      "asc"
+     ],
+     [
+      "asset",
+      "asc"
+     ],
+     [
+      "strategy",
+      "asc"
+     ],
+     [
+      "direction",
+      "asc"
+     ]
+    ],
+    "removed_by_gate": [
+     {
+      "codes": [
+       "STRATEGY_SIDE_NOT_CONFIRMED"
+      ],
+      "id": "DIRECTIONAL_STRATEGY:XLM:XSMOM:SHORT",
+      "state": "WATCH",
+      "step": null
+     },
+     {
+      "codes": [
+       "STRATEGY_SIDE_NOT_CONFIRMED"
+      ],
+      "id": "DIRECTIONAL_STRATEGY:ETH:XSMOM:SHORT",
+      "state": "WATCH",
+      "step": null
+     },
+     {
+      "codes": [
+       "STRATEGY_SIDE_NOT_CONFIRMED"
+      ],
+      "id": "DIRECTIONAL_STRATEGY:SOL:XSMOM:SHORT",
+      "state": "WATCH",
+      "step": null
+     },
+     {
+      "codes": [
+       "STRATEGY_RESEARCH_AUTHORITY_INSUFFICIENT"
+      ],
+      "id": "DIRECTIONAL_STRATEGY:XLM:TSMOM:SHORT",
+      "state": "WATCH",
+      "step": null
+     },
+     {
+      "codes": [
+       "STRATEGY_RESEARCH_AUTHORITY_INSUFFICIENT"
+      ],
+      "id": "DIRECTIONAL_STRATEGY:DOGE:TSMOM:SHORT",
+      "state": "WATCH",
+      "step": null
+     }
+    ],
+    "selected": [],
+    "types": [
+     "DIRECTIONAL_STRATEGY"
+    ],
+    "why_fewer": "only 0 candidate(s) of type ['DIRECTIONAL_STRATEGY'] are in state ['TRADE']; nothing else is promoted to fill the section"
+   }
+  },
+  "emerging_opportunities": {
+   "count": 5,
+   "items": [
+    {
+     "blockers": [],
+     "blocking_step": null,
+     "caps": [
+      "NO_GOVERNED_STRATEGY_AUTHORITY"
+     ],
+     "id": "EMERGING_OBSERVATION:ASTER",
+     "missing_authorities": [],
+     "placement": {
+      "rank": 1,
+      "reason": "SELECTED",
+      "section": "emerging_opportunities"
+     },
+     "ranking_inputs": {
+      "asset": "ASTER",
+      "evidence_count": 2,
+      "outstanding_blockers": 1,
+      "primary_evidence_count": 1
+     },
+     "state": "WATCH"
+    },
+    {
+     "blockers": [],
+     "blocking_step": null,
+     "caps": [
+      "NO_GOVERNED_STRATEGY_AUTHORITY"
+     ],
+     "id": "EMERGING_OBSERVATION:DOGE",
+     "missing_authorities": [],
+     "placement": {
+      "rank": 2,
+      "reason": "SELECTED",
+      "section": "emerging_opportunities"
+     },
+     "ranking_inputs": {
+      "asset": "DOGE",
+      "evidence_count": 2,
+      "outstanding_blockers": 1,
+      "primary_evidence_count": 1
+     },
+     "state": "WATCH"
+    },
+    {
+     "blockers": [],
+     "blocking_step": null,
+     "caps": [
+      "NO_GOVERNED_STRATEGY_AUTHORITY"
+     ],
+     "id": "EMERGING_OBSERVATION:ETH",
+     "missing_authorities": [],
+     "placement": {
+      "rank": 3,
+      "reason": "SELECTED",
+      "section": "emerging_opportunities"
+     },
+     "ranking_inputs": {
+      "asset": "ETH",
+      "evidence_count": 2,
+      "outstanding_blockers": 1,
+      "primary_evidence_count": 1
+     },
+     "state": "WATCH"
+    },
+    {
+     "blockers": [],
+     "blocking_step": null,
+     "caps": [
+      "NO_GOVERNED_STRATEGY_AUTHORITY"
+     ],
+     "id": "EMERGING_OBSERVATION:GRASS",
+     "missing_authorities": [],
+     "placement": {
+      "rank": 4,
+      "reason": "SELECTED",
+      "section": "emerging_opportunities"
+     },
+     "ranking_inputs": {
+      "asset": "GRASS",
+      "evidence_count": 2,
+      "outstanding_blockers": 1,
+      "primary_evidence_count": 1
+     },
+     "state": "WATCH"
+    },
+    {
+     "blockers": [],
+     "blocking_step": null,
+     "caps": [
+      "NO_GOVERNED_STRATEGY_AUTHORITY"
+     ],
+     "id": "EMERGING_OBSERVATION:JUP",
+     "missing_authorities": [],
+     "placement": {
+      "rank": 5,
+      "reason": "SELECTED",
+      "section": "emerging_opportunities"
+     },
+     "ranking_inputs": {
+      "asset": "JUP",
+      "evidence_count": 2,
+      "outstanding_blockers": 1,
+      "primary_evidence_count": 1
+     },
+     "state": "WATCH"
+    }
+   ],
+   "selection_trace": {
+    "cutoff": {
+     "above": {
+      "asset": "JUP",
+      "id": "EMERGING_OBSERVATION:JUP"
+     },
+     "below": {
+      "asset": "NIL",
+      "id": "EMERGING_OBSERVATION:NIL"
+     },
+     "rule": [
+      "asset",
+      "asc"
+     ]
+    },
+    "eligible": 15,
+    "eligible_states": [
+     "WATCH"
+    ],
+    "excluded_after_cutoff": [
+     "EMERGING_OBSERVATION:NIL",
+     "EMERGING_OBSERVATION:XLM",
+     "EMERGING_OBSERVATION:XRP",
+     "EMERGING_OBSERVATION:ARC",
+     "EMERGING_OBSERVATION:CAP"
+    ],
+    "fewer_than_max": false,
+    "max": 5,
+    "order": [
+     {
+      "above": {
+       "asset": "ASTER",
+       "id": "EMERGING_OBSERVATION:ASTER"
+      },
+      "below": {
+       "asset": "DOGE",
+       "id": "EMERGING_OBSERVATION:DOGE"
+      },
+      "rule": [
+       "asset",
+       "asc"
+      ]
+     },
+     {
+      "above": {
+       "asset": "DOGE",
+       "id": "EMERGING_OBSERVATION:DOGE"
+      },
+      "below": {
+       "asset": "ETH",
+       "id": "EMERGING_OBSERVATION:ETH"
+      },
+      "rule": [
+       "asset",
+       "asc"
+      ]
+     },
+     {
+      "above": {
+       "asset": "ETH",
+       "id": "EMERGING_OBSERVATION:ETH"
+      },
+      "below": {
+       "asset": "GRASS",
+       "id": "EMERGING_OBSERVATION:GRASS"
+      },
+      "rule": [
+       "asset",
+       "asc"
+      ]
+     },
+     {
+      "above": {
+       "asset": "GRASS",
+       "id": "EMERGING_OBSERVATION:GRASS"
+      },
+      "below": {
+       "asset": "JUP",
+       "id": "EMERGING_OBSERVATION:JUP"
+      },
+      "rule": [
+       "asset",
+       "asc"
+      ]
+     }
+    ],
+    "ranking_rules": [
+     [
+      "primary_evidence_count",
+      "desc"
+     ],
+     [
+      "evidence_count",
+      "desc"
+     ],
+     [
+      "outstanding_blockers",
+      "asc"
+     ],
+     [
+      "asset",
+      "asc"
+     ]
+    ],
+    "removed_by_gate": [],
+    "selected": [
+     "EMERGING_OBSERVATION:ASTER",
+     "EMERGING_OBSERVATION:DOGE",
+     "EMERGING_OBSERVATION:ETH",
+     "EMERGING_OBSERVATION:GRASS",
+     "EMERGING_OBSERVATION:JUP"
+    ],
+    "types": [
+     "EMERGING_OBSERVATION"
+    ],
+    "why_fewer": null
+   }
+  },
+  "funding_opportunities": {
+   "count": 0,
+   "items": [],
+   "selection_trace": {
+    "cutoff": null,
+    "eligible": 0,
+    "eligible_states": [
+     "WATCH"
+    ],
+    "excluded_after_cutoff": [],
+    "fewer_than_max": true,
+    "max": 5,
+    "order": [],
+    "ranking_rules": [
+     [
+      "net_carry",
+      "desc"
+     ],
+     [
+      "basis_abs",
+      "asc"
+     ],
+     [
+      "asset",
+      "asc"
+     ]
+    ],
+    "removed_by_gate": [
+     {
+      "codes": [
+       "LEG_LIQUIDITY_BELOW_GATE",
+       "FUNDING_SPREAD_RESEARCH_AUTHORITY_MISSING",
+       "PORTFOLIO_HEDGE_MODEL_UNAVAILABLE"
+      ],
+      "id": "FUNDING_SPREAD:BLUR",
+      "state": "AVOID",
+      "step": "EXECUTION_LIQUIDITY"
+     },
+     {
+      "codes": [
+       "CARRY_NOT_POSITIVE_AFTER_COSTS",
+       "FUNDING_SPREAD_RESEARCH_AUTHORITY_MISSING",
+       "PORTFOLIO_HEDGE_MODEL_UNAVAILABLE"
+      ],
+      "id": "FUNDING_SPREAD:LIT",
+      "state": "AVOID",
+      "step": "FUNDING"
+     },
+     {
+      "codes": [
+       "CARRY_NOT_POSITIVE_AFTER_COSTS",
+       "BASIS_TOO_WIDE",
+       "FUNDING_SPREAD_RESEARCH_AUTHORITY_MISSING",
+       "PORTFOLIO_HEDGE_MODEL_UNAVAILABLE"
+      ],
+      "id": "FUNDING_SPREAD:CHIP",
+      "state": "AVOID",
+      "step": "FUNDING"
+     },
+     {
+      "codes": [
+       "CARRY_NOT_POSITIVE_AFTER_COSTS",
+       "FUNDING_SPREAD_RESEARCH_AUTHORITY_MISSING",
+       "PORTFOLIO_HEDGE_MODEL_UNAVAILABLE"
+      ],
+      "id": "FUNDING_SPREAD:PUMP",
+      "state": "AVOID",
+      "step": "FUNDING"
+     },
+     {
+      "codes": [
+       "CARRY_NOT_POSITIVE_AFTER_COSTS",
+       "FUNDING_SPREAD_RESEARCH_AUTHORITY_MISSING",
+       "PORTFOLIO_HEDGE_MODEL_UNAVAILABLE"
+      ],
+      "id": "FUNDING_SPREAD:ZRO",
+      "state": "AVOID",
+      "step": "FUNDING"
+     }
+    ],
+    "selected": [],
+    "types": [
+     "FUNDING_SPREAD"
+    ],
+    "why_fewer": "only 0 candidate(s) of type ['FUNDING_SPREAD'] are in state ['WATCH']; nothing else is promoted to fill the section"
+   }
+  }
+ },
+ "valid_until": 1792028594
+}

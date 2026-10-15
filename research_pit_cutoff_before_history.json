@@ -1,0 +1,1011 @@
+{
+ "cutoff": 1791313656,
+ "generated": 1792025888,
+ "health": {
+  "FUNDING_HISTORY": "FUNDING_HISTORY_GAP",
+  "LIQUIDITY_HISTORY": "LIQUIDITY_HISTORY_GAP",
+  "LIQUIDITY_PRECISION": "NO_LIQUIDITY_IN_VIEW",
+  "PIT_UNIVERSE": "PIT_UNIVERSE_GAP",
+  "gaps": [],
+  "history_reason": "BEFORE_PIT_HISTORY",
+  "history_status": "HISTORY_EMPTY"
+ },
+ "history": {
+  "liquidity_precision": {
+   "known_values_by_precision": {},
+   "rule": "v8.history/1 values were rounded to a whole dollar: PRECISION_LOST_V1, never a threshold or a slippage tier (LIQUIDITY_PRECISION_UNQUALIFIED). v8.history/2 values carry the audit registry's 8 significant digits: they decide a threshold unless it lies inside their rounding interval."
+  },
+  "verify": {
+   "backfilled": 30,
+   "bytes": 1302142,
+   "checkpoints": 33,
+   "first_observed_at": 1791313657,
+   "last_observed_at": 1792017768,
+   "liquidity_observations": 42,
+   "observations": 48,
+   "ok": true,
+   "problem_count": 0
+  },
+  "view_reason": "BEFORE_PIT_HISTORY",
+  "view_status": "HISTORY_EMPTY",
+  "window": {
+   "cutoff": 1791313656,
+   "end": null,
+   "observations": 0,
+   "observations_in_store": 48,
+   "reason": "BEFORE_PIT_HISTORY",
+   "start": null,
+   "status": "HISTORY_EMPTY"
+  }
+ },
+ "market_data_1h": {
+  "coins": 119,
+  "end": 1791100800,
+  "funding_bars": {
+   "MISSING": 123050,
+   "NOT_DUE": 803441,
+   "OBSERVED": 214255,
+   "OBSERVED_ZERO": 1773
+  },
+  "funding_sources": {
+   "hl": 1,
+   "mexc": 113,
+   "none": 5
+  },
+  "legacy_assumed_funding_coins": 5,
+  "start": 1756537200,
+  "window_1y": [
+   1759564800,
+   1791100800
+  ]
+ },
+ "picks": {
+  "day": {
+   "coins": 119,
+   "funding_signal": {
+    "corrected": {
+     "authority": "OBSERVED_SETTLEMENTS_ONLY",
+     "rule": "OBSERVED and OBSERVED_ZERO set the signal to the observed rate (0 is evidence); NOT_DUE keeps the last observed rate; before the first observation, at a missed due settlement and through a gap the signal is UNKNOWN until the next observed settlement; never the assumed 0.01% per 8 hours",
+     "source": "pit_cost.funding_panel (the same funding files, none after the cutoff)",
+     "unknown": "a row with unknown funding is excluded from the corrected base and bands; a Top-5 sample is selected only when no candidate with unknown funding could reach it with the funding check's 5 points (else FUNDING_UNDETERMINED, never selected)",
+     "version": "v8.pit-research/3"
+    },
+    "legacy": {
+     "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+     "source": "qdata.Panel funding as pk_day.hourly reads it: 0.01% per 8 hours assumed before a coin's first nonzero settlement (and for a coin with no series or only zero settlements); a settlement of 0 read as none; the last nonzero rate carried forward through every gap"
+    },
+    "scenario": {
+     "label": "SCENARIO / NOT AUTHORITY",
+     "note": "ASSUMED_SCENARIO funding (0.01% per 8 hours where MISSING) exists only in scenario costs; it never feeds a selection"
+    }
+   },
+   "long": {
+    "bands": [
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows with known funding"
+      },
+      "hi": 50,
+      "label": "DAY STRATEGY SURFACE",
+      "legacy": {
+       "R": -0.1586,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 57760,
+       "ret": -0.0039,
+       "win": 0.3093
+      },
+      "lo": 0
+     },
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows with known funding"
+      },
+      "hi": 70,
+      "label": "DAY STRATEGY SURFACE",
+      "legacy": {
+       "R": -0.1093,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 27166,
+       "ret": -0.0023,
+       "win": 0.3241
+      },
+      "lo": 50
+     },
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows with known funding"
+      },
+      "hi": 80,
+      "label": "DAY STRATEGY SURFACE",
+      "legacy": {
+       "R": -0.0578,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 8136,
+       "ret": -0.0009,
+       "win": 0.3387
+      },
+      "lo": 70
+     },
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows with known funding"
+      },
+      "hi": 90,
+      "label": "DAY STRATEGY SURFACE",
+      "legacy": {
+       "R": -0.0333,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 6106,
+       "ret": -0.0004,
+       "win": 0.3575
+      },
+      "lo": 80
+     },
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows with known funding"
+      },
+      "hi": 101,
+      "label": "DAY STRATEGY SURFACE",
+      "legacy": {
+       "R": -0.0538,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 4386,
+       "ret": -0.0007,
+       "win": 0.3445
+      },
+      "lo": 90
+     }
+    ],
+    "base": {
+     "corrected": {
+      "aggregate": {
+       "n": 0
+      },
+      "components": {
+       "n": 0
+      },
+      "why_not_qualified": {
+       "funding": {},
+       "identity": {},
+       "liquidity": {},
+       "universe": {}
+      }
+     },
+     "label": "DIAGNOSTIC / NOT DAY STRATEGY AUTHORITY",
+     "legacy": {
+      "R": -0.1259,
+      "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+      "n": 103554,
+      "ret": -0.0029,
+      "win": 0.3198
+     }
+    },
+    "funding_signal_rows": {
+     "carried_not_due": 0,
+     "observed_settlement": 0,
+     "top5_samples_undetermined": 0,
+     "unknown_excluded": 0
+    },
+    "top5": {
+     "corrected": {
+      "authoritative": {
+       "n": 0
+      },
+      "components": {
+       "n": 0
+      },
+      "funding_undetermined_samples": 0,
+      "qualified_samples": 0,
+      "samples": 0,
+      "why_not_qualified": {
+       "funding": {},
+       "identity": {},
+       "liquidity": {},
+       "universe": {}
+      }
+     },
+     "label": "DAY STRATEGY SURFACE",
+     "legacy": {
+      "R": -0.0998,
+      "R_all": -0.1163,
+      "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+      "n": 2155,
+      "ret": -0.0019
+     }
+    }
+   },
+   "period": [
+    1759993200,
+    1791097200
+   ],
+   "selection_authority": "tools/research/pk_day.py surfaces() (shared with pk_day.run)",
+   "short": {
+    "bands": [
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows with known funding"
+      },
+      "hi": 50,
+      "label": "DAY STRATEGY SURFACE",
+      "legacy": {
+       "R": -0.0651,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 33804,
+       "ret": -0.002,
+       "win": 0.3482
+      },
+      "lo": 0
+     },
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows with known funding"
+      },
+      "hi": 70,
+      "label": "DAY STRATEGY SURFACE",
+      "legacy": {
+       "R": -0.0215,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 36574,
+       "ret": -0.0003,
+       "win": 0.3597
+      },
+      "lo": 50
+     },
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows with known funding"
+      },
+      "hi": 80,
+      "label": "DAY STRATEGY SURFACE",
+      "legacy": {
+       "R": -0.0488,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 18675,
+       "ret": -0.0009,
+       "win": 0.3511
+      },
+      "lo": 70
+     },
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows with known funding"
+      },
+      "hi": 90,
+      "label": "DAY STRATEGY SURFACE",
+      "legacy": {
+       "R": -0.0647,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 9950,
+       "ret": -0.0015,
+       "win": 0.3427
+      },
+      "lo": 80
+     },
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows with known funding"
+      },
+      "hi": 101,
+      "label": "DAY STRATEGY SURFACE",
+      "legacy": {
+       "R": -0.1007,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 4604,
+       "ret": -0.002,
+       "win": 0.3393
+      },
+      "lo": 90
+     }
+    ],
+    "base": {
+     "corrected": {
+      "aggregate": {
+       "n": 0
+      },
+      "components": {
+       "n": 0
+      },
+      "why_not_qualified": {
+       "funding": {},
+       "identity": {},
+       "liquidity": {},
+       "universe": {}
+      }
+     },
+     "label": "DIAGNOSTIC / NOT DAY STRATEGY AUTHORITY",
+     "legacy": {
+      "R": -0.0483,
+      "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+      "n": 103607,
+      "ret": -0.0011,
+      "win": 0.3518
+     }
+    },
+    "funding_signal_rows": {
+     "carried_not_due": 0,
+     "observed_settlement": 0,
+     "top5_samples_undetermined": 0,
+     "unknown_excluded": 0
+    },
+    "top5": {
+     "corrected": {
+      "authoritative": {
+       "n": 0
+      },
+      "components": {
+       "n": 0
+      },
+      "funding_undetermined_samples": 0,
+      "qualified_samples": 0,
+      "samples": 0,
+      "why_not_qualified": {
+       "funding": {},
+       "identity": {},
+       "liquidity": {},
+       "universe": {}
+      }
+     },
+     "label": "DAY STRATEGY SURFACE",
+     "legacy": {
+      "R": -0.0451,
+      "R_all": -0.0602,
+      "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+      "n": 2155,
+      "ret": -0.0006
+     }
+    }
+   }
+  },
+  "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+  "legacy_cost_per_trade": 0.0019,
+  "period": [
+   1696118400,
+   1791072000
+  ],
+  "swing": {
+   "long": {
+    "bands": [
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows: picks_export would not report this band"
+      },
+      "hi": 40,
+      "label": "SWING STRATEGY SURFACE",
+      "legacy": {
+       "R": -0.1842,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 17028,
+       "reported_by_picks_export": true,
+       "ret": -0.0408,
+       "win": 0.3019
+      },
+      "lo": 0
+     },
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows: picks_export would not report this band"
+      },
+      "hi": 60,
+      "label": "SWING STRATEGY SURFACE",
+      "legacy": {
+       "R": -0.1195,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 20877,
+       "reported_by_picks_export": true,
+       "ret": -0.0221,
+       "win": 0.3115
+      },
+      "lo": 40
+     },
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows: picks_export would not report this band"
+      },
+      "hi": 70,
+      "label": "SWING STRATEGY SURFACE",
+      "legacy": {
+       "R": 0.0216,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 5174,
+       "reported_by_picks_export": true,
+       "ret": -0.0034,
+       "win": 0.3616
+      },
+      "lo": 60
+     },
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows: picks_export would not report this band"
+      },
+      "hi": 80,
+      "label": "SWING STRATEGY SURFACE",
+      "legacy": {
+       "R": 0.2234,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 2797,
+       "reported_by_picks_export": true,
+       "ret": 0.023,
+       "win": 0.409
+      },
+      "lo": 70
+     },
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows: picks_export would not report this band"
+      },
+      "hi": 90,
+      "label": "SWING STRATEGY SURFACE",
+      "legacy": {
+       "R": 0.3777,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 1672,
+       "reported_by_picks_export": true,
+       "ret": 0.0281,
+       "win": 0.4581
+      },
+      "lo": 80
+     },
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows: picks_export would not report this band"
+      },
+      "hi": 101,
+      "label": "SWING STRATEGY SURFACE",
+      "legacy": {
+       "R": 0.633,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 777,
+       "reported_by_picks_export": true,
+       "ret": 0.0437,
+       "win": 0.5457
+      },
+      "lo": 90
+     },
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows: picks_export would not report this band"
+      },
+      "hi": 101,
+      "label": "SWING STRATEGY SURFACE (ready: 80+)",
+      "legacy": {
+       "R": 0.4587,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 2449,
+       "reported_by_picks_export": true,
+       "ret": 0.0331,
+       "win": 0.4859
+      },
+      "lo": 80
+     }
+    ],
+    "base": {
+     "corrected": {
+      "aggregate": {
+       "n": 0
+      },
+      "components": {
+       "n": 0
+      },
+      "why_not_qualified": {
+       "funding": {},
+       "identity": {},
+       "liquidity": {},
+       "universe": {}
+      }
+     },
+     "label": "DIAGNOSTIC / NOT SWING STRATEGY AUTHORITY",
+     "legacy": {
+      "R": -0.0512,
+      "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+      "n": 52458,
+      "ret": -0.0163,
+      "win": 0.3351
+     }
+    }
+   },
+   "short": {
+    "bands": [
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows: picks_export would not report this band"
+      },
+      "hi": 40,
+      "label": "SWING STRATEGY SURFACE",
+      "legacy": {
+       "R": 0.2193,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 1634,
+       "reported_by_picks_export": true,
+       "ret": 0.0244,
+       "win": 0.3984
+      },
+      "lo": 0
+     },
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows: picks_export would not report this band"
+      },
+      "hi": 60,
+      "label": "SWING STRATEGY SURFACE",
+      "legacy": {
+       "R": 0.0057,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 28760,
+       "reported_by_picks_export": true,
+       "ret": 0.0026,
+       "win": 0.4102
+      },
+      "lo": 40
+     },
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows: picks_export would not report this band"
+      },
+      "hi": 70,
+      "label": "SWING STRATEGY SURFACE",
+      "legacy": {
+       "R": 0.1036,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 5729,
+       "reported_by_picks_export": true,
+       "ret": 0.02,
+       "win": 0.4479
+      },
+      "lo": 60
+     },
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows: picks_export would not report this band"
+      },
+      "hi": 80,
+      "label": "SWING STRATEGY SURFACE",
+      "legacy": {
+       "R": 0.1165,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 9365,
+       "reported_by_picks_export": true,
+       "ret": 0.0261,
+       "win": 0.4949
+      },
+      "lo": 70
+     },
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows: picks_export would not report this band"
+      },
+      "hi": 90,
+      "label": "SWING STRATEGY SURFACE",
+      "legacy": {
+       "R": 0.142,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 2675,
+       "reported_by_picks_export": true,
+       "ret": 0.0254,
+       "win": 0.4692
+      },
+      "lo": 80
+     },
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows: picks_export would not report this band"
+      },
+      "hi": 101,
+      "label": "SWING STRATEGY SURFACE",
+      "legacy": {
+       "R": 0.2915,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 329,
+       "reported_by_picks_export": true,
+       "ret": 0.0508,
+       "win": 0.5319
+      },
+      "lo": 90
+     },
+     {
+      "corrected": {
+       "authoritative": {
+        "n": 0
+       },
+       "note": "fewer than 30 point-in-time eligible rows: picks_export would not report this band"
+      },
+      "hi": 101,
+      "label": "SWING STRATEGY SURFACE (ready: 80+)",
+      "legacy": {
+       "R": 0.1584,
+       "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+       "n": 3004,
+       "reported_by_picks_export": true,
+       "ret": 0.0282,
+       "win": 0.476
+      },
+      "lo": 80
+     }
+    ],
+    "base": {
+     "corrected": {
+      "aggregate": {
+       "n": 0
+      },
+      "components": {
+       "n": 0
+      },
+      "why_not_qualified": {
+       "funding": {},
+       "identity": {},
+       "liquidity": {},
+       "universe": {}
+      }
+     },
+     "label": "DIAGNOSTIC / NOT SWING STRATEGY AUTHORITY",
+     "legacy": {
+      "R": 0.0247,
+      "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+      "n": 52605,
+      "ret": 0.007,
+      "win": 0.4201
+     }
+    }
+   }
+  }
+ },
+ "promotion": "NONE: nothing here changes quant_research.json, picks_research.json or a live engine",
+ "provenance": {
+  "code_files": [
+   "tools/research/pit_research.py",
+   "tools/research/pit_sim.py",
+   "tools/research/pit_cost.py",
+   "tools/research/qsim.py",
+   "tools/research/qstrat.py",
+   "tools/research/qind.py",
+   "tools/research/qdata.py",
+   "tools/research/pk_trades.py",
+   "tools/research/pk_data.py",
+   "tools/research/pk_score.py",
+   "tools/research/pk_day.py",
+   "tools/research/picks_export.py",
+   "v8/pit.py",
+   "v8/history.py"
+  ],
+  "code_hash": "2b7301a9b260ace0b029a127107a2aa6da7c77fe48423173237f4baeda51ebde",
+  "cost_model": "v8.pit-cost/2",
+  "fee_schedule": {
+   "basis": "Hyperliquid base tier (taker 0.045%, maker 0.015%), the schedule the research has always used (qsim.FEE_T / FEE_M)",
+   "limitation": "One schedule for every venue and every date: venue-specific fees, volume tiers, discounts and their changes over time are not modelled. It is a governed constant, not an observation.",
+   "maker": 0.00015,
+   "taker": 0.00045,
+   "version": "v8.fees/1"
+  },
+  "git_head": "45e387a4a2393e18cd52ba2b7c5be355afb14c08",
+  "history": {
+   "head_hash": "187b90a230a7739150ba4ed55b21fb47d462a6b1eaf195cc06b484b0756b1255",
+   "observations": 48,
+   "problems": [],
+   "readable_schemas": [
+    "v8.history/1",
+    "v8.history/2"
+   ],
+   "schema_regressions": 0,
+   "schemas": {
+    "v8.history/1": 35,
+    "v8.history/2": 13
+   },
+   "verified": true,
+   "writer_version": "v8.history/2"
+  },
+  "liquidity_max_staleness_s": 43200,
+  "market_data": {
+   "commit": "df20b574025b6260c7404dba5cc374c97d131b19",
+   "files": 856,
+   "folder_sha256": "6235677821fa414d83a37f672e0b3f6f1cb3ec134519ca4e92d527924cf3f3bc"
+  },
+  "max_staleness_s": 43200,
+  "min_vol": 1000000,
+  "pit_version": "v8.pit/2",
+  "reproduce": "git archive <market-data commit> | tar -x -C md; git archive <v8-history commit> | tar -x -C hist; python tools/research/pit_research.py --md md --history hist --cutoff 1791313656 --out research_pit.json",
+  "slippage_tiers": [
+   [
+    1000000.0,
+    0.0005
+   ],
+   [
+    200000.0,
+    0.001
+   ],
+   [
+    0.0,
+    0.002
+   ]
+  ]
+ },
+ "qualified_window": {
+  "assets_in_history": null,
+  "days": 0.0,
+  "hours": 0,
+  "market_data_end": 1791100800,
+  "market_data_start": 1756537200,
+  "observations": 0,
+  "overlap_end": null,
+  "overlap_start": null,
+  "point_in_time_history_end": null,
+  "point_in_time_history_start": null,
+  "qualified_day_top5_samples": 0,
+  "qualified_pick_band_rows": 0,
+  "qualified_quant_trades": 0
+ },
+ "quant": {
+  "TREND_EMA": {
+   "corrected": {
+    "authoritative": {
+     "n": 0
+    },
+    "components": {
+     "n": 0
+    },
+    "fully_qualified": 0,
+    "trades": 0,
+    "why_not_qualified": {
+     "funding": {},
+     "identity": {},
+     "liquidity": {},
+     "universe": {}
+    }
+   },
+   "legacy": {
+    "avg_R": 0.1299,
+    "cost_R": 0.0437,
+    "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+    "qualification_of_legacy_trades": {
+     "cost_ok": 0,
+     "fully_qualified": 0,
+     "fully_qualified_closed": 0,
+     "funding_ok": 651,
+     "identity_ok": 0,
+     "liquidity_ok": 0,
+     "n": 671,
+     "open_at_data_end": 4,
+     "universe_ok": 0
+    },
+    "trades": 667,
+    "why_not_qualified": {
+     "funding": {
+      "FUNDING_HISTORY_GAP": 20
+     },
+     "identity": {
+      "BEFORE_PIT_HISTORY": 671
+     },
+     "liquidity": {
+      "BEFORE_PIT_HISTORY": 671
+     },
+     "universe": {
+      "BEFORE_PIT_HISTORY": 671
+     }
+    },
+    "win": 0.3763
+   },
+   "params": {
+    "adx_min": 20,
+    "fast": 20,
+    "hold_days": 30,
+    "slow": 100,
+    "stop_k": 2.5,
+    "trail_k": 3.0
+   },
+   "scenario": {
+    "aggregate": {
+     "n": 0
+    },
+    "label": "SCENARIO / NOT AUTHORITY",
+    "note": "unknown liquidity at the worst tier, missing funding at 0.01% per 8 hours; the point-in-time universe still applies"
+   }
+  },
+  "TSMOM": {
+   "corrected": {
+    "authoritative": {
+     "n": 0
+    },
+    "components": {
+     "n": 0
+    },
+    "fully_qualified": 0,
+    "trades": 0,
+    "why_not_qualified": {
+     "funding": {},
+     "identity": {},
+     "liquidity": {},
+     "universe": {}
+    }
+   },
+   "legacy": {
+    "avg_R": 0.101,
+    "cost_R": 0.0189,
+    "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+    "qualification_of_legacy_trades": {
+     "cost_ok": 0,
+     "fully_qualified": 0,
+     "fully_qualified_closed": 0,
+     "funding_ok": 490,
+     "identity_ok": 0,
+     "liquidity_ok": 0,
+     "n": 500,
+     "open_at_data_end": 19,
+     "universe_ok": 0
+    },
+    "trades": 481,
+    "why_not_qualified": {
+     "funding": {
+      "FUNDING_HISTORY_GAP": 10
+     },
+     "identity": {
+      "BEFORE_PIT_HISTORY": 500
+     },
+     "liquidity": {
+      "BEFORE_PIT_HISTORY": 500
+     },
+     "universe": {
+      "BEFORE_PIT_HISTORY": 500
+     }
+    },
+    "win": 0.4324
+   },
+   "params": {
+    "hold_days": 21,
+    "look": 30,
+    "short_look": 7,
+    "stop_k": 3.0,
+    "trail_k": 3.0
+   },
+   "scenario": {
+    "aggregate": {
+     "n": 0
+    },
+    "label": "SCENARIO / NOT AUTHORITY",
+    "note": "unknown liquidity at the worst tier, missing funding at 0.01% per 8 hours; the point-in-time universe still applies"
+   }
+  },
+  "XSMOM": {
+   "corrected": {
+    "authoritative": {
+     "n": 0
+    },
+    "components": {
+     "n": 0
+    },
+    "fully_qualified": 0,
+    "trades": 0,
+    "why_not_qualified": {
+     "funding": {},
+     "identity": {},
+     "liquidity": {},
+     "universe": {}
+    }
+   },
+   "legacy": {
+    "avg_R": 0.1152,
+    "cost_R": 0.0174,
+    "label": "LEGACY_SURVIVORSHIP_UNQUALIFIED",
+    "qualification_of_legacy_trades": {
+     "cost_ok": 0,
+     "fully_qualified": 0,
+     "fully_qualified_closed": 0,
+     "funding_ok": 370,
+     "identity_ok": 0,
+     "liquidity_ok": 0,
+     "n": 377,
+     "open_at_data_end": 13,
+     "universe_ok": 0
+    },
+    "trades": 364,
+    "why_not_qualified": {
+     "funding": {
+      "FUNDING_HISTORY_GAP": 7
+     },
+     "identity": {
+      "BEFORE_PIT_HISTORY": 377
+     },
+     "liquidity": {
+      "BEFORE_PIT_HISTORY": 377
+     },
+     "universe": {
+      "BEFORE_PIT_HISTORY": 377
+     }
+    },
+    "win": 0.4945
+   },
+   "params": {
+    "hold_days": 14,
+    "look": 14,
+    "stop_k": 2.5,
+    "top": 5
+   },
+   "scenario": {
+    "aggregate": {
+     "n": 0
+    },
+    "label": "SCENARIO / NOT AUTHORITY",
+    "note": "unknown liquidity at the worst tier, missing funding at 0.01% per 8 hours; the point-in-time universe still applies"
+   }
+  }
+ },
+ "schema": "v8.pit-research/3",
+ "shadow_ledger": {
+  "experiments": 1,
+  "head_hash": "8801257a530288ad049699e4285032cd522e96ced2f7c588d0759a2e369720d3",
+  "problems": [],
+  "records": 2,
+  "status": {
+   "V9-PROBATION-XSMOM-LONG-1": "REGISTERED"
+  },
+  "valid": true,
+  "version": "v8.shadow-ledger/1"
+ }
+}

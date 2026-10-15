@@ -1,0 +1,5 @@
+[00:47] picks: journal (new): 0 open, 0 closed
+[00:47] picks: 86 of 87 coins with 4h candles
+[00:47] picks: swing checks for 53 coins (day 2026-10-14)
+[00:48] picks: paper: 3 new, 0 closed, 3 open
+[00:48] picks: done in 90.0s: 53 swing and 50 day-trade scores; top swing ZEC short 79.0, XRP short 79.0, PONS short 79.0

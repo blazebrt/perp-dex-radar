@@ -1,0 +1,29 @@
+{
+ "schema": "v8.desk-check/1",
+ "decision_as_of": 1792025218,
+ "valid_until": 1792028594,
+ "authority": "AVAILABLE",
+ "opportunity_states": {
+  "AVOID": 336,
+  "TRADE": 0,
+  "WATCH": 24
+ },
+ "best_trades_now": {
+  "file": 0,
+  "shown": 0
+ },
+ "emerging": {
+  "file": 5,
+  "shown": 5
+ },
+ "funding": {
+  "file": 0,
+  "shown": 0
+ },
+ "zero_trade": true,
+ "zero_trade_message_shown": true,
+ "portfolio_state": "WITHIN_LIMITS",
+ "traces_checked": 360,
+ "analyzer_panels_checked": 859,
+ "problems": []
+}

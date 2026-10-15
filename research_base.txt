@@ -1,0 +1,21 @@
+phase base 0efcf72aecc3f8712c78039c5573cdc445c0ec40
+Preparing worktree (detached HEAD 0efcf72)
+HEAD is now at 0efcf72 v8 Phase 11: unified decision engine, Top-5 authority and Decision Trace (audit-only) (#23)
+[00:49] universe: 859 coins across 7 DEXs, 433 crypto, 272 excluded, 154 identity unverified
+[00:49] journal (new): 0 open and 0 closed trades, 0 active variants
+[00:49] smart money: 150 of 150 top Hyperliquid traders read, 613 open positions
+[00:50] stage 1: 424 charted, 9 without data, sources {'mexc': 409, 'gate': 11, 'hyperliquid': 2, 'aster': 1, 'bitget': 1}
+[00:50] market gate closed: the market is risk-off and BTC's 4-hour trend is down
+[00:50] stage 2: 47 deep dives (7 extra), 3 signals on 3 coins, 0 publishable, Gate.io positioning for 3
+[00:50] journal: 6 new paper trades, 0 closed this scan, 6 open, 0 closed in total
+[00:50] done in 79.9s: 0 picks, regime Risk-off, 8 notes
+[00:50] quant: journal (new): 0 open, 0 closed
+[00:50] quant: 87 of 87 coins with 4h candles
+[00:50] quant: 10 signals, 10 new paper trades
+[00:50] quant: 0 trades closed this scan, 10 open
+[00:50] quant: done in 20.7s: 10 new signals, 10 open trades
+[00:50] picks: journal (new): 0 open, 0 closed
+[00:50] picks: 87 of 87 coins with 4h candles
+[00:50] picks: swing checks for 53 coins (day 2026-10-14)
+[00:52] picks: paper: 8 new, 0 closed, 8 open
+[00:52] picks: done in 85.4s: 53 swing and 50 day-trade scores; top swing ZEC short 81.0, XRP short 81.0, PONS short 81.0

@@ -1,0 +1,1678 @@
+{
+ "evaluation": {
+  "approaching": [],
+  "as_of": 1792025218,
+  "breached": [
+   "max_asset_stop_risk",
+   "max_cluster_stop_risk",
+   "max_executable_risk",
+   "max_side_stop_risk",
+   "max_strategy_stop_risk",
+   "max_stressed_loss"
+  ],
+  "concentration": {
+   "asset": {
+    "ASTER": {
+     "net": -0.0328715969679239,
+     "notional": 0.0328715969679239,
+     "positions": 1,
+     "stop_risk": 0.004999999858920186
+    },
+    "DOGE": {
+     "net": -0.028564573073890837,
+     "notional": 0.028564573073890837,
+     "positions": 1,
+     "stop_risk": 0.005000000139680065
+    },
+    "ETH": {
+     "net": -0.09495601496137128,
+     "notional": 0.09495601496137128,
+     "positions": 2,
+     "stop_risk": 0.009999998342563328
+    },
+    "JUP": {
+     "net": -0.0629643621710112,
+     "notional": 0.0629643621710112,
+     "positions": 1,
+     "stop_risk": 0.004999999605486451
+    },
+    "QNT": {
+     "net": -0.0423413047896484,
+     "notional": 0.0423413047896484,
+     "positions": 1,
+     "stop_risk": 0.004999999636519868
+    },
+    "SOL": {
+     "net": -0.04030860266198012,
+     "notional": 0.04030860266198012,
+     "positions": 1,
+     "stop_risk": 0.004999999102878381
+    },
+    "XLM": {
+     "net": -0.05644846768068641,
+     "notional": 0.05644846768068641,
+     "positions": 2,
+     "stop_risk": 0.010000000101238731
+    },
+    "XRP": {
+     "net": -0.032286601706024036,
+     "notional": 0.032286601706024036,
+     "positions": 1,
+     "stop_risk": 0.005000001140097885
+    }
+   },
+   "asset_nominal_share": {
+    "largest": 0.2430149065967322,
+    "top3": 0.5486205883923186,
+    "top5": 0.760141254542397
+   },
+   "asset_stop_risk_share": {
+    "largest": 0.20000001031523548,
+    "top3": 0.5000000124041505,
+    "top5": 0.7000000206666163
+   },
+   "complete": true,
+   "multi_strategy_assets": [
+    "ETH",
+    "XLM"
+   ],
+   "nominal_share": {
+    "largest": 0.16114069865016728,
+    "top3": 0.40415560524689953,
+    "top5": 0.6156762713969779
+   },
+   "offsetting_assets": [],
+   "shared_assets": [
+    "ETH",
+    "XLM"
+   ],
+   "side": {
+    "short": {
+     "net": -0.39074152401253615,
+     "notional": 0.39074152401253615,
+     "positions": 10,
+     "stop_risk": 0.049999997927384895
+    }
+   },
+   "stop_risk_share": {
+    "largest": 0.10000002694718903,
+    "top3": 0.30000004748020004,
+    "top5": 0.5000000456794614
+   },
+   "strategy": {
+    "TREND_EMA": {
+     "net": -0.1053056669606596,
+     "notional": 0.1053056669606596,
+     "positions": 2,
+     "stop_risk": 0.009999999242006318
+    },
+    "TSMOM": {
+     "net": -0.1625430317766307,
+     "notional": 0.1625430317766307,
+     "positions": 5,
+     "stop_risk": 0.025000000154151627
+    },
+    "XSMOM": {
+     "net": -0.12289282527524588,
+     "notional": 0.12289282527524588,
+     "positions": 3,
+     "stop_risk": 0.014999998531226947
+    }
+   },
+   "strategy_overlap": {
+    "TSMOM|XSMOM": [
+     "ETH",
+     "XLM"
+    ]
+   }
+  },
+  "dependence": {
+   "beta": {
+    "ASTER": {
+     "n": 60,
+     "value": 0.7012710699149506
+    },
+    "DOGE": {
+     "n": 60,
+     "value": 1.5289431202600052
+    },
+    "ETH": {
+     "n": 60,
+     "value": 1.236672669633492
+    },
+    "JUP": {
+     "n": 60,
+     "value": 1.3710423788261938
+    },
+    "QNT": {
+     "n": 60,
+     "value": 0.7132539176888418
+    },
+    "SOL": {
+     "n": 60,
+     "value": 1.2670741971936195
+    },
+    "XLM": {
+     "n": 60,
+     "value": 1.4059250609877014
+    },
+    "XRP": {
+     "n": 60,
+     "value": 1.6559322361879871
+    }
+   },
+   "beta_weighted_net_leverage": -0.48458265668005035,
+   "clusters": [
+    {
+     "positions": [
+      "DOGE-TSMOM-1792022400",
+      "ETH-TSMOM-1792022400",
+      "ETH-XSMOM-1792022400",
+      "SOL-XSMOM-1792022400",
+      "XLM-TSMOM-1792022400",
+      "XLM-XSMOM-1792022400",
+      "XRP-TSMOM-1792022400"
+     ],
+     "stop_risk": 0.03499999882645839
+    },
+    {
+     "positions": [
+      "ASTER-TSMOM-1792022400"
+     ],
+     "stop_risk": 0.004999999858920186
+    },
+    {
+     "positions": [
+      "QNT-TREND_EMA-1792022400"
+     ],
+     "stop_risk": 0.004999999636519868
+    },
+    {
+     "positions": [
+      "JUP-TREND_EMA-1792022400"
+     ],
+     "stop_risk": 0.004999999605486451
+    }
+   ],
+   "complete": true,
+   "correlation": {
+    "ASTER|DOGE": {
+     "n": 60,
+     "value": 0.53622823292762
+    },
+    "ASTER|ETH": {
+     "n": 60,
+     "value": 0.5278802697854704
+    },
+    "ASTER|JUP": {
+     "n": 60,
+     "value": 0.4362926468837969
+    },
+    "ASTER|QNT": {
+     "n": 60,
+     "value": 0.17344426554753883
+    },
+    "ASTER|SOL": {
+     "n": 60,
+     "value": 0.5143858571982074
+    },
+    "ASTER|XLM": {
+     "n": 60,
+     "value": 0.498879289558732
+    },
+    "ASTER|XRP": {
+     "n": 60,
+     "value": 0.5097222759924602
+    },
+    "DOGE|ETH": {
+     "n": 60,
+     "value": 0.7634901002684702
+    },
+    "DOGE|JUP": {
+     "n": 60,
+     "value": 0.5279314484356762
+    },
+    "DOGE|QNT": {
+     "n": 60,
+     "value": 0.19011150383366393
+    },
+    "DOGE|SOL": {
+     "n": 60,
+     "value": 0.7989330157376036
+    },
+    "DOGE|XLM": {
+     "n": 60,
+     "value": 0.8221525780618008
+    },
+    "DOGE|XRP": {
+     "n": 60,
+     "value": 0.8855795453503114
+    },
+    "ETH|JUP": {
+     "n": 60,
+     "value": 0.49971250602360556
+    },
+    "ETH|QNT": {
+     "n": 60,
+     "value": 0.12123641315143333
+    },
+    "ETH|SOL": {
+     "n": 60,
+     "value": 0.8379802547806455
+    },
+    "ETH|XLM": {
+     "n": 60,
+     "value": 0.7583993971997747
+    },
+    "ETH|XRP": {
+     "n": 60,
+     "value": 0.7991016070463934
+    },
+    "JUP|QNT": {
+     "n": 60,
+     "value": 0.35809825260000705
+    },
+    "JUP|SOL": {
+     "n": 60,
+     "value": 0.662544598106066
+    },
+    "JUP|XLM": {
+     "n": 60,
+     "value": 0.42554580513568235
+    },
+    "JUP|XRP": {
+     "n": 60,
+     "value": 0.5227356073866936
+    },
+    "QNT|SOL": {
+     "n": 60,
+     "value": 0.1736201312329278
+    },
+    "QNT|XLM": {
+     "n": 60,
+     "value": 0.1342371101528438
+    },
+    "QNT|XRP": {
+     "n": 60,
+     "value": 0.14135354723010302
+    },
+    "SOL|XLM": {
+     "n": 60,
+     "value": 0.7038761355714007
+    },
+    "SOL|XRP": {
+     "n": 60,
+     "value": 0.7762644442568574
+    },
+    "XLM|XRP": {
+     "n": 60,
+     "value": 0.8287588592360583
+    }
+   },
+   "diversification_claimed": 0.21048692216715748,
+   "diversified_stop_risk": 0.0394756522552854,
+   "down_market_correlation": {
+    "ASTER|DOGE": {
+     "n": 27,
+     "value": 0.39952778481389634
+    },
+    "ASTER|ETH": {
+     "n": 27,
+     "value": 0.44837411393402277
+    },
+    "ASTER|JUP": {
+     "n": 27,
+     "value": 0.4330778769067412
+    },
+    "ASTER|QNT": {
+     "n": 27,
+     "value": 0.472639654778019
+    },
+    "ASTER|SOL": {
+     "n": 27,
+     "value": 0.36336237663340526
+    },
+    "ASTER|XLM": {
+     "n": 27,
+     "value": 0.3060205143154633
+    },
+    "ASTER|XRP": {
+     "n": 27,
+     "value": 0.2760369319324554
+    },
+    "DOGE|ETH": {
+     "n": 27,
+     "value": 0.597275973859607
+    },
+    "DOGE|JUP": {
+     "n": 27,
+     "value": 0.5709132301493385
+    },
+    "DOGE|QNT": {
+     "n": 27,
+     "value": 0.5673311084744518
+    },
+    "DOGE|SOL": {
+     "n": 27,
+     "value": 0.808943900835753
+    },
+    "DOGE|XLM": {
+     "n": 27,
+     "value": 0.6230194066277321
+    },
+    "DOGE|XRP": {
+     "n": 27,
+     "value": 0.7696382534589684
+    },
+    "ETH|JUP": {
+     "n": 27,
+     "value": 0.39943528253023536
+    },
+    "ETH|QNT": {
+     "n": 27,
+     "value": 0.3366086563423991
+    },
+    "ETH|SOL": {
+     "n": 27,
+     "value": 0.6734835345003658
+    },
+    "ETH|XLM": {
+     "n": 27,
+     "value": 0.6958514541534049
+    },
+    "ETH|XRP": {
+     "n": 27,
+     "value": 0.7064318650107223
+    },
+    "JUP|QNT": {
+     "n": 27,
+     "value": 0.6356547212114787
+    },
+    "JUP|SOL": {
+     "n": 27,
+     "value": 0.7644650412911818
+    },
+    "JUP|XLM": {
+     "n": 27,
+     "value": 0.1157168516893401
+    },
+    "JUP|XRP": {
+     "n": 27,
+     "value": 0.5463530648281018
+    },
+    "QNT|SOL": {
+     "n": 27,
+     "value": 0.5367117148494086
+    },
+    "QNT|XLM": {
+     "n": 27,
+     "value": 0.002512949391316012
+    },
+    "QNT|XRP": {
+     "n": 27,
+     "value": 0.46289328969178156
+    },
+    "SOL|XLM": {
+     "n": 27,
+     "value": 0.48289130168993327
+    },
+    "SOL|XRP": {
+     "n": 27,
+     "value": 0.8179872300267308
+    },
+    "XLM|XRP": {
+     "n": 27,
+     "value": 0.6397406907443928
+    }
+   },
+   "independence_stop_risk": 0.015811387645423572,
+   "mean_effective_correlation": 0.5814787737569712,
+   "no_diversification_stop_risk": 0.049999997927384895,
+   "note": "diversified_stop_risk assumes losses scale with direction-adjusted return correlation; a DIAGNOSTIC, never a limit. Limits use clusters and the no-diversification sum.",
+   "regime": {
+    "basis": "pairs on market-down bars (market return < 0)",
+    "mean_effective_down_correlation": 0.5086503320410789,
+    "pairs_available": 43,
+    "status": "DIAGNOSTIC"
+   },
+   "same_direction": {
+    "long": 0,
+    "short": 10
+   },
+   "series_bars": {
+    "ASTER": 60,
+    "BTC": 60,
+    "DOGE": 60,
+    "ETH": 60,
+    "JUP": 60,
+    "QNT": 60,
+    "SOL": 60,
+    "XLM": 60,
+    "XRP": 60
+   }
+  },
+  "equity": 500.0,
+  "exposure": {
+   "by_actionability": {
+    "ACTIONABLE": {
+     "gross_leverage": 0.39074152401253615,
+     "net_leverage": -0.39074152401253615,
+     "positions": 10,
+     "quantified": 10,
+     "stop_risk": 0.049999997927384895,
+     "unquantified": []
+    }
+   },
+   "gross_leverage": 0.3907415240125362,
+   "gross_long_usd": 0.0,
+   "gross_notional_usd": 195.3707620062681,
+   "gross_short_usd": 195.3707620062681,
+   "long_leverage": 0.0,
+   "max_position_leverage": 0.0629643621710112,
+   "net_leverage": -0.3907415240125362,
+   "net_usd": -195.3707620062681,
+   "short_leverage": 0.3907415240125362,
+   "unquantified_open_positions": []
+  },
+  "funding": {
+   "accrued_known": 0.0,
+   "accrued_unknown_positions": [
+    "JUP-TREND_EMA-1792022400",
+    "QNT-TREND_EMA-1792022400",
+    "ASTER-TSMOM-1792022400",
+    "DOGE-TSMOM-1792022400",
+    "ETH-TSMOM-1792022400",
+    "XLM-TSMOM-1792022400",
+    "XRP-TSMOM-1792022400",
+    "ETH-XSMOM-1792022400",
+    "SOL-XSMOM-1792022400",
+    "XLM-XSMOM-1792022400"
+   ],
+   "known_adverse": 0.0,
+   "known_expected": 0.0,
+   "rule": "credits never reduce risk; missing funding stays missing (never 0)",
+   "unknown_positions": [
+    "JUP-TREND_EMA-1792022400",
+    "QNT-TREND_EMA-1792022400",
+    "ASTER-TSMOM-1792022400",
+    "DOGE-TSMOM-1792022400",
+    "ETH-TSMOM-1792022400",
+    "XLM-TSMOM-1792022400",
+    "XRP-TSMOM-1792022400",
+    "ETH-XSMOM-1792022400",
+    "SOL-XSMOM-1792022400",
+    "XLM-XSMOM-1792022400"
+   ]
+  },
+  "inputs": {
+   "funding": "MISSING: paper settlement evidence is not prospective funding authority",
+   "positions": 10,
+   "positions_by_actionability": {
+    "ACTIONABLE": 10,
+    "IDENTITY_BLOCKED": 0
+   },
+   "qualified_closed_trades": 0,
+   "returns_assets": [
+    "ASTER",
+    "BTC",
+    "DOGE",
+    "ETH",
+    "JUP",
+    "QNT",
+    "SOL",
+    "XLM",
+    "XRP"
+   ],
+   "sizing": {
+    "account": 500.0,
+    "basis": "PAGE_DEFAULT_SIZING",
+    "risk_per_trade": 0.005
+   },
+   "source": "quant open paper positions (journal) at this scan: actionable and identity-blocked"
+  },
+  "limits": {
+   "max_asset_stop_risk": {
+    "basis": "POLICY",
+    "complete": true,
+    "limit": 0.01,
+    "metric": 0.010000000101238731,
+    "status": "BREACHED"
+   },
+   "max_cluster_stop_risk": {
+    "basis": "POLICY",
+    "complete": true,
+    "limit": 0.02,
+    "metric": 0.03499999882645839,
+    "status": "BREACHED"
+   },
+   "max_executable_risk": {
+    "basis": "POLICY",
+    "complete": false,
+    "limit": 0.03,
+    "metric": 0.049999997927384895,
+    "status": "BREACHED"
+   },
+   "max_gross_leverage": {
+    "basis": "POLICY",
+    "complete": true,
+    "limit": 3.0,
+    "metric": 0.3907415240125362,
+    "status": "OK"
+   },
+   "max_net_leverage": {
+    "basis": "POLICY",
+    "complete": true,
+    "limit": 1.5,
+    "metric": 0.3907415240125362,
+    "status": "OK"
+   },
+   "max_position_leverage": {
+    "basis": "POLICY",
+    "complete": true,
+    "limit": 2.0,
+    "metric": 0.0629643621710112,
+    "status": "OK"
+   },
+   "max_side_stop_risk": {
+    "basis": "POLICY",
+    "complete": true,
+    "limit": 0.025,
+    "metric": 0.049999997927384895,
+    "status": "BREACHED"
+   },
+   "max_strategy_stop_risk": {
+    "basis": "POLICY",
+    "complete": true,
+    "limit": 0.02,
+    "metric": 0.025000000154151627,
+    "status": "BREACHED"
+   },
+   "max_stressed_loss": {
+    "basis": "POLICY",
+    "complete": true,
+    "limit": 0.06,
+    "metric": 0.07537120133888925,
+    "status": "BREACHED"
+   }
+  },
+  "liquidity": {
+   "degraded_liquidity_bound": 0.05037120237519681,
+   "executable_risk_known_lower_bound": 0.049999997927384895,
+   "expected_executable_risk": null,
+   "theoretical_stop_risk": 0.049999997927384895,
+   "unknown_liquidity_positions": []
+  },
+  "missing_authorities": [
+   "FUNDING_UNKNOWN:ASTER-TSMOM-1792022400",
+   "FUNDING_UNKNOWN:DOGE-TSMOM-1792022400",
+   "FUNDING_UNKNOWN:ETH-TSMOM-1792022400",
+   "FUNDING_UNKNOWN:ETH-XSMOM-1792022400",
+   "FUNDING_UNKNOWN:JUP-TREND_EMA-1792022400",
+   "FUNDING_UNKNOWN:QNT-TREND_EMA-1792022400",
+   "FUNDING_UNKNOWN:SOL-XSMOM-1792022400",
+   "FUNDING_UNKNOWN:XLM-TSMOM-1792022400",
+   "FUNDING_UNKNOWN:XLM-XSMOM-1792022400",
+   "FUNDING_UNKNOWN:XRP-TSMOM-1792022400"
+  ],
+  "policy_hash": "86c8c85522ec695cdee917adf2ba5f242b3b2fd755c426d0443981193d1ac2f2",
+  "policy_review_status": "POLICY_REVIEWED_INITIAL_V1",
+  "policy_schema": "v8.portfolio-risk-policy/1",
+  "positions": [
+   {
+    "account_risk": 0.004999999605486451,
+    "actionability": "ACTIONABLE",
+    "asset": "JUP",
+    "direction": -1,
+    "entered": true,
+    "entry": 0.3192,
+    "expected_fees": 2.833396297695504e-05,
+    "expected_slippage": 3.14821810855056e-05,
+    "funding": {
+     "accrued": null,
+     "accrued_state": "UNKNOWN",
+     "cumulative": null,
+     "expected": null,
+     "rate_8h": null,
+     "state": "MISSING"
+    },
+    "hold_hours_remaining": 719.2172222222222,
+    "id": "JUP-TREND_EMA-1792022400",
+    "leverage": 0.0629643621710112,
+    "liquidity": {
+     "slippage_rate": 0.0005,
+     "state": "KNOWN",
+     "volume": 2609268.4043399994
+    },
+    "mark": 0.3192,
+    "notional_usd": 31.4821810855056,
+    "orders_to_pay": 1,
+    "quantity": 98.6283868593534,
+    "risk": {
+     "adverse_cost": null,
+     "degraded_liquidity_bound": 0.005059815749548911,
+     "expected_executable": null,
+     "expected_executable_R": null,
+     "gap_slippage": 0.0024999998027432253,
+     "nominal_R": 1.0,
+     "normal_stop": 0.004999999605486451,
+     "stressed_stop_R": 1.5,
+     "theoretical_stop": 0.004999999605486451
+    },
+    "sizing_input": "quantity",
+    "status": "VALID",
+    "stop": 0.34454767,
+    "stop_distance": 0.07940999373433581,
+    "strategy": "TREND_EMA"
+   },
+   {
+    "account_risk": 0.004999999636519868,
+    "actionability": "ACTIONABLE",
+    "asset": "QNT",
+    "direction": -1,
+    "entered": true,
+    "entry": 205.02,
+    "expected_fees": 1.9053587155341778e-05,
+    "expected_slippage": 2.11706523948242e-05,
+    "funding": {
+     "accrued": null,
+     "accrued_state": "UNKNOWN",
+     "cumulative": null,
+     "expected": null,
+     "rate_8h": null,
+     "state": "MISSING"
+    },
+    "hold_hours_remaining": 719.2172222222222,
+    "id": "QNT-TREND_EMA-1792022400",
+    "leverage": 0.0423413047896484,
+    "liquidity": {
+     "slippage_rate": 0.0005,
+     "state": "KNOWN",
+     "volume": 2257700.29
+    },
+    "mark": 205.02,
+    "notional_usd": 21.1706523948242,
+    "orders_to_pay": 1,
+    "quantity": 0.1032614008136972,
+    "risk": {
+     "adverse_cost": null,
+     "degraded_liquidity_bound": 0.005040223876070033,
+     "expected_executable": null,
+     "expected_executable_R": null,
+     "gap_slippage": 0.002499999818259934,
+     "nominal_R": 1.0,
+     "normal_stop": 0.004999999636519868,
+     "stressed_stop_R": 1.5,
+     "theoretical_stop": 0.004999999636519868
+    },
+    "sizing_input": "quantity",
+    "status": "VALID",
+    "stop": 229.2304,
+    "stop_distance": 0.11808799141547162,
+    "strategy": "TREND_EMA"
+   },
+   {
+    "account_risk": 0.004999999858920186,
+    "actionability": "ACTIONABLE",
+    "asset": "ASTER",
+    "direction": -1,
+    "entered": true,
+    "entry": 0.699,
+    "expected_fees": 1.4792218635565752e-05,
+    "expected_slippage": 1.6435798483961948e-05,
+    "funding": {
+     "accrued": null,
+     "accrued_state": "UNKNOWN",
+     "cumulative": null,
+     "expected": null,
+     "rate_8h": null,
+     "state": "MISSING"
+    },
+    "hold_hours_remaining": 503.21722222222223,
+    "id": "ASTER-TSMOM-1792022400",
+    "leverage": 0.0328715969679239,
+    "liquidity": {
+     "slippage_rate": 0.0005,
+     "state": "KNOWN",
+     "volume": 28093758.0
+    },
+    "mark": 0.699,
+    "notional_usd": 16.43579848396195,
+    "orders_to_pay": 1,
+    "quantity": 23.51330255216302,
+    "risk": {
+     "adverse_cost": null,
+     "degraded_liquidity_bound": 0.005031227876039713,
+     "expected_executable": null,
+     "expected_executable_R": null,
+     "gap_slippage": 0.002499999929460093,
+     "nominal_R": 1.0,
+     "normal_stop": 0.004999999858920186,
+     "stressed_stop_R": 1.5,
+     "theoretical_stop": 0.004999999858920186
+    },
+    "sizing_input": "quantity",
+    "status": "VALID",
+    "stop": 0.80532279,
+    "stop_distance": 0.15210699570815453,
+    "strategy": "TSMOM"
+   },
+   {
+    "account_risk": 0.005000000139680065,
+    "actionability": "ACTIONABLE",
+    "asset": "DOGE",
+    "direction": -1,
+    "entered": true,
+    "entry": 0.0818,
+    "expected_fees": 1.2854057883250877e-05,
+    "expected_slippage": 1.4282286536945419e-05,
+    "funding": {
+     "accrued": null,
+     "accrued_state": "UNKNOWN",
+     "cumulative": null,
+     "expected": null,
+     "rate_8h": null,
+     "state": "MISSING"
+    },
+    "hold_hours_remaining": 503.21722222222223,
+    "id": "DOGE-TSMOM-1792022400",
+    "leverage": 0.028564573073890837,
+    "liquidity": {
+     "slippage_rate": 0.0005,
+     "state": "KNOWN",
+     "volume": 17353495.329667006
+    },
+    "mark": 0.0818,
+    "notional_usd": 14.282286536945419,
+    "orders_to_pay": 1,
+    "quantity": 174.60007991375818,
+    "risk": {
+     "adverse_cost": null,
+     "degraded_liquidity_bound": 0.005027136484100261,
+     "expected_executable": null,
+     "expected_executable_R": null,
+     "gap_slippage": 0.0025000000698400327,
+     "nominal_R": 1.0,
+     "normal_stop": 0.005000000139680065,
+     "stressed_stop_R": 1.5,
+     "theoretical_stop": 0.005000000139680065
+    },
+    "sizing_input": "quantity",
+    "status": "VALID",
+    "stop": 0.096118436,
+    "stop_distance": 0.1750420048899756,
+    "strategy": "TSMOM"
+   },
+   {
+    "account_risk": 0.004999999386662183,
+    "actionability": "ACTIONABLE",
+    "asset": "ETH",
+    "direction": -1,
+    "entered": true,
+    "entry": 2420.8,
+    "expected_fees": 1.9422839532815965e-05,
+    "expected_slippage": 2.158093281423996e-05,
+    "funding": {
+     "accrued": null,
+     "accrued_state": "UNKNOWN",
+     "cumulative": null,
+     "expected": null,
+     "rate_8h": null,
+     "state": "MISSING"
+    },
+    "hold_hours_remaining": 503.21722222222223,
+    "id": "ETH-TSMOM-1792022400",
+    "leverage": 0.04316186562847992,
+    "liquidity": {
+     "slippage_rate": 0.0005,
+     "state": "KNOWN",
+     "volume": 1209233118.0818708
+    },
+    "mark": 2420.8,
+    "notional_usd": 21.58093281423996,
+    "orders_to_pay": 1,
+    "quantity": 0.008914793793060129,
+    "risk": {
+     "adverse_cost": null,
+     "degraded_liquidity_bound": 0.005041003159009239,
+     "expected_executable": null,
+     "expected_executable_R": null,
+     "gap_slippage": 0.0024999996933310915,
+     "nominal_R": 1.0,
+     "normal_stop": 0.004999999386662183,
+     "stressed_stop_R": 1.5,
+     "theoretical_stop": 0.004999999386662183
+    },
+    "sizing_input": "quantity",
+    "status": "VALID",
+    "stop": 2701.2327,
+    "stop_distance": 0.11584298578982147,
+    "strategy": "TSMOM"
+   },
+   {
+    "account_risk": 0.0049999996287913104,
+    "actionability": "ACTIONABLE",
+    "asset": "XLM",
+    "direction": -1,
+    "entered": true,
+    "entry": 0.18248,
+    "expected_fees": 1.1546277480140401e-05,
+    "expected_slippage": 1.2829197200156002e-05,
+    "funding": {
+     "accrued": null,
+     "accrued_state": "UNKNOWN",
+     "cumulative": null,
+     "expected": null,
+     "rate_8h": null,
+     "state": "MISSING"
+    },
+    "hold_hours_remaining": 503.21722222222223,
+    "id": "XLM-TSMOM-1792022400",
+    "leverage": 0.025658394400312003,
+    "liquidity": {
+     "slippage_rate": 0.0005,
+     "state": "KNOWN",
+     "volume": 1837694.5455
+    },
+    "mark": 0.18248,
+    "notional_usd": 12.829197200156,
+    "orders_to_pay": 1,
+    "quantity": 70.30467558174047,
+    "risk": {
+     "adverse_cost": null,
+     "degraded_liquidity_bound": 0.005024375103471607,
+     "expected_executable": null,
+     "expected_executable_R": null,
+     "gap_slippage": 0.0024999998143956552,
+     "nominal_R": 1.0,
+     "normal_stop": 0.0049999996287913104,
+     "stressed_stop_R": 1.5,
+     "theoretical_stop": 0.0049999996287913104
+    },
+    "sizing_input": "quantity",
+    "status": "VALID",
+    "stop": 0.21803951,
+    "stop_distance": 0.19486798553266105,
+    "strategy": "TSMOM"
+   },
+   {
+    "account_risk": 0.005000001140097885,
+    "actionability": "ACTIONABLE",
+    "asset": "XRP",
+    "direction": -1,
+    "entered": true,
+    "entry": 1.331,
+    "expected_fees": 1.4528970767710816e-05,
+    "expected_slippage": 1.614330085301202e-05,
+    "funding": {
+     "accrued": null,
+     "accrued_state": "UNKNOWN",
+     "cumulative": null,
+     "expected": null,
+     "rate_8h": null,
+     "state": "MISSING"
+    },
+    "hold_hours_remaining": 503.21722222222223,
+    "id": "XRP-TSMOM-1792022400",
+    "leverage": 0.032286601706024036,
+    "liquidity": {
+     "slippage_rate": 0.0005,
+     "state": "KNOWN",
+     "volume": 71099424.83230005
+    },
+    "mark": 1.331,
+    "notional_usd": 16.14330085301202,
+    "orders_to_pay": 1,
+    "quantity": 12.128700866274995,
+    "risk": {
+     "adverse_cost": null,
+     "degraded_liquidity_bound": 0.005030673411718608,
+     "expected_executable": null,
+     "expected_executable_R": null,
+     "gap_slippage": 0.0025000005700489426,
+     "nominal_R": 1.0,
+     "normal_stop": 0.005000001140097885,
+     "stressed_stop_R": 1.5,
+     "theoretical_stop": 0.005000001140097885
+    },
+    "sizing_input": "quantity",
+    "status": "VALID",
+    "stop": 1.5371227,
+    "stop_distance": 0.15486303531179574,
+    "strategy": "TSMOM"
+   },
+   {
+    "account_risk": 0.004999998955901146,
+    "actionability": "ACTIONABLE",
+    "asset": "ETH",
+    "direction": -1,
+    "entered": true,
+    "entry": 2420.8,
+    "expected_fees": 2.330736719980111e-05,
+    "expected_slippage": 2.589707466644568e-05,
+    "funding": {
+     "accrued": null,
+     "accrued_state": "UNKNOWN",
+     "cumulative": null,
+     "expected": null,
+     "rate_8h": null,
+     "state": "MISSING"
+    },
+    "hold_hours_remaining": 335.21722222222223,
+    "id": "ETH-XSMOM-1792022400",
+    "leverage": 0.05179414933289136,
+    "liquidity": {
+     "slippage_rate": 0.0005,
+     "state": "KNOWN",
+     "volume": 1209233118.0818708
+    },
+    "mark": 2420.8,
+    "notional_usd": 25.89707466644568,
+    "orders_to_pay": 1,
+    "quantity": 0.010697734082305716,
+    "risk": {
+     "adverse_cost": null,
+     "degraded_liquidity_bound": 0.005049203397767392,
+     "expected_executable": null,
+     "expected_executable_R": null,
+     "gap_slippage": 0.002499999477950573,
+     "nominal_R": 1.0,
+     "normal_stop": 0.004999998955901146,
+     "stressed_stop_R": 1.5,
+     "theoretical_stop": 0.004999998955901146
+    },
+    "sizing_input": "quantity",
+    "status": "VALID",
+    "stop": 2654.4943,
+    "stop_distance": 0.0965359798413746,
+    "strategy": "XSMOM"
+   },
+   {
+    "account_risk": 0.004999999102878381,
+    "actionability": "ACTIONABLE",
+    "asset": "SOL",
+    "direction": -1,
+    "entered": true,
+    "entry": 104.24,
+    "expected_fees": 1.8138871197891055e-05,
+    "expected_slippage": 2.015430133099006e-05,
+    "funding": {
+     "accrued": null,
+     "accrued_state": "UNKNOWN",
+     "cumulative": null,
+     "expected": null,
+     "rate_8h": null,
+     "state": "MISSING"
+    },
+    "hold_hours_remaining": 335.21722222222223,
+    "id": "SOL-XSMOM-1792022400",
+    "leverage": 0.04030860266198012,
+    "liquidity": {
+     "slippage_rate": 0.0005,
+     "state": "KNOWN",
+     "volume": 395855286.4927002
+    },
+    "mark": 104.24,
+    "notional_usd": 20.154301330990062,
+    "orders_to_pay": 1,
+    "quantity": 0.19334517777235286,
+    "risk": {
+     "adverse_cost": null,
+     "degraded_liquidity_bound": 0.005038292275407262,
+     "expected_executable": null,
+     "expected_executable_R": null,
+     "gap_slippage": 0.0024999995514391905,
+     "nominal_R": 1.0,
+     "normal_stop": 0.004999999102878381,
+     "stressed_stop_R": 1.5,
+     "theoretical_stop": 0.004999999102878381
+    },
+    "sizing_input": "quantity",
+    "status": "VALID",
+    "stop": 117.17024,
+    "stop_distance": 0.12404297774366858,
+    "strategy": "XSMOM"
+   },
+   {
+    "account_risk": 0.005000000472447421,
+    "actionability": "ACTIONABLE",
+    "asset": "XLM",
+    "direction": -1,
+    "entered": true,
+    "entry": 0.18248,
+    "expected_fees": 1.3855532976168484e-05,
+    "expected_slippage": 1.5395036640187206e-05,
+    "funding": {
+     "accrued": null,
+     "accrued_state": "UNKNOWN",
+     "cumulative": null,
+     "expected": null,
+     "rate_8h": null,
+     "state": "MISSING"
+    },
+    "hold_hours_remaining": 335.21722222222223,
+    "id": "XLM-XSMOM-1792022400",
+    "leverage": 0.03079007328037441,
+    "liquidity": {
+     "slippage_rate": 0.0005,
+     "state": "KNOWN",
+     "volume": 1837694.5455
+    },
+    "mark": 0.18248,
+    "notional_usd": 15.395036640187204,
+    "orders_to_pay": 1,
+    "quantity": 84.36561069808857,
+    "risk": {
+     "adverse_cost": null,
+     "degraded_liquidity_bound": 0.005029251042063776,
+     "expected_executable": null,
+     "expected_executable_R": null,
+     "gap_slippage": 0.0025000002362237103,
+     "nominal_R": 1.0,
+     "normal_stop": 0.005000000472447421,
+     "stressed_stop_R": 1.5,
+     "theoretical_stop": 0.005000000472447421
+    },
+    "sizing_input": "quantity",
+    "status": "VALID",
+    "stop": 0.21211293,
+    "stop_distance": 0.16239001534414732,
+    "strategy": "XSMOM"
+   }
+  ],
+  "schema": "v8.portfolio-risk/1",
+  "state": "LIMIT_BREACHED",
+  "stop_realism": {
+   "adverse_cost": null,
+   "empirical_tail": {
+    "basis": "EMPIRICAL_DIAGNOSTIC",
+    "min_n": 100,
+    "n": 0,
+    "statement": "Too few qualified closed trades to describe tail loss; the gap allowance stays a POLICY value.",
+    "status": "INSUFFICIENT"
+   },
+   "gap_slippage": 0.024999998963692448,
+   "normal_stop": 0.049999997927384895,
+   "statement": "A stop is not a guaranteed maximum loss: gaps, slippage and costs add to it. The gap allowance is a POLICY stress size, not a fitted tail model."
+  },
+  "stress": {
+   "basis": "POLICY stress sizes; deterministic; no probability is attached",
+   "complete": true,
+   "scenarios": {
+    "CORRELATED_MARKET_MOVE": {
+     "known_lower_bound": 0.04262879062581645,
+     "loss": 0.04262879062581645,
+     "missing": [],
+     "rule": "market factor +/- market_move x beta, losses capped at the stop, the worse direction",
+     "status": "AVAILABLE"
+    },
+    "DIVERSIFICATION_FAILURE": {
+     "known_lower_bound": 0.0503712023751968,
+     "loss": 0.0503712023751968,
+     "missing": [],
+     "rule": "correlations go to 1 against every position: every stop is hit, plus expected costs",
+     "status": "AVAILABLE"
+    },
+    "EXECUTION_COST": {
+     "known_lower_bound": 0.050742406823008714,
+     "loss": 0.050742406823008714,
+     "missing": [],
+     "rule": "every stop is hit; fees and slippage at cost_multiplier",
+     "status": "AVAILABLE"
+    },
+    "FUNDING_DETERIORATION": {
+     "known_lower_bound": 0.06279169573380476,
+     "loss": 0.06279169573380476,
+     "missing": [],
+     "rule": "every stop is hit at the end of the remaining horizon after paying max(adverse_funding_8h, observed adverse rate) against its direction",
+     "status": "AVAILABLE"
+    },
+    "LIQUIDITY_DEGRADATION": {
+     "known_lower_bound": 0.05056657313720307,
+     "loss": 0.05056657313720307,
+     "missing": [],
+     "rule": "every stop is hit; KNOWN volumes pay liquidity_tier_steps worse slippage; unknown liquidity pays the worst tier x unknown_liquidity_multiplier",
+     "status": "AVAILABLE"
+    },
+    "STOP_SLIPPAGE": {
+     "known_lower_bound": 0.07537120133888925,
+     "loss": 0.07537120133888925,
+     "missing": [],
+     "rule": "every stop fills stop_gap_fraction of its distance beyond the stop, plus expected costs",
+     "status": "AVAILABLE"
+    }
+   },
+   "worst_available_loss": 0.07537120133888925,
+   "worst_scenario": "STOP_SLIPPAGE"
+  },
+  "trace": [
+   {
+    "category": "POLICY",
+    "effect": "limits are reviewed policy choices, not empirical estimates",
+    "input": {
+     "hash": "86c8c85522ec695cdee917adf2ba5f242b3b2fd755c426d0443981193d1ac2f2",
+     "schema": "v8.portfolio-risk-policy/1"
+    },
+    "result": "POLICY_REVIEWED_INITIAL_V1",
+    "rule": "every threshold is read from the governed policy"
+   },
+   {
+    "category": "EQUITY",
+    "effect": "sizing reference",
+    "input": 500.0,
+    "result": "VALID",
+    "rule": "all risk is measured as a fraction of equity"
+   },
+   {
+    "category": "POSITION",
+    "effect": "included",
+    "input": {
+     "asset": "JUP",
+     "direction": -1,
+     "id": "JUP-TREND_EMA-1792022400",
+     "strategy": "TREND_EMA"
+    },
+    "result": {
+     "executable_risk": null,
+     "leverage": 0.0629643621710112,
+     "stop_risk": 0.004999999605486451
+    },
+    "rule": "stop distance x notional / equity = stop risk; costs from the liquidity authority"
+   },
+   {
+    "category": "POSITION",
+    "effect": "included",
+    "input": {
+     "asset": "QNT",
+     "direction": -1,
+     "id": "QNT-TREND_EMA-1792022400",
+     "strategy": "TREND_EMA"
+    },
+    "result": {
+     "executable_risk": null,
+     "leverage": 0.0423413047896484,
+     "stop_risk": 0.004999999636519868
+    },
+    "rule": "stop distance x notional / equity = stop risk; costs from the liquidity authority"
+   },
+   {
+    "category": "POSITION",
+    "effect": "included",
+    "input": {
+     "asset": "ASTER",
+     "direction": -1,
+     "id": "ASTER-TSMOM-1792022400",
+     "strategy": "TSMOM"
+    },
+    "result": {
+     "executable_risk": null,
+     "leverage": 0.0328715969679239,
+     "stop_risk": 0.004999999858920186
+    },
+    "rule": "stop distance x notional / equity = stop risk; costs from the liquidity authority"
+   },
+   {
+    "category": "POSITION",
+    "effect": "included",
+    "input": {
+     "asset": "DOGE",
+     "direction": -1,
+     "id": "DOGE-TSMOM-1792022400",
+     "strategy": "TSMOM"
+    },
+    "result": {
+     "executable_risk": null,
+     "leverage": 0.028564573073890837,
+     "stop_risk": 0.005000000139680065
+    },
+    "rule": "stop distance x notional / equity = stop risk; costs from the liquidity authority"
+   },
+   {
+    "category": "POSITION",
+    "effect": "included",
+    "input": {
+     "asset": "ETH",
+     "direction": -1,
+     "id": "ETH-TSMOM-1792022400",
+     "strategy": "TSMOM"
+    },
+    "result": {
+     "executable_risk": null,
+     "leverage": 0.04316186562847992,
+     "stop_risk": 0.004999999386662183
+    },
+    "rule": "stop distance x notional / equity = stop risk; costs from the liquidity authority"
+   },
+   {
+    "category": "POSITION",
+    "effect": "included",
+    "input": {
+     "asset": "XLM",
+     "direction": -1,
+     "id": "XLM-TSMOM-1792022400",
+     "strategy": "TSMOM"
+    },
+    "result": {
+     "executable_risk": null,
+     "leverage": 0.025658394400312003,
+     "stop_risk": 0.0049999996287913104
+    },
+    "rule": "stop distance x notional / equity = stop risk; costs from the liquidity authority"
+   },
+   {
+    "category": "POSITION",
+    "effect": "included",
+    "input": {
+     "asset": "XRP",
+     "direction": -1,
+     "id": "XRP-TSMOM-1792022400",
+     "strategy": "TSMOM"
+    },
+    "result": {
+     "executable_risk": null,
+     "leverage": 0.032286601706024036,
+     "stop_risk": 0.005000001140097885
+    },
+    "rule": "stop distance x notional / equity = stop risk; costs from the liquidity authority"
+   },
+   {
+    "category": "POSITION",
+    "effect": "included",
+    "input": {
+     "asset": "ETH",
+     "direction": -1,
+     "id": "ETH-XSMOM-1792022400",
+     "strategy": "XSMOM"
+    },
+    "result": {
+     "executable_risk": null,
+     "leverage": 0.05179414933289136,
+     "stop_risk": 0.004999998955901146
+    },
+    "rule": "stop distance x notional / equity = stop risk; costs from the liquidity authority"
+   },
+   {
+    "category": "POSITION",
+    "effect": "included",
+    "input": {
+     "asset": "SOL",
+     "direction": -1,
+     "id": "SOL-XSMOM-1792022400",
+     "strategy": "XSMOM"
+    },
+    "result": {
+     "executable_risk": null,
+     "leverage": 0.04030860266198012,
+     "stop_risk": 0.004999999102878381
+    },
+    "rule": "stop distance x notional / equity = stop risk; costs from the liquidity authority"
+   },
+   {
+    "category": "POSITION",
+    "effect": "included",
+    "input": {
+     "asset": "XLM",
+     "direction": -1,
+     "id": "XLM-XSMOM-1792022400",
+     "strategy": "XSMOM"
+    },
+    "result": {
+     "executable_risk": null,
+     "leverage": 0.03079007328037441,
+     "stop_risk": 0.005000000472447421
+    },
+    "rule": "stop distance x notional / equity = stop risk; costs from the liquidity authority"
+   },
+   {
+    "category": "GROSS_EXPOSURE",
+    "effect": "a hedged net never offsets gross leverage",
+    "input": {
+     "by_actionability": {
+      "ACTIONABLE": 10
+     },
+     "positions": 10
+    },
+    "result": {
+     "gross_leverage": 0.3907415240125362,
+     "net_leverage": -0.3907415240125362
+    },
+    "rule": "gross = long + short; net = long - short; every open position counts, actionable or not"
+   },
+   {
+    "category": "CONCENTRATION",
+    "effect": "several strategies on one asset add up",
+    "input": {
+     "assets": 8,
+     "strategies": 3
+    },
+    "result": {
+     "max_asset_stop_risk": 0.010000000101238731,
+     "shared_assets": [
+      "ETH",
+      "XLM"
+     ]
+    },
+    "rule": "group stop risk by asset, strategy and side; same asset = one exposure"
+   },
+   {
+    "category": "DEPENDENCE",
+    "effect": "positions that co-move are one exposure; missing dependence is never independence",
+    "input": {
+     "as_of": 1792025218,
+     "pairs": 28
+    },
+    "result": {
+     "clusters": 4,
+     "complete": true,
+     "max_cluster_stop_risk": 0.03499999882645839
+    },
+    "rule": "direction-adjusted correlation from closed bars only; clusters at >= cluster_correlation"
+   },
+   {
+    "category": "LIQUIDITY",
+    "effect": "unknown liquidity is never zero slippage",
+    "input": {
+     "unknown": []
+    },
+    "result": {
+     "degraded_bound": 0.05037120237519681,
+     "executable": null,
+     "theoretical": 0.049999997927384895
+    },
+    "rule": "slippage only from a KNOWN v8.liquidity volume tier"
+   },
+   {
+    "category": "FUNDING",
+    "effect": "unknown funding is never assumed zero",
+    "input": {
+     "unknown": [
+      "JUP-TREND_EMA-1792022400",
+      "QNT-TREND_EMA-1792022400",
+      "ASTER-TSMOM-1792022400",
+      "DOGE-TSMOM-1792022400",
+      "ETH-TSMOM-1792022400",
+      "XLM-TSMOM-1792022400",
+      "XRP-TSMOM-1792022400",
+      "ETH-XSMOM-1792022400",
+      "SOL-XSMOM-1792022400",
+      "XLM-XSMOM-1792022400"
+     ]
+    },
+    "result": {
+     "known_adverse": 0.0
+    },
+    "rule": "expected funding = direction x rate x hours/8"
+   },
+   {
+    "category": "STRESS",
+    "effect": "an unavailable scenario is never a pass",
+    "input": {
+     "adverse_funding_8h": 0.0005,
+     "cost_multiplier": 2.0,
+     "liquidity_tier_steps": 1,
+     "market_move": 0.1,
+     "stop_gap_fraction": 0.5,
+     "unknown_liquidity_multiplier": 2.0
+    },
+    "result": {
+     "CORRELATED_MARKET_MOVE": [
+      0.04262879062581645,
+      "AVAILABLE"
+     ],
+     "DIVERSIFICATION_FAILURE": [
+      0.0503712023751968,
+      "AVAILABLE"
+     ],
+     "EXECUTION_COST": [
+      0.050742406823008714,
+      "AVAILABLE"
+     ],
+     "FUNDING_DETERIORATION": [
+      0.06279169573380476,
+      "AVAILABLE"
+     ],
+     "LIQUIDITY_DEGRADATION": [
+      0.05056657313720307,
+      "AVAILABLE"
+     ],
+     "STOP_SLIPPAGE": [
+      0.07537120133888925,
+      "AVAILABLE"
+     ]
+    },
+    "rule": "deterministic governed scenarios; losses as a fraction of equity"
+   },
+   {
+    "category": "LIMIT",
+    "effect": "within",
+    "input": {
+     "complete": true,
+     "metric": 0.0629643621710112
+    },
+    "result": "OK",
+    "rule": "max_position_leverage <= 2.0 (POLICY)"
+   },
+   {
+    "category": "LIMIT",
+    "effect": "within",
+    "input": {
+     "complete": true,
+     "metric": 0.3907415240125362
+    },
+    "result": "OK",
+    "rule": "max_gross_leverage <= 3.0 (POLICY)"
+   },
+   {
+    "category": "LIMIT",
+    "effect": "within",
+    "input": {
+     "complete": true,
+     "metric": 0.3907415240125362
+    },
+    "result": "OK",
+    "rule": "max_net_leverage <= 1.5 (POLICY)"
+   },
+   {
+    "category": "LIMIT",
+    "effect": "the portfolio exceeds a reviewed limit",
+    "input": {
+     "complete": false,
+     "metric": 0.049999997927384895
+    },
+    "result": "BREACHED",
+    "rule": "max_executable_risk <= 0.03 (POLICY)"
+   },
+   {
+    "category": "LIMIT",
+    "effect": "the portfolio exceeds a reviewed limit",
+    "input": {
+     "complete": true,
+     "metric": 0.010000000101238731
+    },
+    "result": "BREACHED",
+    "rule": "max_asset_stop_risk <= 0.01 (POLICY)"
+   },
+   {
+    "category": "LIMIT",
+    "effect": "the portfolio exceeds a reviewed limit",
+    "input": {
+     "complete": true,
+     "metric": 0.025000000154151627
+    },
+    "result": "BREACHED",
+    "rule": "max_strategy_stop_risk <= 0.02 (POLICY)"
+   },
+   {
+    "category": "LIMIT",
+    "effect": "the portfolio exceeds a reviewed limit",
+    "input": {
+     "complete": true,
+     "metric": 0.049999997927384895
+    },
+    "result": "BREACHED",
+    "rule": "max_side_stop_risk <= 0.025 (POLICY)"
+   },
+   {
+    "category": "LIMIT",
+    "effect": "the portfolio exceeds a reviewed limit",
+    "input": {
+     "complete": true,
+     "metric": 0.03499999882645839
+    },
+    "result": "BREACHED",
+    "rule": "max_cluster_stop_risk <= 0.02 (POLICY)"
+   },
+   {
+    "category": "LIMIT",
+    "effect": "the portfolio exceeds a reviewed limit",
+    "input": {
+     "complete": true,
+     "metric": 0.07537120133888925
+    },
+    "result": "BREACHED",
+    "rule": "max_stressed_loss <= 0.06 (POLICY)"
+   },
+   {
+    "category": "STATE",
+    "effect": "portfolio effect for the human decision-maker (no trade is executed or ranked)",
+    "input": {
+     "approaching": [],
+     "breached": [
+      "max_asset_stop_risk",
+      "max_cluster_stop_risk",
+      "max_executable_risk",
+      "max_side_stop_risk",
+      "max_strategy_stop_risk",
+      "max_stressed_loss"
+     ],
+     "missing": 10
+    },
+    "result": "LIMIT_BREACHED",
+    "rule": "BREACHED if any limit is exceeded; else UNEVALUABLE if any authority is missing; else APPROACHING if any metric >= approach_fraction x limit; else WITHIN"
+   }
+  ]
+ },
+ "manifest": {
+  "bases": [
+   "GOVERNED_CONSTANT",
+   "POLICY"
+  ],
+  "evaluation": {
+   "approaching": [],
+   "as_of": 1792025218,
+   "breached": [
+    "max_asset_stop_risk",
+    "max_cluster_stop_risk",
+    "max_executable_risk",
+    "max_side_stop_risk",
+    "max_strategy_stop_risk",
+    "max_stressed_loss"
+   ],
+   "exposure": {
+    "by_actionability": {
+     "ACTIONABLE": {
+      "gross_leverage": 0.39074152401253615,
+      "net_leverage": -0.39074152401253615,
+      "positions": 10,
+      "quantified": 10,
+      "stop_risk": 0.049999997927384895,
+      "unquantified": []
+     }
+    },
+    "gross_leverage": 0.3907415240125362,
+    "gross_long_usd": 0.0,
+    "gross_notional_usd": 195.3707620062681,
+    "gross_short_usd": 195.3707620062681,
+    "long_leverage": 0.0,
+    "max_position_leverage": 0.0629643621710112,
+    "net_leverage": -0.3907415240125362,
+    "net_usd": -195.3707620062681,
+    "short_leverage": 0.3907415240125362,
+    "unquantified_open_positions": []
+   },
+   "limits": {
+    "max_asset_stop_risk": {
+     "limit": 0.01,
+     "metric": 0.010000000101238731,
+     "status": "BREACHED"
+    },
+    "max_cluster_stop_risk": {
+     "limit": 0.02,
+     "metric": 0.03499999882645839,
+     "status": "BREACHED"
+    },
+    "max_executable_risk": {
+     "limit": 0.03,
+     "metric": 0.049999997927384895,
+     "status": "BREACHED"
+    },
+    "max_gross_leverage": {
+     "limit": 3.0,
+     "metric": 0.3907415240125362,
+     "status": "OK"
+    },
+    "max_net_leverage": {
+     "limit": 1.5,
+     "metric": 0.3907415240125362,
+     "status": "OK"
+    },
+    "max_position_leverage": {
+     "limit": 2.0,
+     "metric": 0.0629643621710112,
+     "status": "OK"
+    },
+    "max_side_stop_risk": {
+     "limit": 0.025,
+     "metric": 0.049999997927384895,
+     "status": "BREACHED"
+    },
+    "max_strategy_stop_risk": {
+     "limit": 0.02,
+     "metric": 0.025000000154151627,
+     "status": "BREACHED"
+    },
+    "max_stressed_loss": {
+     "limit": 0.06,
+     "metric": 0.07537120133888925,
+     "status": "BREACHED"
+    }
+   },
+   "missing_authorities": [
+    "FUNDING_UNKNOWN:ASTER-TSMOM-1792022400",
+    "FUNDING_UNKNOWN:DOGE-TSMOM-1792022400",
+    "FUNDING_UNKNOWN:ETH-TSMOM-1792022400",
+    "FUNDING_UNKNOWN:ETH-XSMOM-1792022400",
+    "FUNDING_UNKNOWN:JUP-TREND_EMA-1792022400",
+    "FUNDING_UNKNOWN:QNT-TREND_EMA-1792022400",
+    "FUNDING_UNKNOWN:SOL-XSMOM-1792022400",
+    "FUNDING_UNKNOWN:XLM-TSMOM-1792022400",
+    "FUNDING_UNKNOWN:XLM-XSMOM-1792022400",
+    "FUNDING_UNKNOWN:XRP-TSMOM-1792022400"
+   ],
+   "missing_authority_count": 10,
+   "policy_hash": "86c8c85522ec695cdee917adf2ba5f242b3b2fd755c426d0443981193d1ac2f2",
+   "policy_review_status": "POLICY_REVIEWED_INITIAL_V1",
+   "policy_schema": "v8.portfolio-risk-policy/1",
+   "positions": 10,
+   "schema": "v8.portfolio-risk/1",
+   "state": "LIMIT_BREACHED",
+   "stress": {
+    "CORRELATED_MARKET_MOVE": 0.04262879062581645,
+    "DIVERSIFICATION_FAILURE": 0.0503712023751968,
+    "EXECUTION_COST": 0.050742406823008714,
+    "FUNDING_DETERIORATION": 0.06279169573380476,
+    "LIQUIDITY_DEGRADATION": 0.05056657313720307,
+    "STOP_SLIPPAGE": 0.07537120133888925
+   }
+  },
+  "files": {
+   "v8/audit_quant.py": "2b7baba5d47cdd57a5f5dcdc72fa849644dceba6ee5026a661689b4fa7bd5e35",
+   "v8/portfolio_risk.py": "1b7385f0835cbdcc1441daca75dc1e48f14e5af6e03018fc69a99be178bb6e3f",
+   "v8/portfolio_risk_policy.json": "9723c363bc2d3023c73a2789b1445e37956ee495e1b3c0538b3abd90c68615a3"
+  },
+  "health": "PORTFOLIO_RISK_POLICY_OK",
+  "policy_hash": "86c8c85522ec695cdee917adf2ba5f242b3b2fd755c426d0443981193d1ac2f2",
+  "policy_review_status": "POLICY_REVIEWED_INITIAL_V1",
+  "policy_schema": "v8.portfolio-risk-policy/1",
+  "version": "v8.portfolio-risk/1"
+ }
+}

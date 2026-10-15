@@ -1,0 +1,239 @@
+{
+ "identity_version": "v8.identity/4",
+ "observations": [
+  {
+   "categories": {
+    "crypto_plus_explicit_tradfi_collision": 3,
+    "crypto_plus_unavailable_check_collision": 0,
+    "direct_positive_crypto_evidence": 0,
+    "multiple_priced_exposures": 0,
+    "multiple_unlabeled_exposures": 0,
+    "other": 0,
+    "single_priced_exposure": 430,
+    "unpriced_only": 0
+   },
+   "counts": {
+    "known_crypto_needed": 433,
+    "known_crypto_tickers": 433,
+    "multi_exposure": 3,
+    "multi_exposure_crypto": 3,
+    "multi_exposure_with_explicit_tradfi": 3,
+    "multi_exposure_with_more_than_one_bindable": 0,
+    "multi_exposure_with_unverified_or_unchecked": 0,
+    "single_exposure_crypto": 430,
+    "unpriced_only": 0
+   },
+   "impact_model2": {
+    "current": {
+     "UNVERIFIED": 154,
+     "VERIFIED_CRYPTO": 433,
+     "VERIFIED_TRADFI": 272
+    },
+    "moved": [],
+    "projected": {
+     "UNVERIFIED": 154,
+     "VERIFIED_CRYPTO": 433,
+     "VERIFIED_TRADFI": 272
+    },
+    "transitions": {}
+   },
+   "list_audit": {
+    "all_live_exposures_tradfi": [],
+    "also_on_tradfi_list": [],
+    "entries": 436,
+    "in_live_universe": 433,
+    "multiple_priced_exposure_entries": [
+     "BB",
+     "PURR",
+     "QNT"
+    ],
+    "multiple_priced_exposures": 3,
+    "no_live_market": 3,
+    "one_priced_exposure": 430,
+    "unpriced_only": []
+   },
+   "model2_results": {
+    "BOUND": 433
+   },
+   "model3_unsafe": [
+    "BB"
+   ],
+   "more_than_one_bindable": [],
+   "observation": {
+    "git_sha": "45e387a4a2393e18cd52ba2b7c5be355afb14c08",
+    "identity_version": "v8.identity/4",
+    "kept_contracts": 2035,
+    "raw_contracts": 11686,
+    "scan_id": "gh-38661431562-1",
+    "ts": 1792024994
+   },
+   "recorded_identity_version": "v8.identity/4",
+   "reproduced_with_rules": 4,
+   "reproduction_differences": [],
+   "v4_check": {
+    "differences": 0,
+    "states": {
+     "UNVERIFIED": 154,
+     "VERIFIED_CRYPTO": 433,
+     "VERIFIED_TRADFI": 272
+    }
+   }
+  },
+  {
+   "categories": {
+    "crypto_plus_explicit_tradfi_collision": 3,
+    "crypto_plus_unavailable_check_collision": 0,
+    "direct_positive_crypto_evidence": 0,
+    "multiple_priced_exposures": 0,
+    "multiple_unlabeled_exposures": 0,
+    "other": 0,
+    "single_priced_exposure": 430,
+    "unpriced_only": 0
+   },
+   "counts": {
+    "known_crypto_needed": 433,
+    "known_crypto_tickers": 433,
+    "multi_exposure": 3,
+    "multi_exposure_crypto": 3,
+    "multi_exposure_with_explicit_tradfi": 3,
+    "multi_exposure_with_more_than_one_bindable": 0,
+    "multi_exposure_with_unverified_or_unchecked": 0,
+    "single_exposure_crypto": 430,
+    "unpriced_only": 0
+   },
+   "impact_model2": {
+    "current": {
+     "UNVERIFIED": 154,
+     "VERIFIED_CRYPTO": 433,
+     "VERIFIED_TRADFI": 272
+    },
+    "moved": [],
+    "projected": {
+     "UNVERIFIED": 154,
+     "VERIFIED_CRYPTO": 433,
+     "VERIFIED_TRADFI": 272
+    },
+    "transitions": {}
+   },
+   "list_audit": {
+    "all_live_exposures_tradfi": [],
+    "also_on_tradfi_list": [],
+    "entries": 436,
+    "in_live_universe": 433,
+    "multiple_priced_exposure_entries": [
+     "BB",
+     "PURR",
+     "QNT"
+    ],
+    "multiple_priced_exposures": 3,
+    "no_live_market": 3,
+    "one_priced_exposure": 430,
+    "unpriced_only": []
+   },
+   "model2_results": {
+    "BOUND": 433
+   },
+   "model3_unsafe": [
+    "BB"
+   ],
+   "more_than_one_bindable": [],
+   "observation": {
+    "git_sha": "f58c058c2ffa48c65633e66935443a1f15fdb33d",
+    "identity_version": "v8.identity/4",
+    "kept_contracts": 2035,
+    "raw_contracts": 11664,
+    "scan_id": "gh-38649449952-1",
+    "ts": 1792017768
+   },
+   "recorded_identity_version": "v8.identity/4",
+   "reproduced_with_rules": 4,
+   "reproduction_differences": [],
+   "v4_check": {
+    "differences": 0,
+    "states": {
+     "UNVERIFIED": 154,
+     "VERIFIED_CRYPTO": 433,
+     "VERIFIED_TRADFI": 272
+    }
+   }
+  },
+  {
+   "categories": {
+    "crypto_plus_explicit_tradfi_collision": 3,
+    "crypto_plus_unavailable_check_collision": 0,
+    "direct_positive_crypto_evidence": 0,
+    "multiple_priced_exposures": 0,
+    "multiple_unlabeled_exposures": 0,
+    "other": 0,
+    "single_priced_exposure": 430,
+    "unpriced_only": 0
+   },
+   "counts": {
+    "known_crypto_needed": 433,
+    "known_crypto_tickers": 433,
+    "multi_exposure": 3,
+    "multi_exposure_crypto": 3,
+    "multi_exposure_with_explicit_tradfi": 3,
+    "multi_exposure_with_more_than_one_bindable": 0,
+    "multi_exposure_with_unverified_or_unchecked": 0,
+    "single_exposure_crypto": 430,
+    "unpriced_only": 0
+   },
+   "impact_model2": {
+    "current": {
+     "UNVERIFIED": 154,
+     "VERIFIED_CRYPTO": 433,
+     "VERIFIED_TRADFI": 272
+    },
+    "moved": [],
+    "projected": {
+     "UNVERIFIED": 154,
+     "VERIFIED_CRYPTO": 433,
+     "VERIFIED_TRADFI": 272
+    },
+    "transitions": {}
+   },
+   "list_audit": {
+    "all_live_exposures_tradfi": [],
+    "also_on_tradfi_list": [],
+    "entries": 436,
+    "in_live_universe": 433,
+    "multiple_priced_exposure_entries": [
+     "BB",
+     "PURR",
+     "QNT"
+    ],
+    "multiple_priced_exposures": 3,
+    "no_live_market": 3,
+    "one_priced_exposure": 430,
+    "unpriced_only": []
+   },
+   "model2_results": {
+    "BOUND": 433
+   },
+   "model3_unsafe": [
+    "BB"
+   ],
+   "more_than_one_bindable": [],
+   "observation": {
+    "git_sha": "3fa4c91c01acfc6f5f42ba1d8ebe33afa7824272",
+    "identity_version": "v8.identity/4",
+    "kept_contracts": 2035,
+    "raw_contracts": 11982,
+    "scan_id": "gh-38621408999-1",
+    "ts": 1792005152
+   },
+   "recorded_identity_version": "v8.identity/4",
+   "reproduced_with_rules": 4,
+   "reproduction_differences": [],
+   "v4_check": {
+    "differences": 0,
+    "states": {
+     "UNVERIFIED": 154,
+     "VERIFIED_CRYPTO": 433,
+     "VERIFIED_TRADFI": 272
+    }
+   }
+  }
+ ]
+}

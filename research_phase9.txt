@@ -1,0 +1,73 @@
+test_beta_edge_removed_by_controls (tests.test_v8_phase9.Controls.test_beta_edge_removed_by_controls) ... ok
+test_future_and_current_only_cannot_supply_missing_features (tests.test_v8_phase9.Controls.test_future_and_current_only_cannot_supply_missing_features) ... ok
+test_future_candidates_cannot_change_past_normalization (tests.test_v8_phase9.Controls.test_future_candidates_cannot_change_past_normalization) ... ok
+test_missing_cap_and_duplicate_controls_fail (tests.test_v8_phase9.Controls.test_missing_cap_and_duplicate_controls_fail) ... ok
+test_nearest_and_tie_break_independent (tests.test_v8_phase9.Controls.test_nearest_and_tie_break_independent) ... ok
+test_all_disabled_policy_reaches_the_diagnostic_through_the_runtime_order (tests.test_v8_phase9.EmptyPortfolio.test_all_disabled_policy_reaches_the_diagnostic_through_the_runtime_order) ... ok
+test_current_three_strategy_policy_numbers_unchanged (tests.test_v8_phase9.EmptyPortfolio.test_current_three_strategy_policy_numbers_unchanged) ... ok
+test_enabled_without_closed_portfolio_trades (tests.test_v8_phase9.EmptyPortfolio.test_enabled_without_closed_portfolio_trades) ... ok
+test_one_and_mixed_enabled (tests.test_v8_phase9.EmptyPortfolio.test_one_and_mixed_enabled) ... ok
+test_zero_enabled_is_a_deterministic_diagnostic_without_simulation (tests.test_v8_phase9.EmptyPortfolio.test_zero_enabled_is_a_deterministic_diagnostic_without_simulation) ... ok
+test_qualified_rows_and_future_append_invariance (tests.test_v8_phase9.EndToEndCutoff.test_qualified_rows_and_future_append_invariance) ... ok
+test_every_gate_value_is_consumed (tests.test_v8_phase9.GateSingleSource.test_every_gate_value_is_consumed) ... ok
+test_tightening_each_checked_gate_value_flips_the_verdict (tests.test_v8_phase9.GateSingleSource.test_tightening_each_checked_gate_value_flips_the_verdict) ... ok
+test_tightening_each_side_gate_value_flips_the_verdict (tests.test_v8_phase9.GateSingleSource.test_tightening_each_side_gate_value_flips_the_verdict) ... ok
+test_verdict_reports_the_gate_it_applied (tests.test_v8_phase9.GateSingleSource.test_verdict_reports_the_gate_it_applied) ... ok
+test_active_without_evidence_is_invalid (tests.test_v8_phase9.Policy.test_active_without_evidence_is_invalid) ... ok
+test_audit_exposes_current_and_adjudicated_definition_bindings (tests.test_v8_phase9.Policy.test_audit_exposes_current_and_adjudicated_definition_bindings) ... ok
+test_bad_policy_fails_closed (tests.test_v8_phase9.Policy.test_bad_policy_fails_closed) ... ok
+test_census_and_canonical_parameters (tests.test_v8_phase9.Policy.test_census_and_canonical_parameters) ... ok
+test_complete_gate_and_missing_method (tests.test_v8_phase9.Policy.test_complete_gate_and_missing_method) ... ok
+test_historical_census_deduplication_and_uncertainty (tests.test_v8_phase9.Policy.test_historical_census_deduplication_and_uncertainty) ... ok
+test_holdover_can_have_requalified_research_without_promotion (tests.test_v8_phase9.Policy.test_holdover_can_have_requalified_research_without_promotion) ... ok
+test_policy_order_and_no_verdict_shortcut (tests.test_v8_phase9.Policy.test_policy_order_and_no_verdict_shortcut) ... ok
+test_zero_trades_and_missing_values_never_qualify (tests.test_v8_phase9.Policy.test_zero_trades_and_missing_values_never_qualify) ... ok
+test_bound_definition_side_gate_rechecked_at_promotion (tests.test_v8_phase9.PromotionBinding.test_bound_definition_side_gate_rechecked_at_promotion)
+A stored REQUALIFIED row whose evidence lacks or fails the definition's short side cannot be promoted, even ... ok
+test_exact_old_acceptance_runtime_a_adjudication_with_runtime_b_review (tests.test_v8_phase9.PromotionBinding.test_exact_old_acceptance_runtime_a_adjudication_with_runtime_b_review) ... ok
+test_independent_tampering_matrix (tests.test_v8_phase9.PromotionBinding.test_independent_tampering_matrix) ... ok
+test_intentionally_regenerated_review_package_can_promote_new_definition (tests.test_v8_phase9.PromotionBinding.test_intentionally_regenerated_review_package_can_promote_new_definition) ... ok
+test_missing_definition_bindings_fail_closed (tests.test_v8_phase9.PromotionBinding.test_missing_definition_bindings_fail_closed) ... ok
+test_positive_complete_promotion (tests.test_v8_phase9.PromotionBinding.test_positive_complete_promotion) ... ok
+test_promotion_rechecks_against_the_current_gate (tests.test_v8_phase9.PromotionBinding.test_promotion_rechecks_against_the_current_gate) ... ok
+test_same_id_changed_research_definition_cannot_reuse_review (tests.test_v8_phase9.PromotionBinding.test_same_id_changed_research_definition_cannot_reuse_review) ... ok
+test_dashboard_labels_follow_deployment_states (tests.test_v8_phase9.QuantDisplay.test_dashboard_labels_follow_deployment_states) ... ok
+test_dashboard_missing_or_unknown_states_are_never_requalified (tests.test_v8_phase9.QuantDisplay.test_dashboard_missing_or_unknown_states_are_never_requalified) ... ok
+test_quant_html_labels_follow_deployment_states_and_tolerate_empty_portfolio (tests.test_v8_phase9.QuantDisplay.test_quant_html_labels_follow_deployment_states_and_tolerate_empty_portfolio) ... ok
+test_altered_runtime_code_same_metadata_fails_closed (tests.test_v8_phase9.RuntimeImplementationBinding.test_altered_runtime_code_same_metadata_fails_closed) ... ok
+test_manifest_and_current_hash (tests.test_v8_phase9.RuntimeImplementationBinding.test_manifest_and_current_hash) ... ok
+test_one_byte_change_and_missing_runtime_fail_closed (tests.test_v8_phase9.RuntimeImplementationBinding.test_one_byte_change_and_missing_runtime_fail_closed) ... ok
+test_regenerated_review_for_new_implementation_can_promote (tests.test_v8_phase9.RuntimeImplementationBinding.test_regenerated_review_for_new_implementation_can_promote) ... ok
+test_review_and_adjudication_must_agree_on_implementation (tests.test_v8_phase9.RuntimeImplementationBinding.test_review_and_adjudication_must_agree_on_implementation) ... ok
+test_both_sided_definition_requires_both_sides (tests.test_v8_phase9.SideGate.test_both_sided_definition_requires_both_sides) ... ok
+test_catalog_definitions_state_their_sides (tests.test_v8_phase9.SideGate.test_catalog_definitions_state_their_sides) ... ok
+test_one_sided_definitions_do_not_require_the_other_side (tests.test_v8_phase9.SideGate.test_one_sided_definitions_do_not_require_the_other_side) ... ok
+test_sides_never_come_from_id_flag_or_runtime_metadata (tests.test_v8_phase9.SideGate.test_sides_never_come_from_id_flag_or_runtime_metadata) ... ok
+test_bootstrap_independent_finite_enumeration (tests.test_v8_phase9.Statistics.test_bootstrap_independent_finite_enumeration) ... ok
+test_circular_block_structure (tests.test_v8_phase9.Statistics.test_circular_block_structure) ... ok
+test_clustered_not_iid_trades (tests.test_v8_phase9.Statistics.test_clustered_not_iid_trades) ... ok
+test_dsr_reference_non_normal (tests.test_v8_phase9.Statistics.test_dsr_reference_non_normal) ... ok
+test_dsr_single_trial_symmetric_reference (tests.test_v8_phase9.Statistics.test_dsr_single_trial_symmetric_reference) ... ok
+test_exporter_cannot_choose_winners_by_id_or_legacy_profit (tests.test_v8_phase9.Statistics.test_exporter_cannot_choose_winners_by_id_or_legacy_profit) ... ok
+test_fdr_hand_arithmetic (tests.test_v8_phase9.Statistics.test_fdr_hand_arithmetic) ... ok
+test_injected_edge_survives_family_tests (tests.test_v8_phase9.Statistics.test_injected_edge_survives_family_tests) ... ok
+test_method_gate_values_drive_family_tests (tests.test_v8_phase9.Statistics.test_method_gate_values_drive_family_tests) ... ok
+test_more_trials_deflates_lucky_winner (tests.test_v8_phase9.Statistics.test_more_trials_deflates_lucky_winner) ... ok
+test_oos_fraction_gate_value_drives_out_of_sample_window (tests.test_v8_phase9.Statistics.test_oos_fraction_gate_value_drives_out_of_sample_window) ... ok
+test_pbo_hand_constructed_overfit (tests.test_v8_phase9.Statistics.test_pbo_hand_constructed_overfit) ... ok
+test_pbo_no_random_individual_trade_splits (tests.test_v8_phase9.Statistics.test_pbo_no_random_individual_trade_splits) ... ok
+test_random_family_does_not_qualify (tests.test_v8_phase9.Statistics.test_random_family_does_not_qualify) ... ok
+test_registration_is_plan_not_ledger (tests.test_v8_phase9.Statistics.test_registration_is_plan_not_ledger) ... ok
+test_registration_tampering_fails_closed (tests.test_v8_phase9.Statistics.test_registration_tampering_fails_closed) ... ok
+test_seed_and_bootstrap_byte_determinism (tests.test_v8_phase9.Statistics.test_seed_and_bootstrap_byte_determinism) ... ok
+
+----------------------------------------------------------------------
+Ran 61 tests in 34.590s
+
+OK
+/home/runner/work/perp-dex-radar/perp-dex-radar/tools/research/qdata.py:130: RuntimeWarning: All-NaN slice encountered
+  h = np.nanmax(p.h[sl].reshape(sh), axis=1)
+/home/runner/work/perp-dex-radar/perp-dex-radar/tools/research/qdata.py:131: RuntimeWarning: All-NaN slice encountered
+  l = np.nanmin(p.l[sl].reshape(sh), axis=1)
+{"adjudication_hash": "c7bbca060239a0fc4dc8d3c3b2d21c2d24f832b9091f24bf8283fc87502c4572", "candidate_count": 24, "known_historical_trials": 199, "matched_control_status": "FULL_MATCHED_CONTROL_UNAVAILABLE", "pit_overlap_calendar_days": 0, "requalified_count": 0, "schema": "v8.phase9-summary/1", "statistical_test_status": "UNAVAILABLE_INSUFFICIENT_DATA", "strategies": [{"deployment_state": "LEGACY_HOLDOVER", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "TSMOM"}, {"deployment_state": "LEGACY_HOLDOVER", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "TREND_EMA"}, {"deployment_state": "ACTIVE_PROBATION", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "XSMOM"}, {"deployment_state": "DISABLED", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "XSMOM_7D"}, {"deployment_state": "DISABLED", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "XSMOM_14D_7"}, {"deployment_state": "DISABLED", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "TREND_DC55"}, {"deployment_state": "DISABLED", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "TREND_DC20"}, {"deployment_state": "DISABLED", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "DC20_D"}, {"deployment_state": "DISABLED", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "DC55_D"}, {"deployment_state": "DISABLED", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "EMA5_20_D"}, {"deployment_state": "DISABLED", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "EMA10_50_D"}, {"deployment_state": "DISABLED", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "TSMOM_FAST"}, {"deployment_state": "DISABLED", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "TSMOM_SLOW"}, {"deployment_state": "DISABLED", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "SQZ_4H"}, {"deployment_state": "DISABLED", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "SQZ_D"}, {"deployment_state": "DISABLED", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "RS_BRK"}, {"deployment_state": "DISABLED", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "XSREV_1D"}, {"deployment_state": "DISABLED", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "LIQ_FLUSH"}, {"deployment_state": "DISABLED", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "PULLBACK"}, {"deployment_state": "DISABLED", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "FAIL_BRK"}, {"deployment_state": "DISABLED", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "VOL_SPIKE"}, {"deployment_state": "DISABLED", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "BTC_LEAD"}, {"deployment_state": "DISABLED", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "FUND_FADE"}, {"deployment_state": "DISABLED", "qualified_closed_trades": 0, "research_state": "INSUFFICIENT_EVIDENCE", "strategy_id": "FUND_CARRY"}], "trial_census_complete": false, "trial_census_hash": "bb7b26ed0f072387b28faebc5ff329af02e722a28054c47231f2f8721509897d"}
+exit 0

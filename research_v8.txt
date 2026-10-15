@@ -1,0 +1,3 @@
+[v8] audit snapshot gh-38661431562-1: 11686 contracts, 1043 assets, 4663 dispositions, unaccounted {'registry_assets': 0, 'universe': 0, 'radar': 0, 'quant': 0, 'swing': 0, 'day': 0, 'smart': 0}, 8554844 bytes (579821 gzip), archived audit_gh-38661431562-1.json.gz
+[v8] discovery OK: 859 assets (2035 active perps on 7 healthy venues, 1 unavailable), stages {'CHARTED_1H': 377, 'EXECUTION_BLOCKED': 6, 'LIGHT_ONLY': 435, 'STRATEGY_EVALUATED': 41}, unaccounted 0
+[v8] history NOT_CONFIGURED: branch None, commit None, integrity None, observation None, storage None, backfill None

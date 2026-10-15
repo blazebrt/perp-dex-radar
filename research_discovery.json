@@ -1,0 +1,2958 @@
+{
+ "discovery.json": {
+  "accounting": {
+   "active_perps": 2035,
+   "active_perps_in_denominator": 2035,
+   "active_perps_in_discovery": 2035,
+   "active_perps_on_unavailable_venues": {},
+   "active_perps_unsupported": {},
+   "by_deep_reason": {
+    "DEEP_BUDGET_NOT_SELECTED": 40,
+    "DEEP_COMPLETED": 47,
+    "EXECUTION_LIQUIDITY_BELOW_MIN": 337,
+    "IDENTITY_NOT_CRYPTO": 426,
+    "INSUFFICIENT_1H_DATA": 9
+   },
+   "by_final_disposition": {
+    "INSUFFICIENT_DATA": 163,
+    "MODEL_INELIGIBLE": 272,
+    "NOT_EXECUTABLE": 337,
+    "REJECTED": 87
+   },
+   "by_lane": {
+    "CORE": 75,
+    "EMERGING": 346,
+    "IDENTITY_RESEARCH": 154,
+    "NON_CRYPTO": 272,
+    "STRUCTURAL_ANOMALY": 12
+   },
+   "by_stage": {
+    "CHARTED_1H": 377,
+    "EXECUTION_BLOCKED": 6,
+    "LIGHT_ONLY": 435,
+    "STRATEGY_EVALUATED": 41
+   },
+   "canonical_assets": 1043,
+   "discovery_assets": 859,
+   "discovery_assets_without_registry_entry": [],
+   "problems": [],
+   "registry_contracts": 11686,
+   "registry_only_assets": 184,
+   "registry_only_by_reason": {
+    "NO_ACTIVE_PERP_CONTRACT": 184
+   },
+   "unaccounted": 0,
+   "unaccounted_by_scope": {
+    "active_perps": 0,
+    "assets": 0,
+    "contracts": 0,
+    "deep_reasons": 0,
+    "final_disposition_missing": 0,
+    "lanes": 0,
+    "stages": 0
+   }
+  },
+  "emerging": {
+   "rule": "outside stage 2 and (below execution liquidity, or one venue, or newly listed)",
+   "trade_promotion": "NONE",
+   "unverified": {
+    "assets": 150,
+    "below_min": 145,
+    "charted_1h": 0,
+    "flags": {
+     "FUNDING_DISAGREEMENT": 1,
+     "FUNDING_EXTREME": 5,
+     "IDENTITY_UNVERIFIED": 150,
+     "MULTI_VENUE": 37,
+     "PRICE_DISPERSION": 1,
+     "SINGLE_VENUE": 113,
+     "THIN_LIQUIDITY": 145
+    },
+    "liquidity_buckets": {
+     "100k-1M": 24,
+     "1M-5M": 1,
+     "<100k": 121,
+     ">=5M": 1,
+     "NOT_ON_TRADE_DEX": 3
+    },
+    "liquidity_missing": 0,
+    "new_listing": 0,
+    "not_on_trade_dex": 3,
+    "single_venue": 113,
+    "top_by_points": [
+     [
+      "FHE",
+      4,
+      [
+       "PRICE_DISPERSION",
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "AIW3",
+      3,
+      [
+       "FUNDING_EXTREME",
+       "SINGLE_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "CARDS",
+      3,
+      [
+       "FUNDING_EXTREME",
+       "SINGLE_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "GTC",
+      3,
+      [
+       "FUNDING_DISAGREEMENT",
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "MAX",
+      3,
+      [
+       "FUNDING_EXTREME",
+       "SINGLE_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "PEARL",
+      3,
+      [
+       "FUNDING_EXTREME",
+       "SINGLE_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "POD",
+      3,
+      [
+       "FUNDING_EXTREME",
+       "SINGLE_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "AGT",
+      2,
+      [
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "AI",
+      2,
+      [
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "AIA",
+      2,
+      [
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "AIGENSYN",
+      2,
+      [
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "ANSEM",
+      2,
+      [
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "B",
+      2,
+      [
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "BAS",
+      2,
+      [
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "BILL",
+      2,
+      [
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "CFG",
+      2,
+      [
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "COLLECT",
+      2,
+      [
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "CTR",
+      2,
+      [
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "DATA",
+      2,
+      [
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "DOGS",
+      2,
+      [
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "DRV",
+      2,
+      [
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "EVAA",
+      2,
+      [
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "GRIFFAIN",
+      2,
+      [
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "INX",
+      2,
+      [
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ],
+     [
+      "JELLYJELLY",
+      2,
+      [
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "IDENTITY_UNVERIFIED"
+      ]
+     ]
+    ]
+   },
+   "verified_crypto": {
+    "assets": 347,
+    "below_min": 346,
+    "charted_1h": 338,
+    "flags": {
+     "ECONOMIC_EXPOSURE_CONFLICT": 2,
+     "FUNDING_DISAGREEMENT": 8,
+     "FUNDING_EXTREME": 4,
+     "MULTI_VENUE": 259,
+     "OI_HIGH_RELATIVE_TO_VOLUME": 54,
+     "PRICE_DISPERSION": 16,
+     "SINGLE_VENUE": 88,
+     "STAGE1_EXTREME": 6,
+     "THIN_LIQUIDITY": 346
+    },
+    "liquidity_buckets": {
+     "100k-1M": 81,
+     "1M-5M": 1,
+     "<100k": 265
+    },
+    "liquidity_missing": 0,
+    "new_listing": 0,
+    "not_on_trade_dex": 0,
+    "single_venue": 88,
+    "top_by_points": [
+     [
+      "API3",
+      4,
+      [
+       "PRICE_DISPERSION",
+       "MULTI_VENUE",
+       "OI_HIGH_RELATIVE_TO_VOLUME",
+       "THIN_LIQUIDITY"
+      ]
+     ],
+     [
+      "NOT",
+      4,
+      [
+       "FUNDING_DISAGREEMENT",
+       "PRICE_DISPERSION",
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY"
+      ]
+     ],
+     [
+      "SIGN",
+      4,
+      [
+       "PRICE_DISPERSION",
+       "MULTI_VENUE",
+       "OI_HIGH_RELATIVE_TO_VOLUME",
+       "THIN_LIQUIDITY"
+      ]
+     ],
+     [
+      "VELO",
+      4,
+      [
+       "PRICE_DISPERSION",
+       "MULTI_VENUE",
+       "OI_HIGH_RELATIVE_TO_VOLUME",
+       "THIN_LIQUIDITY"
+      ]
+     ],
+     [
+      "ZEREBRO",
+      4,
+      [
+       "FUNDING_DISAGREEMENT",
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "STAGE1_EXTREME"
+      ]
+     ],
+     [
+      "AIOT",
+      3,
+      [
+       "PRICE_DISPERSION",
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY"
+      ]
+     ],
+     [
+      "ARC",
+      3,
+      [
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "STAGE1_EXTREME"
+      ]
+     ],
+     [
+      "AXL",
+      3,
+      [
+       "PRICE_DISPERSION",
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY"
+      ]
+     ],
+     [
+      "B3",
+      3,
+      [
+       "PRICE_DISPERSION",
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY"
+      ]
+     ],
+     [
+      "BASED",
+      3,
+      [
+       "PRICE_DISPERSION",
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY"
+      ]
+     ],
+     [
+      "BB",
+      3,
+      [
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "ECONOMIC_EXPOSURE_CONFLICT"
+      ]
+     ],
+     [
+      "BREV",
+      3,
+      [
+       "PRICE_DISPERSION",
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY"
+      ]
+     ],
+     [
+      "CAP",
+      3,
+      [
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "STAGE1_EXTREME"
+      ]
+     ],
+     [
+      "ESPORTS",
+      3,
+      [
+       "FUNDING_DISAGREEMENT",
+       "MULTI_VENUE",
+       "OI_HIGH_RELATIVE_TO_VOLUME",
+       "THIN_LIQUIDITY"
+      ]
+     ],
+     [
+      "FIDA",
+      3,
+      [
+       "PRICE_DISPERSION",
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY"
+      ]
+     ],
+     [
+      "KAIA",
+      3,
+      [
+       "FUNDING_EXTREME",
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY"
+      ]
+     ],
+     [
+      "LAYER",
+      3,
+      [
+       "PRICE_DISPERSION",
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY"
+      ]
+     ],
+     [
+      "LUNA",
+      3,
+      [
+       "PRICE_DISPERSION",
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY"
+      ]
+     ],
+     [
+      "NAORIS",
+      3,
+      [
+       "PRICE_DISPERSION",
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY"
+      ]
+     ],
+     [
+      "PNUT",
+      3,
+      [
+       "PRICE_DISPERSION",
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY"
+      ]
+     ],
+     [
+      "Q",
+      3,
+      [
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY",
+       "STAGE1_EXTREME"
+      ]
+     ],
+     [
+      "SOON",
+      3,
+      [
+       "PRICE_DISPERSION",
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY"
+      ]
+     ],
+     [
+      "STABLE",
+      3,
+      [
+       "PRICE_DISPERSION",
+       "MULTI_VENUE",
+       "THIN_LIQUIDITY"
+      ]
+     ],
+     [
+      "THETA",
+      3,
+      [
+       "FUNDING_DISAGREEMENT",
+       "MULTI_VENUE",
+       "OI_HIGH_RELATIVE_TO_VOLUME",
+       "THIN_LIQUIDITY"
+      ]
+     ],
+     [
+      "4",
+      2,
+      [
+       "MULTI_VENUE",
+       "OI_HIGH_RELATIVE_TO_VOLUME",
+       "THIN_LIQUIDITY"
+      ]
+     ]
+    ]
+   }
+  },
+  "flags": {
+   "ECONOMIC_EXPOSURE_CONFLICT": 3,
+   "FUNDING_DISAGREEMENT": 28,
+   "FUNDING_EXTREME": 16,
+   "IDENTITY_UNVERIFIED": 154,
+   "MULTI_VENUE": 513,
+   "OI_HIGH_RELATIVE_TO_VOLUME": 61,
+   "PRICE_DISPERSION": 23,
+   "SINGLE_VENUE": 346,
+   "STAGE1_EXTREME": 9,
+   "THIN_LIQUIDITY": 619
+  },
+  "identity": {
+   "UNVERIFIED": 154,
+   "VERIFIED_CRYPTO": 433,
+   "VERIFIED_TRADFI": 272
+  },
+  "kind": "discovery",
+  "lanes_top": {
+   "CORE": [
+    [
+     "QNT",
+     3,
+     [
+      "MULTI_VENUE",
+      "ECONOMIC_EXPOSURE_CONFLICT"
+     ]
+    ],
+    [
+     "PURR",
+     2,
+     [
+      "SINGLE_VENUE",
+      "ECONOMIC_EXPOSURE_CONFLICT"
+     ]
+    ],
+    [
+     "AAVE",
+     1,
+     [
+      "MULTI_VENUE"
+     ]
+    ],
+    [
+     "ADA",
+     1,
+     [
+      "MULTI_VENUE"
+     ]
+    ],
+    [
+     "AERO",
+     1,
+     [
+      "MULTI_VENUE"
+     ]
+    ],
+    [
+     "ALGO",
+     1,
+     [
+      "MULTI_VENUE"
+     ]
+    ],
+    [
+     "ARB",
+     1,
+     [
+      "MULTI_VENUE"
+     ]
+    ],
+    [
+     "ASTER",
+     1,
+     [
+      "MULTI_VENUE"
+     ]
+    ],
+    [
+     "AVAX",
+     1,
+     [
+      "MULTI_VENUE"
+     ]
+    ],
+    [
+     "AZTEC",
+     1,
+     [
+      "MULTI_VENUE"
+     ]
+    ],
+    [
+     "BAT",
+     1,
+     [
+      "MULTI_VENUE"
+     ]
+    ],
+    [
+     "BCH",
+     1,
+     [
+      "MULTI_VENUE"
+     ]
+    ]
+   ],
+   "EMERGING": [
+    [
+     "API3",
+     4,
+     [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ]
+    ],
+    [
+     "NOT",
+     4,
+     [
+      "FUNDING_DISAGREEMENT",
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ]
+    ],
+    [
+     "SIGN",
+     4,
+     [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ]
+    ],
+    [
+     "VELO",
+     4,
+     [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ]
+    ],
+    [
+     "ZEREBRO",
+     4,
+     [
+      "FUNDING_DISAGREEMENT",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY",
+      "STAGE1_EXTREME"
+     ]
+    ],
+    [
+     "AIOT",
+     3,
+     [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ]
+    ],
+    [
+     "ARC",
+     3,
+     [
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY",
+      "STAGE1_EXTREME"
+     ]
+    ],
+    [
+     "AXL",
+     3,
+     [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ]
+    ],
+    [
+     "B3",
+     3,
+     [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ]
+    ],
+    [
+     "BASED",
+     3,
+     [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ]
+    ],
+    [
+     "BB",
+     3,
+     [
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY",
+      "ECONOMIC_EXPOSURE_CONFLICT"
+     ]
+    ],
+    [
+     "BREV",
+     3,
+     [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ]
+    ]
+   ],
+   "IDENTITY_RESEARCH": [
+    [
+     "FHE",
+     4,
+     [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY",
+      "IDENTITY_UNVERIFIED"
+     ]
+    ],
+    [
+     "AIW3",
+     3,
+     [
+      "FUNDING_EXTREME",
+      "SINGLE_VENUE",
+      "THIN_LIQUIDITY",
+      "IDENTITY_UNVERIFIED"
+     ]
+    ],
+    [
+     "CARDS",
+     3,
+     [
+      "FUNDING_EXTREME",
+      "SINGLE_VENUE",
+      "THIN_LIQUIDITY",
+      "IDENTITY_UNVERIFIED"
+     ]
+    ],
+    [
+     "GRAM",
+     3,
+     [
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "IDENTITY_UNVERIFIED"
+     ]
+    ],
+    [
+     "GTC",
+     3,
+     [
+      "FUNDING_DISAGREEMENT",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY",
+      "IDENTITY_UNVERIFIED"
+     ]
+    ],
+    [
+     "MAX",
+     3,
+     [
+      "FUNDING_EXTREME",
+      "SINGLE_VENUE",
+      "THIN_LIQUIDITY",
+      "IDENTITY_UNVERIFIED"
+     ]
+    ],
+    [
+     "PEARL",
+     3,
+     [
+      "FUNDING_EXTREME",
+      "SINGLE_VENUE",
+      "THIN_LIQUIDITY",
+      "IDENTITY_UNVERIFIED"
+     ]
+    ],
+    [
+     "POD",
+     3,
+     [
+      "FUNDING_EXTREME",
+      "SINGLE_VENUE",
+      "THIN_LIQUIDITY",
+      "IDENTITY_UNVERIFIED"
+     ]
+    ],
+    [
+     "AGT",
+     2,
+     [
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY",
+      "IDENTITY_UNVERIFIED"
+     ]
+    ],
+    [
+     "AI",
+     2,
+     [
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY",
+      "IDENTITY_UNVERIFIED"
+     ]
+    ],
+    [
+     "AIA",
+     2,
+     [
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY",
+      "IDENTITY_UNVERIFIED"
+     ]
+    ],
+    [
+     "AIGENSYN",
+     2,
+     [
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY",
+      "IDENTITY_UNVERIFIED"
+     ]
+    ]
+   ],
+   "NON_CRYPTO": [
+    [
+     "KSTR",
+     4,
+     [
+      "FUNDING_EXTREME",
+      "FUNDING_DISAGREEMENT",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ]
+    ],
+    [
+     "SAMSUNG",
+     4,
+     [
+      "FUNDING_EXTREME",
+      "FUNDING_DISAGREEMENT",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ]
+    ],
+    [
+     "ANTHROPIC",
+     3,
+     [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE"
+     ]
+    ],
+    [
+     "AXTI",
+     3,
+     [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ]
+    ],
+    [
+     "COHR",
+     3,
+     [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ]
+    ],
+    [
+     "FLNC",
+     3,
+     [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ]
+    ],
+    [
+     "OPENAI",
+     3,
+     [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE"
+     ]
+    ],
+    [
+     "PAYP",
+     3,
+     [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ]
+    ],
+    [
+     "ADBE",
+     2,
+     [
+      "FUNDING_DISAGREEMENT",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ]
+    ],
+    [
+     "AGPU",
+     2,
+     [
+      "FUNDING_EXTREME",
+      "SINGLE_VENUE",
+      "THIN_LIQUIDITY"
+     ]
+    ],
+    [
+     "BRKB",
+     2,
+     [
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ]
+    ],
+    [
+     "DKNG",
+     2,
+     [
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ]
+    ]
+   ],
+   "STRUCTURAL_ANOMALY": [
+    [
+     "BERA",
+     4,
+     [
+      "FUNDING_EXTREME",
+      "FUNDING_DISAGREEMENT",
+      "MULTI_VENUE"
+     ]
+    ],
+    [
+     "BLUR",
+     4,
+     [
+      "FUNDING_EXTREME",
+      "FUNDING_DISAGREEMENT",
+      "MULTI_VENUE"
+     ]
+    ],
+    [
+     "WAL",
+     4,
+     [
+      "FUNDING_EXTREME",
+      "SINGLE_VENUE",
+      "STAGE1_EXTREME"
+     ]
+    ],
+    [
+     "GRASS",
+     3,
+     [
+      "MULTI_VENUE",
+      "STAGE1_EXTREME"
+     ]
+    ],
+    [
+     "NIL",
+     3,
+     [
+      "MULTI_VENUE",
+      "STAGE1_EXTREME"
+     ]
+    ],
+    [
+     "APT",
+     2,
+     [
+      "FUNDING_DISAGREEMENT",
+      "MULTI_VENUE"
+     ]
+    ],
+    [
+     "MET",
+     2,
+     [
+      "FUNDING_DISAGREEMENT",
+      "MULTI_VENUE"
+     ]
+    ],
+    [
+     "RSR",
+     2,
+     [
+      "FUNDING_DISAGREEMENT",
+      "MULTI_VENUE"
+     ]
+    ],
+    [
+     "SEI",
+     2,
+     [
+      "FUNDING_DISAGREEMENT",
+      "MULTI_VENUE"
+     ]
+    ],
+    [
+     "STRK",
+     2,
+     [
+      "FUNDING_DISAGREEMENT",
+      "MULTI_VENUE"
+     ]
+    ],
+    [
+     "TIA",
+     2,
+     [
+      "FUNDING_DISAGREEMENT",
+      "MULTI_VENUE"
+     ]
+    ],
+    [
+     "XMR",
+     2,
+     [
+      "FUNDING_DISAGREEMENT",
+      "MULTI_VENUE"
+     ]
+    ]
+   ]
+  },
+  "legacy_vs_shadow": {
+   "authority": "NONE",
+   "legacy_deep": 47,
+   "legacy_only": [
+    "AAVE",
+    "ADA",
+    "AERO",
+    "ASTER",
+    "AVAX",
+    "AZTEC",
+    "BNB",
+    "BTC",
+    "CASHCAT",
+    "CC",
+    "CHIP",
+    "CRV",
+    "DOGE",
+    "DOT",
+    "ETH",
+    "ETHFI",
+    "HYPE",
+    "ICP",
+    "JUP",
+    "LDO",
+    "MON",
+    "MORPHO",
+    "NEAR",
+    "PENDLE",
+    "PEPE",
+    "PONS",
+    "PYTH",
+    "RENDER",
+    "S",
+    "SKY",
+    "SPX",
+    "STX",
+    "TAO",
+    "TRUMP",
+    "TRX",
+    "UNI",
+    "VVV",
+    "WLFI",
+    "ZK"
+   ],
+   "overlap": 8,
+   "overlap_assets": [
+    "APT",
+    "BERA",
+    "MET",
+    "NIL",
+    "RSR",
+    "TIA",
+    "WAL",
+    "XMR"
+   ],
+   "resource": {
+    "budget_ratio": 1.191,
+    "legacy_stage2_15m_requests": 47,
+    "shadow_15m_requests_if_it_ran": 56,
+    "shadow_requests_made": 0,
+    "within_budget": true
+   },
+   "shadow": 56,
+   "shadow_only": [
+    {
+     "asset": "4",
+     "flags": [
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      42801
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "AIOT",
+     "flags": [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      26440
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "ALLO",
+     "flags": [
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      35148
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "APEX",
+     "flags": [
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      81946
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "API3",
+     "flags": [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      13119
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "ARC",
+     "flags": [
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY",
+      "STAGE1_EXTREME"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      632644
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "ATH",
+     "flags": [
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      59619
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "AXL",
+     "flags": [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      47060
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "B3",
+     "flags": [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      10671
+     ],
+     "why_not_legacy_deep": "INSUFFICIENT_1H_DATA"
+    },
+    {
+     "asset": "BASED",
+     "flags": [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      83818
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "BB",
+     "flags": [
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY",
+      "ECONOMIC_EXPOSURE_CONFLICT"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      6392
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "BLUR",
+     "flags": [
+      "FUNDING_EXTREME",
+      "FUNDING_DISAGREEMENT",
+      "MULTI_VENUE"
+     ],
+     "lane": "STRUCTURAL_ANOMALY",
+     "liquidity": [
+      "KNOWN",
+      2032341
+     ],
+     "why_not_legacy_deep": "DEEP_BUDGET_NOT_SELECTED"
+    },
+    {
+     "asset": "BREV",
+     "flags": [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      5714
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "CAP",
+     "flags": [
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY",
+      "STAGE1_EXTREME"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      158000
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "CYBER",
+     "flags": [
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      14968
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "ESPORTS",
+     "flags": [
+      "FUNDING_DISAGREEMENT",
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      20620
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "FIDA",
+     "flags": [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      33
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "GRASS",
+     "flags": [
+      "MULTI_VENUE",
+      "STAGE1_EXTREME"
+     ],
+     "lane": "STRUCTURAL_ANOMALY",
+     "liquidity": [
+      "KNOWN",
+      7648941
+     ],
+     "why_not_legacy_deep": "DEEP_BUDGET_NOT_SELECTED"
+    },
+    {
+     "asset": "HMSTR",
+     "flags": [
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      21211
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "KAIA",
+     "flags": [
+      "FUNDING_EXTREME",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      131153
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "KOMA",
+     "flags": [
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      33868
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "LAYER",
+     "flags": [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      68092
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "LUNA",
+     "flags": [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      599
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "MAGMA",
+     "flags": [
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      77455
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "MANA",
+     "flags": [
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      14380
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "NAORIS",
+     "flags": [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      5394
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "NOT",
+     "flags": [
+      "FUNDING_DISAGREEMENT",
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      16781
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "PEAQ",
+     "flags": [
+      "FUNDING_EXTREME",
+      "SINGLE_VENUE",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      57447
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "PLUME",
+     "flags": [
+      "FUNDING_DISAGREEMENT",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      78348
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "PNUT",
+     "flags": [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      105512
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "POWER",
+     "flags": [
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      33198
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "PURR",
+     "flags": [
+      "SINGLE_VENUE",
+      "ECONOMIC_EXPOSURE_CONFLICT"
+     ],
+     "lane": "CORE",
+     "liquidity": [
+      "KNOWN",
+      1519965
+     ],
+     "why_not_legacy_deep": "DEEP_BUDGET_NOT_SELECTED"
+    },
+    {
+     "asset": "Q",
+     "flags": [
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY",
+      "STAGE1_EXTREME"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      712153
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "QNT",
+     "flags": [
+      "MULTI_VENUE",
+      "ECONOMIC_EXPOSURE_CONFLICT"
+     ],
+     "lane": "CORE",
+     "liquidity": [
+      "KNOWN",
+      2283753
+     ],
+     "why_not_legacy_deep": "DEEP_BUDGET_NOT_SELECTED"
+    },
+    {
+     "asset": "RED",
+     "flags": [
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      13514
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "SAFE",
+     "flags": [
+      "SINGLE_VENUE",
+      "THIN_LIQUIDITY",
+      "STAGE1_EXTREME"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      19639
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "SEI",
+     "flags": [
+      "FUNDING_DISAGREEMENT",
+      "MULTI_VENUE"
+     ],
+     "lane": "STRUCTURAL_ANOMALY",
+     "liquidity": [
+      "KNOWN",
+      1636033
+     ],
+     "why_not_legacy_deep": "DEEP_BUDGET_NOT_SELECTED"
+    },
+    {
+     "asset": "SIGN",
+     "flags": [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      6233
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "SOON",
+     "flags": [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      17601
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "STABLE",
+     "flags": [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      95749
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "STEEM",
+     "flags": [
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      7835
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "STRK",
+     "flags": [
+      "FUNDING_DISAGREEMENT",
+      "MULTI_VENUE"
+     ],
+     "lane": "STRUCTURAL_ANOMALY",
+     "liquidity": [
+      "KNOWN",
+      25148103
+     ],
+     "why_not_legacy_deep": "DEEP_BUDGET_NOT_SELECTED"
+    },
+    {
+     "asset": "THETA",
+     "flags": [
+      "FUNDING_DISAGREEMENT",
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      5442
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "TRADOOR",
+     "flags": [
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      34900
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "UAI",
+     "flags": [
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      89608
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "VELO",
+     "flags": [
+      "PRICE_DISPERSION",
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      159
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "YFI",
+     "flags": [
+      "MULTI_VENUE",
+      "OI_HIGH_RELATIVE_TO_VOLUME",
+      "THIN_LIQUIDITY"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      13012
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    },
+    {
+     "asset": "ZEREBRO",
+     "flags": [
+      "FUNDING_DISAGREEMENT",
+      "MULTI_VENUE",
+      "THIN_LIQUIDITY",
+      "STAGE1_EXTREME"
+     ],
+     "lane": "EMERGING",
+     "liquidity": [
+      "KNOWN",
+      614068
+     ],
+     "why_not_legacy_deep": "EXECUTION_LIQUIDITY_BELOW_MIN"
+    }
+   ],
+   "shadow_only_by_reason": {
+    "DEEP_BUDGET_NOT_SELECTED": 6,
+    "EXECUTION_LIQUIDITY_BELOW_MIN": 41,
+    "INSUFFICIENT_1H_DATA": 1
+   }
+  },
+  "liquidity": {
+   "100k-1M": 154,
+   "1M-5M": 82,
+   "<100k": 465,
+   ">=5M": 77,
+   "NOT_ON_TRADE_DEX": 81
+  },
+  "model_eligibility": {
+   "day": {
+    "INSUFFICIENT_DATA": 155,
+    "MODEL_INELIGIBLE": 305,
+    "NOT_EXECUTABLE": 346,
+    "REJECTED": 41,
+    "SURFACED": 11,
+    "WATCHED": 1
+   },
+   "quant": {
+    "INSUFFICIENT_DATA": 155,
+    "MODEL_INELIGIBLE": 301,
+    "NOT_EXECUTABLE": 346,
+    "REJECTED": 49,
+    "SURFACED": 8
+   },
+   "radar": {
+    "INSUFFICIENT_DATA": 163,
+    "MODEL_INELIGIBLE": 272,
+    "NOT_EXECUTABLE": 337,
+    "REJECTED": 87
+   },
+   "smart": {
+    "MODEL_INELIGIBLE": 681,
+    "REJECTED": 178
+   },
+   "swing": {
+    "INSUFFICIENT_DATA": 155,
+    "MODEL_INELIGIBLE": 305,
+    "NOT_EXECUTABLE": 346,
+    "REJECTED": 39,
+    "WATCHED": 14
+   }
+  },
+  "provenance": {
+   "active_perps": 2035,
+   "active_perps_in_denominator": 2035,
+   "authority": "NONE",
+   "available_venue_discovery_qualified": true,
+   "canonical_assets": 1043,
+   "coverage_state": "DEGRADED",
+   "discovery_assets": 859,
+   "fallback_universe": false,
+   "first_seen_source": "none",
+   "full_discovery_qualified": false,
+   "generated_at": 1792024994,
+   "git_sha": "45e387a4a2393e18cd52ba2b7c5be355afb14c08",
+   "identity_config_hash": "96a10dc22e22d0bcf2c6ed1970ea1de72307426dfad2b53020a2b998c125d12c",
+   "identity_version": "v8.identity/4",
+   "network_requests_added": 0,
+   "registry_contracts": 11686,
+   "registry_only_assets": 184,
+   "rule": "Discovery sees everything. Execution remains selective.",
+   "scan_id": "gh-38661431562-1",
+   "scan_part": "ok",
+   "schema": "v8.discovery/1",
+   "thresholds": {
+    "deep_slots": 56,
+    "execution_liquidity_min": 1000000,
+    "funding_disagreement_8h": 0.0005,
+    "funding_extreme_8h": 0.001,
+    "new_listing_days": 7,
+    "oi_to_volume": 20.0,
+    "price_dispersion": 0.02,
+    "stage1_extreme_r24": 0.15
+   },
+   "tracking_since": 1792024994,
+   "venues_expected": 8,
+   "venues_failed": 1,
+   "venues_failed_names": [
+    "edgex"
+   ],
+   "venues_ok": 7,
+   "venues_without_active_markets": []
+  },
+  "shadow_top": [
+   {
+    "asset": "BLUR",
+    "charted_1h": true,
+    "flags": [
+     "FUNDING_EXTREME",
+     "FUNDING_DISAGREEMENT",
+     "MULTI_VENUE"
+    ],
+    "in_legacy_deep": false,
+    "lane": "STRUCTURAL_ANOMALY",
+    "liquidity": [
+     "KNOWN",
+     2032341
+    ],
+    "points": 4,
+    "rank": 1
+   },
+   {
+    "asset": "WAL",
+    "charted_1h": true,
+    "flags": [
+     "FUNDING_EXTREME",
+     "SINGLE_VENUE",
+     "STAGE1_EXTREME"
+    ],
+    "in_legacy_deep": true,
+    "lane": "STRUCTURAL_ANOMALY",
+    "liquidity": [
+     "KNOWN",
+     1439925
+    ],
+    "points": 4,
+    "rank": 2
+   },
+   {
+    "asset": "BERA",
+    "charted_1h": true,
+    "flags": [
+     "FUNDING_EXTREME",
+     "FUNDING_DISAGREEMENT",
+     "MULTI_VENUE"
+    ],
+    "in_legacy_deep": true,
+    "lane": "STRUCTURAL_ANOMALY",
+    "liquidity": [
+     "KNOWN",
+     1427266
+    ],
+    "points": 4,
+    "rank": 3
+   },
+   {
+    "asset": "ZEREBRO",
+    "charted_1h": true,
+    "flags": [
+     "FUNDING_DISAGREEMENT",
+     "MULTI_VENUE",
+     "THIN_LIQUIDITY",
+     "STAGE1_EXTREME"
+    ],
+    "in_legacy_deep": false,
+    "lane": "EMERGING",
+    "liquidity": [
+     "KNOWN",
+     614068
+    ],
+    "points": 4,
+    "rank": 4
+   },
+   {
+    "asset": "NOT",
+    "charted_1h": true,
+    "flags": [
+     "FUNDING_DISAGREEMENT",
+     "PRICE_DISPERSION",
+     "MULTI_VENUE",
+     "THIN_LIQUIDITY"
+    ],
+    "in_legacy_deep": false,
+    "lane": "EMERGING",
+    "liquidity": [
+     "KNOWN",
+     16781
+    ],
+    "points": 4,
+    "rank": 5
+   },
+   {
+    "asset": "API3",
+    "charted_1h": true,
+    "flags": [
+     "PRICE_DISPERSION",
+     "MULTI_VENUE",
+     "OI_HIGH_RELATIVE_TO_VOLUME",
+     "THIN_LIQUIDITY"
+    ],
+    "in_legacy_deep": false,
+    "lane": "EMERGING",
+    "liquidity": [
+     "KNOWN",
+     13119
+    ],
+    "points": 4,
+    "rank": 6
+   },
+   {
+    "asset": "SIGN",
+    "charted_1h": true,
+    "flags": [
+     "PRICE_DISPERSION",
+     "MULTI_VENUE",
+     "OI_HIGH_RELATIVE_TO_VOLUME",
+     "THIN_LIQUIDITY"
+    ],
+    "in_legacy_deep": false,
+    "lane": "EMERGING",
+    "liquidity": [
+     "KNOWN",
+     6233
+    ],
+    "points": 4,
+    "rank": 7
+   },
+   {
+    "asset": "VELO",
+    "charted_1h": true,
+    "flags": [
+     "PRICE_DISPERSION",
+     "MULTI_VENUE",
+     "OI_HIGH_RELATIVE_TO_VOLUME",
+     "THIN_LIQUIDITY"
+    ],
+    "in_legacy_deep": false,
+    "lane": "EMERGING",
+    "liquidity": [
+     "KNOWN",
+     159
+    ],
+    "points": 4,
+    "rank": 8
+   },
+   {
+    "asset": "GRASS",
+    "charted_1h": true,
+    "flags": [
+     "MULTI_VENUE",
+     "STAGE1_EXTREME"
+    ],
+    "in_legacy_deep": false,
+    "lane": "STRUCTURAL_ANOMALY",
+    "liquidity": [
+     "KNOWN",
+     7648941
+    ],
+    "points": 3,
+    "rank": 9
+   },
+   {
+    "asset": "NIL",
+    "charted_1h": true,
+    "flags": [
+     "MULTI_VENUE",
+     "STAGE1_EXTREME"
+    ],
+    "in_legacy_deep": true,
+    "lane": "STRUCTURAL_ANOMALY",
+    "liquidity": [
+     "KNOWN",
+     5879351
+    ],
+    "points": 3,
+    "rank": 10
+   },
+   {
+    "asset": "QNT",
+    "charted_1h": true,
+    "flags": [
+     "MULTI_VENUE",
+     "ECONOMIC_EXPOSURE_CONFLICT"
+    ],
+    "in_legacy_deep": false,
+    "lane": "CORE",
+    "liquidity": [
+     "KNOWN",
+     2283753
+    ],
+    "points": 3,
+    "rank": 11
+   },
+   {
+    "asset": "Q",
+    "charted_1h": true,
+    "flags": [
+     "MULTI_VENUE",
+     "THIN_LIQUIDITY",
+     "STAGE1_EXTREME"
+    ],
+    "in_legacy_deep": false,
+    "lane": "EMERGING",
+    "liquidity": [
+     "KNOWN",
+     712153
+    ],
+    "points": 3,
+    "rank": 12
+   },
+   {
+    "asset": "ARC",
+    "charted_1h": true,
+    "flags": [
+     "MULTI_VENUE",
+     "THIN_LIQUIDITY",
+     "STAGE1_EXTREME"
+    ],
+    "in_legacy_deep": false,
+    "lane": "EMERGING",
+    "liquidity": [
+     "KNOWN",
+     632644
+    ],
+    "points": 3,
+    "rank": 13
+   },
+   {
+    "asset": "CAP",
+    "charted_1h": true,
+    "flags": [
+     "MULTI_VENUE",
+     "THIN_LIQUIDITY",
+     "STAGE1_EXTREME"
+    ],
+    "in_legacy_deep": false,
+    "lane": "EMERGING",
+    "liquidity": [
+     "KNOWN",
+     158000
+    ],
+    "points": 3,
+    "rank": 14
+   },
+   {
+    "asset": "KAIA",
+    "charted_1h": true,
+    "flags": [
+     "FUNDING_EXTREME",
+     "MULTI_VENUE",
+     "THIN_LIQUIDITY"
+    ],
+    "in_legacy_deep": false,
+    "lane": "EMERGING",
+    "liquidity": [
+     "KNOWN",
+     131153
+    ],
+    "points": 3,
+    "rank": 15
+   },
+   {
+    "asset": "PNUT",
+    "charted_1h": true,
+    "flags": [
+     "PRICE_DISPERSION",
+     "MULTI_VENUE",
+     "THIN_LIQUIDITY"
+    ],
+    "in_legacy_deep": false,
+    "lane": "EMERGING",
+    "liquidity": [
+     "KNOWN",
+     105512
+    ],
+    "points": 3,
+    "rank": 16
+   },
+   {
+    "asset": "STABLE",
+    "charted_1h": true,
+    "flags": [
+     "PRICE_DISPERSION",
+     "MULTI_VENUE",
+     "THIN_LIQUIDITY"
+    ],
+    "in_legacy_deep": false,
+    "lane": "EMERGING",
+    "liquidity": [
+     "KNOWN",
+     95749
+    ],
+    "points": 3,
+    "rank": 17
+   },
+   {
+    "asset": "BASED",
+    "charted_1h": true,
+    "flags": [
+     "PRICE_DISPERSION",
+     "MULTI_VENUE",
+     "THIN_LIQUIDITY"
+    ],
+    "in_legacy_deep": false,
+    "lane": "EMERGING",
+    "liquidity": [
+     "KNOWN",
+     83818
+    ],
+    "points": 3,
+    "rank": 18
+   },
+   {
+    "asset": "LAYER",
+    "charted_1h": true,
+    "flags": [
+     "PRICE_DISPERSION",
+     "MULTI_VENUE",
+     "THIN_LIQUIDITY"
+    ],
+    "in_legacy_deep": false,
+    "lane": "EMERGING",
+    "liquidity": [
+     "KNOWN",
+     68092
+    ],
+    "points": 3,
+    "rank": 19
+   },
+   {
+    "asset": "AXL",
+    "charted_1h": true,
+    "flags": [
+     "PRICE_DISPERSION",
+     "MULTI_VENUE",
+     "THIN_LIQUIDITY"
+    ],
+    "in_legacy_deep": false,
+    "lane": "EMERGING",
+    "liquidity": [
+     "KNOWN",
+     47060
+    ],
+    "points": 3,
+    "rank": 20
+   }
+  ],
+  "shared_gates": {
+   "BLOCKED:EXECUTION_LIQUIDITY_BELOW_MIN": 346,
+   "BLOCKED:IDENTITY_NOT_CRYPTO": 72,
+   "BLOCKED:IDENTITY_NOT_CRYPTO+EXECUTION_LIQUIDITY_BELOW_MIN": 273,
+   "BLOCKED:IDENTITY_NOT_CRYPTO+NOT_ON_TRADE_DEX": 81,
+   "PASSES": 87
+  },
+  "venues": {
+   "aster": {
+    "active_perps": 604,
+    "active_perps_not_in_denominator": 0,
+    "active_perps_unsupported": {},
+    "assets": 585,
+    "health": "HEALTHY",
+    "raw_markets": 632,
+    "reason": null,
+    "state": "OK"
+   },
+   "dydx": {
+    "active_perps": 73,
+    "active_perps_not_in_denominator": 0,
+    "active_perps_unsupported": {},
+    "assets": 73,
+    "health": "HEALTHY",
+    "raw_markets": 296,
+    "reason": null,
+    "state": "OK"
+   },
+   "edgex": {
+    "active_perps": 0,
+    "active_perps_not_in_denominator": 0,
+    "active_perps_unsupported": {},
+    "assets": 0,
+    "health": "DATA_DEGRADED",
+    "raw_markets": 0,
+    "reason": "VENUE_MARKET_LIST_UNAVAILABLE",
+    "state": "VENUE_UNAVAILABLE"
+   },
+   "extended": {
+    "active_perps": 329,
+    "active_perps_not_in_denominator": 0,
+    "active_perps_unsupported": {},
+    "assets": 329,
+    "health": "HEALTHY",
+    "raw_markets": 406,
+    "reason": null,
+    "state": "OK"
+   },
+   "hyperliquid": {
+    "active_perps": 178,
+    "active_perps_not_in_denominator": 0,
+    "active_perps_unsupported": {},
+    "assets": 178,
+    "health": "HEALTHY",
+    "raw_markets": 234,
+    "reason": null,
+    "state": "OK"
+   },
+   "lighter": {
+    "active_perps": 213,
+    "active_perps_not_in_denominator": 0,
+    "active_perps_unsupported": {},
+    "assets": 213,
+    "health": "HEALTHY",
+    "raw_markets": 239,
+    "reason": null,
+    "state": "OK"
+   },
+   "paradex": {
+    "active_perps": 66,
+    "active_perps_not_in_denominator": 0,
+    "active_perps_unsupported": {},
+    "assets": 66,
+    "health": "HEALTHY",
+    "raw_markets": 9307,
+    "reason": null,
+    "state": "OK"
+   },
+   "variational": {
+    "active_perps": 572,
+    "active_perps_not_in_denominator": 0,
+    "active_perps_unsupported": {},
+    "assets": 572,
+    "health": "HEALTHY",
+    "raw_markets": 572,
+    "reason": null,
+    "state": "OK"
+   }
+  },
+  "visibility": {
+   "discovery_only": {
+    "UNVERIFIED": 154,
+    "VERIFIED_CRYPTO": 9,
+    "VERIFIED_TRADFI": 272
+   },
+   "radar_table": 424
+  }
+ },
+ "production_audit_latest.json": {
+  "assets": {
+   "by_legacy": {
+    "CRYPTO": 433,
+    "NO_ACTIVE_PERP_CONTRACT": 184,
+    "TRADFI": 272,
+    "UNVERIFIED": 154
+   },
+   "canonical": 1043,
+   "identity": {
+    "UNVERIFIED": 154,
+    "VERIFIED_CRYPTO": 433,
+    "VERIFIED_TRADFI": 272
+   },
+   "universe_coins": 859
+  },
+  "audit_problems": {},
+  "contracts": {
+   "active_perps": 2035,
+   "by_legacy": {
+    "DUPLICATE_NOT_SELECTED": 19,
+    "EXPOSURE_NOT_ADMITTED": 4,
+    "PRICE_CONFLICT_DROPPED": 6,
+    "SELECTED": 2006
+   },
+   "raw": 11664
+  },
+  "coverage_of_values": {
+   "fund8h": 837,
+   "oi": 708,
+   "price": 859,
+   "vol": 859
+  },
+  "discovery_section": {
+   "anomaly_flags": {
+    "ECONOMIC_EXPOSURE_CONFLICT": 3,
+    "FUNDING_DISAGREEMENT": 30,
+    "FUNDING_EXTREME": 15,
+    "IDENTITY_UNVERIFIED": 154,
+    "MULTI_VENUE": 513,
+    "NEW_LISTING": 5,
+    "OI_HIGH_RELATIVE_TO_VOLUME": 56,
+    "PRICE_DISPERSION": 32,
+    "SINGLE_VENUE": 346,
+    "STAGE1_EXTREME": 9,
+    "THIN_LIQUIDITY": 618
+   },
+   "coverage": {
+    "active_perps": 2035,
+    "active_perps_in_denominator": 2035,
+    "available_venue_discovery_qualified": true,
+    "canonical_assets": 1043,
+    "coverage_state": "DEGRADED",
+    "discovery_assets": 859,
+    "fallback_universe": false,
+    "first_seen_source": "site",
+    "full_discovery_qualified": false,
+    "registry_contracts": 11664,
+    "registry_only_assets": 184,
+    "tracking_since": 1791313657,
+    "venues_expected": 8,
+    "venues_failed": 1,
+    "venues_failed_names": [
+     "edgex"
+    ],
+    "venues_ok": 7
+   },
+   "deep_research": {
+    "DEEP_BUDGET_NOT_SELECTED": 40,
+    "DEEP_COMPLETED": 47,
+    "EXECUTION_LIQUIDITY_BELOW_MIN": 337,
+    "IDENTITY_NOT_CRYPTO": 426,
+    "INSUFFICIENT_1H_DATA": 9
+   },
+   "emerging": {
+    "unverified": {
+     "assets": 149,
+     "below_min": 144,
+     "charted_1h": 0,
+     "flags": {
+      "FUNDING_DISAGREEMENT": 1,
+      "FUNDING_EXTREME": 5,
+      "IDENTITY_UNVERIFIED": 149,
+      "MULTI_VENUE": 36,
+      "NEW_LISTING": 1,
+      "PRICE_DISPERSION": 2,
+      "SINGLE_VENUE": 113,
+      "THIN_LIQUIDITY": 144
+     },
+     "liquidity_buckets": {
+      "100k-1M": 21,
+      "1M-5M": 1,
+      "<100k": 123,
+      ">=5M": 1,
+      "NOT_ON_TRADE_DEX": 3
+     },
+     "liquidity_missing": 0,
+     "new_listing": 1,
+     "not_on_trade_dex": 3,
+     "single_venue": 113
+    },
+    "verified_crypto": {
+     "assets": 346,
+     "below_min": 346,
+     "charted_1h": 337,
+     "flags": {
+      "ECONOMIC_EXPOSURE_CONFLICT": 1,
+      "FUNDING_DISAGREEMENT": 11,
+      "FUNDING_EXTREME": 3,
+      "MULTI_VENUE": 259,
+      "OI_HIGH_RELATIVE_TO_VOLUME": 49,
+      "PRICE_DISPERSION": 14,
+      "SINGLE_VENUE": 87,
+      "STAGE1_EXTREME": 7,
+      "THIN_LIQUIDITY": 346
+     },
+     "liquidity_buckets": {
+      "100k-1M": 82,
+      "<100k": 264
+     },
+     "liquidity_missing": 0,
+     "new_listing": 0,
+     "not_on_trade_dex": 0,
+     "single_venue": 87
+    }
+   },
+   "identity_breakdown": {
+    "UNVERIFIED": 154,
+    "VERIFIED_CRYPTO": 433,
+    "VERIFIED_TRADFI": 272
+   },
+   "legacy_vs_shadow": {
+    "authority": "NONE",
+    "legacy_deep": 47,
+    "legacy_only": 38,
+    "overlap": 9,
+    "overlap_assets": 9,
+    "resource": {
+     "budget_ratio": 1.191,
+     "legacy_stage2_15m_requests": 47,
+     "shadow_15m_requests_if_it_ran": 56,
+     "shadow_requests_made": 0,
+     "within_budget": true
+    },
+    "shadow": 56,
+    "shadow_only": 47,
+    "shadow_only_by_reason": {
+     "DEEP_BUDGET_NOT_SELECTED": 4,
+     "EXECUTION_LIQUIDITY_BELOW_MIN": 42,
+     "INSUFFICIENT_1H_DATA": 1
+    }
+   },
+   "liquidity_breakdown": {
+    "100k-1M": 153,
+    "1M-5M": 84,
+    "<100k": 465,
+    ">=5M": 76,
+    "NOT_ON_TRADE_DEX": 81
+   },
+   "model_eligibility": {
+    "day": {
+     "INSUFFICIENT_DATA": 154,
+     "MODEL_INELIGIBLE": 308,
+     "NOT_EXECUTABLE": 346,
+     "REJECTED": 39,
+     "SURFACED": 8,
+     "WATCHED": 4
+    },
+    "quant": {
+     "INSUFFICIENT_DATA": 154,
+     "MODEL_INELIGIBLE": 302,
+     "NOT_EXECUTABLE": 344,
+     "REJECTED": 32,
+     "SURFACED": 27
+    },
+    "radar": {
+     "INSUFFICIENT_DATA": 163,
+     "MODEL_INELIGIBLE": 272,
+     "NOT_EXECUTABLE": 337,
+     "REJECTED": 87
+    },
+    "smart": {
+     "MODEL_INELIGIBLE": 681,
+     "REJECTED": 170,
+     "SURFACED": 4,
+     "WATCHED": 4
+    },
+    "swing": {
+     "INSUFFICIENT_DATA": 154,
+     "MODEL_INELIGIBLE": 308,
+     "NOT_EXECUTABLE": 346,
+     "REJECTED": 32,
+     "SURFACED": 1,
+     "WATCHED": 18
+    }
+   },
+   "part": "ok",
+   "priority_lanes": {
+    "CORE": 76,
+    "EMERGING": 346,
+    "IDENTITY_RESEARCH": 154,
+    "NON_CRYPTO": 272,
+    "STRUCTURAL_ANOMALY": 11
+   },
+   "problems": [],
+   "requests": {
+    "discovery_extra": 0,
+    "stage1_1h": 433,
+    "stage2_15m": 47
+   },
+   "scan_stages": {
+    "charted_1h": 424,
+    "crypto": 433,
+    "deep_completed": 47,
+    "deep_extras": 7,
+    "deep_selected": 47,
+    "deep_top_n": 40,
+    "h1_requested": 433,
+    "h1_returned": 424,
+    "universe": 859
+   },
+   "schema": "v8.discovery/1",
+   "shadow_queue": {
+    "authority": "NONE",
+    "filled": 56,
+    "slots": 56
+   },
+   "shared_execution_gates": {
+    "BLOCKED": 772,
+    "PASSES": 87
+   },
+   "stages": {
+    "CHARTED_1H": 377,
+    "EXECUTION_BLOCKED": 3,
+    "LIGHT_ONLY": 435,
+    "STRATEGY_EVALUATED": 44
+   },
+   "status": "OK",
+   "unaccounted": 0,
+   "unaccounted_by_scope": {
+    "active_perps": 0,
+    "assets": 0,
+    "contracts": 0,
+    "deep_reasons": 0,
+    "final_disposition_missing": 0,
+    "lanes": 0,
+    "stages": 0
+   },
+   "venues": {
+    "aster": [
+     "OK",
+     604
+    ],
+    "dydx": [
+     "OK",
+     73
+    ],
+    "edgex": [
+     "VENUE_UNAVAILABLE",
+     0
+    ],
+    "extended": [
+     "OK",
+     329
+    ],
+    "hyperliquid": [
+     "OK",
+     178
+    ],
+    "lighter": [
+     "OK",
+     213
+    ],
+    "paradex": [
+     "OK",
+     66
+    ],
+    "variational": [
+     "OK",
+     572
+    ]
+   },
+   "visibility": {
+    "discovery_only": 435,
+    "discovery_only_by_identity": {
+     "UNVERIFIED": 154,
+     "VERIFIED_CRYPTO": 9,
+     "VERIFIED_TRADFI": 272
+    },
+    "radar_published_table": 424
+   }
+  },
+  "emerging_verified": {
+   "assets": 346,
+   "below_min": 346,
+   "charted": 337,
+   "missing": 0,
+   "new": 0,
+   "single_venue": 87
+  },
+  "invisible_in_radar_table": {
+   "UNVERIFIED:IDENTITY_UNVERIFIED": 154,
+   "VERIFIED_CRYPTO:NO_SUPPORTED_CANDLES": 8,
+   "VERIFIED_CRYPTO:PRICE_SCALE_CONFLICT": 1,
+   "VERIFIED_TRADFI:TRADFI_CLASSIFIED": 272
+  },
+  "kind": "census",
+  "liquidity_by_identity": {
+   "UNVERIFIED": {
+    "100k-1M": 21,
+    "1M-5M": 5,
+    "<100k": 123,
+    ">=5M": 2,
+    "MISSING": 3
+   },
+   "VERIFIED_CRYPTO": {
+    "100k-1M": 82,
+    "1M-5M": 49,
+    "<100k": 264,
+    ">=5M": 38
+   },
+   "VERIFIED_TRADFI": {
+    "100k-1M": 50,
+    "1M-5M": 30,
+    "<100k": 78,
+    ">=5M": 36,
+    "MISSING": 78
+   }
+  },
+  "manifest": {
+   "audit_version": "v8-phase11.0",
+   "git_sha": "f58c058c2ffa48c65633e66935443a1f15fdb33d",
+   "identity_config_hash": "96a10dc22e22d0bcf2c6ed1970ea1de72307426dfad2b53020a2b998c125d12c",
+   "identity_version": "v8.identity/4",
+   "scan_id": "gh-38649449952-1",
+   "schema": "v8.audit/10",
+   "ts": 1792017768
+  },
+  "new_listings": [
+   "HOILP",
+   "PEARL",
+   "SQQQ",
+   "US30S",
+   "USFNGS"
+  ],
+  "pipeline": {
+   "crypto": 433,
+   "deep_dives": 47,
+   "market_gate": "the market is risk-off and BTC's 4-hour trend is down",
+   "picks": 0,
+   "plan_rejections": 1,
+   "publishable": 0,
+   "signal_coins": 3,
+   "signals": 4,
+   "stage1_charted": 424,
+   "stage2_extras": 7,
+   "stage2_selected": 40,
+   "universe": 859,
+   "watch": 0
+  },
+  "radar_codes": {
+   "block:MARKET_GATE_BLOCKED": 3,
+   "plan:STOP_TOO_WIDE": 1,
+   "signal:NO_STRATEGY_SIGNAL": 43,
+   "stage1:NO_SUPPORTED_CANDLES": 8,
+   "stage1:PRICE_SCALE_CONFLICT": 1,
+   "stage2:DEX_VOLUME_BELOW_LEGACY_MIN": 337,
+   "stage2:RADAR_STAGE2_NOT_SELECTED": 40,
+   "universe:IDENTITY_UNVERIFIED": 154,
+   "universe:TRADFI_CLASSIFIED": 272
+  },
+  "tracking_days": 8.15,
+  "tracking_since": 1791313657,
+  "unverified_or_ambiguous": {
+   "assets": 154,
+   "liquidity": {
+    "100k-1M": 21,
+    "1M-5M": 5,
+    "<100k": 123,
+    ">=5M": 2,
+    "MISSING": 3
+   },
+   "new": 1,
+   "single_venue": 113
+  },
+  "venue_count": {
+   "1": 346,
+   "2": 237,
+   "3": 111,
+   "4": 66,
+   "5": 38,
+   "6": 28,
+   "7": 33
+  },
+  "venues": {
+   "aster": {
+    "kept": 604,
+    "mismatch": 0,
+    "ok": true,
+    "payload": true,
+    "raw": 632,
+    "skipped": 28
+   },
+   "dydx": {
+    "kept": 73,
+    "mismatch": 0,
+    "ok": true,
+    "payload": true,
+    "raw": 296,
+    "skipped": 223
+   },
+   "edgex": {
+    "kept": 0,
+    "mismatch": 0,
+    "ok": false,
+    "payload": false,
+    "raw": 0,
+    "skipped": 0
+   },
+   "extended": {
+    "kept": 329,
+    "mismatch": 0,
+    "ok": true,
+    "payload": true,
+    "raw": 406,
+    "skipped": 77
+   },
+   "hyperliquid": {
+    "kept": 178,
+    "mismatch": 0,
+    "ok": true,
+    "payload": true,
+    "raw": 234,
+    "skipped": 56
+   },
+   "lighter": {
+    "kept": 213,
+    "mismatch": 0,
+    "ok": true,
+    "payload": true,
+    "raw": 239,
+    "skipped": 26
+   },
+   "paradex": {
+    "kept": 66,
+    "mismatch": 0,
+    "ok": true,
+    "payload": true,
+    "raw": 9285,
+    "skipped": 9219
+   },
+   "variational": {
+    "kept": 572,
+    "mismatch": 0,
+    "ok": true,
+    "payload": true,
+    "raw": 572,
+    "skipped": 0
+   }
+  }
+ },
+ "quant_part:out_pubq/data/v8/parts/quant.json": {
+  "blocked_open": 1,
+  "kind": "quant_part",
+  "lifecycle": [
+   [
+    "ATOM",
+    "QUANT_POSITION_OPEN",
+    "DEX_VOLUME_BELOW_LEGACY_MIN"
+   ],
+   [
+    "CFX",
+    "QUANT_POSITION_OPEN",
+    "DEX_VOLUME_BELOW_LEGACY_MIN"
+   ]
+  ],
+  "ok": true,
+  "open": 36,
+  "problems": [],
+  "surfaced": [
+   "AAVE",
+   "ASTER",
+   "ATOM",
+   "AVAX",
+   "BTC",
+   "CFX",
+   "DOGE",
+   "DOT",
+   "ETH",
+   "FET",
+   "HBAR",
+   "HYPE",
+   "JUP",
+   "LINK",
+   "LTC",
+   "ONDO",
+   "PEPE",
+   "PUMP",
+   "QNT",
+   "RENDER",
+   "SEI",
+   "SOL",
+   "TAO",
+   "TRUMP",
+   "UNI",
+   "VIRTUAL",
+   "WLD",
+   "XLM",
+   "XRP"
+  ]
+ },
+ "quant_part:out_pubq_base/data/v8/parts/quant.json": {
+  "blocked_open": 1,
+  "kind": "quant_part",
+  "lifecycle": [
+   [
+    "ATOM",
+    "QUANT_POSITION_OPEN",
+    "DEX_VOLUME_BELOW_LEGACY_MIN"
+   ],
+   [
+    "CFX",
+    "QUANT_POSITION_OPEN",
+    "DEX_VOLUME_BELOW_LEGACY_MIN"
+   ]
+  ],
+  "ok": true,
+  "open": 36,
+  "problems": [],
+  "surfaced": [
+   "AAVE",
+   "ASTER",
+   "ATOM",
+   "AVAX",
+   "BTC",
+   "CFX",
+   "DOGE",
+   "DOT",
+   "ETH",
+   "FET",
+   "HBAR",
+   "HYPE",
+   "JUP",
+   "LINK",
+   "LTC",
+   "ONDO",
+   "PEPE",
+   "PUMP",
+   "QNT",
+   "RENDER",
+   "SEI",
+   "SOL",
+   "TAO",
+   "TRUMP",
+   "UNI",
+   "VIRTUAL",
+   "WLD",
+   "XLM",
+   "XRP"
+  ]
+ }
+}

@@ -1,0 +1,54 @@
+cutoff before the history (hist_prod, research_history_verify.json): 1791313656
+/home/runner/work/perp-dex-radar/perp-dex-radar/tools/research/qdata.py:130: RuntimeWarning: All-NaN slice encountered
+  h = np.nanmax(p.h[sl].reshape(sh), axis=1)
+/home/runner/work/perp-dex-radar/perp-dex-radar/tools/research/qdata.py:131: RuntimeWarning: All-NaN slice encountered
+  l = np.nanmin(p.l[sl].reshape(sh), axis=1)
+/home/runner/work/perp-dex-radar/perp-dex-radar/tools/research/qdata.py:130: RuntimeWarning: All-NaN slice encountered
+  h = np.nanmax(p.h[sl].reshape(sh), axis=1)
+/home/runner/work/perp-dex-radar/perp-dex-radar/tools/research/qdata.py:131: RuntimeWarning: All-NaN slice encountered
+  l = np.nanmin(p.l[sl].reshape(sh), axis=1)
+v8 point-in-time research (v8.pit-research/3), cutoff 1791313656
+history view: HISTORY_EMPTY (BEFORE_PIT_HISTORY); liquidity precision {}
+history: HISTORY_EMPTY, 0 observations (0 backfilled), None .. None
+market data: 1756537200 .. 1791100800
+qualified window: 0 hours (0.0 days); qualified quant trades 0
+health: {"PIT_UNIVERSE": "PIT_UNIVERSE_GAP", "LIQUIDITY_HISTORY": "LIQUIDITY_HISTORY_GAP", "FUNDING_HISTORY": "FUNDING_HISTORY_GAP", "LIQUIDITY_PRECISION": "NO_LIQUIDITY_IN_VIEW", "history_status": "HISTORY_EMPTY", "history_reason": "BEFORE_PIT_HISTORY"}
+TSMOM: legacy 481 trades avg 0.101R [LEGACY_SURVIVORSHIP_UNQUALIFIED] | corrected 0 trades, 0 fully qualified, authoritative {'n': 0} | why: {"universe": {}, "identity": {}, "liquidity": {}, "funding": {}}
+TREND_EMA: legacy 667 trades avg 0.1299R [LEGACY_SURVIVORSHIP_UNQUALIFIED] | corrected 0 trades, 0 fully qualified, authoritative {'n': 0} | why: {"universe": {}, "identity": {}, "liquidity": {}, "funding": {}}
+XSMOM: legacy 364 trades avg 0.1152R [LEGACY_SURVIVORSHIP_UNQUALIFIED] | corrected 0 trades, 0 fully qualified, authoritative {'n': 0} | why: {"universe": {}, "identity": {}, "liquidity": {}, "funding": {}}
+picks swing long base [DIAGNOSTIC / NOT SWING STRATEGY AUTHORITY]: legacy {'label': 'LEGACY_SURVIVORSHIP_UNQUALIFIED', 'n': 52458, 'R': -0.0512, 'ret': -0.0163, 'win': 0.3351} | corrected {'n': 0}
+picks swing long 0-40: legacy n=17028 R=-0.1842 | corrected fewer than 30 point-in-time eligible rows: picks_export would not report this band authoritative {'n': 0}
+picks swing long 40-60: legacy n=20877 R=-0.1195 | corrected fewer than 30 point-in-time eligible rows: picks_export would not report this band authoritative {'n': 0}
+picks swing long 60-70: legacy n=5174 R=0.0216 | corrected fewer than 30 point-in-time eligible rows: picks_export would not report this band authoritative {'n': 0}
+picks swing long 70-80: legacy n=2797 R=0.2234 | corrected fewer than 30 point-in-time eligible rows: picks_export would not report this band authoritative {'n': 0}
+picks swing long 80-90: legacy n=1672 R=0.3777 | corrected fewer than 30 point-in-time eligible rows: picks_export would not report this band authoritative {'n': 0}
+picks swing long 90-101: legacy n=777 R=0.633 | corrected fewer than 30 point-in-time eligible rows: picks_export would not report this band authoritative {'n': 0}
+picks swing long 80-101: legacy n=2449 R=0.4587 | corrected fewer than 30 point-in-time eligible rows: picks_export would not report this band authoritative {'n': 0}
+picks swing short base [DIAGNOSTIC / NOT SWING STRATEGY AUTHORITY]: legacy {'label': 'LEGACY_SURVIVORSHIP_UNQUALIFIED', 'n': 52605, 'R': 0.0247, 'ret': 0.007, 'win': 0.4201} | corrected {'n': 0}
+picks swing short 0-40: legacy n=1634 R=0.2193 | corrected fewer than 30 point-in-time eligible rows: picks_export would not report this band authoritative {'n': 0}
+picks swing short 40-60: legacy n=28760 R=0.0057 | corrected fewer than 30 point-in-time eligible rows: picks_export would not report this band authoritative {'n': 0}
+picks swing short 60-70: legacy n=5729 R=0.1036 | corrected fewer than 30 point-in-time eligible rows: picks_export would not report this band authoritative {'n': 0}
+picks swing short 70-80: legacy n=9365 R=0.1165 | corrected fewer than 30 point-in-time eligible rows: picks_export would not report this band authoritative {'n': 0}
+picks swing short 80-90: legacy n=2675 R=0.142 | corrected fewer than 30 point-in-time eligible rows: picks_export would not report this band authoritative {'n': 0}
+picks swing short 90-101: legacy n=329 R=0.2915 | corrected fewer than 30 point-in-time eligible rows: picks_export would not report this band authoritative {'n': 0}
+picks swing short 80-101: legacy n=3004 R=0.1584 | corrected fewer than 30 point-in-time eligible rows: picks_export would not report this band authoritative {'n': 0}
+picks day funding signal: legacy [LEGACY_SURVIVORSHIP_UNQUALIFIED] assumed 0.01%/8h before the first nonzero settlement, zero read as none, carried through gaps | corrected [OBSERVED_SETTLEMENTS_ONLY v8.pit-research/3] observed settlements only, unknown excluded | scenario [SCENARIO / NOT AUTHORITY] never selects
+picks day long funding signal rows: {"observed_settlement": 0, "carried_not_due": 0, "unknown_excluded": 0, "top5_samples_undetermined": 0}
+picks day long base [DIAGNOSTIC / NOT DAY STRATEGY AUTHORITY]: legacy {'label': 'LEGACY_SURVIVORSHIP_UNQUALIFIED', 'n': 103554, 'R': -0.1259, 'ret': -0.0029, 'win': 0.3198} | corrected {'n': 0}
+picks day long band 0-50: legacy n=57760 R=-0.1586 | corrected {'n': 0}
+picks day long band 50-70: legacy n=27166 R=-0.1093 | corrected {'n': 0}
+picks day long band 70-80: legacy n=8136 R=-0.0578 | corrected {'n': 0}
+picks day long band 80-90: legacy n=6106 R=-0.0333 | corrected {'n': 0}
+picks day long band 90-101: legacy n=4386 R=-0.0538 | corrected {'n': 0}
+picks day long Top 5: legacy {'label': 'LEGACY_SURVIVORSHIP_UNQUALIFIED', 'n': 2155, 'R': -0.0998, 'ret': -0.0019, 'R_all': -0.1163} | corrected samples 0, qualified 0, authoritative {'n': 0}
+picks day short funding signal rows: {"observed_settlement": 0, "carried_not_due": 0, "unknown_excluded": 0, "top5_samples_undetermined": 0}
+picks day short base [DIAGNOSTIC / NOT DAY STRATEGY AUTHORITY]: legacy {'label': 'LEGACY_SURVIVORSHIP_UNQUALIFIED', 'n': 103607, 'R': -0.0483, 'ret': -0.0011, 'win': 0.3518} | corrected {'n': 0}
+picks day short band 0-50: legacy n=33804 R=-0.0651 | corrected {'n': 0}
+picks day short band 50-70: legacy n=36574 R=-0.0215 | corrected {'n': 0}
+picks day short band 70-80: legacy n=18675 R=-0.0488 | corrected {'n': 0}
+picks day short band 80-90: legacy n=9950 R=-0.0647 | corrected {'n': 0}
+picks day short band 90-101: legacy n=4604 R=-0.1007 | corrected {'n': 0}
+picks day short Top 5: legacy {'label': 'LEGACY_SURVIVORSHIP_UNQUALIFIED', 'n': 2155, 'R': -0.0451, 'ret': -0.0006, 'R_all': -0.0602} | corrected samples 0, qualified 0, authoritative {'n': 0}
+shadow ledger: {"version": "v8.shadow-ledger/1", "records": 2, "experiments": 1, "status": {"V9-PROBATION-XSMOM-LONG-1": "REGISTERED"}, "valid": true, "problems": [], "head_hash": "8801257a530288ad049699e4285032cd522e96ced2f7c588d0759a2e369720d3"}
+NONE: nothing here changes quant_research.json, picks_research.json or a live engine
+exit 0

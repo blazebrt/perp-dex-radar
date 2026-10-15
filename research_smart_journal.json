@@ -1,0 +1,193 @@
+{
+ "already_with_provenance": 95,
+ "coins": {
+  "qualified_closed_info": [
+   "BTC",
+   "ZEC",
+   "HYPE",
+   "PUMP",
+   "ENA",
+   "ZRO",
+   "UNI",
+   "ETH",
+   "STRK",
+   "BTC",
+   "HYPE",
+   "ENA",
+   "ZRO",
+   "STRK",
+   "BTC",
+   "PUMP",
+   "ENA",
+   "ONDO",
+   "LTC",
+   "PUMP",
+   "ENA",
+   "TAO",
+   "PUMP",
+   "NEAR",
+   "VVV",
+   "TAO",
+   "SOL",
+   "DOGE",
+   "ENA",
+   "HYPE",
+   "ZEC",
+   "PUMP",
+   "SOL",
+   "TAO",
+   "DOGE",
+   "VVV",
+   "BNB",
+   "BTC",
+   "XPL"
+  ],
+  "qualified_closed_signal": [
+   "FARTCOIN",
+   "SOL",
+   "XRP",
+   "ETH",
+   "ETH",
+   "HYPE",
+   "XRP",
+   "ETH",
+   "BTC",
+   "ETH"
+  ],
+  "qualified_open_info": [
+   "HYPE",
+   "VVV",
+   "XPL",
+   "CASHCAT",
+   "GRASS"
+  ],
+  "qualified_open_signal": [
+   "PONS",
+   "BTC",
+   "SOL",
+   "XRP",
+   "ETH"
+  ],
+  "unqualified_closed_info": [
+   "ZEC",
+   "ENA",
+   "ZEC",
+   "ENA",
+   "VVV",
+   "WLD",
+   "HYPE",
+   "ZEC",
+   "VVV",
+   "TAO",
+   "ENA",
+   "PUMP",
+   "ZEC",
+   "WLD",
+   "BTC",
+   "HYPE",
+   "TAO",
+   "ZEC",
+   "PUMP",
+   "ENA",
+   "BTC"
+  ],
+  "unqualified_closed_signal": [
+   "ETH",
+   "SOL",
+   "NEAR",
+   "XRP",
+   "FARTCOIN",
+   "ETH",
+   "BTC",
+   "ZRO",
+   "XMR",
+   "SOL",
+   "UNI",
+   "ETH",
+   "SOL",
+   "NEAR",
+   "XRP"
+  ]
+ },
+ "evidence": {
+  "execution_classes": {
+   "closed": {
+    "LEGACY_EXECUTION_UNQUALIFIED": 85
+   },
+   "open": {
+    "LEGACY_EXECUTION_UNQUALIFIED": 3,
+    "PENDING_HISTORY": 7
+   }
+  },
+  "live_record_rule": "Closed returns require entry identity AND qualified continuous execution evidence",
+  "qualified": {
+   "closed_info": 0,
+   "closed_signal": 0,
+   "open_info": 5,
+   "open_signal": 5
+  },
+  "unqualified": {
+   "closed_info": 60,
+   "closed_signal": 25,
+   "open_info": 0,
+   "open_signal": 0
+  },
+  "unqualified_reasons": {
+   "DEADLINE_PRICE_UNAVAILABLE": 2,
+   "LEGACY_EXECUTION_UNQUALIFIED": 47,
+   "LEGACY_NO_IDENTITY_PROOF": 36
+  }
+ },
+ "journal": {
+  "closed": 85,
+  "created": 1791194666,
+  "engine": 1,
+  "open": 10,
+  "scans": 56,
+  "updated": 1792017853
+ },
+ "marked_legacy": 0,
+ "phase3": {
+  "legacy_unqualified": {
+   "info": {
+    "n": 59,
+    "r": -0.22,
+    "ret": -0.00578,
+    "t": -1.85,
+    "win": 0.441
+   },
+   "reason": "IDENTITY_OR_EXECUTION_PROOF_INCOMPLETE",
+   "rule": "Diagnostic only: missing entry identity or qualified execution proof",
+   "signal": {
+    "n": 24,
+    "r": 0.7,
+    "ret": 0.02209,
+    "t": 4.06,
+    "win": 0.875
+   }
+  },
+  "live": {
+   "n": 0
+  },
+  "live_info": {
+   "n": 0
+  },
+  "verdict": "Promising"
+ },
+ "pre_phase3": {
+  "live": {
+   "n": 24,
+   "r": 0.7,
+   "ret": 0.02209,
+   "t": 4.06,
+   "win": 0.875
+  },
+  "live_info": {
+   "n": 59,
+   "r": -0.22,
+   "ret": -0.00578,
+   "t": -1.85,
+   "win": 0.441
+  }
+ }
+}
