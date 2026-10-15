@@ -74,11 +74,22 @@ class SyntheticArchive(unittest.TestCase):
     def test_all_trials_artifacts_and_binding(self):
         from tests.test_v9_evidence import synthetic
         from tools.v9 import evidence as EV
+        import qstrat
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             md, out = root / 'md', root / 'out'
             synthetic(str(md), 0., days=240, coins=8)
+            # A partial final day exposes resample's mutation of panel views.
+            # Full-day synthetic lives alone cannot catch fingerprint ordering.
+            partial = md / 'h4/C07.csv.gz'
+            with gzip.open(partial, 'rt') as fh:
+                lines = fh.readlines()
+            with gzip.open(partial, 'wt', newline='') as fh:
+                fh.writelines(lines[:-1])
             panel = EV.ArchivePanel(str(md))
+            raw_digest = R.digest_panel(panel)
+            qstrat.Feat(panel)
+            self.assertNotEqual(raw_digest, R.digest_panel(panel))
             reference = root / 'phase_b.json'
             reference.write_text(json.dumps(dict(provenance=dict(dataset_sha256=R.digest_panel(panel)))))
             binding = root / 'binding.json'

@@ -115,9 +115,12 @@ def run(md, out, phase_b_evidence, replications=5000):
     if not isinstance(expected, str) or len(expected) != 64:
         raise ValueError('phase B dataset digest required')
     panel = EV.ArchivePanel(str(md))
+    # Phase B fingerprints AFTER Feat: resample marks incomplete daily opens
+    # through numpy views of the panel. Match that existing construction order.
+    features = qstrat.Feat(panel)
     dataset = digest_panel(panel)
     if dataset != expected:
-        raise ValueError('dataset does not match phase B; replay refused')
+        raise ValueError(f'dataset does not match phase B; replay refused ({dataset} != {expected})')
     with (Path(md) / 'universe.json').open(encoding='utf8') as fh:
         universe = {row['t']: row for row in json.load(fh)['coins']}
     if not set(panel.coins) <= set(universe):
@@ -129,7 +132,6 @@ def run(md, out, phase_b_evidence, replications=5000):
     if destination.exists() and any(destination.iterdir()):
         raise ValueError('output directory must be empty; preserve prior evidence')
     destination.mkdir(parents=True, exist_ok=True)
-    features = qstrat.Feat(panel)
 
     def simulate(p, f, trial, uni):
         return EV.trades_of(p, f, trial['trial_id'], getattr(qstrat, trial['implementation']),

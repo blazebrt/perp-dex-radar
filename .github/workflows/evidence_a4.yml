@@ -1,4 +1,5 @@
 name: Phase A4 census replay
+# Retry after preflight fingerprint-order correction; no trials ran in attempt 1.
 
 on:
   push:
