@@ -32,7 +32,7 @@ class Parsing(unittest.TestCase):
         r = row(t)
         r[0] = str(t*1000000)
         self.assertEqual(F.parse(zipped([['open_time'], r]), '2020-01')[0][0], t)
-        r[7] = r[10] = '0'
+        r[5] = r[7] = r[8] = r[10] = '0'
         self.assertEqual(F.parse(zipped([r]), '2020-01')[0][5], 0)
         self.assertEqual(F.months(t, t+31*86400), ['2020-01'])
         self.assertEqual(F.months(t, t+31*86400+3600), ['2020-01', '2020-02'])
@@ -60,6 +60,23 @@ class Parsing(unittest.TestCase):
         self.assertEqual(c['expected_hours'], 3)
         with self.assertRaises(ValueError):
             F.segment(rows+[rows[1]], 3600, 14400)
+
+    def test_zero_trade_carry_prices_do_not_define_four_hour_ohlc(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d)/'reference.csv.gz'
+            with gzip.open(path, 'wt') as f:
+                f.write('t,o,h,l,c,qv,tbqv\n0,10,12,9,11,2000,1000\n')
+            rows = [(0, 1, 1, 1, 1, 0, 0), (3600, 10, 12, 9, 11, 1000, 500),
+                    (7200, 11, 12, 9, 11, 1000, 500), (10800, 99, 99, 99, 99, 0, 0)]
+            self.assertEqual(F.reconcile(rows, path)['reconciled_four_hour_bars'], 1)
+            changed = list(rows)
+            changed[0] = (0, 1, 1, 1, 1, 1, 0)
+            with self.assertRaisesRegex(ValueError, 'mismatch'):
+                F.reconcile(changed, path)
+        r = row(0)
+        r[7] = r[10] = '0'
+        with self.assertRaisesRegex(ValueError, 'trading activity'):
+            F.parse(zipped([r]), '1970-01')
 
 
 class Collection(unittest.TestCase):

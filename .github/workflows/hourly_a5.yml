@@ -1,4 +1,5 @@
 name: Phase A5 hourly archive
+# Retry after correcting OHLC aggregation of observed zero-trade hours.
 
 on:
   push:

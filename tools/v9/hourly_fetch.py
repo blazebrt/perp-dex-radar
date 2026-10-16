@@ -53,10 +53,15 @@ def parse(raw, month):
         if datetime.fromtimestamp(t, timezone.utc).strftime('%Y-%m') != month:
             raise ValueError('hour outside requested month')
         o, h, l, c, qv, tbqv = [float(r[i]) for i in (1, 2, 3, 4, 7, 10)]
+        base_volume, trades = float(r[5]), int(r[8])
         if (not all(math.isfinite(v) for v in (o, h, l, c, qv, tbqv)) or
                 min(o, h, l, c) <= 0 or l > min(o, c) or h < max(o, c) or
                 min(qv, tbqv) < 0 or tbqv > qv + max(1e-8, qv*1e-10)):
             raise ValueError('invalid hourly OHLC/volume')
+        if (not math.isfinite(base_volume) or base_volume < 0 or trades < 0 or
+                (qv == 0 and (base_volume != 0 or trades != 0)) or
+                (qv > 0 and (base_volume == 0 or trades == 0))):
+            raise ValueError('inconsistent observed trading activity')
         if rows and t <= rows[-1][0]:
             raise ValueError('duplicate or unordered hourly timestamp')
         rows.append((t, o, h, l, c, qv, tbqv))
@@ -100,13 +105,19 @@ def reconcile(rows, path):
             if any(r is None for r in group):
                 missing += 1
                 continue
-            actual = (group[0][1], max(r[2] for r in group), min(r[3] for r in group),
-                      group[-1][4], math.fsum(r[5] for r in group), math.fsum(r[6] for r in group))
+            # Zero-trade hourly candles carry a stale price. Exchange 4h OHLC
+            # comes from actual trades, not those synthetic carry-forward prices.
+            traded = [r for r in group if r[5] > 0]
+            if not traded:
+                raise ValueError(f'no trading hours for pinned four-hour bar: {path.name} {t}')
+            actual = (traded[0][1], max(r[2] for r in traded), min(r[3] for r in traded),
+                      traded[-1][4], math.fsum(r[5] for r in group), math.fsum(r[6] for r in group))
             # The pinned archive rounds to ten significant digits on export.
             for field, value in zip(fields, actual):
                 target = float(reference[field])
                 if not math.isfinite(target) or not math.isclose(value, target, rel_tol=1e-8, abs_tol=0.0):
-                    raise ValueError(f'hourly/four-hour mismatch at {t}: {field}')
+                    raise ValueError(f'hourly/four-hour mismatch: {path.name} {t} {field}: '
+                                     f'hourly={value!r}, pinned={target!r}')
             checked += 1
     if not checked:
         raise ValueError('no complete four-hour groups could be reconciled')
@@ -184,6 +195,7 @@ def run(md, plan_path, out, cache, workers=8):
     artifacts = {p.relative_to(out).as_posix(): P.sha(p) for p in sorted(out.rglob('*')) if p.is_file()}
     doc = dict(schema='v9.hourly-archive/1', archive_commit=P.ARCHIVE_COMMIT,
                protocol_sha256=P.sha(P.PROTOCOL), collector_sha256=P.sha(__file__),
+               aggregation_clarification_sha256=P.sha(ROOT/'docs/v9/phase-a5-hourly-aggregation.md'),
                plan_builder_sha256=P.sha(Path(P.__file__)), network_helpers_sha256=P.sha(Path(A.__file__)),
                source_objects=sorted(sources, key=lambda r: r['key']), coverage=coverage,
                artifacts_sha256=artifacts, all_required_months_downloaded=True,
