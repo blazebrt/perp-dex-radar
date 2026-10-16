@@ -87,3 +87,41 @@ the trade-level case above contradicts them. No tolerance has been relaxed.
 The existing A4 replay reproduced its pinned inputs; it did not independently
 establish that every provider candle is correct. A5.2 acceptance, A5.3 hourly
 strategy replay and A4.4 complete-family assembly remain incomplete.
+
+## Trade reconstruction diagnostic (2026-10-17)
+
+The additive protocol and tool were committed as `2bf7eac` before the all-block
+run. All 94 disputed blocks were examined using 94 checksummed daily files,
+scanning 64,523,776 records. No source download or parsing failed. Independent
+recomputation reproduced all 376 hourly candidates; all 378 saved artifact
+hashes match. The complete diagnostic and provenance record is
+`research/v9/a5_trade_diagnostics.json`. Raw downloaded files are retained in the
+local task's `outputs/a5-trade-diagnostics/` directory, not the production archive.
+
+| Check | Blocks |
+|---|---:|
+| Aggregate matches pinned four-hour source | 50 |
+| Locally continuous IDs with both boundary brackets | 70 |
+| Both of the above | 40 |
+| Aggregate disagrees | 44 |
+| ID gaps | 20 |
+| Missing boundary brackets | 5 |
+
+ID gaps and missing brackets overlap in one block. No candidate hour was empty.
+These checks do not establish complete transaction history, and none
+of the candidates has replaced source candles or been accepted for replay.
+
+A separate exploratory ALGO check identifies a precision issue: for 19,477
+trades, the file's quote amounts sum to 5326605.1193, but decimal price times
+quantity sums to 5326605.75953. The latter matches pinned 5326605.76 within the
+original tolerance. Of those trades, 12,760 have a reported quote amount different
+from price times quantity. Taker-buy product volume similarly gives
+2636605.69158 versus pinned 2636605.692. This observation is post-protocol and
+preserved separately; the first-pass report still uses the published quote field.
+
+The next diagnostic must explicitly preserve and compare both volume treatments,
+without relaxing tolerance or changing the original report. Price discrepancies
+also persist: the BTC 2023-11-10 trade close is 37092.6 versus pinned 37118.4;
+EOS 2020-01-19 differs in all four price fields. Missing-ID and boundary cases
+remain unresolved. A replacement/exclusion and missing-hour execution protocol
+must follow that investigation before A5.2 acceptance or A5.3 replay.
