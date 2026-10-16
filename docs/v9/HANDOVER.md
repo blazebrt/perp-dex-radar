@@ -32,14 +32,14 @@ This file is that plan. Keep it current.
 | Release | **v9 is merged into `main`** (PR #28, merge commit `f58c058`, 2026-10-15, at the owner's request), carrying #25, #26 and #27; those three are closed. The first production Scan on `main` published the v9 desk and the first market-history record. | PR #28 |
 | v8 desk (Today, Analyzer, Funding, Portfolio, Research) | **Merged into main** (PR #24, 2026-10-14, with the owner's accuracy fixes). | `today.html`, `desk.js`, `desk.css` |
 | Data-source survey | **Done.** 102 sources probed from the Actions runner; 81 answer. | `docs/v9/data-sources.md`, branch `probe-results` |
-| Known-trial replay (A4) | **A4.1–A4.3 complete (verified 2026-10-16), draft PR #30.** All 192 four-hour/daily definitions replayed on the pinned archive; 2,670,894 trades independently reconciled across 2,346 daily rows. Seven hourly columns remain missing. A4.4 waits for A5; no promotion follows. | `tools/v9/census_plan.py`, `research/v9/census_replay_plan.json` |
-| Hourly liquid-universe archive (A5) | **In progress (2026-10-17), draft PR #30.** A5.1 complete; collection and independent conflict audit complete as diagnostics. Verified 13,862,338 hourly rows across 690 segments; 189 conflicting fields in 94 four-hour blocks across 87 segments reject the dataset. A5.2 acceptance and A5.3 replay remain pending; 999 tests pass. | `tools/v9/hourly_plan.py`, `tools/v9/hourly_fetch.py`, `docs/v9/phase-a5-hourly-protocol.md` |
+| Known-trial replay (A4) | **A4.1â€“A4.3 complete (verified 2026-10-16), draft PR #30.** All 192 four-hour/daily definitions replayed on the pinned archive; 2,670,894 trades independently reconciled across 2,346 daily rows. Seven hourly columns remain missing. A4.4 waits for A5; no promotion follows. | `tools/v9/census_plan.py`, `research/v9/census_replay_plan.json` |
+| Hourly liquid-universe archive (A5) | **In progress (2026-10-17), draft PR #30.** A5.1 complete; collection and independent conflict audit complete as diagnostics. Verified 13,862,338 hourly rows across 690 segments; 189 conflicting fields in 94 four-hour blocks across 87 segments reject the dataset. A trade-reconstruction diagnostic protocol and offline tool are implemented with eight synthetic tests; real-data application is pending. A5.2 acceptance and A5.3 replay remain pending. | `tools/v9/hourly_plan.py`, `tools/v9/hourly_fetch.py`, `docs/v9/phase-a5-hourly-protocol.md` |
 | Survivorship-free evidence engine | **v1 done.** 17 daily/4h strategies plus the coin-picks swing score, on 750 coins (170 delisted), 2020-01 to 2026-09. Every run is recorded, hash-chained and pinned to its dataset (A8). | `tools/v9/archive_fetch.py`, `tools/v9/evidence.py`, `research/v9/evidence_runs.jsonl`, branch `evidence-results` |
-| Probation tier (first governed trades) | **Implemented** (`dada154`, in PR #28). XSMOM long is CONFIRMED on (a)–(j). It trades at half size inside a 24h window. Its forward test `V9-PROBATION-XSMOM-LONG-1` starts 2026-10-15 00:00 UTC. The live check is B8. | `docs/v9/phase-b-probation.md`, `research/v9/probation_evidence.json` |
-| Live multi-venue data layer | **C1–C3 built** (in PR #28): `v9/market.py`, `data/v9/market.json`, an hourly history on `v9-market-history`, a Today panel and Analyzer context. 16 of 16 sources answered from Actions. | `docs/v9/market-context.md`, branch `market-results` |
+| Probation tier (first governed trades) | **Implemented** (`dada154`, in PR #28). XSMOM long is CONFIRMED on (a)â€“(j). It trades at half size inside a 24h window. Its forward test `V9-PROBATION-XSMOM-LONG-1` starts 2026-10-15 00:00 UTC. The live check is B8. | `docs/v9/phase-b-probation.md`, `research/v9/probation_evidence.json` |
+| Live multi-venue data layer | **C1â€“C3 built** (in PR #28): `v9/market.py`, `data/v9/market.json`, an hourly history on `v9-market-history`, a Today panel and Analyzer context. 16 of 16 sources answered from Actions. | `docs/v9/market-context.md`, branch `market-results` |
 | Trade alerts | **Built** (F5, in PR #28): Telegram and/or Discord on every new TRADE, with the full plan. Sends nothing until the owner adds the secrets. | `v9/alerts.py` |
 | New signal research (positioning, funding, OI, liquidations, basis, regime) | **D1 and D2 done, D7 answered.** Four strategies (funding fade, taker flow, top-trader divergence, crowd fade) were pre-registered and each tested once on the phase B dataset. **None is confirmed.** XSMOM long remains the only tradable side. | `docs/v9/phase-d1-preregistration.md`, `docs/v9/phase-d2-preregistration.md`, branches `evidence-d1-results`, `evidence-d2-results` |
-| Decision engine v2 (expected-R ranking, regime, sizing) | **E4 done**: the forward test is evaluated every scan, shown on Today and demotes a side automatically. E1–E3 not started. | section 6, phase E |
+| Decision engine v2 (expected-R ranking, regime, sizing) | **E4 done**: the forward test is evaluated every scan, shown on Today and demotes a side automatically. E1â€“E3 not started. | section 6, phase E |
 | Pro UX (rich trade plans, market board, performance ledger, alerts) | **F1 done** (full trade plan: entry, stop, trailing stop, time exit, size on the page account and in the trader's own dollars, evidence, forward test). F2 first version, F5 alerts. F3 and F4 not started. | section 6, phase F |
 
 ## 2. Diagnosis: why there are no trades, and what got worse
@@ -102,12 +102,12 @@ The full table is in `docs/v9/evidence-2026-10-14.md`; the latest run is on the 
 | Hypothesis | Holdout 2020-01..2023-09 | Design window 2023-10..2026-09 | Since 2025-01 |
 |---|---|---|---|
 | **XSMOM long** (momentum rotation, longs) | **+0.167R, 95% low +0.030, p=0.009, 503 trades** | **+0.231R, 95% low +0.014, p=0.018, 443 trades** | +0.139R, p=0.15, 206 trades |
-| XSMOM short | +0.068R (p=0.06) | **−0.131R (significantly negative)** | −0.029R |
-| TSMOM short | +0.163R (p=0.001) | −0.001R | +0.106R (p=0.03) |
-| TSMOM long | +0.009R | +0.062R | −0.064R |
-| TREND_EMA (both sides) | −0.012R | +0.012R | −0.001R |
+| XSMOM short | +0.068R (p=0.06) | **âˆ’0.131R (significantly negative)** | âˆ’0.029R |
+| TSMOM short | +0.163R (p=0.001) | âˆ’0.001R | +0.106R (p=0.03) |
+| TSMOM long | +0.009R | +0.062R | âˆ’0.064R |
+| TREND_EMA (both sides) | âˆ’0.012R | +0.012R | âˆ’0.001R |
 | Swing score, short 80+, one trade per coin at a time | +0.069R | +0.148R | 2024 +0.10, 2025 +0.27 |
-| Swing score, long 80+ | **−0.128R** | +0.303R | mixed |
+| Swing score, long 80+ | **âˆ’0.128R** | +0.303R | mixed |
 
 **What it means.**
 
@@ -121,7 +121,7 @@ The full table is in `docs/v9/evidence-2026-10-14.md`; the latest run is on the 
     p=0.006 and XSMOM long p=0.043 survive.
   - Only XSMOM long is also confirmed in the design window.
 - **The family-wide tests do not pass.** Across all 17 candidates, White Reality Check p=0.76, Hansen SPA p=0.16 and
-  PBO 0.28 (the gate needs ≤ 0.20).
+  PBO 0.28 (the gate needs â‰¤ 0.20).
   - Those tests ask whether the best of 17 in-sample is real.
   - The holdout test asks a different question: does a strategy chosen on other data work on unseen data? That is
     the right test for strategies whose selection happened in 2023-2026.
@@ -155,14 +155,14 @@ Everything is honest about uncertainty and nothing places orders.
 
 ```
   data layer (Actions, every scan)          evidence engine (Actions, daily/weekly)        decision engine
-  ─────────────────────────────────         ──────────────────────────────────────        ───────────────
-  venues: HL, OKX, Gate, Bitget, MEXC,       archive_fetch.py  ──►  md_bn (archive-data)    v8/decision.py + v9 tiers
-  HTX, KuCoin, Kraken, dYdX, Aster,          evidence.py       ──►  evidence-results         (TRADE needs a tier:
-  Deribit, CoinGecko derivatives             confirm.py (B)    ──►  research/v9/*.json         FULL or PROBATION)
+  â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€         â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€        â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  venues: HL, OKX, Gate, Bitget, MEXC,       archive_fetch.py  â”€â”€â–º  md_bn (archive-data)    v8/decision.py + v9 tiers
+  HTX, KuCoin, Kraken, dYdX, Aster,          evidence.py       â”€â”€â–º  evidence-results         (TRADE needs a tier:
+  Deribit, CoinGecko derivatives             confirm.py (B)    â”€â”€â–º  research/v9/*.json         FULL or PROBATION)
   market: DVOL, F&G, ETF flows,              + new signal studies (phase D)                  governed book only
   stablecoins, DefiLlama OI,                                                                 sizing x tier multiplier
-  Coinbase/Korea premium                                                                     ─► decision.json ─► desk
-  → data/v9/market.json (phase C)
+  Coinbase/Korea premium                                                                     â”€â–º decision.json â”€â–º desk
+  â†’ data/v9/market.json (phase C)
 ```
 
 ## 6. Roadmap (in order; tick items as they land, with the commit)
@@ -213,7 +213,7 @@ Probation gate, per (strategy, side). All of these must hold on archive evidence
 - (b) Holdout mean R > 0, Holm-adjusted one-sided p < 0.05 over all side-hypotheses submitted.
 - (c) Design-window mean R > 0, one-sided p < 0.10 (consistent, not contradicted).
 - (d) The most recent third has mean R > 0.
-- (e) Cost stress ×1.5 keeps mean R > 0.
+- (e) Cost stress Ã—1.5 keeps mean R > 0.
 - (f) The edge over the random twin is positive.
 - (g) The Phase 9 concentration limits hold.
 - (h) At least 500 trades in total and 100 in the holdout.
@@ -233,7 +233,7 @@ Added on 2026-10-14, before the evidence run that first measures them (`evidence
 
 Result (evidence run `fd03198`, `tools/v9/confirm.py`):
 
-- **XSMOM long is CONFIRMED on every check (a)–(j).**
+- **XSMOM long is CONFIRMED on every check (a)â€“(j).**
   - Top-80 universe: +0.19R in the holdout, +0.21R in the design window.
   - Entered 4h, 8h, 12h or 24h late: +0.18R to +0.20R, so the TRADE window is 24h.
 - Every other side is NOT_CONFIRMED.
@@ -254,7 +254,7 @@ Result (evidence run `fd03198`, `tools/v9/confirm.py`):
   - `decision_policy.json` gains `probation_deployment_states` and `probation_research_states`.
   - The `v8/decision.py` STRATEGY_AUTHORITY gate passes with `tier: PROBATION` for a confirmed side, and caps the
     other side at WATCH (`STRATEGY_SIDE_NOT_CONFIRMED`).
-  - PROPOSED_TRADE risk becomes `risk_per_trade × risk_multiplier`.
+  - PROPOSED_TRADE risk becomes `risk_per_trade Ã— risk_multiplier`.
   - Candidates carry `authority_tier`.
 - [x] B5 (`dada154`). Governed book:
   - The Phase 10 gates evaluate only the positions of trade-authorized strategy sides.
@@ -285,7 +285,7 @@ Result (evidence run `fd03198`, `tools/v9/confirm.py`):
     previous close the cause was that all top-5 coins needed stops wider than 20% (the archive's rule). The path is
     covered by `tests/test_v9_decision.py`, and the first live one will show on Today, in the journal and in the
     alerts.
-  - Next session: on the first close with an XSMOM long signal, confirm it is TRADE, tier PROBATION, at 0.5× size.
+  - Next session: on the first close with an XSMOM long signal, confirm it is TRADE, tier PROBATION, at 0.5Ã— size.
 - [ ] B9. Known follow-ups:
   - TREND_EMA has no edge in the archive. A reviewed policy change could mark it REJECTED (AVOID).
   - Legacy WATCH signals still feed Emerging.
@@ -331,7 +331,7 @@ How every phase D study runs (D1 set the pattern):
 
 1. Write the definitions and a pre-registration document, and commit them **before** any run on market data.
    Synthetic-archive checks are allowed; they test mechanics, not hypotheses.
-2. Test once, with phase B's gate (b)–(j), and a Holm family per study.
+2. Test once, with phase B's gate (b)â€“(j), and a Holm family per study.
 3. Record the result as is. A confirmed side is a probation candidate: it still needs a runtime implementation,
    re-bound evidence, a forward-test registration and the owner's merge. A failed side is never adjusted; a changed
    definition is a new hypothesis with a new name.
@@ -341,20 +341,20 @@ How every phase D study runs (D1 set the pattern):
   on data the archive already holds: XS_FUND_FADE and XS_FLOW_MOM.
   - Pre-registered in `docs/v9/phase-d1-preregistration.md`, committed before any run on market data.
   - Code: `tools/v9/d1.py`, `tools/v9/evidence_d1.py`, `tests/test_v9_d1.py` (rankings and no look-ahead).
-  - Tested once by `evidence_d1.yml` on the `archive-data` dataset: digest `cd4651eb…`, the same as phase B's.
+  - Tested once by `evidence_d1.yml` on the `archive-data` dataset: digest `cd4651ebâ€¦`, the same as phase B's.
   - **Result: no side is confirmed. Nothing deploys, and no definition will be changed.**
 
   | Side | Trades | Holdout R (Holm p) | Design window R (p) | Fails |
   |---|---|---|---|---|
-  | XS_FUND_FADE long | 916 | +0.064 (0.30) | −0.020 (0.61) | b, c, d, f |
-  | XS_FUND_FADE short | 871 | −0.071 (0.99) | −0.164 (1.00) | b, c, d, e, f, g, i, j |
+  | XS_FUND_FADE long | 916 | +0.064 (0.30) | âˆ’0.020 (0.61) | b, c, d, f |
+  | XS_FUND_FADE short | 871 | âˆ’0.071 (0.99) | âˆ’0.164 (1.00) | b, c, d, e, f, g, i, j |
   | XS_FLOW_MOM long | 2715 | +0.042 (0.20; raw p 0.050) | +0.010 (0.34) | b, c |
-  | XS_FLOW_MOM short | 2116 | +0.001 (0.95) | −0.040 (0.98) | b, c, d, e, g, i, j |
+  | XS_FLOW_MOM short | 2116 | +0.001 (0.95) | âˆ’0.040 (0.98) | b, c, d, e, g, i, j |
 
   - Shorting the coins whose longs paid the most funding lost money in both windows: crowded longs kept rising more
     often than they unwound. That is an observation, not a tested hypothesis. Going long those coins would also pay
     the highest funding.
-  - XS_FLOW_MOM long is positive in every window, at a 1.5× cost stress (+0.013R) and against its random twin
+  - XS_FLOW_MOM long is positive in every window, at a 1.5Ã— cost stress (+0.013R) and against its random twin
     (+0.081R), but too small to be significant. It is not a strategy. It may be worth recording forward, since the
     live data exists (D1b).
 - [ ] D1b (optional). A forward-only record of XS_FLOW_MOM long, registered in the shadow ledger before its first
@@ -370,16 +370,16 @@ How every phase D study runs (D1 set the pattern):
     from the dataset fetched or read. The study ran once, at 18:41, triggered by that commit. The document's line
     "its download was still running" was true when written, not at commit time. The document is left unedited because
     its hash is in the result.
-  - It used the same candles and funding as phase B (digest `cd4651eb…`). Signal coverage was 79% / 89% of eligible
+  - It used the same candles and funding as phase B (digest `cd4651ebâ€¦`). Signal coverage was 79% / 89% of eligible
     coin-days, from 2020-09-04.
   - **Result: no side is confirmed. Nothing deploys, and no definition will be changed.**
 
   | Side | Trades | Holdout R (Holm p) | Design window R (p) | Fails |
   |---|---|---|---|---|
-  | XS_TOP_DIV long | 1069 | +0.025 (0.49) | −0.032 (0.86) | b, c, e, f, g, i, j |
-  | XS_TOP_DIV short | 1282 | −0.021 (0.88) | −0.093 (1.00) | b, c, d, e, f, g, i, j |
-  | XS_CROWD_FADE long | 1050 | +0.041 (0.16; raw p 0.039) | −0.005 (0.57) | b, c, d, f, i |
-  | XS_CROWD_FADE short | 1373 | +0.004 (0.88) | −0.019 (0.79) | b, c, e, f, g, i, j |
+  | XS_TOP_DIV long | 1069 | +0.025 (0.49) | âˆ’0.032 (0.86) | b, c, e, f, g, i, j |
+  | XS_TOP_DIV short | 1282 | âˆ’0.021 (0.88) | âˆ’0.093 (1.00) | b, c, d, e, f, g, i, j |
+  | XS_CROWD_FADE long | 1050 | +0.041 (0.16; raw p 0.039) | âˆ’0.005 (0.57) | b, c, d, f, i |
+  | XS_CROWD_FADE short | 1373 | +0.004 (0.88) | âˆ’0.019 (0.79) | b, c, e, f, g, i, j |
 
   - Neither definition shows an edge after costs in either window. The legacy picks used these ratios as score inputs;
     as daily rotations on survivorship-free data, they do not hold up. Open interest and the taker ratio are in the
@@ -406,7 +406,7 @@ How every phase D study runs (D1 set the pattern):
     (`strategy_tiers`, `_forward_test`). A side below the band is capped at WATCH automatically
     (`PROBATION_FORWARD_TEST_FAILED`).
   - Today's "Authorized to trade" note shows the live record against the band on every scan, signal or not, e.g.
-    "live forward test: 40 closed, mean +0.20R, demoted below …R at 30 trades". TRADE cards show the same.
+    "live forward test: 40 closed, mean +0.20R, demoted below â€¦R at 30 trades". TRADE cards show the same.
   - "Generalised": the rule applies to every probation side that is registered. A full-tier (ACTIVE_REQUALIFIED)
     side is governed by Phase 9's requalification, which carries its own 180-day prospective registration. No
     full-tier side exists today.
@@ -446,7 +446,7 @@ How every phase D study runs (D1 set the pattern):
   - `test_v9_tools` proves the committed forward-test registration is exactly what the tool computes from the bound
     evidence, and that a probe never keeps an API key.
   - `test_v9_research_tools` checks the gate statistics (Holm, clustering, concentration, demotion band, every check
-    (b)–(j)) on hand-checked values.
+    (b)â€“(j)) on hand-checked values.
   - Every published change (desk.js, desk.css, analyze.js, analyze.html, quant.html, index.html and four quant.json
     leaves) is pinned in `v9b_expected_deltas.json`, and CI proves differential parity against main.
 
@@ -454,7 +454,7 @@ How every phase D study runs (D1 set the pattern):
 
 - Trade alerts (optional): add `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`, and/or `DISCORD_WEBHOOK_URL`, as
   repository secrets. Create the bot with Telegram's @BotFather and get your chat id from the bot's getUpdates.
-- Optional, free API keys, added under GitHub repository Settings → Secrets → Actions:
+- Optional, free API keys, added under GitHub repository Settings â†’ Secrets â†’ Actions:
   - `COINALYZE_API_KEY`: the best free liquidation history. Sign up at coinalyze.net, then API key.
   - `CRYPTOPANIC_API_KEY`: news.
   - `FRED_API_KEY`: macro.
@@ -503,7 +503,7 @@ How every phase D study runs (D1 set the pattern):
     - D2 and D7, recorded above.
   - Tested on head `3fa4c91`: the full suite, CI on push and on the pull request, and live Research run 38621408999
     (every mandatory step green; four XSMOM shorts WATCH `STRATEGY_SIDE_NOT_CONFIRMED`, no XSMOM long signal yet).
-  - PR #28 (`v9/research-d1` → `main`) carries #25, #26 and #27. The first merge API call was blocked by the session's
+  - PR #28 (`v9/research-d1` â†’ `main`) carries #25, #26 and #27. The first merge API call was blocked by the session's
     automatic safety check; the owner then asked for the merge explicitly and it went through.
   - B8 ran after the 2026-10-15 00:00 UTC close (see below and the B8 item).
   - Merged at the owner's request (2026-10-15 01:35 IST): PR #28 into `main` as merge commit `f58c058`. #25 to #27
@@ -555,3 +555,9 @@ How every phase D study runs (D1 set the pattern):
   - Trade-level investigation of the SHIB case supports the four-hour source: minute/hourly data omit 13 records relative to the daily tape and have an incorrect hourly close. The tape itself has one ID gap, so it does not prove complete transaction coverage. Repair cannot assume finer candles are authoritative or change only volumes.
   - Validation: 999 Linux tests pass without skips; source commit push CI `38903923108` and PR CI `38903933467` pass. The audit verifies stored artifacts and structure, not every provider transaction.
   - Completed: A5.1 and diagnostic acquisition/audit. Remaining: pre-registered repair/exclusion and gap protocol, accepted A5.2 dataset, A5.3 seven hourly replays, A4.4 family assembly. All other unchecked roadmap steps remain open. PR #30 remains draft; no merge, promotion or production deployment.
+
+- **2026-10-17 (Codex continuation): A5 trade-reconstruction diagnostics.**
+  - Added `phase-a5-trade-reconstruction.md` as an additive protocol before running the new tool on market data. Scope is all 94 disputed blocks; the previous SHIB inspection is explicitly prior knowledge. Original protocols and data are unchanged.
+  - Implemented offline `tools/v9/hourly_trades.py`: verifies provider checksum and UTC day, rejects malformed/out-of-order records, reconstructs every hourly OHLC/volume field with decimal arithmetic, reports missing hours and ID gaps, and compares all six four-hour fields against the pinned source. Requires bracketing trades and contiguous IDs before claiming local continuity. Matching aggregates remain diagnostic, never accepted data.
+  - Eight synthetic tests pass, including hour boundaries, buyer/taker direction, ID gaps, missing hours, timestamp precision, tiny prices, corrupt checksums and immutable output/source files. Full regression validation precedes publication and market-data application.
+  - Remaining: apply the committed diagnostic to all 94 blocks, review unresolved continuity/source conflicts, specify dataset replacement/exclusion and gap execution policy, verify accepted A5.2 data, then A5.3 and A4.4. No strategy trial or production change occurred.
