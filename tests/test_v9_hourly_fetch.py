@@ -146,6 +146,26 @@ class Collection(unittest.TestCase):
                 self.run_fake(md, plan, root/'out', objects)
             self.assertFalse((root/'out/hourly_manifest.json').exists())
 
+    def test_conflicts_preserved_across_symbols_without_accepted_manifest(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            md, plan, objects = self.fixture(root)
+            key = sorted(objects)[0]
+            with zipfile.ZipFile(io.BytesIO(objects[key])) as z:
+                rows = list(csv.reader(io.StringIO(z.read(z.namelist()[0]).decode())))
+            rows[0][7] = '250001'
+            objects[key] = zipped(rows)
+            with self.assertRaisesRegex(ValueError, 'source reconciliation failed'):
+                self.run_fake(md, plan, root/'out', objects)
+            self.assertFalse((root/'out/hourly_manifest.json').exists())
+            rejected = json.loads((root/'out/rejected_manifest.json').read_text())
+            self.assertEqual(rejected['schema'], 'v9.hourly-archive-rejected/1')
+            self.assertFalse(rejected['source_reconciliation_passed'])
+            self.assertEqual(rejected['source_conflict_count'], 1)
+            self.assertEqual(set(rejected['coverage']), {'BTC','C000'})
+            for path, digest in rejected['artifacts_sha256'].items():
+                self.assertEqual(F.P.sha(root/'out'/path), digest)
+
     def test_price_disagreement_and_gaps_are_distinct(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)

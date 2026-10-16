@@ -90,10 +90,10 @@ def segment(rows, first, end):
                           missing_hours=expected-len(selected), missing_intervals=gaps)
 
 
-def reconcile(rows, path):
+def reconcile(rows, path, diagnostic=False):
     """Compare complete hourly groups with the independently pinned 4h file."""
     by_time = {r[0]: r for r in rows}
-    checked, missing = 0, 0
+    checked, missing, conflicts = 0, 0, []
     with gzip.open(path, 'rt', encoding='utf8', newline='') as fh:
         reader = csv.DictReader(fh)
         fields = ('o', 'h', 'l', 'c', 'qv', 'tbqv')
@@ -113,15 +113,22 @@ def reconcile(rows, path):
             actual = (traded[0][1], max(r[2] for r in traded), min(r[3] for r in traded),
                       traded[-1][4], math.fsum(r[5] for r in group), math.fsum(r[6] for r in group))
             # The pinned archive rounds to ten significant digits on export.
+            agreed = True
             for field, value in zip(fields, actual):
                 target = float(reference[field])
                 if not math.isfinite(target) or not math.isclose(value, target, rel_tol=1e-8, abs_tol=0.0):
-                    raise ValueError(f'hourly/four-hour mismatch: {path.name} {t} {field}: '
-                                     f'hourly={value!r}, pinned={target!r}')
-            checked += 1
-    if not checked:
+                    if not diagnostic or not math.isfinite(target):
+                        raise ValueError(f'hourly/four-hour mismatch: {path.name} {t} {field}: '
+                                         f'hourly={value!r}, pinned={target!r}')
+                    agreed = False
+                    conflicts.append(dict(timestamp=t, field=field, hourly=value, pinned=target))
+            checked += agreed
+    if not checked and not conflicts:
         raise ValueError('no complete four-hour groups could be reconciled')
-    return dict(reconciled_four_hour_bars=checked, incomplete_four_hour_groups=missing)
+    result = dict(reconciled_four_hour_bars=checked, incomplete_four_hour_groups=missing)
+    if conflicts:
+        result['four_hour_conflicts'] = conflicts
+    return result
 
 
 def run(md, plan_path, out, cache, workers=8):
@@ -164,7 +171,7 @@ def run(md, plan_path, out, cache, workers=8):
         for c in coins:
             name = c['t']
             rows, cov = segment(raw_rows, c['first_bar'], c['last_bar']+P.BAR)
-            cov.update(reconcile(rows, md/'h4'/f'{name}.csv.gz'))
+            cov.update(reconcile(rows, md/'h4'/f'{name}.csv.gz', diagnostic=True))
             path = out/'h1'/f'{name}.csv.gz'
             # Fixed gzip metadata makes identical data reproducible byte-for-byte.
             with path.open('wb') as base:
@@ -179,7 +186,8 @@ def run(md, plan_path, out, cache, workers=8):
             shutil.copyfile(funding, out/'fund_bn'/funding.name)
             cov['funding_source_sha256'] = P.sha(funding)
             coverage[name] = cov
-        print(f'A5 fetched {sym}: {len(required)} months, {len(coins)} segments', flush=True)
+        conflicts = sum(len(c.get('four_hour_conflicts', [])) for c in coverage.values())
+        print(f'A5 fetched {sym}: {len(required)} months, {len(coins)} segments, {conflicts} conflicts', flush=True)
         return sources, coverage
 
     sources, coverage = [], {}
@@ -201,6 +209,13 @@ def run(md, plan_path, out, cache, workers=8):
                artifacts_sha256=artifacts, all_required_months_downloaded=True,
                all_hours_observed=all(c['missing_hours'] == 0 for c in coverage.values()),
                promotion_authority=False, replay_complete=False)
+    conflict_count = sum(len(c.get('four_hour_conflicts', [])) for c in coverage.values())
+    doc['source_reconciliation_passed'] = conflict_count == 0
+    if conflict_count:
+        doc.update(schema='v9.hourly-archive-rejected/1', source_conflict_count=conflict_count)
+        # This is a rejected-data audit, never an accepted dataset completion marker.
+        (out/'rejected_manifest.json').write_text(json.dumps(doc, sort_keys=True, indent=2)+'\n', encoding='utf8')
+        raise ValueError(f'source reconciliation failed: {conflict_count} field conflicts; see rejected_manifest.json')
     # Only this final marker denotes a completed collection, not a successful replay.
     (out/'hourly_manifest.json').write_text(json.dumps(doc, sort_keys=True, indent=2)+'\n', encoding='utf8')
     return doc

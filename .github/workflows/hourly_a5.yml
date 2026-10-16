@@ -1,5 +1,5 @@
 name: Phase A5 hourly archive
-# Retry after correcting OHLC aggregation of observed zero-trade hours.
+# Catalogue all source conflicts; any conflict still rejects the dataset.
 
 on:
   push:
