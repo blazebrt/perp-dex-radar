@@ -29,6 +29,8 @@ HISTORY = os.path.join("research", "v9", "evidence_runs.jsonl")
 SCHEMA = "v9.evidence-runs/1"
 ZERO = "0" * 64
 STUDIES = {
+    "A4": {"branch": "evidence-a4-results", "evidence": "evidence_a4.json", "report": "REPORT_A4.md",
+           "trades": "trades_a4.json"},
     "A/B": {"branch": "evidence-results", "evidence": "evidence.json", "report": "REPORT.md", "trades": "trades.json.gz"},
     "D1": {"branch": "evidence-d1-results", "evidence": "evidence_d1.json", "report": "REPORT_D1.md",
            "trades": "trades_d1.json.gz"},
@@ -111,6 +113,24 @@ def build(study, repo=ROOT, ref=None):
         same = (bound.get("inputs") or {}).get("evidence_sha256") == files["evidence"]
         rec["confirmed"] = bound.get("confirmed") if same else None
         rec["bound_by"] = "research/v9/probation_evidence.json" if same else None
+    elif study == 'A4':
+        rec['confirmed'] = []
+        rec['preregistration'] = 'docs/v9/phase-a4-replay-protocol.md'
+        rec['preregistration_sha256'] = ev['provenance']['protocol_sha256']
+        rec['extra_inputs'] = {k: ev['provenance'][k] for k in
+                              ('plan_sha256', 'replay_code_hash', 'runner_sha256', 'universe_sha256')}
+        rec['known_trial_return_matrix_complete'] = ev['known_trial_return_matrix_complete']
+        rec['historical_trial_census_complete'] = ev['historical_trial_census_complete']
+        # Verify every shard before recording the manifest as evidence.
+        manifest = json.loads(show(spec['trades']))
+        for path, sha in ev['artifacts'].items():
+            if '/' in path or hashlib.sha256(show(path)).hexdigest() != sha:
+                raise ValueError('A4 artifact hash mismatch: ' + path)
+        for path, item in manifest.items():
+            if not path.startswith('trades/') or '..' in path.split('/'):
+                raise ValueError('invalid A4 trade shard path')
+            if hashlib.sha256(show(path)).hexdigest() != item['sha256']:
+                raise ValueError('A4 trade shard hash mismatch: ' + path)
     else:
         rec["confirmed"] = ev.get("confirmed") or []
         rec["preregistration"] = (ev.get("preregistration") or {}).get("preregistration")
