@@ -125,3 +125,31 @@ also persist: the BTC 2023-11-10 trade close is 37092.6 versus pinned 37118.4;
 EOS 2020-01-19 differs in all four price fields. Missing-ID and boundary cases
 remain unresolved. A replacement/exclusion and missing-hour execution protocol
 must follow that investigation before A5.2 acceptance or A5.3 replay.
+
+## Completed dual quote-precision diagnostic
+
+Protocol and tool were committed at `0de6055` before application to all 94 saved
+trade objects. Published quote sums and trade counts reproduce the first-pass
+report exactly. The new report preserves both quote treatments, all price
+conflicts and every continuity limitation. Independent exact rational arithmetic
+verifies all 376 hourly results; every aggregate flag is separately checked
+against the pinned reference. See `research/v9/a5_quote_precision.json`.
+
+Price-times-quantity volumes explain 29 of the original 44 aggregate mismatches.
+All 50 previous matches remain; 79 blocks now match all six aggregate fields,
+and 66 also pass local continuity. Fifteen blocks still disagree, including five
+with price conflicts. The 24 continuity limitations are unchanged and overlap
+these categories. Within the requested blocks, 2,530,674 trade records have a
+published quote amount different from price times quantity. This is an observed
+precision difference, not proof that every remaining discrepancy is rounding.
+
+Remaining aggregate-disagreement cases: ALPHA (2023-07-31), API3 (2023-04-14),
+BTC (2023-11-10), CRV (2023-08-16), EOS (2020-01-19), ETC and FIL (2021-05-06),
+HBAR (2023-08-31), ID (2023-04-14), RUNE (2023-09-21), SXP (2021-02-22),
+TRUMP (2025-01-29), UNFI (2023-08-16), XRP (2020-01-16 and 2020-01-17).
+
+No source observations, rankings or first-pass reports were replaced. The next
+work is resolving these disagreements and the ID/boundary limitations, then
+registering a defensible repair/exclusion and missing-hour execution policy.
+A5.2 acceptance, A5.3 and A4.4 remain open. Regression validation: 1,015 tests
+pass; both source-commit GitHub CI runs pass.

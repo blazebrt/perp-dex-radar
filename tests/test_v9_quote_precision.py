@@ -92,7 +92,7 @@ class QuotePrecision(unittest.TestCase):
 
     def test_batch_completes_all_objects_binds_sources_and_preserves_failure(self):
         raw,d=fixture()
-        _,checksum=tape(trades())
+        checksum=(T.sha(raw)+'  '+NAME+'\n').encode()
         with tempfile.TemporaryDirectory() as directory:
             p=Path(directory);diagnostics=[]
             for i in range(94):
