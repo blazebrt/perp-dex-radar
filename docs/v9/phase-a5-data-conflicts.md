@@ -153,3 +153,25 @@ work is resolving these disagreements and the ID/boundary limitations, then
 registering a defensible repair/exclusion and missing-hour execution policy.
 A5.2 acceptance, A5.3 and A4.4 remain open. Regression validation: 1,015 tests
 pass; both source-commit GitHub CI runs pass.
+
+## Completed adjacent-day continuity diagnostic
+
+Protocol/tool commit `a648ab0` preceded acquisition. The five unbracketed blocks
+were checked using exactly the immediately adjacent UTC days, with three new
+checksummed objects and two hash-verified saved XRP objects. All five checks
+completed. Independent CSV-level verification reproduced the boundary IDs,
+timestamps, counts and gaps; all saved artifact hashes match. Evidence is in
+`research/v9/a5_boundary_continuity.json`.
+
+All missing brackets are resolved. ALPHA 2023-07-31, EOS 2020-01-19 and XRP
+2020-01-16/17 gain local continuity passes. TRUMP 2025-01-29 gains its missing
+bracket but retains exactly the original 137 internal ID-gap ranges. No new
+join gap appeared and no internal missing ID was filled or removed.
+
+Across the original 94 disputed blocks, 74 now pass local continuity and 66
+also match the pinned aggregate. Fifteen aggregate-disagreement blocks and 20
+ID-gap blocks remain; seven overlap, leaving 28 distinct unresolved cases.
+Boundary evidence does not change any price or volume disagreement. No source
+candles or rankings have been replaced and no dataset is accepted. The next
+step is a defensible, pre-registered resolution/quarantine policy for these
+cases, including ranking effects and the archive's 7,026 missing hours.
