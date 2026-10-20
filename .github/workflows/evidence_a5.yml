@@ -1,0 +1,98 @@
+name: A5 pinned hourly replay
+
+on:
+  push:
+    branches: ["v9/census-evidence"]
+    paths: [".github/workflows/evidence_a5.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: evidence-a5-replay
+  cancel-in-progress: false
+
+jobs:
+  replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install research libraries
+        run: python -m pip install --disable-pip-version-check numpy pandas numba
+      - name: Synthetic replay and retention checks
+        run: python -m unittest tests.test_v9_hourly_execution tests.test_v9_hourly_batch tests.test_v9_hourly_feature_state tests.test_v9_hourly_signals tests.test_v9_hourly_funding tests.test_v9_hourly_replay tests.test_v9_hourly_replay_publish tests.test_v9_evidence_runs -v
+      - name: Refuse repeated application of a retained registration
+        id: previous
+        run: |
+          set -euo pipefail
+          previous=$(git ls-remote --heads origin refs/heads/evidence-a5-results | cut -f1)
+          echo "sha=$previous" >> "$GITHUB_OUTPUT"
+          if [ -n "$previous" ]; then
+            git fetch --no-tags --depth=1 origin "$previous"
+            git show "$previous:replay_run.json" > "$RUNNER_TEMP/a5-previous.json"
+            python - "$RUNNER_TEMP/a5-previous.json" <<'PY'
+          import hashlib, json, pathlib, sys
+          prior = json.load(open(sys.argv[1]))
+          current = hashlib.sha256(pathlib.Path('docs/v9/phase-a5-replay-publication.md').read_bytes()).hexdigest()
+          if prior['preregistration_sha256'] == current:
+              raise SystemExit('This registration already has a retained attempt; recover/review it instead of rerunning.')
+          PY
+          fi
+      - name: Export the pinned accepted archive
+        id: export
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          mkdir a5_archive
+          git fetch --no-tags --depth=1 origin 0859e683910a7eea7ef446b27cf9773f33d9e9f8
+          git archive 0859e683910a7eea7ef446b27cf9773f33d9e9f8 | tar -x -C a5_archive
+      - name: Replay once and retain failed or unavailable outcomes
+        run: |
+          python tools/v9/hourly_replay_publish.py --archive a5_archive --out a5_results
+          printf '%s %s %s\n' "$GITHUB_REF_NAME" "$GITHUB_SHA" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > a5_results/run_meta.txt
+          printf '%s %s\n' 'hourly-a5-quality-results' '0859e683910a7eea7ef446b27cf9773f33d9e9f8' > a5_results/dataset_ref.txt
+          printf '%s %s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" > a5_results/actions_run.txt
+      - name: Publish research attempt with retained commit history
+        env:
+          PREVIOUS_RESULT: ${{ steps.previous.outputs.sha }}
+          GIT_AUTHOR_NAME: perp-dex-radar
+          GIT_AUTHOR_EMAIL: actions@users.noreply.github.com
+          GIT_COMMITTER_NAME: perp-dex-radar
+          GIT_COMMITTER_EMAIL: actions@users.noreply.github.com
+        run: |
+          set -euo pipefail
+          test -f a5_results/replay_run.json
+          test -f a5_results/REPORT_A5.md
+          export GIT_INDEX_FILE="$RUNNER_TEMP/a5-replay.index"
+          git read-tree --empty
+          while IFS= read -r -d '' file; do
+            git update-index --add --cacheinfo "100644,$(git hash-object -w "$file"),${file#a5_results/}"
+          done < <(find a5_results -type f -print0)
+          parent=()
+          if [ -n "$PREVIOUS_RESULT" ]; then parent=(-p "$PREVIOUS_RESULT"); fi
+          commit=$(git commit-tree "$(git write-tree)" "${parent[@]}" -m "A5 replay attempt from $GITHUB_SHA run $GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT")
+          git push origin "$commit:refs/heads/evidence-a5-results"
+          echo "Published research attempt: $commit"
+      - name: Report failed or partial replay after retaining it
+        run: |
+          python - <<'PY'
+          import json
+          result = json.load(open('a5_results/replay_run.json'))
+          if result['status'] != 'COMPLETED_WITH_UNAVAILABLE_RESULTS':
+              raise SystemExit(result['status'])
+          print('Attempt retained; full-family evidence and promotion remain unavailable.')
+          PY
+      - name: Backup partial or unpublished attempt
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a5-replay-attempt-${{ github.run_id }}-${{ github.run_attempt }}
+          path: a5_results/
+          if-no-files-found: ignore

@@ -53,13 +53,19 @@ class CommittedHistory(unittest.TestCase):
         rs = records()
         ab = [r for r in rs if r["study"] == "A/B"][-1]
         for r in rs:
-            self.assertEqual(r["dataset_sha256"], ab["dataset_sha256"], r["study"])
+            if r['study'] == 'A5':
+                from tools.v9.hourly_replay import MANIFEST_SHA
+                self.assertEqual(r['dataset_sha256'], MANIFEST_SHA)
+            else:
+                self.assertEqual(r["dataset_sha256"], ab["dataset_sha256"], r["study"])
             self.assertEqual(len(r["files"]["report"]), 64)
 
     def test_no_preregistration_changed_after_its_run(self):
         for r in records():
             if r["study"] == "A/B":
                 continue
+            for path, digest in r.get('preregistrations_sha256', {}).items():
+                self.assertEqual(hashlib.sha256((ROOT/path).read_bytes()).hexdigest(), digest)
             doc = ROOT / r["preregistration"]
             self.assertEqual(hashlib.sha256(doc.read_bytes()).hexdigest(), r["preregistration_sha256"],
                              f"{r['preregistration']} changed after run {r['seq']}: a changed definition is a new study")
