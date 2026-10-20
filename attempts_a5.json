@@ -1,0 +1,9 @@
+{
+  "BTC_LEAD.jsonl.gz": "4fcd0c82f820e8a3ae0b06dcb84fed9b2c57a7e461ef1a8f3e0cbff2c302363b",
+  "FAIL_BRK.jsonl.gz": "464c0beecee2409dda225db5f9e1f4309fe38451b3e71900ed298b2f6b03742c",
+  "FUND_CARRY.jsonl.gz": "88f8a5d421bb5895a09ae1a08e1d1a6dc12fcee8ba5a4f68a70375c0b22f71f2",
+  "FUND_FADE.jsonl.gz": "65a874722ee5d8ad4b863a95ce88e3b65c089381ddd15170e4dc22c5a792697b",
+  "LIQ_FLUSH.jsonl.gz": "c1501aa00ee122296b763538defafe0129c1fce8e45877e7d6c349abcfc14b94",
+  "PULLBACK.jsonl.gz": "9cf1bea2e843a60f7d82a58c703b0ea6f91815f8c4353203bf735df3a7c0fc6a",
+  "VOL_SPIKE.jsonl.gz": "7fb6a7eca78cc39f318363a42a65f3a45f119594cec05c92f550e1e393f5a987"
+}
