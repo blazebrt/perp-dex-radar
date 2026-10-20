@@ -1,7 +1,15 @@
 import copy
 import unittest
-import numpy as np
-from tools.v9 import hourly_signals as A
+try:
+    import numpy as np
+    import pandas
+    HAVE_RESEARCH = True
+except ModuleNotFoundError as exc:
+    if exc.name not in ('numpy', 'pandas'):
+        raise
+    HAVE_RESEARCH = False
+if HAVE_RESEARCH:
+    from tools.v9 import hourly_signals as A
 from tools.v9 import hourly_feature_state as S
 
 
@@ -19,6 +27,7 @@ def candles(start=0, count=1200):
     return result
 
 
+@unittest.skipUnless(HAVE_RESEARCH, 'numpy/pandas required; covered by research CI')
 class HourlySignalTests(unittest.TestCase):
     def test_registered_code_runs_six_definitions_and_keeps_carry_unavailable(self):
         rows = candles(); btc = candles()
