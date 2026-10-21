@@ -43,3 +43,7 @@ Completed: review of both retained studies, explicit disposition of every hourly
 Remaining: implement and synthetically validate the separately specified assembly in `phase-a4-family-assembly.md`; bind both source artifacts and preserve all 199 columns; retain a new assembly manifest and verify the output independently. A4.4 remains open until that artifact and review exist. A5.3 remains open because the registered execution/return requirements are not fully satisfied.
 
 Closing missing returns requires additional completeness evidence or a separately registered study. A causal redefinition of FUND_CARRY would be a new trial, not a repair of the existing result. Do not rerun the frozen A5 registration, infer zero funding, silently change membership, or overwrite either study.
+
+## Assembly follow-up (2026-10-21)
+
+The specified assembly is now implemented, independently verified and retained. All 466,854 cells and all column metadata match the retained sources; the matrix bytes are unchanged. `research/v9/family_assembly/` contains the matrix, column provenance, report, final manifest and separate verification record. Full Linux validation passed 1,089 tests. The handover marks assembly/reporting complete while keeping the complete-return objective open. No new strategy replay or statistical calculation occurred. The complete-return objective remains open because all seven hourly net series are unavailable.
