@@ -1,0 +1,4 @@
+/home/runner/work/perp-dex-radar/perp-dex-radar/tools/research/qdata.py:130: RuntimeWarning: All-NaN slice encountered
+  h = np.nanmax(p.h[sl].reshape(sh), axis=1)
+/home/runner/work/perp-dex-radar/perp-dex-radar/tools/research/qdata.py:131: RuntimeWarning: All-NaN slice encountered
+  l = np.nanmin(p.l[sl].reshape(sh), axis=1)

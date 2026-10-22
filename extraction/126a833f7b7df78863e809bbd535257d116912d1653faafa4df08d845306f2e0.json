@@ -1,0 +1,71 @@
+{
+  "definition": {
+    "aliases": [
+      "TREND_EMA"
+    ],
+    "archive_requirement": "4h",
+    "classification": "PROVEN_CONSIDERED",
+    "code_hash": "29ddd2ea9390d7f92674ca8321bcf5a6a4134a2ca5e90ba96c1b2de3d6c768f3",
+    "evidence": [
+      {
+        "classification": "PROVEN_CONSIDERED",
+        "commit": "85924aa983cf53c4efc4bb2c8eb5eb0ef8be0877",
+        "path": "tools/research/qexport.py"
+      },
+      {
+        "classification": "PROVEN_CONSIDERED",
+        "commit": "85924aa983cf53c4efc4bb2c8eb5eb0ef8be0877",
+        "path": "tools/research/qstrat.py"
+      },
+      {
+        "classification": "ENCODED_SEARCH_SPACE",
+        "commit": "85924aa983cf53c4efc4bb2c8eb5eb0ef8be0877",
+        "path": "tools/research/qgrid.py"
+      }
+    ],
+    "historical_code_matches_replay": false,
+    "implementation": "trend_ema",
+    "parameter_hash": "1f69de13cff5b0eacadfa1d328d34b6f691585fd2515d5c32e8f3fb956105c68",
+    "params": {
+      "adx_min": 20,
+      "fast": 20,
+      "hold_days": 30,
+      "sides": "both",
+      "slow": 100,
+      "stop_k": 2.5,
+      "tf": 4,
+      "trail_k": 3.0
+    },
+    "replay_code_hash": "c007adddd3f4ae423930747fda4334b69d802691015ce0ed933be404b1923ad4",
+    "timeframe": "4h",
+    "trial_id": "126a833f7b7df78863e809bbd535257d116912d1653faafa4df08d845306f2e0"
+  },
+  "population": {
+    "after_window": 0,
+    "before_window": 50,
+    "full_matched_authority": false,
+    "generated": 20596,
+    "promotion_authority": false,
+    "retained": 20546
+  },
+  "promotion_authority": false,
+  "retained_records": 20546,
+  "shards": [
+    {
+      "bytes": 2293458,
+      "path": "126a833f7b7df78863e809bbd535257d116912d1653faafa4df08d845306f2e0-00000.jsonl.gz",
+      "records": 11452,
+      "sha256": "812b265ca07d5405c8cfb093727d337540875493ab899fe06a4383b5983c6a4e",
+      "uncompressed_bytes": 16777010
+    },
+    {
+      "bytes": 1822323,
+      "path": "126a833f7b7df78863e809bbd535257d116912d1653faafa4df08d845306f2e0-00001.jsonl.gz",
+      "records": 9094,
+      "sha256": "bd7b6ee47ac3504eb0714424fe3ee3eaa4e0f5651ae606c1a08755db385987d7",
+      "uncompressed_bytes": 13353627
+    }
+  ],
+  "status": "EXTRACTED",
+  "trial_id": "126a833f7b7df78863e809bbd535257d116912d1653faafa4df08d845306f2e0"
+}

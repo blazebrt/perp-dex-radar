@@ -1,0 +1,61 @@
+{
+  "definition": {
+    "aliases": [
+      "TREND_EMA"
+    ],
+    "archive_requirement": "4h",
+    "classification": "ENCODED_SEARCH_SPACE",
+    "code_hash": "29ddd2ea9390d7f92674ca8321bcf5a6a4134a2ca5e90ba96c1b2de3d6c768f3",
+    "evidence": [
+      {
+        "classification": "ENCODED_SEARCH_SPACE",
+        "commit": "85924aa983cf53c4efc4bb2c8eb5eb0ef8be0877",
+        "path": "tools/research/qgrid.py"
+      }
+    ],
+    "historical_code_matches_replay": false,
+    "implementation": "trend_ema",
+    "parameter_hash": "3d89d5ff759fab02c865d22e34a5330ee861f070865616c5e5b177618c3b0f41",
+    "params": {
+      "adx_min": 20,
+      "fast": 10,
+      "hold_days": 30,
+      "sides": "both",
+      "slow": 150,
+      "stop_k": 2.5,
+      "tf": 4,
+      "trail_k": 4.0
+    },
+    "replay_code_hash": "c007adddd3f4ae423930747fda4334b69d802691015ce0ed933be404b1923ad4",
+    "timeframe": "4h",
+    "trial_id": "15c589d0f8547d9b9da66394f49229404c36b9c52edc834a6d4d4234bc79d2fe"
+  },
+  "population": {
+    "after_window": 0,
+    "before_window": 58,
+    "full_matched_authority": false,
+    "generated": 22502,
+    "promotion_authority": false,
+    "retained": 22444
+  },
+  "promotion_authority": false,
+  "retained_records": 22444,
+  "shards": [
+    {
+      "bytes": 2266182,
+      "path": "15c589d0f8547d9b9da66394f49229404c36b9c52edc834a6d4d4234bc79d2fe-00000.jsonl.gz",
+      "records": 11452,
+      "sha256": "d7d774c97774879d21ed0213f318a9589658775f788133f5b29894ae9269115c",
+      "uncompressed_bytes": 16775907
+    },
+    {
+      "bytes": 2174533,
+      "path": "15c589d0f8547d9b9da66394f49229404c36b9c52edc834a6d4d4234bc79d2fe-00001.jsonl.gz",
+      "records": 10992,
+      "sha256": "2e081f142cb677fdf1b94ddcca506f649b9af50a4100dea7c885d7e95f42363e",
+      "uncompressed_bytes": 16137429
+    }
+  ],
+  "status": "EXTRACTED",
+  "trial_id": "15c589d0f8547d9b9da66394f49229404c36b9c52edc834a6d4d4234bc79d2fe"
+}

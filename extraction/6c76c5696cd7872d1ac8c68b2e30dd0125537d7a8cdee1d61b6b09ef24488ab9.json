@@ -1,0 +1,54 @@
+{
+  "definition": {
+    "aliases": [
+      "SQZ_D"
+    ],
+    "archive_requirement": "4h",
+    "classification": "PROVEN_CONSIDERED",
+    "code_hash": "29ddd2ea9390d7f92674ca8321bcf5a6a4134a2ca5e90ba96c1b2de3d6c768f3",
+    "evidence": [
+      {
+        "classification": "PROVEN_CONSIDERED",
+        "commit": "85924aa983cf53c4efc4bb2c8eb5eb0ef8be0877",
+        "path": "tools/research/qexport.py"
+      }
+    ],
+    "historical_code_matches_replay": false,
+    "implementation": "squeeze_breakout",
+    "parameter_hash": "24b23c0996790637ef9f93e7b9376bb9f8f768d3e0aedb731aab9eb5c1a23886",
+    "params": {
+      "hold_days": 30,
+      "look": 90,
+      "pct": 0.15,
+      "sides": "both",
+      "stop_k": 2.0,
+      "tf": 24,
+      "trail_k": 3.0,
+      "vol_mult": 1.2
+    },
+    "replay_code_hash": "c007adddd3f4ae423930747fda4334b69d802691015ce0ed933be404b1923ad4",
+    "timeframe": "1d",
+    "trial_id": "6c76c5696cd7872d1ac8c68b2e30dd0125537d7a8cdee1d61b6b09ef24488ab9"
+  },
+  "population": {
+    "after_window": 0,
+    "before_window": 21,
+    "full_matched_authority": false,
+    "generated": 4978,
+    "promotion_authority": false,
+    "retained": 4957
+  },
+  "promotion_authority": false,
+  "retained_records": 4957,
+  "shards": [
+    {
+      "bytes": 954709,
+      "path": "6c76c5696cd7872d1ac8c68b2e30dd0125537d7a8cdee1d61b6b09ef24488ab9-00000.jsonl.gz",
+      "records": 4957,
+      "sha256": "88c2569bc55f274e62c5f5d5867101240ac3024397a5fab601f7bd6cfaa7276c",
+      "uncompressed_bytes": 7259945
+    }
+  ],
+  "status": "EXTRACTED",
+  "trial_id": "6c76c5696cd7872d1ac8c68b2e30dd0125537d7a8cdee1d61b6b09ef24488ab9"
+}

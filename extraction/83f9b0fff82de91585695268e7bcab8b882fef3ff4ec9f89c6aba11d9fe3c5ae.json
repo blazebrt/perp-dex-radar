@@ -1,0 +1,80 @@
+{
+  "definition": {
+    "aliases": [
+      "TSMOM"
+    ],
+    "archive_requirement": "4h",
+    "classification": "ENCODED_SEARCH_SPACE",
+    "code_hash": "29ddd2ea9390d7f92674ca8321bcf5a6a4134a2ca5e90ba96c1b2de3d6c768f3",
+    "evidence": [
+      {
+        "classification": "ENCODED_SEARCH_SPACE",
+        "commit": "85924aa983cf53c4efc4bb2c8eb5eb0ef8be0877",
+        "path": "tools/research/qgrid.py"
+      }
+    ],
+    "historical_code_matches_replay": false,
+    "implementation": "tsmom",
+    "parameter_hash": "370362dbc8eeadd4c609508c1c5338bb3abb5bdc670b68246d2448d2a3cc9709",
+    "params": {
+      "hold_days": 21,
+      "look": 30,
+      "short_look": 7,
+      "sides": "both",
+      "stop_k": 3.0,
+      "trail_k": 4.0
+    },
+    "replay_code_hash": "c007adddd3f4ae423930747fda4334b69d802691015ce0ed933be404b1923ad4",
+    "timeframe": "1d",
+    "trial_id": "83f9b0fff82de91585695268e7bcab8b882fef3ff4ec9f89c6aba11d9fe3c5ae"
+  },
+  "population": {
+    "after_window": 0,
+    "before_window": 58,
+    "full_matched_authority": false,
+    "generated": 48757,
+    "promotion_authority": false,
+    "retained": 48699
+  },
+  "promotion_authority": false,
+  "retained_records": 48699,
+  "shards": [
+    {
+      "bytes": 2083990,
+      "path": "83f9b0fff82de91585695268e7bcab8b882fef3ff4ec9f89c6aba11d9fe3c5ae-00000.jsonl.gz",
+      "records": 11463,
+      "sha256": "ec7b82fe81a0b709cd117bb6d08e61358be007e5c0bc1395902e9ff9e0c43972",
+      "uncompressed_bytes": 16776084
+    },
+    {
+      "bytes": 2132460,
+      "path": "83f9b0fff82de91585695268e7bcab8b882fef3ff4ec9f89c6aba11d9fe3c5ae-00001.jsonl.gz",
+      "records": 11455,
+      "sha256": "0de69cd7d3fa46f76efb1d53d5b800060c3a3d80145ed1691790f71a7a316c57",
+      "uncompressed_bytes": 16776634
+    },
+    {
+      "bytes": 2121941,
+      "path": "83f9b0fff82de91585695268e7bcab8b882fef3ff4ec9f89c6aba11d9fe3c5ae-00002.jsonl.gz",
+      "records": 11445,
+      "sha256": "332dc34d831b996a42d80fcd591201fb08d3ca61d138729def837b3af93702ac",
+      "uncompressed_bytes": 16776897
+    },
+    {
+      "bytes": 2118371,
+      "path": "83f9b0fff82de91585695268e7bcab8b882fef3ff4ec9f89c6aba11d9fe3c5ae-00003.jsonl.gz",
+      "records": 11440,
+      "sha256": "e66699b3c0b1075f565ede8249c4cf079ab7df46cd7d4ae841d1d56c4353c7a8",
+      "uncompressed_bytes": 16776245
+    },
+    {
+      "bytes": 509569,
+      "path": "83f9b0fff82de91585695268e7bcab8b882fef3ff4ec9f89c6aba11d9fe3c5ae-00004.jsonl.gz",
+      "records": 2896,
+      "sha256": "ccbf3477625292be66d6072ea16b2d813125eec299afdff01fa23e80a4526c48",
+      "uncompressed_bytes": 4249774
+    }
+  ],
+  "status": "EXTRACTED",
+  "trial_id": "83f9b0fff82de91585695268e7bcab8b882fef3ff4ec9f89c6aba11d9fe3c5ae"
+}

@@ -1,0 +1,56 @@
+{
+  "definition": {
+    "aliases": [
+      "XSREV_1D"
+    ],
+    "archive_requirement": "4h",
+    "classification": "PROVEN_CONSIDERED",
+    "code_hash": "29ddd2ea9390d7f92674ca8321bcf5a6a4134a2ca5e90ba96c1b2de3d6c768f3",
+    "evidence": [
+      {
+        "classification": "PROVEN_CONSIDERED",
+        "commit": "85924aa983cf53c4efc4bb2c8eb5eb0ef8be0877",
+        "path": "tools/research/qexport.py"
+      },
+      {
+        "classification": "PROVEN_CONSIDERED",
+        "commit": "85924aa983cf53c4efc4bb2c8eb5eb0ef8be0877",
+        "path": "tools/research/qstrat.py"
+      }
+    ],
+    "historical_code_matches_replay": false,
+    "implementation": "xs_reversal",
+    "parameter_hash": "9aa68bcfc9a817614c07e2bf5ecda1a3b539cf1fe3615fc48dae5dba6f91f47a",
+    "params": {
+      "hold_days": 1,
+      "look": 1,
+      "sides": "both",
+      "stop_k": 2.5,
+      "top": 5
+    },
+    "replay_code_hash": "c007adddd3f4ae423930747fda4334b69d802691015ce0ed933be404b1923ad4",
+    "timeframe": "1d",
+    "trial_id": "ae42a630123919d89e238ae51171deea294071bc4f33f0de60ce79f9a5982b3e"
+  },
+  "population": {
+    "after_window": 0,
+    "before_window": 284,
+    "full_matched_authority": false,
+    "generated": 5015,
+    "promotion_authority": false,
+    "retained": 4731
+  },
+  "promotion_authority": false,
+  "retained_records": 4731,
+  "shards": [
+    {
+      "bytes": 835739,
+      "path": "ae42a630123919d89e238ae51171deea294071bc4f33f0de60ce79f9a5982b3e-00000.jsonl.gz",
+      "records": 4731,
+      "sha256": "bba64fb65d46c94c4fbf1c46c1f14aa2e93aac997fd3257a13aee1b65e3c2280",
+      "uncompressed_bytes": 6845097
+    }
+  ],
+  "status": "EXTRACTED",
+  "trial_id": "ae42a630123919d89e238ae51171deea294071bc4f33f0de60ce79f9a5982b3e"
+}

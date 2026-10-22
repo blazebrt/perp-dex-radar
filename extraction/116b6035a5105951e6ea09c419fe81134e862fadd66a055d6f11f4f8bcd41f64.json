@@ -1,0 +1,40 @@
+{
+  "definition": {
+    "aliases": [
+      "FAIL_BRK"
+    ],
+    "archive_requirement": "hourly",
+    "classification": "PROVEN_CONSIDERED",
+    "code_hash": "29ddd2ea9390d7f92674ca8321bcf5a6a4134a2ca5e90ba96c1b2de3d6c768f3",
+    "evidence": [
+      {
+        "classification": "PROVEN_CONSIDERED",
+        "commit": "85924aa983cf53c4efc4bb2c8eb5eb0ef8be0877",
+        "path": "tools/research/qexport.py"
+      },
+      {
+        "classification": "PROVEN_CONSIDERED",
+        "commit": "85924aa983cf53c4efc4bb2c8eb5eb0ef8be0877",
+        "path": "tools/research/qstrat.py"
+      }
+    ],
+    "historical_code_matches_replay": false,
+    "implementation": "failed_breakout",
+    "parameter_hash": "e3d24378a5ec4675c0d1ad6fb720d6c9905589d0a5fe59ca45d5caaadf292fe3",
+    "params": {
+      "hold_h": 24,
+      "look": 48,
+      "sides": "both",
+      "target": 2.0,
+      "wick": 0.5
+    },
+    "replay_code_hash": "c007adddd3f4ae423930747fda4334b69d802691015ce0ed933be404b1923ad4",
+    "timeframe": "1h",
+    "trial_id": "116b6035a5105951e6ea09c419fe81134e862fadd66a055d6f11f4f8bcd41f64"
+  },
+  "population": null,
+  "promotion_authority": false,
+  "shards": [],
+  "status": "UNAVAILABLE_HOURLY_POPULATION",
+  "trial_id": "116b6035a5105951e6ea09c419fe81134e862fadd66a055d6f11f4f8bcd41f64"
+}

@@ -1,0 +1,39 @@
+{
+  "definition": {
+    "aliases": [
+      "FUND_CARRY"
+    ],
+    "archive_requirement": "hourly",
+    "classification": "PROVEN_CONSIDERED",
+    "code_hash": "29ddd2ea9390d7f92674ca8321bcf5a6a4134a2ca5e90ba96c1b2de3d6c768f3",
+    "evidence": [
+      {
+        "classification": "PROVEN_CONSIDERED",
+        "commit": "85924aa983cf53c4efc4bb2c8eb5eb0ef8be0877",
+        "path": "tools/research/qexport.py"
+      },
+      {
+        "classification": "PROVEN_CONSIDERED",
+        "commit": "85924aa983cf53c4efc4bb2c8eb5eb0ef8be0877",
+        "path": "tools/research/qstrat.py"
+      }
+    ],
+    "historical_code_matches_replay": false,
+    "implementation": "funding_carry",
+    "parameter_hash": "40330926c59dea025952c4f5dc7a1ba885017d756e4307532a56c5e38e290361",
+    "params": {
+      "hold_h": 24,
+      "sides": "both",
+      "stop_k": 3.0,
+      "top": 5
+    },
+    "replay_code_hash": "c007adddd3f4ae423930747fda4334b69d802691015ce0ed933be404b1923ad4",
+    "timeframe": "1h",
+    "trial_id": "243d60aa2d342b0366f60a677ae8ceb2dbb547316c4f14375c2abd6125fcea39"
+  },
+  "population": null,
+  "promotion_authority": false,
+  "shards": [],
+  "status": "UNAVAILABLE_HOURLY_POPULATION",
+  "trial_id": "243d60aa2d342b0366f60a677ae8ceb2dbb547316c4f14375c2abd6125fcea39"
+}
