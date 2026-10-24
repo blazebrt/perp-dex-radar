@@ -69,3 +69,35 @@ These measurements exclude source preparation, independent selection/accounting/
 statistics audits and Git publication. Source histories still require temporary
 disk space and one-file parsing memory. Storage reduction and complete pipeline
 budgets remain necessary; this does not qualify the registered market attempt.
+
+## Lossless compact-record experiment (2026-10-24)
+
+`control_storage.py` packs each pair independently. The envelope
+`v9.a6-packed-pair/1` carries the unchanged pair metadata plus two tables:
+candidate/control outcomes in original order, and selected-control features in
+original order. Each table stores identical fields once in `shared`, remaining
+field names once in `columns`, and explicit values in `rows`. Empty control sets
+remain empty. No value is inferred from a default or recomputed; numerical JSON
+representations (including integer versus float and signed zero), nulls, flags,
+geometry, source identities, ranks and uncertainty dispositions are preserved.
+
+`verify_control_storage.py` reconstructs the records without importing the writer.
+It rejects ambiguous columns, wrong widths/counts, duplicate storage locations,
+unknown envelopes and nonfinite values. This is a structural reader, not a
+replacement for source-bound semantic auditing. Packing is not enabled in the
+outcome driver or its manifest readers yet.
+
+The retained `research/v9/a6_synthetic_resource_probe_packed.json` measures the
+same 20 synthetic comparisons. All 20 pairs reconstruct to identical canonical
+JSON, and the independent price audit checks all 1,020 paths from reconstructed
+compact records. Raw JSON falls from 1,138,170 to 251,790 bytes (77.9%); gzip falls
+from 67,602 to 51,140 bytes (24.4%). Packing, independent reconstruction and
+writing took 0.229 seconds locally. Earlier reports remain intact.
+
+Identical synthetic prices make many outcome values common: these savings are
+not market-size forecasts. Four new tests also cover 0/1/49/50 controls, 80 seeded
+mixed-disposition cases, integer/float/bool/null distinctions, signed zero,
+input isolation and malformed tables. Before adoption, integrate versioned
+manifest readers, implementation bindings and all package audits together, then
+qualify varied full-pipeline storage/runtime including partial failures. Current
+large-scale resource qualification remains unsatisfied.
