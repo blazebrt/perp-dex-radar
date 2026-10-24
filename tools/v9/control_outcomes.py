@@ -28,7 +28,7 @@ def run(directory,out,prepare,expected_manifest=INPUT_MANIFEST,max_rows=25000):
                 input_manifest_sha256=expected_manifest,completed_trials=[],processed_signals=0,
                 full_matched_authority=False,promotion_authority=False,independently_verified=False)
     X.write_json(out/'attempt.json',result)
-    summary=None
+    summary=None;adapter=None
     try:
         V.check(X.sha(source/'manifest.json')==expected_manifest,'unregistered signal inventory')
         context,adapter=prepare()
@@ -74,6 +74,7 @@ def run(directory,out,prepare,expected_manifest=INPUT_MANIFEST,max_rows=25000):
         result.update(status='FAILED_OR_PARTIAL',error=dict(type=type(error).__name__,message=str(error)))
     finally:
         if summary is not None:summary.close()
+        if adapter is not None and callable(getattr(adapter,'close',None)):adapter.close()
     result['files']=[dict(path=p.relative_to(out).as_posix(),sha256=X.sha(p),bytes=p.stat().st_size)
                      for p in sorted(out.rglob('*')) if p.is_file() and p.name not in ('attempt.json','manifest.json')]
     X.write_json(out/'manifest.json',result)

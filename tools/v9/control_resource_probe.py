@@ -49,13 +49,14 @@ def probe(signals=20):
                     observed+=pair['pair_status']=='PRICE_PAIR_OBSERVED'
                     plain_bytes+=len((json.dumps(pair,sort_keys=True,separators=(',',':'),allow_nan=False)+'\n').encode())
                     sink.emit(pair)
-            finally:sink.close()
+            finally:
+                sink.close();adapter.close()
         elapsed=time.perf_counter()-started
         compressed=sum(p.stat().st_size for p in (root/'pairs').iterdir())
     return dict(schema='v9.a6-synthetic-resource-probe/1',status='NOT_RESOURCE_QUALIFIED',synthetic_only=True,
         market_data_loaded=False,assets=len(assets),bars_per_asset=len(times),signals=signals,
         observed_price_pairs=observed,price_file_reads=reads,compressed_price_bytes_read=bytes_read,
-        distinct_available_price_files=len(assets),adapter_cache_segments=8,
+        distinct_available_price_files=len(assets),adapter_cache_windows=8,price_storage='HASH_BOUND_SQLITE_WINDOW_INDEX',
         rereads_beyond_available_files=max(0,reads-len(assets)),elapsed_seconds=elapsed,
         pair_json_bytes=plain_bytes,pair_gzip_bytes=compressed,
         naive_full_inventory_json_bytes=plain_bytes/signals*4263580,

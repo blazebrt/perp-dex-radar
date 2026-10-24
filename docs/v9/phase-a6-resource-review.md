@@ -34,3 +34,21 @@ Before the registered market attempt:
 No scientific definition or preregistered threshold is changed by this review.
 The existing outcome workflow remains unactivated. A6.3 stays open and resource
 qualification is explicitly unsatisfied.
+
+## Indexed execution-adapter follow-up (2026-10-24)
+
+The retained follow-up a6_synthetic_resource_probe_indexed.json repeats the same
+20-signal synthetic case after adding a hash-bound SQLite price index. Source
+reads fell from 1,009 to 61, with zero reloads beyond the available files. The
+adapter loads only the required hold window and keeps at most eight windows in
+memory. The temporary index is closed and removed after the outcome stage.
+
+Measured local adapter/shard time changed from 1.964 to 1.348 seconds; these
+single measurements are not hosted-runner guarantees. Pair JSON and gzip byte
+counts remain exactly 1,138,170 and 67,602. Execution-parity tests compare indexed
+windows against complete source mappings, including ineligible and terminal
+attempts. Source corruption, malformed/disputed prices and cleanup remain tested.
+
+This remedies repeated source loading in the execution adapter only. The independent
+audit reader still needs its own bounded index, and redundant outcome storage
+still needs reduction. Full pipeline/resource qualification remains unsatisfied.
