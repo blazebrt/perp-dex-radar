@@ -156,3 +156,50 @@ At this scale the summary database is larger than pair shards; it must be includ
 in storage budgets. No market-scale extrapolation is claimed. Resource qualification
 remains open pending larger/diverse cases, peak measurements, explicit runner and
 publication budgets, and durable single-attempt workflow completion.
+
+## Isolated Linux resource measurements (2026-10-25)
+
+`control_resource_measure.py` runs each synthetic pipeline case in a separate
+Linux process. Linux `ru_maxrss` is converted from KiB to bytes and measures the
+worker's lifetime peak resident memory, including imports and native allocations.
+The observer directs TEMP/TMP/TMPDIR and SQLITE_TMPDIR to one isolated scratch
+root and samples visible logical file sizes every 50 ms. Sampling includes the
+source files, input/output artifacts and visible index/statistics/journal files.
+It is a lower bound, not a true allocated-disk peak: brief files and unlinked
+open files may be missed. The observer's own memory is outside the worker metric.
+
+`research/v9/a6_isolated_resource_probe.json` retains two sizes for each of four
+cases. Small means eight signals per available trial / 1,000 bars per asset;
+larger means 32 signals / 4,000 bars. Asset/trial populations otherwise match the
+previous pipeline probe. Runs occurred locally in WSL, not on a hosted runner.
+
+| Case | Size | Wall seconds | Peak resident bytes | Sampled visible peak bytes |
+|---|---|---:|---:|---:|
+| Full | Small | 4.159 | 30,175,232 | 4,810,088 |
+| Mixed | Small | 3.561 | 29,847,552 | 4,704,215 |
+| Sparse | Small | 1.163 | 21,458,944 | 732,688 |
+| Interrupted | Small | 1.983 | 29,134,848 | 4,246,549 |
+| Full | Larger | 8.785 | 52,568,064 | 18,592,478 |
+| Mixed | Larger | 8.463 | 51,204,096 | 18,236,842 |
+| Sparse | Larger | 1.885 | 28,205,056 | 2,570,512 |
+| Interrupted | Larger | 4.331 | 49,823,744 | 16,293,286 |
+
+Every successful case still passes all independent outcome audit layers; both
+interrupted cases retain failure evidence. Previous measurement reports remain
+unchanged. No timings or sizes are extrapolated to the 4,263,580-signal inventory.
+
+### Resource limits still required before activation
+
+The intended hosted runner and its available memory, disk and configured timeout
+must be measured before choosing absolute budgets. Use conservative engineering
+headroom: combined process memory at most half of available RAM, allocated scratch
+plus retained files plus Git publication copies at most half of initial free disk,
+and execution plus audits plus failure publication at most 60% of the job timeout.
+These are proposed operational acceptance criteria, not measured compliance or
+scientific thresholds. Check publication file/repository limits independently.
+
+The current sampled disk observer cannot certify that disk criterion. Remaining
+work must measure allocated/peak scratch use and publication overhead on the
+intended runner, cover the real history lengths and trial/asset scale synthetically,
+and enforce a preflight refusal when budget evidence is absent. No market workflow
+or registered attempt is enabled by this report; A6.3 remains open.
