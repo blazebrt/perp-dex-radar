@@ -2,6 +2,7 @@ import gzip
 import json
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 from tests import test_v9_control_adapter as fixture
 from tools.v9 import control_extract as X, control_adapter as A, control_outcomes as O
 from tools.v9 import audit_control_outcomes as B, verify_control_population as P
@@ -65,3 +66,32 @@ class Audit(unittest.TestCase):
         with self.assertRaises(ValueError):self.run_audit()
         self.assertEqual(before,(self.out/'audit.json').read_bytes())
         with self.assertRaises(ValueError):B.run(self.output,self.signals,self.output/'audit',lambda:None)
+
+    def test_index_reads_once_after_window_eviction_and_matches_source(self):
+        prices=B.Prices(self.root,self.context['sources']);self.addCleanup(prices.close)
+        original=Path.read_bytes;reads=[]
+        def measured(path):
+            if path.parent==self.root/'h4':reads.append(path)
+            return original(path)
+        times=self.context['sources']['A'].times
+        with patch.object(Path,'read_bytes',measured):
+            first=prices.get('A',times[0],times[6])
+            for t in times[1:15]:prices.get('A',t,t+14400)
+            self.assertEqual(prices.get('A',times[0],times[6]),first)
+        self.assertEqual(len(reads),1);self.assertLessEqual(len(prices.cache),8)
+        self.assertEqual(list(first),times[:6])
+        adapter=A.Adapter(self.root,self.f.context);self.addCleanup(adapter.close)
+        full=adapter.price_rows('A')
+        self.assertEqual(first,{t:full[t] for t in times[:6]})
+
+    def test_audit_closes_index_on_success_and_failure(self):
+        for corrupt in (False,True):
+            prices=B.Prices(self.root,self.context['sources'])
+            scratch=Path(prices.temporary.name)
+            if corrupt:(self.root/'h4/A.csv.gz').write_bytes(b'bad')
+            result=B.run(self.output,self.signals,self.root/('audit-'+str(corrupt)),
+                         lambda:(self.context,prices,self.bindings),self.input_hash)
+            self.assertEqual(result['status'],'FAILED' if corrupt else 'VERIFIED_REGISTERED_PRICE_DIAGNOSTICS')
+            self.assertFalse(scratch.exists());self.assertIsNone(prices.db)
+            prices.close()
+            with self.assertRaisesRegex(ValueError,'closed'):prices.get('A',0,14400)

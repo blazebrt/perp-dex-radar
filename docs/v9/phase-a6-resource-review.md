@@ -52,3 +52,20 @@ attempts. Source corruption, malformed/disputed prices and cleanup remain tested
 This remedies repeated source loading in the execution adapter only. The independent
 audit reader still needs its own bounded index, and redundant outcome storage
 still needs reduction. Full pipeline/resource qualification remains unsatisfied.
+
+## Independent audit index follow-up (2026-10-24)
+
+The separate audit reader now owns its own temporary SQLite index and parser.
+Source hashes, calendars and volume checks precede indexing; up to eight bounded
+hold windows are cached. Success and failure both remove the scratch database.
+
+The new `research/v9/a6_synthetic_resource_probe_audit_indexed.json` preserves
+both earlier baselines. Its expanded scope includes independent verification of
+all 1,020 candidate/control paths. Execution and audit each read 61 source files,
+once per file. Execution/shard time was 1.308 seconds; independent price auditing
+was 0.890 seconds locally. Pair JSON/gzip sizes remain 1,138,170/67,602 bytes.
+
+These measurements exclude source preparation, independent selection/accounting/
+statistics audits and Git publication. Source histories still require temporary
+disk space and one-file parsing memory. Storage reduction and complete pipeline
+budgets remain necessary; this does not qualify the registered market attempt.

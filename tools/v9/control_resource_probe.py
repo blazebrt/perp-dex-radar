@@ -12,6 +12,7 @@ from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT))
 from tools.v9 import control_adapter as A, control_signals as S, control_extract as X
+from tools.v9 import audit_control_outcomes as V, verify_control_population as Q
 
 
 def probe(signals=20):
@@ -52,19 +53,38 @@ def probe(signals=20):
             finally:
                 sink.close();adapter.close()
         elapsed=time.perf_counter()-started
+        execution_reads,execution_bytes=reads,bytes_read
+        sources={asset:Q.Source(view.segment,view.times,view.volumes,view.disputed,view.source_sha256)
+                 for asset,view in segments.items()}
+        prices=V.Prices(root,sources);checked=0
+        audit_started=time.perf_counter()
+        with patch.object(Path,'read_bytes',measured):
+            try:
+                for shard in sorted((root/'pairs').iterdir()):
+                    for line in gzip.decompress(shard.read_bytes()).splitlines():
+                        pair=json.loads(line)
+                        for asset,outcome in [(pair['signal_asset'],pair['candidate'])]+[(c['asset'],c['outcome']) for c in pair['controls']]:
+                            t=outcome['decision_time'];geometry=outcome['geometry']
+                            rows=prices.get(asset,t,min(context['end'],t+geometry['hold']*14400))
+                            V.P.verify(rows,t,outcome['direction'],geometry,True,sources[asset].disputes,context['end'],outcome)
+                            checked+=1
+            finally:prices.close()
+        audit_elapsed=time.perf_counter()-audit_started
         compressed=sum(p.stat().st_size for p in (root/'pairs').iterdir())
-    return dict(schema='v9.a6-synthetic-resource-probe/1',status='NOT_RESOURCE_QUALIFIED',synthetic_only=True,
+    return dict(schema='v9.a6-synthetic-resource-probe/2',status='NOT_RESOURCE_QUALIFIED',synthetic_only=True,
         market_data_loaded=False,assets=len(assets),bars_per_asset=len(times),signals=signals,
-        observed_price_pairs=observed,price_file_reads=reads,compressed_price_bytes_read=bytes_read,
+        observed_price_pairs=observed,price_file_reads=execution_reads,compressed_price_bytes_read=execution_bytes,
+        audit_price_file_reads=reads-execution_reads,audit_compressed_price_bytes_read=bytes_read-execution_bytes,
+        independently_verified_price_paths=checked,audit_elapsed_seconds=audit_elapsed,
         distinct_available_price_files=len(assets),adapter_cache_windows=8,price_storage='HASH_BOUND_SQLITE_WINDOW_INDEX',
-        rereads_beyond_available_files=max(0,reads-len(assets)),elapsed_seconds=elapsed,
+        rereads_beyond_available_files=max(0,execution_reads-len(assets)),elapsed_seconds=elapsed,
         pair_json_bytes=plain_bytes,pair_gzip_bytes=compressed,
         naive_full_inventory_json_bytes=plain_bytes/signals*4263580,
         naive_full_inventory_gzip_bytes=compressed/signals*4263580,
         extrapolation_warning='SYNTHETIC_REPETITIVE_PRICES_NOT_A_MARKET_SIZE_OR_RUNTIME_GUARANTEE',
-        measured_scope='ADAPTER_AND_PAIR_SHARD_ONLY_EXCLUDES_PREPARATION_SUMMARY_AUDIT_AND_GIT',
+        measured_scope='ADAPTER_PAIR_SHARDS_AND_INDEPENDENT_PRICE_AUDIT_EXCLUDES_PREPARATION_SELECTION_ACCOUNTING_STATISTICS_AND_GIT',
         source_sha256={p.name:X.sha(p) for p in (Path(__file__),Path(A.__file__),Path(A.P.__file__),
-            Path(A.E.__file__),Path(S.__file__),Path(X.__file__))},promotion_authority=False)
+            Path(A.E.__file__),Path(S.__file__),Path(X.__file__),Path(V.__file__),Path(V.P.__file__),Path(Q.__file__))},promotion_authority=False)
 
 
 if __name__=='__main__':

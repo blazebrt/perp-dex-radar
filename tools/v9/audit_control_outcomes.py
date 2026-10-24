@@ -8,6 +8,7 @@ import itertools
 import json
 from pathlib import Path
 import sys
+import sqlite3
 import tempfile
 
 ROOT=Path(__file__).resolve().parents[2]
@@ -23,12 +24,28 @@ IMPLEMENTATIONS=('control_outcomes.py','control_adapter.py','control_pairs.py','
 
 
 class Prices:
-    """Independently parse hashed OHLC files with a bounded segment cache."""
-    def __init__(self,md,sources):self.md,self.sources,self.cache=Path(md),sources,OrderedDict()
+    """Independently index bound sources, retaining at most eight price windows."""
+    def __init__(self,md,sources):
+        self.md,self.sources,self.cache=Path(md),sources,OrderedDict()
+        self.loaded=set()
+        self.temporary=tempfile.TemporaryDirectory(prefix='a6-audit-prices-')
+        self.db=sqlite3.connect(Path(self.temporary.name)/'audit.sqlite')
+        self.db.execute('PRAGMA cache_size=-8192')
+        self.db.execute('CREATE TABLE candles(asset TEXT,t INTEGER,o REAL,h REAL,l REAL,c REAL,qv REAL,PRIMARY KEY(asset,t)) WITHOUT ROWID')
 
-    def get(self,asset):
+    def close(self):
+        if getattr(self,'db',None) is not None:
+            self.db.close();self.db=None
+        if getattr(self,'temporary',None) is not None:
+            self.temporary.cleanup();self.temporary=None
+        if hasattr(self,'cache'):self.cache.clear()
+
+    def __del__(self):self.close()
+
+    def get(self,asset,start,end):
+        O.require(self.db is not None,'audit price index is closed')
         source=self.sources[asset]
-        if asset not in self.cache:
+        if asset not in self.loaded:
             raw=B.bound((self.md/'h4'/(asset+'.csv.gz')).read_bytes(),source.sha)
             reader=csv.DictReader(io.StringIO(gzip.decompress(raw).decode('utf8')))
             O.require(reader.fieldnames is not None and {'t','o','h','l','c','qv'}<=set(reader.fieldnames),'missing price fields')
@@ -41,10 +58,17 @@ class Prices:
                     except (TypeError,ValueError):values[key]=None
                 rows[t]=values
             O.require(list(rows)==source.times and all(rows[t]['qv']==v for t,v in source.rows.items()),'price/source mismatch')
-            self.cache[asset]=rows
+            with self.db:
+                self.db.executemany('INSERT INTO candles VALUES(?,?,?,?,?,?,?)',
+                    ((asset,t,row['o'],row['h'],row['l'],row['c'],row['qv']) for t,row in rows.items()))
+            self.loaded.add(asset)
+        key=(asset,start,end)
+        if key not in self.cache:
+            self.cache[key]={t:dict(o=o,h=h,l=l,c=c,qv=v) for t,o,h,l,c,v in self.db.execute(
+                'SELECT t,o,h,l,c,qv FROM candles WHERE asset=? AND t>=? AND t<? ORDER BY t',(asset,start,end))}
             if len(self.cache)>8:self.cache.popitem(last=False)
-        self.cache.move_to_end(asset)
-        return self.cache[asset]
+        self.cache.move_to_end(key)
+        return self.cache[key]
 
 
 def prepare(md,evidence,source_commit):
@@ -84,12 +108,15 @@ def audit(directory,signals,context,prices,bindings,scratch,input_hash=INPUT_HAS
                                 for k,a in enumerate(context['assets'])]
                     cache_key=(i,d)
                 C.verify(tid,feature,population,pair['cohort'])
-                P.verify(prices.get(asset),t,d,signal['geometry'],eligible,src.disputes,
+                hold=signal['geometry']['hold']
+                O.require(type(hold) is int and hold>0,'invalid audit hold')
+                window_end=min(context['end'],t+hold*14400)
+                P.verify(prices.get(asset,t,window_end),t,d,signal['geometry'],eligible,src.disputes,
                          min(context['end'],src.times[-1]+14400),pair['candidate'])
                 verified['candidate_paths']+=1
                 for control in pair['controls']:
                     a=control['asset'];other=context['sources'][a]
-                    P.verify(prices.get(a),t,d,signal['geometry'],True,other.disputes,
+                    P.verify(prices.get(a,t,window_end),t,d,signal['geometry'],True,other.disputes,
                              min(context['end'],other.times[-1]+14400),control['outcome'])
                     verified['control_paths']+=1
                 verified['signals']+=1
@@ -112,6 +139,7 @@ def run(directory,signals,out,prepare_context,input_hash=INPUT_HASH):
         other=Path(path).resolve()
         O.require(out!=other and out not in other.parents and other not in out.parents,'audit output overlaps input')
     out.mkdir(parents=True)
+    prices=None
     try:
         context,prices,bindings=prepare_context()
         with tempfile.TemporaryDirectory(dir=out) as temporary:
@@ -122,6 +150,8 @@ def run(directory,signals,out,prepare_context,input_hash=INPUT_HASH):
     except Exception as error:
         result=dict(status='FAILED',error=dict(type=type(error).__name__,message=str(error)),promotion_authority=False)
         name='failure.json'
+    finally:
+        if prices is not None:prices.close()
     with (out/name).open('x',encoding='utf8',newline='\n') as stream:
         stream.write(json.dumps(result,sort_keys=True,indent=2,allow_nan=False)+'\n')
     return result
