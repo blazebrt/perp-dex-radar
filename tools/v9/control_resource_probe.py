@@ -95,7 +95,7 @@ def probe(signals=20):
         pair_json_bytes=plain_bytes,pair_gzip_bytes=compressed,
         packed_json_bytes=packed_bytes,packed_gzip_bytes=packed_compressed,
         independently_reconstructed_pairs=roundtrips,packing_and_roundtrip_seconds=packing_elapsed,
-        packed_driver_enabled=False,
+        packed_driver_enabled=True,
         naive_full_inventory_json_bytes=plain_bytes/signals*4263580,
         naive_full_inventory_gzip_bytes=compressed/signals*4263580,
         extrapolation_warning='SYNTHETIC_REPETITIVE_PRICES_NOT_A_MARKET_SIZE_OR_RUNTIME_GUARANTEE',

@@ -7,7 +7,7 @@ import sys
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT))
 from tools.v9 import control_extract as X, control_adapter as A, control_summary as S
-from tools.v9 import verify_control_artifacts as V
+from tools.v9 import verify_control_artifacts as V, control_storage as W
 
 INPUT_COMMIT='eb785a908dce572958336649291b8feeb4ee9575'
 INPUT_MANIFEST='ea45d68a337ab682406748f2b94c833a5ca00b8e495aa7bdd38fe9b1f5d02a5e'
@@ -24,7 +24,7 @@ def run(directory,out,prepare,expected_manifest=INPUT_MANIFEST,max_rows=25000):
             'input and output directories must be separate')
     V.check(not out.exists(),'preserve earlier outcome attempt')
     out.mkdir(parents=True)
-    result=dict(schema='v9.a6-outcomes/1',status='STARTED',input_commit=INPUT_COMMIT,
+    result=dict(schema='v9.a6-outcomes/2',pair_encoding='v9.a6-packed-pair/1',status='STARTED',input_commit=INPUT_COMMIT,
                 input_manifest_sha256=expected_manifest,completed_trials=[],processed_signals=0,
                 full_matched_authority=False,promotion_authority=False,independently_verified=False)
     X.write_json(out/'attempt.json',result)
@@ -39,7 +39,7 @@ def run(directory,out,prepare,expected_manifest=INPUT_MANIFEST,max_rows=25000):
         result['input_verification']=verification
         result['provenance']=context['provenance']
         result['implementation_sha256']={p.name:X.sha(p) for p in
-            (Path(__file__),Path(A.__file__),Path(A.P.__file__),Path(A.E.__file__),Path(S.__file__))}
+            (Path(__file__),Path(A.__file__),Path(A.P.__file__),Path(A.E.__file__),Path(S.__file__),Path(W.__file__))}
         result['protocol_sha256']=X.sha(ROOT/'docs/v9/phase-a6-execution-inference.md')
         summary=S.Summary(out/'summary.sqlite',context['trials'])
         for trial in manifest['trials']:
@@ -54,7 +54,7 @@ def run(directory,out,prepare,expected_manifest=INPUT_MANIFEST,max_rows=25000):
                             signal=V.load(line)
                             pair=adapter.match(signal)
                             summary.add(pair)
-                            sink.emit(pair)
+                            sink.emit(W.pack(pair))
                             count+=1
                             result['processed_signals']+=1
                 if trial['status']=='EXTRACTED':

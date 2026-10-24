@@ -2,7 +2,7 @@ import gzip
 import json
 import unittest
 from tests import test_v9_control_outcomes as fixture
-from tools.v9 import verify_control_outcomes as V
+from tools.v9 import verify_control_outcomes as V, control_storage as W
 
 
 class Verification(unittest.TestCase):
@@ -21,9 +21,9 @@ class Verification(unittest.TestCase):
 
     def pair_change(self,fn):
         path=next(self.f.out.glob('0*.jsonl.gz'))
-        rows=[json.loads(line) for line in gzip.decompress(path.read_bytes()).splitlines()]
+        rows=list(V.pair_records(self.f.out,[path.name],self.doc))
         fn(rows)
-        path.write_bytes(gzip.compress((''.join(json.dumps(r)+'\n' for r in rows)).encode()))
+        path.write_bytes(gzip.compress((''.join(json.dumps(W.pack(r))+'\n' for r in rows)).encode()))
         self.rehash(path)
 
     def test_success_is_limited_accounting_authority(self):
@@ -77,3 +77,27 @@ class Verification(unittest.TestCase):
         self.bindings['protocol_sha256']=self.doc['protocol_sha256']
         (self.f.out/'unlisted').write_text('bad')
         with self.assertRaises(ValueError):self.verify()
+
+    def test_legacy_package_still_verifies_and_rejects_encoding_confusion(self):
+        for path in self.f.out.glob('*.jsonl.gz'):
+            rows=list(V.pair_records(self.f.out,[path.name],self.doc))
+            path.write_bytes(gzip.compress((''.join(json.dumps(r)+'\n' for r in rows)).encode()))
+            self.rehash(path)
+        self.doc['schema']='v9.a6-outcomes/1';self.doc.pop('pair_encoding')
+        (self.f.out/'manifest.json').write_text(json.dumps(self.doc),encoding='utf8')
+        self.assertEqual(self.verify()['signals'],8)
+        self.doc['pair_encoding']='v9.a6-packed-pair/1'
+        (self.f.out/'manifest.json').write_text(json.dumps(self.doc),encoding='utf8')
+        with self.assertRaisesRegex(ValueError,'legacy encoding'):self.verify()
+
+    def test_version_two_requires_packed_rows_and_exact_encoding(self):
+        for encoding in (None,'unknown'):
+            self.doc['pair_encoding']=encoding
+            (self.f.out/'manifest.json').write_text(json.dumps(self.doc),encoding='utf8')
+            with self.assertRaisesRegex(ValueError,'pair encoding'):self.verify()
+        self.doc['pair_encoding']='v9.a6-packed-pair/1'
+        path=next(self.f.out.glob('0*.jsonl.gz'))
+        rows=list(V.pair_records(self.f.out,[path.name],self.doc))
+        path.write_bytes(gzip.compress((''.join(json.dumps(r)+'\n' for r in rows)).encode()))
+        self.rehash(path)
+        with self.assertRaisesRegex(ValueError,'packed envelope'):self.verify()

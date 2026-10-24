@@ -71,10 +71,12 @@ class Prices:
         return self.cache[key]
 
 
-def prepare(md,evidence,source_commit):
+def prepare(md,evidence,source_commit,outcome_schema='v9.a6-outcomes/2'):
+    O.require(outcome_schema in ('v9.a6-outcomes/1','v9.a6-outcomes/2'),'unknown outcome schema')
+    implementations=IMPLEMENTATIONS+(('control_storage.py',) if outcome_schema=='v9.a6-outcomes/2' else ())
     context=B.prepare(md,evidence,EXTRACTION_SOURCE)
     bindings=dict(input_commit=INPUT_COMMIT,provenance=context['provenance'],
-        implementation_sha256={name:B.A.digest(B.git_bytes(source_commit,'tools/v9/'+name)) for name in IMPLEMENTATIONS},
+        implementation_sha256={name:B.A.digest(B.git_bytes(source_commit,'tools/v9/'+name)) for name in implementations},
         protocol_sha256=B.A.digest(B.git_bytes(source_commit,'docs/v9/phase-a6-execution-inference.md')))
     return context,Prices(md,context['sources']),bindings
 
@@ -93,7 +95,7 @@ def audit(directory,signals,context,prices,bindings,scratch,input_hash=INPUT_HAS
         for trial in original['trials']:
             tid=trial['trial_id']
             names=sorted(r['path'] for r in manifest['files'] if r['path'].startswith(tid+'-') and r['path'].endswith('.jsonl.gz'))
-            for signal,pair in itertools.zip_longest(O.records(source,[r['path'] for r in trial['shards']]),O.records(root,names)):
+            for signal,pair in itertools.zip_longest(O.records(source,[r['path'] for r in trial['shards']]),O.pair_records(root,names,manifest)):
                 O.require(signal is not None and pair is not None,'outcome population changed')
                 i,j=signal['panel_i'],signal['panel_j'];d=signal['direction'];t=signal['decision_time'];asset=signal['asset']
                 O.require(type(i) is int and type(j) is int and 0<=i<len(context['times']) and 0<=j<len(context['assets']),
@@ -145,7 +147,7 @@ def run(directory,signals,out,prepare_context,input_hash=INPUT_HASH):
         with tempfile.TemporaryDirectory(dir=out) as temporary:
             result=audit(directory,signals,context,prices,bindings,Path(temporary)/'statistics.sqlite',input_hash)
         result['verifier_sha256']={p.name:O.sha(p) for p in (Path(__file__),Path(B.__file__),Path(B.A.__file__),
-            Path(B.P.__file__),Path(O.__file__),Path(C.__file__),Path(P.__file__),Path(S.__file__))}
+            Path(B.P.__file__),Path(O.__file__),Path(O.T.__file__),Path(C.__file__),Path(P.__file__),Path(S.__file__))}
         name='audit.json'
     except Exception as error:
         result=dict(status='FAILED',error=dict(type=type(error).__name__,message=str(error)),promotion_authority=False)
@@ -161,5 +163,5 @@ if __name__=='__main__':
     ap=argparse.ArgumentParser(description=__doc__)
     for name in ('directory','signals','out','md','evidence','source-commit'):ap.add_argument('--'+name,required=True)
     args=ap.parse_args()
-    result=run(args.directory,args.signals,args.out,lambda:prepare(args.md,args.evidence,args.source_commit))
+    result=run(args.directory,args.signals,args.out,lambda:prepare(args.md,args.evidence,args.source_commit,O.load((Path(args.directory)/'manifest.json').read_bytes())['schema']))
     if result['status']=='FAILED':raise SystemExit(1)

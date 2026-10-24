@@ -1,4 +1,4 @@
-"""Independent structural reader for experimental A6 compact pair records.
+"""Independent structural reader for A6 compact pair records.
 
 No encoder imports. Reconstructs evidence only; semantic audits remain mandatory.
 """

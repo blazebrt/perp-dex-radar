@@ -101,3 +101,24 @@ input isolation and malformed tables. Before adoption, integrate versioned
 manifest readers, implementation bindings and all package audits together, then
 qualify varied full-pipeline storage/runtime including partial failures. Current
 large-scale resource qualification remains unsatisfied.
+
+## Compact package integration (2026-10-25)
+
+The outcome driver now writes `v9.a6-outcomes/2` with the explicit
+`pair_encoding: v9.a6-packed-pair/1`. Aggregation still consumes the original
+logical records. Only pair shards use compact encoding; day/reuse shards and
+side summaries retain their existing formats. The encoder's source hash is part
+of the outcome implementation bindings checked against the reserved source.
+
+Both independent accounting and integrated source/price/statistics audits use
+the separate structural reader. Version-one packages continue to read ordinary
+records; their source bindings retain the original five implementation files.
+Version two requires the exact encoding and packed envelopes. The audit report
+also hashes the independent decoder. Unknown/mixed encodings fail closed.
+
+Synthetic integration tests verify new and legacy packages, rehashed changed
+geometry/arithmetic/exits, missing records and packing interruptions. A packing
+failure retains earlier compact shards, marks the attempt failed/partial and
+never grants successful audit authority. No market study has run. Full pipeline
+resource budgets, publication workflow and retained-result reconciliation remain
+open; earlier size measurements are historical synthetic experiments.

@@ -10,6 +10,7 @@ import itertools
 import json
 import math
 from pathlib import Path, PurePosixPath
+from tools.v9 import verify_control_storage as T
 
 
 def require(ok,message):
@@ -49,6 +50,19 @@ def records(root,names):
             for line in stream:yield load(line)
 
 
+def pair_records(root,names,manifest):
+    schema=manifest['schema']
+    require(schema in ('v9.a6-outcomes/1','v9.a6-outcomes/2'),'unknown outcome schema')
+    if schema=='v9.a6-outcomes/2':
+        require(manifest.get('pair_encoding')=='v9.a6-packed-pair/1','unknown pair encoding')
+    else:require('pair_encoding' not in manifest,'legacy encoding mismatch')
+    for row in records(root,names):
+        if schema=='v9.a6-outcomes/2':yield T.unpack(row)
+        else:
+            require('schema' not in row,'packed record in legacy package')
+            yield row
+
+
 def known(outcome,signal):
     require(outcome['net_R'] is None and outcome['funding_path_known'] is False and
             outcome['full_matched_authority'] is False and outcome['promotion_authority'] is False,'invented outcome authority')
@@ -70,7 +84,7 @@ def verify(directory,signals,input_hash,expected_bindings):
     require(sha(source/'manifest.json')==input_hash,'input manifest mismatch')
     original=load((source/'manifest.json').read_bytes())
     doc=load((root/'manifest.json').read_bytes())
-    require(doc['schema']=='v9.a6-outcomes/1' and doc['status']=='COMPLETED_PRICE_DIAGNOSTICS_NET_UNAVAILABLE',
+    require(doc['schema'] in ('v9.a6-outcomes/1','v9.a6-outcomes/2') and doc['status']=='COMPLETED_PRICE_DIAGNOSTICS_NET_UNAVAILABLE',
             'outcome attempt incomplete')
     require(doc['input_manifest_sha256']==input_hash and all(doc[k]==v for k,v in expected_bindings.items()),'source binding mismatch')
     require(set(expected_bindings)=={'input_commit','provenance','implementation_sha256','protocol_sha256'},'incomplete external bindings')
@@ -96,7 +110,7 @@ def verify(directory,signals,input_hash,expected_bindings):
         for shard in trial['shards']:
             require(sha(safe(source,shard['path']))==shard['sha256'],'input shard hash mismatch')
         n=0
-        for signal,pair in itertools.zip_longest(records(source,[s['path'] for s in trial['shards']]),records(root,names)):
+        for signal,pair in itertools.zip_longest(records(source,[s['path'] for s in trial['shards']]),pair_records(root,names,doc)):
             require(signal is not None and pair is not None,'missing or extra outcome')
             require(all(pair[k]==signal[k] for k in ('signal_id','source_ordinal','trial_id','decision_time','direction'))
                     and pair['signal_asset']==signal['asset'],'outcome identity/order mismatch')

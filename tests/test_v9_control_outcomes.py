@@ -27,6 +27,9 @@ class Outcomes(unittest.TestCase):
     def test_complete_population_hourly_slots_and_file_hashes(self):
         result=self.run_study()
         self.assertEqual(result['status'],'COMPLETED_PRICE_DIAGNOSTICS_NET_UNAVAILABLE')
+        self.assertEqual(result['schema'],'v9.a6-outcomes/2')
+        self.assertEqual(result['pair_encoding'],'v9.a6-packed-pair/1')
+        self.assertIn('control_storage.py',result['implementation_sha256'])
         self.assertEqual(result['processed_signals'],8);self.assertEqual(self.calls,8)
         self.assertEqual(len(result['completed_trials']),3)
         sides=json.loads((self.out/'sides.json').read_bytes())
@@ -72,3 +75,16 @@ class Outcomes(unittest.TestCase):
         result=self.run_study(fail)
         self.assertEqual(result['status'],'FAILED_OR_PARTIAL')
         self.assertEqual(result['error']['message'],'unbound archive')
+
+    def test_packing_failure_preserves_prior_compact_records(self):
+        from unittest.mock import patch
+        original=O.W.pack;seen=[]
+        def fail(pair):
+            if len(seen)==2:raise ValueError('packing interrupted')
+            seen.append(pair);return original(pair)
+        with patch.object(O.W,'pack',side_effect=fail):result=self.run_study()
+        self.assertEqual(result['status'],'FAILED_OR_PARTIAL')
+        self.assertEqual(result['processed_signals'],2)
+        from tools.v9 import verify_control_outcomes as V
+        names=sorted(p.name for p in self.out.glob('*.jsonl.gz'))
+        self.assertEqual(list(V.pair_records(self.out,names,result)),seen)

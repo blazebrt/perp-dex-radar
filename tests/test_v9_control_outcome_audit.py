@@ -5,7 +5,7 @@ import unittest
 from unittest.mock import patch
 from tests import test_v9_control_adapter as fixture
 from tools.v9 import control_extract as X, control_adapter as A, control_outcomes as O
-from tools.v9 import audit_control_outcomes as B, verify_control_population as P
+from tools.v9 import audit_control_outcomes as B, verify_control_population as P, control_storage as W
 
 
 class Audit(unittest.TestCase):
@@ -49,9 +49,9 @@ class Audit(unittest.TestCase):
 
     def test_rehashed_wrong_exit_rejected(self):
         path=next(self.output.glob('0*.gz'))
-        rows=[json.loads(line) for line in gzip.decompress(path.read_bytes()).splitlines()]
+        rows=list(B.O.pair_records(self.output,[path.name],self.doc))
         rows[0]['candidate']['exit_price']=999
-        path.write_bytes(gzip.compress((''.join(json.dumps(r)+'\n' for r in rows)).encode()))
+        path.write_bytes(gzip.compress((''.join(json.dumps(W.pack(r))+'\n' for r in rows)).encode()))
         self.rehash(path)
         result=self.run_audit();self.assertEqual(result['status'],'FAILED')
         self.assertIn('price audit mismatch',result['error']['message'])
@@ -95,3 +95,12 @@ class Audit(unittest.TestCase):
             self.assertFalse(scratch.exists());self.assertIsNone(prices.db)
             prices.close()
             with self.assertRaisesRegex(ValueError,'closed'):prices.get('A',0,14400)
+
+    def test_legacy_rows_pass_every_audit_layer(self):
+        for path in self.output.glob('*.jsonl.gz'):
+            rows=list(B.O.pair_records(self.output,[path.name],self.doc))
+            path.write_bytes(gzip.compress((''.join(json.dumps(r)+'\n' for r in rows)).encode()))
+            self.rehash(path)
+        self.doc['schema']='v9.a6-outcomes/1';self.doc.pop('pair_encoding')
+        (self.output/'manifest.json').write_text(json.dumps(self.doc),encoding='utf8')
+        self.assertEqual(self.run_audit()['status'],'VERIFIED_REGISTERED_PRICE_DIAGNOSTICS')

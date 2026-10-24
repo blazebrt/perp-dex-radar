@@ -1,4 +1,4 @@
-"""Experimental lossless A6 pair packing; not enabled in the outcome driver."""
+"""Lossless A6 pair packing for version-two outcome packages."""
 import copy
 import json
 
