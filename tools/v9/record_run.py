@@ -30,6 +30,7 @@ HISTORY = os.path.join("research", "v9", "evidence_runs.jsonl")
 SCHEMA = "v9.evidence-runs/1"
 ZERO = "0" * 64
 STUDIES = {
+    "A6": {"branch": "evidence-a6-outcome-results"},
     "A5": {"branch": "evidence-a5-results", "evidence": "replay_run.json", "report": "REPORT_A5.md",
            "trades": "attempts_a5.json"},
     "A4": {"branch": "evidence-a4-results", "evidence": "evidence_a4.json", "report": "REPORT_A4.md",
@@ -88,6 +89,9 @@ def verify(lines):
 
 def build(study, repo=ROOT, ref=None):
     """The record of the run now on the study's results branch (ref defaults to origin/<branch>)."""
+    if study == 'A6':
+        from tools.v9.record_control_outcome import build as build_a6
+        return build_a6(repo, ref or 'origin/evidence-a6-outcome-results')
     spec = STUDIES[study]
     ref = ref or f"origin/{spec['branch']}"
     show = lambda f: _git(repo, "show", f"{ref}:{f}")  # noqa: E731
