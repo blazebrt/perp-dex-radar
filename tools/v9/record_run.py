@@ -25,10 +25,16 @@ import subprocess
 import sys
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
+sys.path.insert(0, ROOT)
 HISTORY = os.path.join("research", "v9", "evidence_runs.jsonl")
 SCHEMA = "v9.evidence-runs/1"
 ZERO = "0" * 64
 STUDIES = {
+    "A6": {"branch": "evidence-a6-outcome-results"},
+    "A5": {"branch": "evidence-a5-results", "evidence": "replay_run.json", "report": "REPORT_A5.md",
+           "trades": "attempts_a5.json"},
+    "A4": {"branch": "evidence-a4-results", "evidence": "evidence_a4.json", "report": "REPORT_A4.md",
+           "trades": "trades_a4.json"},
     "A/B": {"branch": "evidence-results", "evidence": "evidence.json", "report": "REPORT.md", "trades": "trades.json.gz"},
     "D1": {"branch": "evidence-d1-results", "evidence": "evidence_d1.json", "report": "REPORT_D1.md",
            "trades": "trades_d1.json.gz"},
@@ -83,6 +89,9 @@ def verify(lines):
 
 def build(study, repo=ROOT, ref=None):
     """The record of the run now on the study's results branch (ref defaults to origin/<branch>)."""
+    if study == 'A6':
+        from tools.v9.record_control_outcome import build as build_a6
+        return build_a6(repo, ref or 'origin/evidence-a6-outcome-results')
     spec = STUDIES[study]
     ref = ref or f"origin/{spec['branch']}"
     show = lambda f: _git(repo, "show", f"{ref}:{f}")  # noqa: E731
@@ -111,6 +120,55 @@ def build(study, repo=ROOT, ref=None):
         same = (bound.get("inputs") or {}).get("evidence_sha256") == files["evidence"]
         rec["confirmed"] = bound.get("confirmed") if same else None
         rec["bound_by"] = "research/v9/probation_evidence.json" if same else None
+    elif study == 'A5':
+        from tools.v9.hourly_replay import MANIFEST_SHA, DATA_COMMIT
+        if (ev['schema'] != 'v9.a5-replay-run/1' or ev['dataset_sha256'] != MANIFEST_SHA or
+                ev['data_commit'] != DATA_COMMIT or ev['confirmed'] != [] or
+                ev['promotion_authority'] is not False or
+                ev['known_trial_return_matrix_complete'] is not False or
+                ev['historical_trial_census_complete'] is not False or
+                ev['status'] not in ('FAILED', 'PARTIAL_FAILURE', 'COMPLETED_WITH_UNAVAILABLE_RESULTS') or
+                ev['preregistration'] != 'docs/v9/phase-a5-replay-publication.md'):
+            raise ValueError('invalid A5 evidence binding or authority')
+        if ev['status'] != 'FAILED' and (ev['actual_manifest_sha256'] != MANIFEST_SHA or
+                ev['driver_manifest_retained'] is not True or 'evidence_a5.json' not in ev['artifacts_sha256']):
+            raise ValueError('A5 completed attempt lacks verified driver evidence')
+        artifacts = ev['artifacts_sha256']
+        for path, digest in artifacts.items():
+            if '/' in path or '\\' in path or ':' in path or path in ('.', '..'):
+                raise ValueError('invalid A5 artifact path')
+            if hashlib.sha256(show(path)).hexdigest() != digest:
+                raise ValueError('A5 artifact hash mismatch: ' + path)
+        attempts = json.loads(show(spec['trades']))
+        if attempts != {p:d for p,d in artifacts.items() if p.endswith('.jsonl.gz')}:
+            raise ValueError('A5 attempt inventory mismatch')
+        if artifacts.get(spec['trades']) != files['trades']:
+            raise ValueError('A5 attempt manifest binding missing')
+        rec.update(dataset_sha256=MANIFEST_SHA, confirmed=[],
+                   preregistration=ev['preregistration'],
+                   preregistration_sha256=ev['preregistration_sha256'],
+                   preregistrations_sha256=ev['preregistrations_sha256'],
+                   status=ev['status'], known_trial_return_matrix_complete=False,
+                   historical_trial_census_complete=False,
+                   extra_inputs={'data_commit':DATA_COMMIT, 'publisher_sha256':ev['publisher_sha256']})
+    elif study == 'A4':
+        rec['confirmed'] = []
+        rec['preregistration'] = 'docs/v9/phase-a4-replay-protocol.md'
+        rec['preregistration_sha256'] = ev['provenance']['protocol_sha256']
+        rec['extra_inputs'] = {k: ev['provenance'][k] for k in
+                              ('plan_sha256', 'replay_code_hash', 'runner_sha256', 'universe_sha256')}
+        rec['known_trial_return_matrix_complete'] = ev['known_trial_return_matrix_complete']
+        rec['historical_trial_census_complete'] = ev['historical_trial_census_complete']
+        # Verify every shard before recording the manifest as evidence.
+        manifest = json.loads(show(spec['trades']))
+        for path, sha in ev['artifacts'].items():
+            if '/' in path or hashlib.sha256(show(path)).hexdigest() != sha:
+                raise ValueError('A4 artifact hash mismatch: ' + path)
+        for path, item in manifest.items():
+            if not path.startswith('trades/') or '..' in path.split('/'):
+                raise ValueError('invalid A4 trade shard path')
+            if hashlib.sha256(show(path)).hexdigest() != item['sha256']:
+                raise ValueError('A4 trade shard hash mismatch: ' + path)
     else:
         rec["confirmed"] = ev.get("confirmed") or []
         rec["preregistration"] = (ev.get("preregistration") or {}).get("preregistration")

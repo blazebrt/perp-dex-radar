@@ -1,0 +1,66 @@
+name: Publish verified A5 quality archive
+
+on:
+  push:
+    branches: ["v9/census-evidence"]
+    paths: [".github/workflows/hourly_a5_quality.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hourly-a5-quality-publication
+  cancel-in-progress: false
+
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Test publication guards
+        run: python -m unittest tests.test_v9_hourly_quality tests.test_v9_hourly_quality_build tests.test_v9_hourly_quality_publish -v
+      - name: Export the pinned rejected source
+        run: |
+          mkdir quality_source
+          git fetch --no-tags --depth=1 origin 003ddccc825b5aeaec1beab834c56f21b8baa9a8
+          git archive 003ddccc825b5aeaec1beab834c56f21b8baa9a8 | tar -x -C quality_source
+      - name: Reproduce and require every verified candidate hash
+        run: |
+          python tools/v9/hourly_quality_publish.py --source quality_source \
+            --out quality_archive --record research/v9/a5_quality_candidate.json
+      - name: Preserve exact candidate on the research data branch
+        env:
+          GIT_AUTHOR_NAME: perp-dex-radar
+          GIT_AUTHOR_EMAIL: actions@users.noreply.github.com
+          GIT_COMMITTER_NAME: perp-dex-radar
+          GIT_COMMITTER_EMAIL: actions@users.noreply.github.com
+        run: |
+          set -euo pipefail
+          test -f quality_archive/quality_candidate_manifest.json
+          test ! -f quality_archive/failure.json
+          export GIT_INDEX_FILE="$RUNNER_TEMP/a5-quality.index"
+          git read-tree --empty
+          while IFS= read -r -d '' file; do
+            git update-index --add --cacheinfo "100644,$(git hash-object -w "$file"),${file#quality_archive/}"
+          done < <(find quality_archive -type f -print0)
+          parent=()
+          previous=$(git ls-remote --heads origin refs/heads/hourly-a5-quality-results | cut -f1)
+          if [ -n "$previous" ]; then
+            git fetch --no-tags --depth=1 origin "$previous"
+            parent=(-p "$previous")
+          fi
+          commit=$(git commit-tree "$(git write-tree)" "${parent[@]}" -m "Verified A5 quality replica from $GITHUB_SHA")
+          git push origin "$commit:refs/heads/hourly-a5-quality-results"
+          echo "Published result commit: $commit"
+      - name: Retain failed-attempt diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a5-quality-publication-failure
+          path: quality_archive/failure.json
+          if-no-files-found: ignore

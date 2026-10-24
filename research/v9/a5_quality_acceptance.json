@@ -1,0 +1,51 @@
+{
+  "accepted_dataset": true,
+  "candidate_manifest_sha256": "d9eaba6b1a190d86529b01362a665f83c1c52d2a88e04f4cd71f4d333e8527b2",
+  "candidate_record_sha256": "57ef72c68b91ff81f9704a9b7e21fa7a676f292a65f8761739ca4468eaea5b7a",
+  "conditions": [
+    "Retrospective source-quality selection must be disclosed.",
+    "Original rejected archive remains rejected; candidate build history is unchanged.",
+    "Only the pinned quality schedule may govern entries; no reranking or backfill.",
+    "Quarantined and original missing hours are unavailable, not zero-valued observations.",
+    "Contiguous lookback, indicator reset, funding and exit-gap rules must be preregistered and tested before replay.",
+    "Unobservable position outcomes remain unresolved; affected statistics are unavailable without separately registered bounds.",
+    "A4.4 must disclose differing universes and the additional quality restriction."
+  ],
+  "coverage": {
+    "derived_observed_hours": 13862226,
+    "newly_unavailable_hours": 112,
+    "original_missing_hours": 7026,
+    "quarantined_hours": 112,
+    "reconstructed_hours": 264,
+    "unavailable_union_hours": 7138
+  },
+  "embargoed_days": 70,
+  "full_tests": 1038,
+  "production_authority": false,
+  "promotion_authority": false,
+  "publication_code_commit": "0a370ff8a8b74b7453b63a4cf6fa4b8139d47eb3",
+  "publication_run": 39274041013,
+  "remote_verification": {
+    "artifacts_verified": 1386,
+    "candidate_manifest_sha256": "d9eaba6b1a190d86529b01362a665f83c1c52d2a88e04f4cd71f4d333e8527b2",
+    "every_blob_sha256_matches_local_verified_candidate": true,
+    "promotion_authority": false,
+    "replay_complete": false,
+    "result_commit": "0859e683910a7eea7ef446b27cf9773f33d9e9f8",
+    "schema": "v9.a5-quality-remote-verification/1",
+    "strategy_trials_executed": 0
+  },
+  "replay_complete": false,
+  "result_branch": "hourly-a5-quality-results",
+  "result_commit": "0859e683910a7eea7ef446b27cf9773f33d9e9f8",
+  "scheduled_days": 2345,
+  "schema": "v9.a5-quality-acceptance/1",
+  "scope": "Separate retrospective-quality-restricted hourly research input only",
+  "source_ci_success": [
+    39274047623,
+    39274040564
+  ],
+  "status": "CONDITIONALLY_ACCEPTED_RESEARCH_DATA",
+  "strategy_trials_executed": 0,
+  "zero_trade_hours": 663
+}
