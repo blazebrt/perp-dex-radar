@@ -122,3 +122,37 @@ failure retains earlier compact shards, marks the attempt failed/partial and
 never grants successful audit authority. No market study has run. Full pipeline
 resource budgets, publication workflow and retained-result reconciliation remain
 open; earlier size measurements are historical synthetic experiments.
+
+## Synthetic pipeline measurements (2026-10-25)
+
+`control_pipeline_probe.py` now exercises synthetic preparation/extraction, the
+version-two outcome writer, summary/reuse/day storage, and the complete independent
+accounting, selection, price and statistics audit. The retained report is
+`research/v9/a6_synthetic_pipeline_probe.json`; all prior reports are preserved.
+
+Each successful case uses two available trial definitions with eight signals each,
+plus an unavailable hourly slot; both directions, six/36-bar holds and terminal
+entries are included. Full and mixed cases have 61 generated assets with 1,000
+bars; sparse has eight. The mixed case adds absent candles, zero volume, malformed
+closes, disputes and ineligible entries. No market data or original generators
+are used. The fourth case injects an interruption after three recorded signals.
+
+| Case | Outcome seconds | Audit seconds | Retained outcome bytes | Summary database | Pair shards | Reuse shards |
+|---|---:|---:|---:|---:|---:|---:|
+| Full | 4.024 | 3.111 | 371,999 | 172,032 | 64,691 | 24,828 |
+| Mixed | 3.328 | 2.761 | 306,857 | 143,360 | 51,163 | 19,791 |
+| Sparse | 0.515 | 0.596 | 92,542 | 49,152 | 13,564 | 3,430 |
+| Interrupted | 1.047 | 0.022 | 39,832 | 24,576 | 12,780 | 0 |
+
+Successful cases independently verify 48 candidate paths and 1,556 control paths
+in total, including full day/reuse/statistical reconciliation. The interrupted
+case retains three compact records and an audit failure, never a successful
+qualification. Source/input bytes, preparation time, largest file and audit files
+are also recorded with source hashes.
+
+These are retained file sizes, not peak scratch disk or memory measurements.
+Real archive preparation, hosted-runner behavior and Git publication are excluded.
+At this scale the summary database is larger than pair shards; it must be included
+in storage budgets. No market-scale extrapolation is claimed. Resource qualification
+remains open pending larger/diverse cases, peak measurements, explicit runner and
+publication budgets, and durable single-attempt workflow completion.
