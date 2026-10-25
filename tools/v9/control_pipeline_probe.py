@@ -18,7 +18,7 @@ def footprint(root):
     return {p.relative_to(root).as_posix():p.stat().st_size for p in sorted(root.rglob('*')) if p.is_file()}
 
 
-def scenario(kind,signals=8,bars=1000):
+def scenario(kind,signals=8,bars=1000,retain=None):
     if kind not in ('full','mixed','sparse','interrupted'):raise ValueError('unknown scenario')
     if type(signals) is not int or not 3<=signals<=100:raise ValueError('signals must be 3..100')
     if type(bars) is not int or not 400<=bars<=4000:raise ValueError('bars must be 400..4000')
@@ -77,7 +77,7 @@ def scenario(kind,signals=8,bars=1000):
         if audit['status']!=expected:raise ValueError('unexpected audit: '+json.dumps(audit))
         files=footprint(root/'outcomes');audit_files=footprint(root/'audit')
         side_counts=[] if kind=='interrupted' else json.loads((root/'outcomes/sides.json').read_text())
-        return dict(scenario=kind,assets=len(assets),bars_per_asset=bars,signals_per_available_trial=signals,
+        return dict(publication=retain(root) if retain is not None else None,scenario=kind,assets=len(assets),bars_per_asset=bars,signals_per_available_trial=signals,
             preparation_seconds=preparation_seconds,outcome_seconds=outcome_seconds,audit_seconds=audit_seconds,
             processed_signals=result['processed_signals'],outcome_status=result['status'],audit_status=audit['status'],
             candidate_paths=audit.get('candidate_paths'),control_paths=audit.get('control_paths'),

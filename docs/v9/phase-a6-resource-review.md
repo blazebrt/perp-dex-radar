@@ -203,3 +203,42 @@ work must measure allocated/peak scratch use and publication overhead on the
 intended runner, cover the real history lengths and trial/asset scale synthetically,
 and enforce a preflight refusal when budget evidence is absent. No market workflow
 or registered attempt is enabled by this report; A6.3 remains open.
+
+## Allocated blocks and local Git retention (2026-10-25)
+
+The version-two isolated observer now sums Linux `st_blocks * 512`, deduplicating
+inodes and including visible directories plus the worker's accessible open deleted
+scratch files. Descriptor access gaps are counted explicitly. Directory-removal
+races during Git repacking are tolerated; other traversal failures remain errors.
+This remains a sampled lower bound: transient allocations, inaccessible descriptors
+and Git subprocesses' unlinked open files may be missed. Worker peak RSS does not
+measure combined worker/Git-subprocess memory.
+
+`control_publication_probe.py` copies synthetic outcomes and audit artifacts into
+a fresh local repository, commits and repacks them, then checks every committed
+file hash and the exact tracked inventory. It uses no remote or network, disables
+hooks/signing and isolates Git configuration. Existing simulation checkouts are
+never reused. Failed/partial outcomes and failed audits are retained identically.
+This is not a remote reservation or publication test.
+
+The new `research/v9/a6_allocated_publication_probe.json` preserves all earlier
+reports. Eight cases use the same two sizes as the prior isolated measurement:
+
+| Case | Signals per trial | Wall seconds | Sampled allocated peak | Retained payload | Git metadata |
+|---|---:|---:|---:|---:|---:|
+| Full | 8 | 8.329 | 5,955,584 | 374,956 | 169,970 |
+| Mixed | 8 | 7.731 | 5,660,672 | 309,815 | 138,598 |
+| Sparse | 8 | 2.408 | 983,040 | 95,500 | 35,158 |
+| Interrupted | 8 | 4.602 | 4,571,136 | 39,977 | 17,504 |
+| Full | 32 | 19.009 | 22,167,552 | 1,430,675 | 669,236 |
+| Mixed | 32 | 15.263 | 20,934,656 | 1,086,472 | 502,837 |
+| Sparse | 32 | 3.632 | 3,248,128 | 282,275 | 123,581 |
+| Interrupted | 32 | 8.602 | 16,744,448 | 39,977 | 17,503 |
+
+All bytes columns are bytes, not MiB. Each case records one descriptor-access-denied
+sample. The larger full case's Git metadata adds about 47% to the payload, and the
+original payload also coexists with its checkout copy. Neither this overhead nor
+runtime is extrapolated to the full inventory. Remaining: representative-scale
+hosted measurements, combined memory and adequately bounded allocated-disk use,
+remote publication limits/retention, budget preflight enforcement and the durable
+single-attempt workflow. A6.3 and resource qualification remain open.
