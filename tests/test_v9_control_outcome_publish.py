@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 from tools.v9 import control_outcome_publish as P
+from tests.test_v9_control_resource_gate import report,capacity
 
 
 class Publish(unittest.TestCase):
@@ -12,9 +13,13 @@ class Publish(unittest.TestCase):
         self.signals=self.root/'signals';self.signals.mkdir();(self.signals/'manifest.json').write_text('{}')
         self.digest=P.sha(self.signals/'manifest.json');self.out=self.root/'out';self.reservation=self.root/'reservation.json'
         self.source='a'*40
+        self.qualification=self.root/'qualification.json'
+        self.qualification.write_text(json.dumps(report(self.source,self.digest,P.sha(P.ROOT/P.PROTOCOL))))
+        self.capacity=capacity()
         self.record=dict(status='RESERVED',source_commit=self.source,run_attempt='1',run_id='123',input_commit=P.INPUT_COMMIT,
             input_manifest_sha256=self.digest,execution_protocol_sha256=P.sha(P.ROOT/P.PROTOCOL),
-            publication_protocol_sha256=P.sha(P.ROOT/P.PUBLICATION),results_branch='evidence-a6-outcome-results',promotion_authority=False)
+            publication_protocol_sha256=P.sha(P.ROOT/P.PUBLICATION),results_branch='evidence-a6-outcome-results',resource_gate_sha256=P.sha(Path(P.G.__file__)),
+            resource_qualification_sha256=P.sha(self.qualification),promotion_authority=False)
         self.reservation.write_text(json.dumps(self.record));self.calls=[]
 
     def execute(self,args,log):
@@ -35,7 +40,7 @@ class Publish(unittest.TestCase):
 
     def retain(self,execute=None):
         with patch.object(P,'INPUT_HASH',self.digest):
-            return P.retain(self.root/'archive',self.root/'evidence.json',self.signals,self.out,self.source,self.reservation,execute or self.execute)
+            return P.retain(self.root/'archive',self.root/'evidence.json',self.signals,self.out,self.source,self.reservation,execute or self.execute,qualification=self.qualification,capacity=self.capacity)
 
     def test_success_retains_both_stages_and_hashes(self):
         result=self.retain();self.assertEqual(result['status'],'PRICE_DIAGNOSTICS_INDEPENDENTLY_AUDITED_NET_UNAVAILABLE')
@@ -73,3 +78,15 @@ class Publish(unittest.TestCase):
     def test_wrong_input_fails_before_execution(self):
         (self.signals/'manifest.json').write_text('changed')
         result=self.retain();self.assertEqual(result['status'],'FAILED_OR_PARTIAL');self.assertEqual(self.calls,[])
+
+    def test_resource_refusal_retained_before_any_outcome_execution(self):
+        self.capacity['free_disk_bytes']=1
+        result=self.retain()
+        self.assertEqual(result['status'],'FAILED_OR_PARTIAL');self.assertEqual(self.calls,[])
+        self.assertIn('disk budget',result['error']['message'])
+        self.assertIn('resource-qualification.json',result['artifacts_sha256'])
+
+    def test_missing_resource_evidence_never_executes(self):
+        self.qualification=None
+        result=self.retain()
+        self.assertEqual(result['status'],'FAILED_OR_PARTIAL');self.assertEqual(self.calls,[])

@@ -242,3 +242,21 @@ runtime is extrapolated to the full inventory. Remaining: representative-scale
 hosted measurements, combined memory and adequately bounded allocated-disk use,
 remote publication limits/retention, budget preflight enforcement and the durable
 single-attempt workflow. A6.3 and resource qualification remain open.
+
+## Fail-closed resource preflight (2026-10-25)
+
+`control_resource_gate.py` implements the operational headroom policy. The CLI
+reads Linux MemAvailable and free scratch disk; remaining timeout and the verified
+runner profile must come from the workflow. Report bytes must match the hash
+pinned in the reservation, source/input/protocol/profile bindings must match, and
+representative workload plus hosted/publication/failure-retention qualifications
+must be present. Nonpositive/noninteger capacities, ambiguous JSON, lower-bound
+measurements and insufficient headroom are rejected.
+
+`control_outcome_publish.py` retains the qualification input and accepted preflight
+snapshot, and refuses before study execution when the gate fails. The reservation
+also pins the guard's bytes. A future workflow must check before reserving, then
+repeat immediately before executing. The guard is not a runtime monitor or an
+independent measurement auditor: qualification reports require independent review.
+All existing local reports are explicitly tested to fail. No qualifying report
+has been produced and no market workflow is activated.

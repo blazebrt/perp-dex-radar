@@ -8,6 +8,7 @@ import sys
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT))
 from tools.v9.control_publish import command,sha,write
+from tools.v9 import control_resource_gate as G
 
 INPUT_COMMIT='eb785a908dce572958336649291b8feeb4ee9575'
 INPUT_HASH='ea45d68a337ab682406748f2b94c833a5ca00b8e495aa7bdd38fe9b1f5d02a5e'
@@ -15,20 +16,22 @@ PROTOCOL='docs/v9/phase-a6-execution-inference.md'
 PUBLICATION='docs/v9/phase-a6-outcome-publication.md'
 
 
-def retain(md,evidence,signals,out,source_commit,reservation,execute=command):
+def retain(md,evidence,signals,out,source_commit,reservation,execute=command,qualification=None,capacity=None):
     out=Path(out).resolve()
     if out.exists():raise FileExistsError('preserve previous outcome attempt')
     if not re.fullmatch('[0-9a-f]{40}',source_commit):raise ValueError('full outcome source commit required')
-    for path in (md,evidence,signals,reservation):
+    for path in (md,evidence,signals,reservation)+((qualification,) if qualification is not None else ()):
         other=Path(path).resolve()
         if other==out or out in other.parents or other in out.parents:raise ValueError('attempt overlaps inputs')
     raw=Path(reservation).read_bytes();reserved=json.loads(raw)
     required=dict(status='RESERVED',source_commit=source_commit,run_attempt='1',
         input_commit=INPUT_COMMIT,input_manifest_sha256=INPUT_HASH,
         execution_protocol_sha256=sha(ROOT/PROTOCOL),publication_protocol_sha256=sha(ROOT/PUBLICATION),
-        results_branch='evidence-a6-outcome-results',promotion_authority=False)
+        results_branch='evidence-a6-outcome-results',resource_gate_sha256=sha(Path(G.__file__)),promotion_authority=False)
     if any(reserved.get(k)!=v for k,v in required.items()) or not re.fullmatch('[0-9]+',str(reserved.get('run_id',''))):
         raise ValueError('invalid outcome reservation')
+    if not re.fullmatch('[0-9a-f]{64}',str(reserved.get('resource_qualification_sha256',''))):
+        raise ValueError('resource qualification must be pinned in reservation')
     out.mkdir(parents=True)
     (out/'reservation.json').write_bytes(raw)
     result=dict(schema='v9.a6-outcome-attempt/1',status='STARTED',source_commit=source_commit,
@@ -39,6 +42,12 @@ def retain(md,evidence,signals,out,source_commit,reservation,execute=command):
         full_matched_authority=False,promotion_authority=False)
     write(out/'attempt.json',result)
     try:
+        if qualification is None or capacity is None:raise ValueError('resource qualification and live capacity required')
+        resource_raw=Path(qualification).read_bytes()
+        (out/'resource-qualification.json').write_bytes(resource_raw)
+        preflight=G.verify(resource_raw,reserved['resource_qualification_sha256'],source_commit,INPUT_HASH,
+                           required['execution_protocol_sha256'],capacity)
+        write(out/'resource-preflight.json',preflight)
         if sha(Path(signals)/'manifest.json')!=INPUT_HASH:raise ValueError('unregistered signal inventory')
         result['outcome_exit']=execute(['tools/v9/control_outcomes.py','--md',str(Path(md).resolve()),
             '--phase-b-evidence',str(Path(evidence).resolve()),'--signals',str(Path(signals).resolve()),
@@ -74,6 +83,9 @@ def retain(md,evidence,signals,out,source_commit,reservation,execute=command):
 if __name__=='__main__':
     ap=argparse.ArgumentParser(description=__doc__)
     for name in ('md','evidence','signals','out','source-commit','reservation'):ap.add_argument('--'+name,required=True)
+    ap.add_argument('--qualification',required=True);ap.add_argument('--runner-profile',required=True)
+    ap.add_argument('--remaining-seconds',required=True,type=int)
     args=ap.parse_args()
-    print(retain(args.md,args.evidence,args.signals,args.out,args.source_commit,args.reservation)['status'])
+    print(retain(args.md,args.evidence,args.signals,args.out,args.source_commit,args.reservation,qualification=args.qualification,
+                 capacity=G.live_capacity(Path(args.out).resolve().parent,args.runner_profile,args.remaining_seconds))['status'])
     # Outer workflow must durably publish before reporting failed/partial status.

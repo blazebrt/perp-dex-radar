@@ -31,3 +31,30 @@ workflow retention and append-only evidence recording, and test failure recovery
 No workflow is activated by adding this contract or wrapper. The actual outcome
 attempt, including failure or unavailability, must be recorded in the evidence
 history and independently reconciled after durable publication.
+
+## Resource preflight before reservation and execution
+
+The future workflow must run `control_resource_gate.py` before reserving the market
+attempt, using an independently reviewed qualification report pinned by hash and
+a current capacity snapshot. The reservation must additionally pin
+`resource_qualification_sha256` and `resource_gate_sha256`. The wrapper repeats
+that check before reading the signal inventory or invoking either study process.
+It retains the report and successful preflight snapshot with the attempt. A
+missing/invalid report or insufficient capacity yields retained failure without
+outcome execution; a prior remote reservation continues to block repetition.
+
+The report must match the exact source commit, execution protocol, accepted input
+manifest and runner profile. It must cover at least 4,263,580 synthetic signals,
+199 definitions, 781 assets and the bound archive's history lengths, with the full
+pipeline, publication limits and failure retention reviewed on the hosted runner.
+Only bounded combined-process memory and allocated-disk evidence is accepted;
+sampled/lower-bound reports do not qualify. Bounds must fit within half of live
+available memory, half of free disk, and 60% of the remaining job time, including
+audits and publication. Current local reports deliberately fail this gate.
+
+The CLI obtains memory/disk capacity on Linux; the workflow must supply the
+verified runner profile and conservatively remaining timeout. Qualification report
+content and its hash need independent review: the gate verifies the declared
+contract and arithmetic, not the truth of measurements. It is a preflight, not
+a runtime resource monitor. No qualification report or market activation is created
+by adding the guard. The hosted workflow and review remain outstanding.
