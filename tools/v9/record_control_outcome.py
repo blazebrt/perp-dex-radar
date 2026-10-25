@@ -4,6 +4,7 @@ import json
 from pathlib import PurePosixPath
 import re
 import subprocess
+from tools.v9 import control_resource_gate as G
 
 INPUT='eb785a908dce572958336649291b8feeb4ee9575'
 INPUT_HASH='ea45d68a337ab682406748f2b94c833a5ca00b8e495aa7bdd38fe9b1f5d02a5e'
@@ -33,6 +34,9 @@ def inspect(read,digest,names,source_read,result_commit,reservation_commit,reser
           reserved['execution_protocol_sha256']==protocols[EXECUTION] and reserved['publication_protocol_sha256']==protocols[PUBLICATION]
           and reserved['results_branch']=='evidence-a6-outcome-results' and reserved['promotion_authority'] is False,
           'reservation binding mismatch')
+    check(reserved.get('resource_gate_sha256')==sha(source_read('tools/v9/control_resource_gate.py')) and
+          re.fullmatch('[0-9a-f]{64}',str(reserved.get('resource_qualification_sha256',''))) is not None,
+          'resource reservation binding mismatch')
     hashes={}
     check(len(set(names))==len(names),'duplicate retained paths')
     for name in names:
@@ -41,6 +45,14 @@ def inspect(read,digest,names,source_read,result_commit,reservation_commit,reser
               '\\' not in name and ':' not in name,'unsafe retained path')
         hashes[name]=digest(name)
     check('reservation.json' in hashes and hashes['reservation.json']==sha(reserved_raw),'reservation hash mismatch')
+    resource_status='NO_RETAINED_PREFLIGHT'
+    if 'resource-preflight.json' in hashes:
+        check('resource-qualification.json' in hashes,'preflight lacks qualification')
+        preflight=json.loads(read('resource-preflight.json'))
+        expected=G.verify(read('resource-qualification.json'),reserved['resource_qualification_sha256'],
+                          source,INPUT_HASH,protocols[EXECUTION],preflight.get('capacity',{}))
+        check(preflight==expected,'retained resource preflight mismatch')
+        resource_status='RETAINED_PREFLIGHT_REVALIDATED_NOT_MEASUREMENT_PROOF'
     status='INCOMPLETE_RESERVED';evidence='reservation.json';report='reservation.json';trades=None
     if 'attempt.json' in hashes:
         evidence='attempt.json';attempt=json.loads(read(evidence))
@@ -59,6 +71,8 @@ def inspect(read,digest,names,source_read,result_commit,reservation_commit,reser
         report=next((p for p in ('audit/audit.json','audit/failure.json','outcomes/manifest.json') if p in hashes),'attempt.json')
         trades='outcomes/manifest.json' if 'outcomes/manifest.json' in hashes else None
         if status=='PRICE_DIAGNOSTICS_INDEPENDENTLY_AUDITED_NET_UNAVAILABLE':
+            check(resource_status=='RETAINED_PREFLIGHT_REVALIDATED_NOT_MEASUREMENT_PROOF',
+                  'successful attempt lacks resource preflight')
             check(attempt['outcome_exit']==0 and attempt['audit_exit']==0 and report=='audit/audit.json' and trades is not None,
                   'successful attempt lacks results')
             audit=json.loads(read(report))
@@ -74,7 +88,7 @@ def inspect(read,digest,names,source_read,result_commit,reservation_commit,reser
         preregistrations_sha256=protocols,extra_inputs=dict(input_commit=INPUT,input_manifest_sha256=INPUT_HASH,
             reservation_commit=reservation_commit,run_id=str(reserved['run_id']),run_attempt='1'),
         net_inference_available=False,full_matched_authority=False,promotion_authority=False,
-        retained_result_independently_verified=False)
+        retained_resource_status=resource_status,retained_result_independently_verified=False)
 
 
 def verify_ancestry(git,result):
