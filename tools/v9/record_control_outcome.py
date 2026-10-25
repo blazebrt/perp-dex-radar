@@ -77,12 +77,32 @@ def inspect(read,digest,names,source_read,result_commit,reservation_commit,reser
         retained_result_independently_verified=False)
 
 
+def verify_ancestry(git,result):
+    """Check the complete retained lineage; this does not prove remote durability."""
+    check(git('rev-parse','--is-shallow-repository').strip()==b'false','complete reservation history required')
+    lineage=[line.split() for line in git('rev-list','--reverse','--topo-order','--parents',result).decode().splitlines()]
+    check(bool(lineage),'empty reservation history')
+    reservation=lineage[0][0]
+    check(len(lineage[0])==1,'reservation must be an orphan root')
+    root_entries=git('ls-tree','-rz',reservation).split(b'\0')
+    root_entries=[entry for entry in root_entries if entry]
+    check(len(root_entries)==1 and root_entries[0].startswith(b'100644 blob ') and
+          root_entries[0].endswith(b'\treservation.json'),'reservation root must contain only its regular JSON file')
+    original=git('show',reservation+':reservation.json')
+    previous=reservation
+    for row in lineage[1:]:
+        check(len(row)==2 and row[1]==previous,'retained history must be linear without merges')
+        entries=[entry for entry in git('ls-tree','-rz',row[0]).split(b'\0') if entry]
+        check(all(entry.startswith(b'100644 blob ') for entry in entries),'retained files must be regular non-executable blobs')
+        check(git('show',row[0]+':reservation.json')==original,'reservation changed within retained history')
+        previous=row[0]
+    return reservation,original
+
+
 def build(repo,ref):
     def git(*args):return subprocess.check_output(['git','-c','safe.directory=*','-C',str(repo),*args])
     result=git('rev-parse',ref).decode().strip()
-    roots=git('rev-list','--max-parents=0',result).decode().split()
-    check(len(roots)==1,'ambiguous reservation ancestry')
-    reservation=roots[0]
+    reservation,reservation_bytes=verify_ancestry(git,result)
     read=lambda name:git('show',result+':'+name)
     raw=read('reservation.json');source=json.loads(raw)['source_commit']
     names=git('ls-tree','-r','--name-only',result).decode().splitlines()
@@ -95,4 +115,4 @@ def build(repo,ref):
         check(process.wait()==0,'retained blob read failed')
         return h.hexdigest()
     return inspect(read,digest,names,lambda name:git('show',source+':'+name),result,reservation,
-                   git('show',reservation+':reservation.json'),git('show','-s','--format=%cI',result).decode().strip())
+                   reservation_bytes,git('show','-s','--format=%cI',result).decode().strip())

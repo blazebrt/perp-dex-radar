@@ -58,3 +58,61 @@ class History(unittest.TestCase):
         with patch.object(R,'build',return_value={'synthetic':True}) as build:
             self.assertEqual(H.build('A6','repo'),{'synthetic':True})
             build.assert_called_once_with('repo','origin/evidence-a6-outcome-results')
+
+
+class RetainedAncestry(unittest.TestCase):
+    def setUp(self):
+        import os
+        import subprocess
+        import tempfile
+        from pathlib import Path
+        self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
+        self.repo=Path(self.temp.name)
+        self.env={k:v for k,v in os.environ.items() if not k.startswith('GIT_')}
+        self.env.update(GIT_CONFIG_GLOBAL=os.devnull,GIT_CONFIG_SYSTEM=os.devnull,
+            GIT_AUTHOR_NAME='Synthetic',GIT_AUTHOR_EMAIL='synthetic@example.invalid',
+            GIT_COMMITTER_NAME='Synthetic',GIT_COMMITTER_EMAIL='synthetic@example.invalid')
+        self.git=lambda *args:subprocess.check_output(['git','-c','safe.directory=*','-c',
+            'core.hooksPath='+os.devnull,'-c','commit.gpgsign=false','-C',str(self.repo),*args],env=self.env,stderr=subprocess.PIPE)
+        self.git('init','--quiet','--template=')
+        self.raw=b'{"status":"RESERVED"}'
+        self.root=self.commit({'reservation.json':self.raw})
+
+    def commit(self,files,parents=(),mode='100644'):
+        import subprocess
+        entries=[]
+        for name,raw in sorted(files.items()):
+            path=self.repo/'blob';path.write_bytes(raw)
+            blob=self.git('hash-object','-w',str(path)).decode().strip()
+            entries.append(f'{mode} blob {blob}\t{name}\n')
+        process=subprocess.run(['git','-C',str(self.repo),'mktree'],input=''.join(entries).encode(),
+            env=self.env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,check=True)
+        args=['commit-tree',process.stdout.decode().strip(),'-m','synthetic']
+        for parent in parents:args+=['-p',parent]
+        return self.git(*args).decode().strip()
+
+    def test_reservation_and_interrupted_partial_descendants(self):
+        self.assertEqual(R.verify_ancestry(self.git,self.root),(self.root,self.raw))
+        partial=self.commit({'reservation.json':self.raw,'partial.log':b'interrupted'},[self.root])
+        self.assertEqual(R.verify_ancestry(self.git,partial),(self.root,self.raw))
+
+    def test_changed_then_restored_reservation_rejected(self):
+        changed=self.commit({'reservation.json':b'changed'},[self.root])
+        restored=self.commit({'reservation.json':self.raw},[changed])
+        with self.assertRaisesRegex(ValueError,'changed within'):R.verify_ancestry(self.git,restored)
+
+    def test_result_payload_in_reservation_root_rejected(self):
+        root=self.commit({'reservation.json':self.raw,'outcome.json':b'{}'})
+        with self.assertRaisesRegex(ValueError,'root must contain only'):R.verify_ancestry(self.git,root)
+
+    def test_merge_and_nonregular_files_rejected(self):
+        left=self.commit({'reservation.json':self.raw,'left':b'a'},[self.root])
+        right=self.commit({'reservation.json':self.raw,'right':b'b'},[self.root])
+        merged=self.commit({'reservation.json':self.raw},[left,right])
+        with self.assertRaisesRegex(ValueError,'linear'):R.verify_ancestry(self.git,merged)
+        link=self.commit({'reservation.json':self.raw},[self.root],mode='120000')
+        with self.assertRaisesRegex(ValueError,'regular'):R.verify_ancestry(self.git,link)
+
+    def test_shallow_history_rejected(self):
+        (self.repo/'.git/shallow').write_text(self.root+'\n')
+        with self.assertRaisesRegex(ValueError,'complete reservation'):R.verify_ancestry(self.git,self.root)
