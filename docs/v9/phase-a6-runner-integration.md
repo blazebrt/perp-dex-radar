@@ -1,7 +1,9 @@
 # A6 runner integration: inactive pending qualification
 
 `control_outcome_runner.py` connects the authenticated reservation API, the job
-coordinator and the immutable input adapter. No workflow references it yet.
+coordinator and the immutable input adapter. The inactive template
+`docs/v9/a6-outcome.workflow.yaml` references it; GitHub does not execute files
+from this documentation directory.
 Do not activate it until independently reviewed representative hosted resource
 and publication qualification exists and matches the exact source commit.
 Environment checks prevent accidental misuse; they are not authentication or
@@ -34,3 +36,24 @@ reservation; recovery inspects it and never silently repeats the study. Evidence
 history recording and independent retained-result reconciliation remain required
 after the single application. No market attempt or hosted qualification is
 established by the mocked runner tests.
+
+## Inactive workflow and recovery bundle
+
+The template is manual-only, with branch/repository/attempt guards and serialized
+non-cancelling concurrency. It captures a 350-minute deadline before setup inside
+a 360-minute job, leaving ten minutes beyond that deadline for recovery steps.
+Always-run backup steps preserve job files and a self-contained bundle of the
+recorded result (or reservation). The bundle helper verifies ancestry and removes
+its temporary local ref; it neither pushes nor changes a persistent branch.
+An uploaded artifact is not a replacement for verified result-branch publication.
+
+The reviewed qualification commit must contain
+`research/v9/a6-resource/qualification.json` and `requirements.lock`.
+The template independently checks both supplied hashes and requires the report
+to bind the dependency-lock hash, exact Python version and runner image version.
+Installation uses pip's hash-required mode. Neither a qualifying report nor a
+reviewed lock currently exists. Pin action revisions and verify the final hosted
+image/dependencies during qualification before installing/activating the template.
+Moving the template changes the source commit; qualification must cover the exact
+final source used for the single attempt. Activation and source-pinning review
+remain unresolved until that sequence is established.
