@@ -359,3 +359,20 @@ explicit exclusions. Controller accounting includes descendants that remain in
 the group, per the kernel documentation linked above. A hosted isolation check,
 complete-start accounting, bounded disk use, representative workload and reviewed
 environment/retention qualification remain necessary.
+
+## Hosted isolated pilot preparation (2026-10-27)
+
+A separate read-only branch-scoped workflow, `a6_isolated_probe.yml`, runs the
+eight existing synthetic scenarios through the isolated runner. On the disposable
+Actions host only, sudo creates a new run-specific cgroup parent and enables its
+memory subtree controller. It refuses if the root memory controller is not
+already enabled; it does not reconfigure the root or existing groups. The trusted
+synthetic command runs in the runner-created child; only its new empty groups
+are removed. Parent cleanup state, placement, accounting, logs, environment and
+measurements are retained even on failure. No repository credential is supplied
+to the elevated process; checkout credentials are not persisted.
+
+Hosted results are pending. This experiment tests real placement/accounting and
+cleanup, not representative scale, disk bounds or a reviewed dependency/runtime
+lock. Pre-migration bootstrap allocations and the outer accounting process remain
+excluded. The original pilot workflow and retained reports remain unchanged.
