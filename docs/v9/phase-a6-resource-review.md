@@ -419,3 +419,18 @@ locally or in Actions with this adapter. Hosted startup placement remains explic
 false until checked against workload receipts. Systemd/controller support and actual
 startup coverage still require a hosted pilot. Manager/orchestrator memory and
 workloads escaping the cgroup are excluded. Full resource qualification stays open.
+
+## Hosted service-startup pilot preparation (2026-10-27)
+
+A separate `a6_service_probe.yml` read-only, branch-scoped workflow runs the
+eight existing synthetic scenarios as a transient service on the disposable
+Actions host. The orchestrator invokes systemd through sudo; the workload is
+started by the service manager with no forwarded caller environment/credentials.
+It retains service logs/properties/cleanup, the scenario report, runtime details
+and explicit placement verification. Both workload membership snapshots must
+match the service group, and their peaks cannot exceed the final service peak.
+
+Startup placement relies on the service-manager launch contract plus in-workload
+membership receipts; it is not an independent kernel trace of interpreter startup.
+The manager and outer orchestrator are excluded. Hosted results are pending, and
+the report remains unqualified for full-study resource budgets.
