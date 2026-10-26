@@ -376,3 +376,24 @@ Hosted results are pending. This experiment tests real placement/accounting and
 cleanup, not representative scale, disk bounds or a reviewed dependency/runtime
 lock. Pre-migration bootstrap allocations and the outer accounting process remain
 excluded. The original pilot workflow and retained reports remain unchanged.
+
+### Verified hosted isolation result
+
+Run [40386820291](https://github.com/blazebrt/perp-dex-radar/actions/runs/40386820291)
+at source `30e8bbcf0af39cea4fd09c6d53a0a2a246047ae8` succeeded. The retained
+report and provenance are `research/v9/a6_hosted_isolated_pilot.json` and its
+`_provenance.json` companion. ZIP digest and measurement checksum were verified.
+The placement receipt, both in-workload membership snapshots and accounting group
+agree; the final in-workload peak matches the outer accounting value. Both new
+groups were removed. Six normal audits passed and both deliberate interruptions
+retained partial results, with all eight local Git payload checks passing.
+
+Kernel peak was 83,361,792 bytes over 23.170 seconds, with all memory-event counters
+zero. This verifies the small hosted isolation/accounting path. It does not cover
+pre-migration bootstrap/outer accounting allocations, representative workload,
+allocated-disk bounds, reviewed runtime/dependency identity or remote retention.
+The report remains NOT_RESOURCE_QUALIFIED and no real study was reserved or run.
+
+The runner-image discrepancy recurred: setup logs report `20261012.334.1`, while
+captured ImageVersion is `20261023.334.3`. Provenance records both, with consistency
+false; this experiment does not resolve runtime identity qualification.
