@@ -318,3 +318,20 @@ measurements are neither a combined physical-memory bound nor runtime enforcemen
 Existing /2 reports remain unchanged. New /3 measurements are still explicitly
 NOT_RESOURCE_QUALIFIED; bounded disk measurement, representative scale, dependency
 locking, runner identity and remote retention remain open.
+
+## Kernel memory capability inspection (2026-10-27)
+
+The synthetic observer now records read-only cgroup v2 capability snapshots before
+and after its scenarios. `control_cgroup_memory.py` verifies unified membership
+and a full-root cgroup2 mount, then reads current/peak memory, memory/swap limits
+and OOM/limit event counts. Unsupported layouts, unavailable counters, permission
+errors and malformed values stay UNAVAILABLE; they are never represented as zero.
+
+Readable counters are SHARED_GROUP_COUNTERS_ONLY, with isolated_run_verified and
+resource_qualified false. They may include earlier or unrelated work. No peak
+difference is calculated, no counters are reset, and no processes are moved.
+As specified by the [kernel cgroup v2 documentation](https://docs.kernel.org/admin-guide/cgroup-v2.html),
+memory.peak covers the group and descendants since creation or an applicable
+file-descriptor reset. A new isolated delegated group and verified workload
+placement are still needed for per-run accounting. Local Linux inspection found
+unified membership but no memory.peak at its current root group.

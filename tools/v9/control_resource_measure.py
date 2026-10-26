@@ -121,11 +121,14 @@ def measure(kind,signals,bars):
 
 
 def probe():
+    from tools.v9.control_cgroup_memory import snapshot
+    cgroup_before=snapshot()
     cases=[measure(kind,signals,bars) for signals,bars in ((8,1000),(32,4000))
            for kind in ('full','mixed','sparse','interrupted')]
     import hashlib
     return dict(schema='v9.a6-isolated-resource-probe/3',status='NOT_RESOURCE_QUALIFIED',synthetic_only=True,
         market_data_loaded=False,platform=sys.platform,cases=cases,
+        cgroup_capability_before=cgroup_before,cgroup_capability_after=snapshot(),
         observer_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         memory_measurement='LINUX_PROCESS_LIFETIME_PEAK_RSS_IN_BYTES_INCLUDES_IMPORTS',
         combined_memory_measurement='SAMPLED_PRIVATE_SESSION_SUM_RSS_SHARED_PAGES_MAY_REPEAT_NOT_A_BOUND',
