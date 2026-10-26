@@ -1,0 +1,43 @@
+{
+  "artifact_bytes_verified": true,
+  "artifact_id": 12647176082,
+  "artifact_sha256": "c6c37d4f11a3f277ae9833e3a6aac50e11b76ef40da173e683fdd2afe5e09d16",
+  "dependencies": [
+    "llvmlite==0.44.0",
+    "numba==0.61.2",
+    "numpy==2.2.6",
+    "pandas==2.2.3",
+    "pip==26.2.2",
+    "python-dateutil==3.0.0",
+    "pytz==2026.5",
+    "setuptools==65.5.0",
+    "six==1.17.0",
+    "tzdata==2026.5"
+  ],
+  "environment": {
+    "image_os": "ubuntu24",
+    "image_version": "20261023.334.3",
+    "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+    "promotion_authority": false,
+    "python": "3.10.12 (main, Sep 30 2024, 21:31:33) [GCC 13.2.0]",
+    "resource_qualified": false,
+    "run_attempt": "1",
+    "run_id": "40315708480",
+    "runner_arch": "X64",
+    "runner_os": "Linux",
+    "schema": "v9.a6-hosted-pilot-environment/1",
+    "source_commit": "ee9082006088a7c249d4b4d564a707ce4e6b007a",
+    "synthetic_only": true
+  },
+  "job_id": 121547654276,
+  "job_log_runner_image_version": "20261012.334.1",
+  "log_measurements_match_artifact": true,
+  "measurement_sha256": "47ae60a57ae44ea880a56f5debc2698b6370dfc4bef6ef418fb1553c7ec3cb0e",
+  "promotion_authority": false,
+  "resource_qualified": false,
+  "run_id": 40315708480,
+  "runner_image_discrepancy": "Job setup log reports 20261012.334.1; captured ImageVersion reports 20261023.334.3. Unresolved; do not qualify runner from this pilot.",
+  "runner_image_metadata_consistent": false,
+  "schema": "v9.a6-hosted-pilot-provenance/1",
+  "source_commit": "ee9082006088a7c249d4b4d564a707ce4e6b007a"
+}

@@ -277,3 +277,25 @@ combined process-tree memory, disk sampling remains a lower bound, and local Git
 retention does not test remote publication. Existing report exclusions remain
 unchanged even on a hosted runner. Inspect and preserve the hosted results before
 progressing to representative-scale measurement and independent qualification.
+
+### Retained pilot result
+
+Run [40315708480](https://github.com/blazebrt/perp-dex-radar/actions/runs/40315708480)
+succeeded at source `ee9082006088a7c249d4b4d564a707ce4e6b007a`. The artifact ZIP
+digest, measurement checksum and report bytes printed in logs were independently
+compared. The unmodified report and provenance are retained as
+`research/v9/a6_hosted_synthetic_pilot.json` and its `_provenance.json` companion.
+Six normal cases passed audits; two intentional interruptions retained partial
+outputs with failed audits. All eight local Git payload checks passed.
+
+Maximum observed worker RSS was 52,199,424 bytes, maximum sampled allocated disk
+22,163,456 bytes and slowest case 9.810 seconds. Descriptor access gaps occurred
+in all cases (one or two samples). These values do not bound the full study.
+The runner resolved python-dateutil 3.0.0 versus local 2.9.0.post0; the environment
+record preserves this difference. A reviewed hash lock and combined-resource,
+representative-scale, remote-retention qualification remain outstanding.
+
+Runner identity also remains unresolved: the setup log reports image
+`20261012.334.1`, while the captured ImageVersion is `20261023.334.3`. Both are
+recorded in provenance without selecting one as authoritative. Qualification
+must reconcile this discrepancy against an independently verified runner image.
