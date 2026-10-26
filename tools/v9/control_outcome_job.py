@@ -1,13 +1,14 @@
 """Coordinate one reserved outcome job; no CLI or active workflow is installed.
 
 Call from a pinned, clean checkout with an authenticated API client and a live
-capacity callback. Inputs must already be available at their registered paths.
+capacity callback. Input preparation runs only after reservation verification.
 Failures retain local files for an outer workflow's always-run backup step.
 SIGKILL/runner loss cannot be recovered here: the remote reservation blocks reruns.
 """
 import os
 from pathlib import Path
 import subprocess
+import shutil
 from tools.v9 import control_reservation as R
 from tools.v9 import control_outcome_publish as P
 from tools.v9 import control_retention_commit as C
@@ -38,11 +39,13 @@ def fetch_reservation(repo,commit,raw):
     if root!=commit or saved!=raw:raise ValueError('fetched reservation mismatch')
 
 
-def run(repo,work,md,evidence,signals,source,run_id,run_attempt,qualification,qualification_hash,api,capacity,identity):
+def run(repo,work,md,evidence,signals,source,run_id,run_attempt,qualification,qualification_hash,api,capacity,identity,prepare_inputs):
     repo=Path(repo).resolve();work=Path(work).resolve()
     for item in (repo,md,evidence,signals,qualification):
         other=Path(item).resolve()
         if other==work or work in other.parents or other in work.parents:raise ValueError('job workspace overlaps source/input')
+    for item in (md,evidence,signals):
+        if Path(item).exists() or Path(item).is_symlink():raise FileExistsError('inputs must be prepared after reservation')
     checkout(repo,source)
     work.mkdir(parents=True,exist_ok=False)  # Recovery must inspect, never reexecute in place.
     report=dict(status='RESERVATION_UNVERIFIED_NO_EXECUTION',reservation_verified=False,
@@ -60,14 +63,23 @@ def run(repo,work,md,evidence,signals,source,run_id,run_attempt,qualification,qu
     report.update(reservation_verified=True,reservation_commit=commit)
     reservation=work/'reservation.json';reservation.write_bytes(raw);attempt=work/'attempt'
     execution=None
+    preparation_log=work/'input-preparation.log'
+    preparation_complete=False
     try:
         fetch_reservation(repo,commit,raw)
+        prepare_inputs(Path(md),Path(evidence),Path(signals),preparation_log)
+        if preparation_log.is_symlink() or not preparation_log.is_file():raise ValueError('regular input preparation log required')
+        if not Path(md).is_dir() or not Path(evidence).is_file() or not Path(signals).is_dir():raise ValueError('input preparation incomplete')
+        preparation_complete=True
         execution=P.retain(md,evidence,signals,attempt,source,reservation,
-                           qualification=qualification,capacity=capacity())
+                           qualification=qualification,capacity=capacity(),preparation_log=preparation_log)
     except (Exception,KeyboardInterrupt) as error:
         report['error_type']=type(error).__name__
         attempt.mkdir(exist_ok=True)
         if not (attempt/'reservation.json').exists():(attempt/'reservation.json').write_bytes(raw)
+        if not preparation_complete:
+            if preparation_log.is_file() and not preparation_log.is_symlink():shutil.copyfile(preparation_log,attempt/'input-preparation.log')
+            P.write(attempt/'preparation-failure.json',dict(error_type=type(error).__name__,execution_started=False))
         # Outside the inventoried attempt, to avoid rewriting an existing artifact inventory.
         P.write(work/'execution-error.json',dict(error_type=type(error).__name__))
     try:

@@ -90,3 +90,11 @@ class Publish(unittest.TestCase):
         self.qualification=None
         result=self.retain()
         self.assertEqual(result['status'],'FAILED_OR_PARTIAL');self.assertEqual(self.calls,[])
+
+    def test_preparation_log_is_copied_and_inventoried(self):
+        log=self.root/'preparation.log';log.write_bytes(b'prepared\x00raw\r\n')
+        with patch.object(P,'INPUT_HASH',self.digest):
+            result=P.retain(self.root/'archive',self.root/'evidence.json',self.signals,self.out,self.source,
+                self.reservation,self.execute,qualification=self.qualification,capacity=self.capacity,preparation_log=log)
+        self.assertEqual((self.out/'input-preparation.log').read_bytes(),log.read_bytes())
+        self.assertEqual(result['artifacts_sha256']['input-preparation.log'],P.sha(log))

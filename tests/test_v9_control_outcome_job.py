@@ -27,6 +27,7 @@ class OutcomeJob(unittest.TestCase):
         self.C_prepare.side_effect=self.prepare
         self.U_publish.side_effect=lambda *a:(self.events.append('publish') or dict(status='RETAINED_COMMIT_FETCH_VERIFIED',commit=self.commit))
         self.capacity_calls=0
+        self.input_preparer=self.prepare_inputs
 
     def reserve(self,*a):
         self.events.append('reserve');return dict(reservation_commit=self.reservation,reservation_bytes=self.raw)
@@ -40,15 +41,18 @@ class OutcomeJob(unittest.TestCase):
         self.events.append('prepare');self.assertEqual((attempt/'reservation.json').read_bytes(),self.raw)
         return dict(commit=self.commit)
 
+    def prepare_inputs(self,md,evidence,signals,log):
+        self.events.append('inputs');md.mkdir();evidence.write_bytes(b'{}');signals.mkdir();log.write_bytes(b'input preparation complete')
+
     def cap(self):self.capacity_calls+=1;return {}
 
     def run_job(self):
         return J.run(self.repo,self.work,self.root/'md',self.root/'evidence',self.root/'signals',self.source,'123','1',
-                     self.qualification,'d'*64,object(),self.cap,('Synthetic','synthetic@example.invalid'))
+                     self.qualification,'d'*64,object(),self.cap,('Synthetic','synthetic@example.invalid'),self.input_preparer)
 
     def test_order_capacity_refresh_and_repeat_refusal(self):
         report=self.run_job();self.assertEqual(report['status'],'RETAINED_DIAGNOSTICS')
-        self.assertEqual(self.events,['checkout','reserve','fetch','execute','prepare','publish'])
+        self.assertEqual(self.events,['checkout','reserve','fetch','inputs','execute','prepare','publish'])
         self.assertEqual(self.capacity_calls,2)
         self.assertEqual(json.loads((self.work/'job.json').read_bytes()),report)
         with self.assertRaises(FileExistsError):self.run_job()
@@ -93,3 +97,18 @@ class OutcomeJob(unittest.TestCase):
                 with self.subTest(responses=responses),self.assertRaises(ValueError):REAL_CHECKOUT(self.repo,self.source)
         with patch.object(J.P,'ROOT',self.repo),patch.object(J,'git',side_effect=[self.source.encode(),b'',url,url]):
             REAL_CHECKOUT(self.repo,self.source)
+
+    def test_preparation_failure_retains_log_and_never_executes(self):
+        def fail(md,evidence,signals,log):
+            self.events.append('inputs');log.write_bytes(b'partial download');raise RuntimeError('preparation failed')
+        self.input_preparer=fail
+        report=self.run_job();self.assertEqual(report['status'],'FAILED_OR_PARTIAL_RETAINED')
+        self.P_retain.assert_not_called();self.U_publish.assert_called_once()
+        self.assertEqual((self.work/'attempt/input-preparation.log').read_bytes(),b'partial download')
+        self.assertFalse(json.loads((self.work/'attempt/preparation-failure.json').read_bytes())['execution_started'])
+        self.assertEqual(self.capacity_calls,1)
+
+    def test_preexisting_inputs_refused_before_reservation(self):
+        (self.root/'md').mkdir()
+        with self.assertRaisesRegex(FileExistsError,'after reservation'):self.run_job()
+        self.R_reserve.assert_not_called();self.assertEqual(self.events,[])

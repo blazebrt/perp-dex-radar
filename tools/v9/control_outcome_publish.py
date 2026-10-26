@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import re
 import sys
+import shutil
 
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT))
@@ -16,11 +17,14 @@ PROTOCOL='docs/v9/phase-a6-execution-inference.md'
 PUBLICATION='docs/v9/phase-a6-outcome-publication.md'
 
 
-def retain(md,evidence,signals,out,source_commit,reservation,execute=command,qualification=None,capacity=None):
+def retain(md,evidence,signals,out,source_commit,reservation,execute=command,qualification=None,capacity=None,preparation_log=None):
     out=Path(out).resolve()
     if out.exists():raise FileExistsError('preserve previous outcome attempt')
     if not re.fullmatch('[0-9a-f]{40}',source_commit):raise ValueError('full outcome source commit required')
-    for path in (md,evidence,signals,reservation)+((qualification,) if qualification is not None else ()):
+    extra=((qualification,) if qualification is not None else ())+((preparation_log,) if preparation_log is not None else ())
+    if preparation_log is not None and (Path(preparation_log).is_symlink() or not Path(preparation_log).is_file()):
+        raise ValueError('regular preparation log required')
+    for path in (md,evidence,signals,reservation)+extra:
         other=Path(path).resolve()
         if other==out or out in other.parents or other in out.parents:raise ValueError('attempt overlaps inputs')
     raw=Path(reservation).read_bytes();reserved=json.loads(raw)
@@ -34,6 +38,7 @@ def retain(md,evidence,signals,out,source_commit,reservation,execute=command,qua
         raise ValueError('resource qualification must be pinned in reservation')
     out.mkdir(parents=True)
     (out/'reservation.json').write_bytes(raw)
+    if preparation_log is not None:shutil.copyfile(preparation_log,out/'input-preparation.log')
     result=dict(schema='v9.a6-outcome-attempt/1',status='STARTED',source_commit=source_commit,
         input_commit=INPUT_COMMIT,input_manifest_sha256=INPUT_HASH,run_id=str(reserved['run_id']),run_attempt='1',
         reservation_sha256=sha(out/'reservation.json'),execution_protocol_sha256=required['execution_protocol_sha256'],
