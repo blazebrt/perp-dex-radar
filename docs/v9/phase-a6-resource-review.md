@@ -397,3 +397,25 @@ The report remains NOT_RESOURCE_QUALIFIED and no real study was reserved or run.
 The runner-image discrepancy recurred: setup logs report `20261012.334.1`, while
 captured ImageVersion is `20261023.334.3`. Provenance records both, with consistency
 false; this experiment does not resolve runtime identity qualification.
+
+## Service-managed startup accounting adapter (2026-10-27)
+
+`control_service_memory.py` adds a separate opt-in path using a transient systemd
+oneshot service. The manager launches the whole trusted command inside the service
+group; the Python migration bootstrap is not used. A fresh UUID unit is verified
+absent before launch; environment expansion is disabled, the executable is absolute,
+and no caller credentials/environment are forwarded. RemainAfterExit preserves
+properties for inspection, then only that unit is stopped and inactive/absent state
+is checked. Logs and service properties are retained for success, timeout and failure.
+
+This follows the [systemd-run documentation](https://www.freedesktop.org/software/systemd/man/latest/systemd-run.html):
+transient services are launched by the manager in a clean environment, and remain
+after exit permits later runtime inspection. An explicit oneshot start timeout is
+used; --wait is intentionally absent because it conflicts with remaining active.
+
+Five mocked tests verify command handling, properties and unavailable peaks, failed
+workloads/timeouts, cleanup refusal and invalid input. No service has been created
+locally or in Actions with this adapter. Hosted startup placement remains explicitly
+false until checked against workload receipts. Systemd/controller support and actual
+startup coverage still require a hosted pilot. Manager/orchestrator memory and
+workloads escaping the cgroup are excluded. Full resource qualification stays open.
