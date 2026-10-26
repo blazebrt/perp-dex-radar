@@ -335,3 +335,27 @@ memory.peak covers the group and descendants since creation or an applicable
 file-descriptor reset. A new isolated delegated group and verified workload
 placement are still needed for per-run accounting. Local Linux inspection found
 unified membership but no memory.peak at its current root group.
+
+## Opt-in isolated accounting runner (2026-10-27)
+
+`control_cgroup_run.run` accepts an explicit, already delegated non-root cgroup v2
+parent and a trusted synthetic command. It verifies the mount/controller, creates
+a unique child, requires empty membership, zero peak and clean event counters,
+and verifies bootstrap membership before exec. It never enables controllers or
+changes parent limits. Outcomes, bootstrap receipt, logs, kernel peak, OOM events
+and cleanup status are retained in a fresh output directory. Timeout/failure
+cleanup targets only the created group; an empty group is removed even if peak
+measurement is unavailable. Caller groups are never reused or removed.
+
+Six mocked lifecycle/bootstrap tests cover placement before exec, invalid inputs,
+fresh-group success, dirty-group refusal, unavailable peak cleanup, timeouts and
+OOM disposition. No real delegated group or hosted support has been verified;
+the runner is not connected to a workflow. These tests do not measure real kernel
+accounting. All reports remain resource_qualified=false.
+
+This is for trusted workloads, not adversarial containment. The outer observer,
+bootstrap allocations made before migration and workloads escaping the group are
+explicit exclusions. Controller accounting includes descendants that remain in
+the group, per the kernel documentation linked above. A hosted isolation check,
+complete-start accounting, bounded disk use, representative workload and reviewed
+environment/retention qualification remain necessary.
