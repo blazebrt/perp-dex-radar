@@ -299,3 +299,22 @@ Runner identity also remains unresolved: the setup log reports image
 `20261012.334.1`, while the captured ImageVersion is `20261023.334.3`. Both are
 recorded in provenance without selecting one as authoritative. Qualification
 must reconcile this discrepancy against an independently verified runner image.
+
+## Session-wide memory sampling (2026-10-27)
+
+The isolated observer now starts each synthetic worker in a private Linux session
+and samples the sum of RSS for its visible session members, including Git children.
+It preserves the original worker lifetime peak separately. Report schema /3 adds
+maximum sampled summed RSS, member count, scan-gap counts, unreadable entries and
+vanished processes. Process names containing spaces/parentheses are parsed safely;
+unrelated sessions are excluded. Global proc scan errors are conservatively
+reported even when membership cannot be established.
+
+This closes the worker-only visibility gap, not the qualification requirement.
+Summed RSS can count shared pages repeatedly; short-lived peaks and children that
+escape the session can be missed. The observer itself is excluded. Samples are
+non-atomic, and scan work adds overhead beyond the nominal sleep interval. These
+measurements are neither a combined physical-memory bound nor runtime enforcement.
+Existing /2 reports remain unchanged. New /3 measurements are still explicitly
+NOT_RESOURCE_QUALIFIED; bounded disk measurement, representative scale, dependency
+locking, runner identity and remote retention remain open.
