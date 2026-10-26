@@ -260,3 +260,20 @@ repeat immediately before executing. The guard is not a runtime monitor or an
 independent measurement auditor: qualification reports require independent review.
 All existing local reports are explicitly tested to fail. No qualifying report
 has been produced and no market workflow is activated.
+
+## Hosted synthetic pilot (2026-10-26)
+
+`.github/workflows/a6_resource_probe.yml` runs only on the research branch when
+that workflow changes (or by manual dispatch where supported). It has read-only
+repository permission, does not persist checkout credentials, and uses immutable
+action commits. The existing eight synthetic cases run with Python 3.10.12,
+NumPy 2.2.6, pandas 2.2.3 and numba 0.61.2. Source/run/image identity, resolved
+dependencies, logs and measurement hashes are retained as a 90-day artifact;
+the report is also printed in job logs. No market archive or outcome runner is used.
+
+This pilot does not provide a reviewed dependency lock or resource qualification.
+Transitive packages are resolved at installation and recorded. Process RSS is not
+combined process-tree memory, disk sampling remains a lower bound, and local Git
+retention does not test remote publication. Existing report exclusions remain
+unchanged even on a hosted runner. Inspect and preserve the hosted results before
+progressing to representative-scale measurement and independent qualification.
