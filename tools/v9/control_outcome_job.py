@@ -1,4 +1,4 @@
-"""Coordinate one reserved outcome job; no CLI or active workflow is installed.
+"""Coordinate one reserved outcome job; workflow activation remains external.
 
 Call from a pinned, clean checkout with an authenticated API client and a live
 capacity callback. Input preparation runs only after reservation verification.

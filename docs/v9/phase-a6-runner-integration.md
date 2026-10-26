@@ -1,0 +1,36 @@
+# A6 runner integration: inactive pending qualification
+
+`control_outcome_runner.py` connects the authenticated reservation API, the job
+coordinator and the immutable input adapter. No workflow references it yet.
+Do not activate it until independently reviewed representative hosted resource
+and publication qualification exists and matches the exact source commit.
+Environment checks prevent accidental misuse; they are not authentication or
+proof that a qualification report is truthful.
+
+The intended job uses ubuntu-24.04, hosted Linux/X64, a clean full checkout of
+`v9/census-evidence`, attempt one, and the fixed repository. Its Actions token
+needs contents-write access. Pass the reviewed report file and its independently
+pinned SHA-256, never a hash computed from an unreviewed report at launch.
+The report must be supplied separately from the source commit it qualifies.
+
+Capture an absolute deadline at job start, before checkout/install/preflight,
+within the actual configured timeout (at most 360 minutes). Pass that same
+Unix timestamp as `--deadline-epoch`; do not refresh it for later steps.
+The capacity callback subtracts current time on each check. Qualification must
+cover preparation, study, audits and retention. The existing preflight reserves
+40% of remaining time, but is not an enforced process deadline or resource cap.
+
+The CLI accepts `--qualification`, `--qualification-sha256` and
+`--deadline-epoch`. Source/run identity and token come from the runner environment.
+It creates a fresh `$RUNNER_TEMP/a6-outcome-<run_id>-1/`, with inputs separate from
+`job/`. Reuse is refused. It exits successfully only for retained diagnostics
+with reservation and publication verification; that status grants no strategy
+or net-return authority.
+
+The future workflow must always back up `job/` after failures, including when
+reservation creation may have succeeded but read-back failed. Preserve local
+commit objects if publication failed. A killed runner may leave only the remote
+reservation; recovery inspects it and never silently repeats the study. Evidence
+history recording and independent retained-result reconciliation remain required
+after the single application. No market attempt or hosted qualification is
+established by the mocked runner tests.
