@@ -108,3 +108,21 @@ This follows [pip's hash-checking installation requirements](https://pip.pypa.io
 The candidate remains separate from the inactive market workflow. Hosted success,
 independent review, image reconciliation and full resource/publication qualification
 are still needed; no approved lock or market authorization is implied by preparation.
+
+### Verified candidate run
+
+[Run 40497702104](https://github.com/blazebrt/perp-dex-radar/actions/runs/40497702104)
+at `a843e92abe81bd5a498e258617166f24472b16fa` passed the fresh offline install,
+complete 11-package inventory, dependency consistency, numerical imports and eight
+synthetic pipeline cases. Both artifact ZIP digests and every wheel size/hash were
+independently checked after download. The lock's SHA-256 is
+`07a46148d00b0416c05539451ec2fb7deca0e99f9c846ad3ccbb4c9e49a34475`.
+Original candidate files and measurement/provenance records are under
+`research/v9/a6_dependency_candidate*`. The 79 MB wheel artifact is retained by
+Actions until 2027-01-25; it is not committed as a binary payload in the source PR.
+
+This is a candidate for independent review, not the approved lock used by the
+inactive market workflow. Image metadata remains inconsistent between setup logs
+and runtime. Durable wheel storage, reviewed reuse and representative resource and
+remote-publication qualification remain open. The synthetic result grants no market
+study or promotion authority.

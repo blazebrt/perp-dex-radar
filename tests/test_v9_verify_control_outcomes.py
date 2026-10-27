@@ -19,9 +19,11 @@ class Verification(unittest.TestCase):
                 row.update(sha256=V.sha(path),bytes=path.stat().st_size)
         (self.f.out/'manifest.json').write_text(json.dumps(self.doc),encoding='utf8')
 
-    def pair_change(self,fn):
-        path=next(self.f.out.glob('0*.jsonl.gz'))
-        rows=list(V.pair_records(self.f.out,[path.name],self.doc))
+    def pair_change(self,fn,required_status=None):
+        for path in sorted(self.f.out.glob('0*.jsonl.gz')):
+            rows=list(V.pair_records(self.f.out,[path.name],self.doc))
+            if required_status is None or any(r['pair_status']==required_status for r in rows):break
+        else:self.fail('no shard contains the required pair status')
         fn(rows)
         path.write_bytes(gzip.compress((''.join(json.dumps(W.pack(r))+'\n' for r in rows)).encode()))
         self.rehash(path)
@@ -58,9 +60,9 @@ class Verification(unittest.TestCase):
         self.bindings={k:self.doc[k] for k in self.bindings}
         self.verify()
         def change(rows):
-            self.assertEqual(rows[0]['pair_status'],'PRICE_PAIR_OBSERVED')
-            rows[0]['control_mean_price_R']=999
-        self.pair_change(change)
+            observed=next(r for r in rows if r['pair_status']=='PRICE_PAIR_OBSERVED')
+            observed['control_mean_price_R']=999
+        self.pair_change(change,required_status='PRICE_PAIR_OBSERVED')
         with self.assertRaises(ValueError):self.verify()
 
     def test_summary_counts_and_inference_rejected(self):
