@@ -1,6 +1,8 @@
 import tempfile
 import hashlib
 import json
+from email.message import Message
+from types import SimpleNamespace
 from pathlib import Path
 import unittest
 from unittest.mock import patch
@@ -15,10 +17,13 @@ class Runner(unittest.TestCase):
             GITHUB_EVENT_NAME='workflow_dispatch',GITHUB_SHA='a'*40,GITHUB_RUN_ID='123',GITHUB_TOKEN='synthetic-token',RUNNER_TEMP=str(self.root),ImageVersion='synthetic-image')
         self.qualification=self.root/'qualification.json'
         self.report=dict(schema='v9.a6-resource-qualification/1',source_commit='a'*40,runner_profile=R.PROFILE,
-                         python_version=R.sys.version.split()[0],runner_image_version='synthetic-image')
+                         python_version=R.sys.version.split()[0],runner_image_version='synthetic-image',
+                         installed_distributions={'synthetic-package':'1.0'})
         self.qualification.write_bytes(json.dumps(self.report).encode())
         self.digest=hashlib.sha256(self.qualification.read_bytes()).hexdigest()
         platform=patch.object(R.sys,'platform','linux');platform.start();self.addCleanup(platform.stop)
+        inventory=patch.object(R,'installed_distributions',return_value={'synthetic-package':'1.0'})
+        inventory.start();self.addCleanup(inventory.stop)
 
     def test_environment_source_trigger_and_rerun_refused(self):
         R.validate(self.env,1100,1000)
@@ -54,6 +59,7 @@ class Runner(unittest.TestCase):
 
     def test_runtime_mismatch_refuses_before_api_or_workspace(self):
         for key in self.report:
+            if key=='installed_distributions':continue
             report=dict(self.report);report[key]='wrong'
             raw=json.dumps(report).encode();self.qualification.write_bytes(raw)
             with self.subTest(key=key),patch.object(R.time,'time',return_value=1000),patch.object(R,'GitHubReservationAPI') as api,patch.object(R.J,'run') as job:
@@ -61,6 +67,20 @@ class Runner(unittest.TestCase):
                     R.run(self.env,self.qualification,hashlib.sha256(raw).hexdigest(),1100)
                 api.assert_not_called();job.assert_not_called()
                 self.assertFalse((self.root/'a6-outcome-123-1').exists())
+
+    def test_dependency_drift_refuses_before_api_and_workspace(self):
+        for inventory in ({},{'synthetic-package':'2.0'},{'synthetic-package':'1.0','extra':'1'}):
+            with self.subTest(inventory=inventory),patch.object(R.time,'time',return_value=1000),patch.object(R,'installed_distributions',return_value=inventory),patch.object(R,'GitHubReservationAPI') as api,patch.object(R.J,'run') as job:
+                with self.assertRaisesRegex(ValueError,'inventory mismatch'):
+                    R.run(self.env,self.qualification,self.digest,1100)
+                api.assert_not_called();job.assert_not_called()
+                self.assertFalse((self.root/'a6-outcome-123-1').exists())
+
+    def test_missing_or_noncanonical_reviewed_inventory_refused(self):
+        for inventory in (None,{},[],{'Some_Package':'1'},{'package':True},{'package':' 1'}):
+            report=dict(self.report);report['installed_distributions']=inventory
+            raw=json.dumps(report).encode()
+            with self.assertRaises(ValueError):R.verify_runtime(raw,hashlib.sha256(raw).hexdigest(),self.env)
 
     def test_missing_image_claim_and_changed_reviewed_bytes_refuse(self):
         raw=self.qualification.read_bytes()
@@ -85,3 +105,25 @@ class Runner(unittest.TestCase):
         with patch.object(R,'run',side_effect=RuntimeError('synthetic-secret')),patch('builtins.print') as output:
             self.assertEqual(R.main(['--qualification','report','--qualification-sha256','b'*64,'--deadline-epoch','1100']),1)
             self.assertNotIn('synthetic-secret',str(output.call_args))
+
+
+class DistributionInventory(unittest.TestCase):
+    def distribution(self,name,version):
+        message=Message()
+        if name is not None:message['Name']=name
+        if version is not None:message['Version']=version
+        return SimpleNamespace(metadata=message)
+
+    def test_normalized_inventory(self):
+        rows=[self.distribution('Some__Package','1.0'),self.distribution('Another.pkg','2.1')]
+        with patch.object(R.metadata,'distributions',return_value=rows):
+            self.assertEqual(R.installed_distributions(),{'another-pkg':'2.1','some-package':'1.0'})
+
+    def test_ambiguous_missing_duplicate_and_empty_metadata_refused(self):
+        duplicate=self.distribution('package','1');duplicate.metadata['Name']='another'
+        cases=[[],[duplicate],[self.distribution(None,'1')],[self.distribution('pkg',None)],
+               [self.distribution('some_pkg','1'),self.distribution('some-pkg','1')],
+               [self.distribution('bad/name','1')],[self.distribution('pkg',' 1')]]
+        for rows in cases:
+            with self.subTest(rows=rows),patch.object(R.metadata,'distributions',return_value=rows),self.assertRaises(ValueError):
+                R.installed_distributions()

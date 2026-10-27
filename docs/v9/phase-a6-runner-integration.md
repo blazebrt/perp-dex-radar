@@ -67,8 +67,25 @@ requires the supported qualification schema, exact source commit, hosted runner
 profile, current Python version and nonempty matching ImageVersion. Direct calls
 cannot bypass these checks by skipping the inactive workflow's setup step.
 
-This does not attest the image independently or verify installed dependencies.
+This does not attest the image independently or verify installed-file integrity.
 The workflow's reviewed hash-locked installation and full resource preflight remain
 required. The observed setup-log/environment image discrepancy is unresolved; no
 qualifying report is created by this change. Mismatch tests verify refusal before
 API construction, job execution and workspace creation.
+
+## Installed package version inventory
+
+The reviewed qualification report must also include `installed_distributions`, a
+nonempty object mapping normalized package names to exact installed version strings.
+Capture the complete visible environment during qualification, including installer
+and tooling distributions. Names use lowercase with runs of dots, underscores and
+hyphens normalized to a single hyphen. The runner compares this inventory with
+`importlib.metadata.distributions()` before reservation setup. Missing, extra,
+changed, duplicate and ambiguous metadata refuse execution; there is no subset or
+best-effort acceptance. The map is covered by the independently reviewed report hash.
+
+This detects version drift, not tampered package files or import-path shadowing.
+Hash-required installation and an independently reviewed environment remain required.
+Do not invent an approved inventory from the current pilot: transitive dependency
+locking and image reconciliation are still incomplete. Synthetic tests alone do not
+qualify the environment or authorize a study.

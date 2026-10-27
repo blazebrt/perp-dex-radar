@@ -2,6 +2,7 @@
 import argparse
 from functools import partial
 import hashlib
+from importlib import metadata
 import json
 import os
 from pathlib import Path
@@ -55,7 +56,8 @@ def verify_runtime(raw,expected_hash,env):
     """Bind runtime checks to the reviewed bytes before any reservation API exists.
 
     ImageVersion is a supplied runner claim, not independent image attestation.
-    Dependency installation and full resource qualification remain separate gates.
+    Version inventory is checked below; file integrity and full resource
+    qualification remain separate gates.
     """
     if hashlib.sha256(raw).hexdigest()!=expected_hash:
         raise ValueError('runtime qualification hash mismatch')
@@ -73,6 +75,32 @@ def verify_runtime(raw,expected_hash,env):
                   runner_image_version=env.get('ImageVersion'))
     if any(type(value) is not str or not value or report.get(key)!=value for key,value in required.items()):
         raise ValueError('qualified source or runtime mismatch')
+    expected=report.get('installed_distributions')
+    if type(expected) is not dict or not expected or any(
+        type(name) is not str or re.fullmatch('[a-z0-9]+(?:-[a-z0-9]+)*',name) is None
+        or type(version) is not str or not version or version.strip()!=version
+        for name,version in expected.items()):
+        raise ValueError('reviewed installed-distribution inventory required')
+    if expected!=installed_distributions():
+        raise ValueError('installed dependency inventory mismatch')
+
+
+def installed_distributions():
+    """Inventory visible metadata; this is version drift detection, not file attestation."""
+    result={}
+    for distribution in metadata.distributions():
+        names=distribution.metadata.get_all('Name') or []
+        versions=distribution.metadata.get_all('Version') or []
+        if len(names)!=1 or len(versions)!=1:
+            raise ValueError('ambiguous installed distribution metadata')
+        name,version=names[0],versions[0]
+        if not re.fullmatch('[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?',name) or not version or version.strip()!=version:
+            raise ValueError('invalid installed distribution metadata')
+        name=re.sub('[-_.]+','-',name).lower()
+        if name in result:raise ValueError('duplicate installed distribution')
+        result[name]=version
+    if not result:raise ValueError('installed distribution inventory unavailable')
+    return dict(sorted(result.items()))
 
 
 def exit_code(report):
