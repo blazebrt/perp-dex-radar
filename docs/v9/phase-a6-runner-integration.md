@@ -89,3 +89,22 @@ Hash-required installation and an independently reviewed environment remain requ
 Do not invent an approved inventory from the current pilot: transitive dependency
 locking and image reconciliation are still incomplete. Synthetic tests alone do not
 qualify the environment or authorize a study.
+
+## Candidate lock generation and hosted validation
+
+The read-only `a6_dependency_probe.yml` workflow resolves wheel-only candidates for
+the existing numerical stack plus explicitly selected pip/setuptools/wheel versions.
+`control_dependency_lock.py` reads bounded wheel metadata and records SHA-256 for
+every wheel, emitting a fully pinned `requirements.lock` and manifest. These hashes
+bind downloaded bytes; they do not establish publisher trust or independent approval.
+
+The hosted probe installs from the retained local wheels into a fresh virtual
+environment using `--no-index --require-hashes --only-binary=:all:` and forced
+reinstallation. It checks dependencies, exact complete package inventory and numerical
+imports, then runs the eight synthetic scenarios. Wheel and diagnostic artifacts are
+retained separately for review, including on failure. No source distributions are built.
+This follows [pip's hash-checking installation requirements](https://pip.pypa.io/en/stable/topics/secure-installs/).
+
+The candidate remains separate from the inactive market workflow. Hosted success,
+independent review, image reconciliation and full resource/publication qualification
+are still needed; no approved lock or market authorization is implied by preparation.
