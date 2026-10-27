@@ -430,8 +430,8 @@ match the service group, and their peaks cannot exceed the final service peak.
 
 Startup placement relies on the service-manager launch contract plus in-workload
 membership receipts; it is not an independent kernel trace of interpreter startup.
-The manager and outer orchestrator are excluded. Hosted results are pending, and
-the report remains unqualified for full-study resource budgets.
+The manager and outer orchestrator are excluded. Hosted attempts are recorded below;
+the reports remain unqualified for full-study resource budgets.
 
 ### Service pilot attempt 1: retained failure
 
@@ -446,6 +446,29 @@ No measurement checksum file was produced before failure; provenance records tha
 absence and the measurement's hash from the verified ZIP. No success is inferred.
 
 The revised holder/collector handshake captures counters before the group empties.
-A new synthetic pilot will use a new workflow run; it does not replace this failed
-attempt or constitute a market-study retry. Runtime identity discrepancies and
+The corrected synthetic pilot used a distinct workflow run; it does not replace this
+failed attempt or constitute a market-study retry. Runtime identity discrepancies and
 full-study resource qualification remain unresolved.
+
+## Corrected hosted service pilot
+
+[Run 40458892344](https://github.com/blazebrt/perp-dex-radar/actions/runs/40458892344)
+at source `242fd30e47ffa7c912c49506d4fc2a5462f904a4` succeeded. Artifact
+`12713547882` has verified ZIP SHA-256
+`206a41cbb553eb15562ebee52e956c6ce8eb1990d77f891742dd83f176e1e048`;
+the embedded measurement checksum also matches. Unchanged measurements and provenance
+are retained as `research/v9/a6_hosted_service_attempt2*.json`; attempt 1 is preserved.
+
+All eight synthetic scenarios completed as expected: six normal audits and two retained
+intentional failures, with eight local Git byte verifications. Both workload membership
+snapshots match the transient service. The final kernel peak and live service peak agree
+at **90,574,848 bytes**; adapter elapsed time was **22.791 seconds**, all captured memory
+events were zero, and the service was inactive/absent after cleanup.
+
+The correction is hosted-verified for its disclosed scope: workload completion before
+holder shutdown. Startup placement relies on the manager launch contract and in-workload
+receipts, not an independent startup trace. Manager/orchestrator memory and the shutdown
+tail remain excluded. This is not a whole-job bound or representative-scale qualification.
+Disk sampling, dependency locking, remote retention and runtime reconciliation remain open:
+setup logs again report image 20261012.334.1 while the environment reports 20261023.334.3.
+No market inputs, reservation, evidence-history record or promotion authority were created.
