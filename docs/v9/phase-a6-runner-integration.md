@@ -57,3 +57,18 @@ image/dependencies during qualification before installing/activating the templat
 Moving the template changes the source commit; qualification must cover the exact
 final source used for the single attempt. Activation and source-pinning review
 remain unresolved until that sequence is established.
+
+## Entry-point runtime binding
+
+The runner itself now checks the independently supplied qualification hash before
+constructing its reservation API client or creating the fresh workspace. It parses
+the reviewed JSON strictly (duplicate keys and nonfinite values refused), then
+requires the supported qualification schema, exact source commit, hosted runner
+profile, current Python version and nonempty matching ImageVersion. Direct calls
+cannot bypass these checks by skipping the inactive workflow's setup step.
+
+This does not attest the image independently or verify installed dependencies.
+The workflow's reviewed hash-locked installation and full resource preflight remain
+required. The observed setup-log/environment image discrepancy is unresolved; no
+qualifying report is created by this change. Mismatch tests verify refusal before
+API construction, job execution and workspace creation.

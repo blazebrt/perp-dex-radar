@@ -1,6 +1,7 @@
 """Guarded hosted-runner entry point; no workflow is activated by this module."""
 import argparse
 from functools import partial
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -37,6 +38,7 @@ def run(env,qualification,qualification_hash,deadline):
     if not re.fullmatch('[0-9a-f]{64}',qualification_hash):raise ValueError('reviewed qualification hash required')
     qualification=Path(qualification).resolve()
     if not qualification.is_file():raise ValueError('qualification report required')
+    verify_runtime(qualification.read_bytes(),qualification_hash,env)
     api=GitHubReservationAPI(env['GITHUB_TOKEN'])
     scratch=Path(env['RUNNER_TEMP']).resolve()/('a6-outcome-'+env['GITHUB_RUN_ID']+'-1')
     scratch.mkdir(exist_ok=False)
@@ -47,6 +49,30 @@ def run(env,qualification,qualification_hash,deadline):
     return J.run(ROOT,scratch/'job',scratch/'archive',scratch/'phase-b.json',scratch/'signals',
         env['GITHUB_SHA'],env['GITHUB_RUN_ID'],'1',qualification,qualification_hash,api,capacity,
         ('perp-dex-radar','actions@users.noreply.github.com'),partial(I.prepare,ROOT))
+
+
+def verify_runtime(raw,expected_hash,env):
+    """Bind runtime checks to the reviewed bytes before any reservation API exists.
+
+    ImageVersion is a supplied runner claim, not independent image attestation.
+    Dependency installation and full resource qualification remain separate gates.
+    """
+    if hashlib.sha256(raw).hexdigest()!=expected_hash:
+        raise ValueError('runtime qualification hash mismatch')
+    def unique(items):
+        result={}
+        for key,value in items:
+            if key in result:raise ValueError('duplicate runtime qualification key')
+            result[key]=value
+        return result
+    def invalid(value):raise ValueError('nonfinite runtime qualification value')
+    report=json.loads(raw,object_pairs_hook=unique,parse_constant=invalid)
+    if type(report) is not dict:raise ValueError('runtime qualification object required')
+    required=dict(schema='v9.a6-resource-qualification/1',source_commit=env['GITHUB_SHA'],
+                  runner_profile=PROFILE,python_version=sys.version.split()[0],
+                  runner_image_version=env.get('ImageVersion'))
+    if any(type(value) is not str or not value or report.get(key)!=value for key,value in required.items()):
+        raise ValueError('qualified source or runtime mismatch')
 
 
 def exit_code(report):
