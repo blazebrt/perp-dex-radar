@@ -472,3 +472,25 @@ tail remain excluded. This is not a whole-job bound or representative-scale qual
 Disk sampling, dependency locking, remote retention and runtime reconciliation remain open:
 setup logs again report image 20261012.334.1 while the environment reports 20261023.334.3.
 No market inputs, reservation, evidence-history record or promotion authority were created.
+
+## Live capacity respects ancestor limits
+
+The preflight previously used only host `MemAvailable`. A job can have less usable
+memory because its current cgroup or any ancestor has a hard limit shared with
+other processes. The live reader now takes the minimum of host availability and
+`max(0, memory.max - memory.current)` for every visible non-root ancestor, retaining
+the raw limit/usage/headroom receipts. Unlimited groups add no extra constraint;
+the root uses host availability. No swap or expected reclaim is credited.
+
+This follows the hierarchical limits documented in the
+[kernel cgroup v2 reference](https://docs.kernel.org/admin-guide/cgroup-v2.html).
+The reader requires unified-only membership and a full-root cgroup2 mount, rejects
+missing or malformed counters, and checks that membership stayed unchanged during
+collection. Tests cover ancestor/sibling pressure, exhausted limits, unlimited/root
+groups and invalid inputs. A synthetic case that passed with host-only capacity now
+fails the existing two-times memory-headroom gate under its ancestor limit.
+
+This is a conservative snapshot of visible capacity, not a memory reservation.
+Concurrent usage and limits can change, and namespace/host identity still requires
+the independently qualified hosted environment. It does not qualify sampled disk,
+small synthetic scale or remote publication, and does not authorize the market run.

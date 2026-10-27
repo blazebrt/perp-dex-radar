@@ -2,6 +2,8 @@ import copy
 import hashlib
 import json
 import unittest
+from pathlib import Path
+import tempfile
 from tools.v9 import control_resource_gate as G
 
 
@@ -60,3 +62,63 @@ class ResourceGate(unittest.TestCase):
             raw=(root/name).read_bytes()
             with self.subTest(name=name),self.assertRaises(ValueError):
                 G.verify(raw,hashlib.sha256(raw).hexdigest(),'a'*40,'b'*64,'c'*64,capacity())
+
+
+class MemoryCapacity(unittest.TestCase):
+    def setUp(self):
+        self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup)
+        self.root=Path(self.tmp.name);self.proc=self.root/'proc';self.mount=self.root/'cgroup'
+        (self.proc/'self').mkdir(parents=True);(self.mount/'parent/job').mkdir(parents=True)
+        (self.proc/'meminfo').write_text('MemAvailable: 1000 kB\n')
+        (self.proc/'self/cgroup').write_text('0::/parent/job\n')
+        (self.proc/'self/mountinfo').write_text('1 0 0:1 / '+str(self.mount)+' rw - cgroup2 cgroup rw\n')
+        for name in ('parent','parent/job'):
+            (self.mount/name/'memory.max').write_text('max\n')
+            (self.mount/name/'memory.current').write_text('100\n')
+
+    def read(self):return G.memory_capacity(self.proc,self.mount)
+
+    def test_ancestor_and_sibling_usage_limit_the_child(self):
+        (self.mount/'parent/memory.max').write_text('1000')
+        (self.mount/'parent/memory.current').write_text('850')
+        (self.mount/'parent/job/memory.max').write_text('800')
+        result=self.read()
+        self.assertEqual(result['available_memory_bytes'],150)
+        self.assertEqual(result['host_available_memory_bytes'],1024000)
+        self.assertEqual([r['headroom_bytes'] for r in result['cgroup_memory_limits']],[700,150])
+        cap=capacity();cap.update(result)
+        with self.assertRaisesRegex(ValueError,'memory budget'):
+            ResourceGate().verify(cap=cap)
+
+    def test_host_and_unlimited_groups_and_root(self):
+        self.assertEqual(self.read()['available_memory_bytes'],1024000)
+        (self.proc/'self/cgroup').write_text('0::/\n')
+        result=self.read();self.assertEqual(result['available_memory_bytes'],1024000)
+        self.assertEqual(result['cgroup_memory_limits'],[])
+
+    def test_exhausted_and_over_limit_never_become_negative(self):
+        for value in ('0','100','99'):
+            (self.mount/'parent/job/memory.max').write_text(value)
+            self.assertEqual(self.read()['available_memory_bytes'],0)
+
+    def test_missing_and_malformed_counters_fail_closed(self):
+        target=self.mount/'parent/memory.max'
+        for value in ('-1','1.0','NaN','MAX',''):
+            target.write_text(value)
+            with self.assertRaises(ValueError):self.read()
+        target.unlink()
+        with self.assertRaises(OSError):self.read()
+
+    def test_ambiguous_membership_hidden_root_and_bad_host_data_refuse(self):
+        target=self.proc/'self/cgroup'
+        for value in ('0::/parent/job\n0::/parent\n','1:memory:/parent\n0::/parent/job\n','0::/../escape\n'):
+            target.write_text(value)
+            with self.assertRaises(ValueError):self.read()
+        target.write_text('0::/parent/job\n')
+        info=self.proc/'self/mountinfo';original=info.read_text()
+        info.write_text(original.replace('0:1 / ','0:1 /hidden '))
+        with self.assertRaises(ValueError):self.read()
+        info.write_text(original)
+        for value in ('MemAvailable: 1 MB\n','MemAvailable: -1 kB\n','MemAvailable: 1 kB\nMemAvailable: 2 kB\n'):
+            (self.proc/'meminfo').write_text(value)
+            with self.assertRaises(ValueError):self.read()

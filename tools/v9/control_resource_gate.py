@@ -3,7 +3,7 @@ import argparse
 import hashlib
 import json
 import re
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import shutil
 import sys
 
@@ -52,11 +52,51 @@ def verify(raw,expected_sha,source_commit,input_hash,protocol_hash,capacity):
                 source_commit=source_commit,capacity=capacity,upper_bounds=measured,promotion_authority=False)
 
 
+def memory_capacity(proc=Path('/proc'),mount=Path('/sys/fs/cgroup')):
+    """Conservative snapshot for a hosted, full-root cgroup-v2 environment.
+
+    Ancestor usage includes siblings. No reclaim or swap capacity is credited.
+    This snapshot does not reserve memory or establish host/namespace identity.
+    """
+    proc=Path(proc);mount=Path(mount)
+    rows=[line.split(':',1)[1].strip().split() for line in (proc/'meminfo').read_text().splitlines()
+          if line.startswith('MemAvailable:')]
+    require(len(rows)==1 and len(rows[0])==2 and rows[0][1]=='kB'
+            and re.fullmatch('[0-9]+',rows[0][0]) is not None,'available-memory units unavailable')
+    host=int(rows[0][0])*1024
+    groups=(proc/'self/cgroup').read_text().splitlines()
+    require(len(groups)==1 and groups[0].startswith('0::'),'unified-only cgroup membership required')
+    group=groups[0][3:];parts=PurePosixPath(group).parts
+    require(group.startswith('/') and '..' not in parts and '\\' not in group and '\x00' not in group,
+            'unsafe cgroup membership')
+    matches=[]
+    for line in (proc/'self/mountinfo').read_text().splitlines():
+        left,sep,right=line.partition(' - ');fields=left.split();tail=right.split()
+        if sep and len(fields)>=6 and tail and tail[0]=='cgroup2' and fields[4]==str(mount):
+            matches.append(fields)
+    require(len(matches)==1 and matches[0][3]=='/','full-root cgroup2 mount required')
+    base=mount.resolve(); current=base/group.lstrip('/')
+    require(current.resolve()==current and current.is_dir(),'unsafe or missing cgroup directory')
+    available=host;limits=[]
+    while current!=base:
+        raw=(current/'memory.max').read_text().strip()
+        usage=(current/'memory.current').read_text().strip()
+        require(re.fullmatch('[0-9]+',usage) is not None,'invalid cgroup memory usage')
+        require(raw=='max' or re.fullmatch('[0-9]+',raw) is not None,'invalid cgroup memory limit')
+        limit=None if raw=='max' else int(raw)
+        headroom=None if limit is None else max(0,limit-int(usage))
+        if headroom is not None:available=min(available,headroom)
+        limits.append(dict(group='/'+current.relative_to(base).as_posix(),limit_bytes=limit,
+                           current_bytes=int(usage),headroom_bytes=headroom))
+        current=current.parent
+    require((proc/'self/cgroup').read_text().splitlines()==groups,'cgroup membership changed during snapshot')
+    return dict(available_memory_bytes=available,host_available_memory_bytes=host,
+                cgroup_memory_limits=limits,memory_capacity_scope='CURRENT_GROUP_AND_VISIBLE_ANCESTORS_SNAPSHOT')
+
+
 def live_capacity(path,runner_profile,remaining_seconds):
     require(sys.platform.startswith('linux'),'Linux capacity snapshot required')
-    fields={line.split(':',1)[0]:line.split(':',1)[1].strip().split() for line in Path('/proc/meminfo').read_text().splitlines()}
-    require(fields.get('MemAvailable',[None,None])[1]=='kB','available-memory units unavailable')
-    return dict(runner_profile=runner_profile,available_memory_bytes=int(fields['MemAvailable'][0])*1024,
+    return dict(runner_profile=runner_profile,**memory_capacity(),
                 free_disk_bytes=shutil.disk_usage(path).free,remaining_seconds=remaining_seconds)
 
 
