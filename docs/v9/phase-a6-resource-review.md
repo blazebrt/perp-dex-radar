@@ -400,25 +400,23 @@ false; this experiment does not resolve runtime identity qualification.
 
 ## Service-managed startup accounting adapter (2026-10-27)
 
-`control_service_memory.py` adds a separate opt-in path using a transient systemd
-oneshot service. The manager launches the whole trusted command inside the service
-group; the Python migration bootstrap is not used. A fresh UUID unit is verified
-absent before launch; environment expansion is disabled, the executable is absolute,
-and no caller credentials/environment are forwarded. RemainAfterExit preserves
-properties for inspection, then only that unit is stopped and inactive/absent state
-is checked. Logs and service properties are retained for success, timeout and failure.
+`control_service_memory.py` runs a trusted synthetic workload in a transient
+systemd exec service. The manager starts a Python holder inside the service group;
+the holder launches the workload, atomically writes its exit receipt, then waits
+for the collector. The collector reads properties while the group is populated,
+releases the holder and stops only the generated unit. Fresh-unit absence,
+explicit argument handling, workload exit and inactive/absent cleanup are checked.
+Logs, receipts and properties are retained on failure. No caller environment or
+credentials are forwarded. The [systemd-run documentation](https://www.freedesktop.org/software/systemd/man/latest/systemd-run.html)
+describes manager-launched services and runtime inspection.
 
-This follows the [systemd-run documentation](https://www.freedesktop.org/software/systemd/man/latest/systemd-run.html):
-transient services are launched by the manager in a clean environment, and remain
-after exit permits later runtime inspection. An explicit oneshot start timeout is
-used; --wait is intentionally absent because it conflicts with remaining active.
-
-Five mocked tests verify command handling, properties and unavailable peaks, failed
-workloads/timeouts, cleanup refusal and invalid input. No service has been created
-locally or in Actions with this adapter. Hosted startup placement remains explicitly
-false until checked against workload receipts. Systemd/controller support and actual
-startup coverage still require a hosted pilot. Manager/orchestrator memory and
-workloads escaping the cgroup are excluded. Full resource qualification stays open.
+The original oneshot approach retained the unit but lost its empty cgroup and
+MemoryPeak on the hosted runner; attempt 1 is preserved below. Schema /2 explicitly
+scopes the peak THROUGH_WORKLOAD_COMPLETION_BEFORE_HOLDER_SHUTDOWN. Holder shutdown,
+manager/orchestrator memory and escaped workloads are excluded. It is not a whole
+job resource bound. Six tests cover mocked service lifecycle/failures and a real
+local holder that stays alive after its child exits until the collector releases it.
+Hosted startup verification and full resource qualification remain separate gates.
 
 ## Hosted service-startup pilot preparation (2026-10-27)
 
@@ -434,3 +432,20 @@ Startup placement relies on the service-manager launch contract plus in-workload
 membership receipts; it is not an independent kernel trace of interpreter startup.
 The manager and outer orchestrator are excluded. Hosted results are pending, and
 the report remains unqualified for full-study resource budgets.
+
+### Service pilot attempt 1: retained failure
+
+Run [40413541548](https://github.com/blazebrt/perp-dex-radar/actions/runs/40413541548)
+at `cda2b30b06c7dc69b37b869ae48f6b342473f163` completed all eight synthetic cases,
+but failed service verification. After the oneshot exited, ControlGroup was empty
+and MemoryPeak was [not set], although the unit remained active/exited. Cleanup
+was verified. This disproved the assumption that retaining the exited unit also
+retains its kernel peak on this runner. The ZIP digest was verified; the original
+measurement and provenance are retained as `a6_hosted_service_attempt1*.json`.
+No measurement checksum file was produced before failure; provenance records that
+absence and the measurement's hash from the verified ZIP. No success is inferred.
+
+The revised holder/collector handshake captures counters before the group empties.
+A new synthetic pilot will use a new workflow run; it does not replace this failed
+attempt or constitute a market-study retry. Runtime identity discrepancies and
+full-study resource qualification remain unresolved.

@@ -9,8 +9,8 @@ from tools.v9 import control_service_memory as S
 
 class ServiceMemory(unittest.TestCase):
     def data(self,unit):
-        return dict(LoadState='loaded',ActiveState='active',SubState='exited',Result='success',
-                    ExecMainCode='1',ExecMainStatus='0',MemoryAccounting='yes',MemoryPeak='1048576',
+        return dict(LoadState='loaded',ActiveState='active',SubState='running',Result='success',
+                    ExecMainCode='0',ExecMainStatus='0',MemoryAccounting='yes',MemoryPeak='1048576',
                     ControlGroup='/system.slice/'+unit)
 
     def test_properties_reject_missing_duplicate_and_unavailable_peak(self):
@@ -28,11 +28,12 @@ class ServiceMemory(unittest.TestCase):
             seen.append(args);rc=0;raw='systemd test\n'
             if args[0]=='systemd-run' and '--version' not in args:
                 self.assertIn('--expand-environment=no',args)
-                self.assertIn('--service-type=oneshot',args)
+                self.assertIn('--service-type=exec',args)
                 self.assertIn('--remain-after-exit',args)
                 self.assertNotIn('--wait',args)
                 self.assertNotIn('--scope',args)
                 if mode=='timeout':raise S.subprocess.TimeoutExpired(args,1)
+                (root/'out/completed.json').write_text(json.dumps({'exit_code':7 if mode=='failure' else 0}))
             elif args[0]=='systemctl' and 'show' in args:
                 if args[-1]=='--property=LoadState' and '--property=ActiveState' not in args:
                     raw='LoadState=not-found\n';rc=1
@@ -40,7 +41,6 @@ class ServiceMemory(unittest.TestCase):
                     raw='ActiveState='+('active' if mode=='cleanup' else 'inactive')+'\nLoadState=loaded\n'
                 else:
                     data=self.data(args[2])
-                    if mode=='failure':data.update(Result='exit-code',ExecMainStatus='7',ActiveState='failed',SubState='failed')
                     raw='\n'.join(k+'='+v for k,v in data.items())+'\n'
             stdout.write(raw.encode());stdout.flush()
             return SimpleNamespace(returncode=rc)
@@ -77,3 +77,18 @@ class ServiceMemory(unittest.TestCase):
             for command,timeout in [(['python'],1),([],1),(['/usr/bin/python3'],True)]:
                 with self.assertRaises(ValueError):S.run(command,root,root/'out',timeout)
             invoke.assert_not_called();self.assertFalse((root/'out').exists())
+
+    @unittest.skipUnless(S.sys.platform.startswith('linux'),'Linux subprocess holder')
+    def test_real_holder_keeps_running_until_collector_releases_it(self):
+        import subprocess,sys,time
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);done=root/'done.json';release=root/'release'
+            child=subprocess.Popen([sys.executable,str(Path(S.__file__).resolve()),'--hold',str(done),str(release),'5',sys.executable,'-c','raise SystemExit(7)'])
+            try:
+                deadline=time.monotonic()+5
+                while not done.exists() and time.monotonic()<deadline:time.sleep(.02)
+                self.assertEqual(json.loads(done.read_text()),{'exit_code':7})
+                self.assertIsNone(child.poll())
+                release.touch();self.assertEqual(child.wait(timeout=5),7)
+            finally:
+                if child.poll() is None:child.kill();child.wait()

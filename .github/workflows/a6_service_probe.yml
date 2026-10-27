@@ -50,7 +50,8 @@ jobs:
           set -euo pipefail
           python -m pip install numpy==2.2.6 pandas==2.2.3 numba==0.61.2 2>&1 | tee "$RUNNER_TEMP/a6-pilot/install.log"
           python -m pip freeze --all > "$RUNNER_TEMP/a6-pilot/dependencies.txt"
-      - name: Measure synthetic pipeline from service startup
+      # Keep the service populated until counters are captured; retain attempt 1 separately.
+      - name: Measure synthetic pipeline before service holder exits
         shell: bash
         run: |
           set -euo pipefail

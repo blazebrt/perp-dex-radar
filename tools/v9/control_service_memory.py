@@ -27,9 +27,23 @@ def validate_result(data,unit):
     value=data['MemoryPeak']
     if not re.fullmatch('[0-9]+',value) or not 0<int(value)<2**64-1:
         raise ValueError('missing or invalid peak')
-    if (data['ActiveState'],data['SubState'],data['Result'],data['ExecMainCode'],data['ExecMainStatus'])!=('active','exited','success','1','0'):
-        raise ValueError('workload did not complete successfully')
+    if (data['ActiveState'],data['SubState'],data['Result'])!=('active','running','success'):
+        raise ValueError('measurement holder is not running')
     return int(value)
+
+
+def hold(command,done,release,timeout):
+    """Keep the service cgroup populated until the outer collector finishes reading."""
+    completed=subprocess.run(command,check=False,timeout=timeout)
+    # Rename gives the collector a complete receipt, not a partially written JSON file.
+    temporary=done.with_suffix('.tmp')
+    with temporary.open('x') as stream:json.dump({'exit_code':completed.returncode},stream)
+    temporary.rename(done)
+    deadline=time.monotonic()+60
+    while not release.exists():
+        if time.monotonic()>=deadline:raise TimeoutError('collector did not release holder')
+        time.sleep(.05)
+    return completed.returncode
 
 
 def run(command,cwd,out,timeout):
@@ -49,9 +63,10 @@ def run(command,cwd,out,timeout):
     if any(c in str(out)+str(cwd) for c in ('\n','\r','\x00','%')):raise ValueError('unsafe unit path')
     out.mkdir(parents=True,exist_ok=False)
     unit='a6-synthetic-'+uuid.uuid4().hex+'.service'
-    result=dict(schema='v9.a6-service-memory/1',unit=unit,status='FAILED',resource_qualified=False,
+    result=dict(schema='v9.a6-service-memory/2',unit=unit,status='FAILED',resource_qualified=False,
                 promotion_authority=False,cleanup_verified=False,hosted_startup_placement_verified=False,
-                exclusions=['SYSTEM_SERVICE_MANAGER','OUTER_ORCHESTRATOR','WORKLOAD_ESCAPING_CGROUP'])
+                peak_scope='THROUGH_WORKLOAD_COMPLETION_BEFORE_HOLDER_SHUTDOWN',
+                exclusions=['SYSTEM_SERVICE_MANAGER','OUTER_ORCHESTRATOR','HOLDER_SHUTDOWN_AFTER_SNAPSHOT','WORKLOAD_ESCAPING_CGROUP'])
     started=time.monotonic();attempted=False
     def invoke(args,name,seconds):
         with (out/name).open('xb') as log:
@@ -61,22 +76,34 @@ def run(command,cwd,out,timeout):
         preflight=invoke(['systemctl','show',unit,'--property=LoadState'],'preflight.log',10)
         if preflight.returncode not in (0,1) or (out/'preflight.log').read_text().strip()!='LoadState=not-found':
             raise ValueError('fresh service name not verified')
-        # oneshot startup completes only after the workload exits; remain-after-exit
-        # keeps its accounting available until the explicit stop below. No --wait.
-        args=['systemd-run','--system','--unit='+unit,'--service-type=oneshot','--remain-after-exit',
+        done=out/'completed.json';release=out/'release'
+        # Exec returns after the holder starts. The holder remains alive after its
+        # child exits so systemd cannot discard the cgroup before collection.
+        wrapped=[sys.executable,str(Path(__file__).resolve()),'--hold',str(done),str(release),str(timeout),*command]
+        args=['systemd-run','--system','--unit='+unit,'--service-type=exec','--remain-after-exit',
               '--expand-environment=no','--working-directory='+str(cwd),
               '--property=MemoryAccounting=yes','--property=KillMode=control-group',
-              '--property=TimeoutStartSec='+str(timeout),'--property=TimeoutStopSec=5s',
+              '--property=TimeoutStartSec=15s','--property=RuntimeMaxSec='+str(timeout+75),'--property=TimeoutStopSec=5s',
               '--property=StandardOutput=append:'+str(out/'worker.log'),
-              '--property=StandardError=append:'+str(out/'worker.log'),'--',*command]
+              '--property=StandardError=append:'+str(out/'worker.log'),'--',*wrapped]
         attempted=True
-        launch=invoke(args,'launch.log',timeout+15)
+        launch=invoke(args,'launch.log',20)
         result['launch_returncode']=launch.returncode
+        if launch.returncode:raise ValueError('service launch failed')
+        deadline=time.monotonic()+timeout+5
+        while not done.exists():
+            if time.monotonic()>=deadline:raise TimeoutError('workload completion unavailable')
+            time.sleep(.1)
+        completion=json.loads(done.read_text())
+        if set(completion)!= {'exit_code'} or type(completion['exit_code']) is not int:
+            raise ValueError('invalid completion receipt')
+        result['workload_exit_code']=completion['exit_code']
         query=invoke(['systemctl','show',unit,'--property='+','.join(PROPERTIES)],'properties.log',10)
         if query.returncode:raise ValueError('service properties unavailable')
         data=properties((out/'properties.log').read_text());result['service_properties']=data
         result['memory_peak_bytes']=validate_result(data,unit)
-        if launch.returncode:raise ValueError('service launch failed')
+        release.touch(exist_ok=False)
+        if completion['exit_code']!=0:raise ValueError('workload failed')
         result['status']='MEASURED_DIAGNOSTIC_PENDING_HOSTED_PLACEMENT_CHECK'
     except Exception as error:
         result['error_type']=type(error).__name__
@@ -100,3 +127,8 @@ def run(command,cwd,out,timeout):
         result['wall_seconds']=time.monotonic()-started
         with (out/'accounting.json').open('x') as stream:json.dump(result,stream,sort_keys=True,indent=2)
     return result
+
+
+if __name__=='__main__':
+    if len(sys.argv)<6 or sys.argv[1]!='--hold':raise SystemExit('internal holder only')
+    raise SystemExit(hold(sys.argv[5:],Path(sys.argv[2]),Path(sys.argv[3]),int(sys.argv[4])))
