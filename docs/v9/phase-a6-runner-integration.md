@@ -126,3 +126,17 @@ inactive market workflow. Image metadata remains inconsistent between setup logs
 and runtime. Durable wheel storage, reviewed reuse and representative resource and
 remote-publication qualification remain open. The synthetic result grants no market
 study or promotion authority.
+
+### Committed-lock replay
+
+The next synthetic workflow version consumes the committed candidate lock using
+hash-required wheel download, then compares the regenerated lock and manifest
+byte-for-byte with the committed records. This tests reuse without selecting new
+versions or hashes. Initial candidate records are preserved; new evidence belongs
+to a distinct run. Offline fresh installation and synthetic pipeline checks remain.
+
+To investigate image metadata differences, a bounded read-only receipt records
+allowlisted image/runner environment values, selected OS/image fields from local
+configuration files and hashes of those files. Unreadable files are explicitly
+unavailable. These claims do not independently attest the host; they must be compared
+with the setup log and independently reviewed before qualification.
