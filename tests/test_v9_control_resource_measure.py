@@ -138,3 +138,53 @@ class ProbeScale(unittest.TestCase):
         self.assertEqual(report['requested_scales'],[dict(signals_per_available_trial=3,bars_per_asset=400)])
         self.assertEqual(len(report['cases']),4)
         self.assertEqual([case['pipeline']['audit_status'] for case in report['cases']],['VERIFIED_REGISTERED_PRICE_DIAGNOSTICS']*3+['FAILED'])
+
+
+@unittest.skipUnless(sys.platform.startswith('linux'),'Linux private process group cleanup')
+class WorkerCleanup(unittest.TestCase):
+    def test_cleanup_kills_term_resistant_child_when_leader_exits(self):
+        self.check_cleanup(False)
+
+    def test_cleanup_escalates_when_leader_and_child_ignore_term(self):
+        self.check_cleanup(True)
+
+    def check_cleanup(self,ignore_parent):
+        import subprocess,time,signal
+        with tempfile.TemporaryDirectory() as directory:
+            ready=Path(directory)/'ready'
+            child="import signal,os,pathlib,time; signal.signal(signal.SIGTERM,signal.SIG_IGN); pathlib.Path(%r).write_text(str(os.getpid())); time.sleep(30)"%str(ready)
+            parent="import subprocess,sys,signal; "+("signal.signal(signal.SIGTERM,signal.SIG_IGN); " if ignore_parent else "")+"p=subprocess.Popen([sys.executable,'-c',%r]); p.wait()"%child
+            process=subprocess.Popen([sys.executable,'-c',parent],start_new_session=True)
+            try:
+                deadline=time.monotonic()+10
+                while not ready.exists() and time.monotonic()<deadline:time.sleep(.02)
+                self.assertTrue(ready.exists())
+                child_pid=int(ready.read_text())
+                started=time.monotonic();M.stop_worker_group(process,.1)
+                self.assertLess(time.monotonic()-started,6)
+                self.assertIsNotNone(process.returncode)
+                deadline=time.monotonic()+3
+                while time.monotonic()<deadline:
+                    try:
+                        raw=Path('/proc',str(child_pid),'stat').read_text()
+                        if raw[raw.rfind(')')+2:].split()[0]=='Z':break
+                    except FileNotFoundError:break
+                    time.sleep(.02)
+                else:self.fail('child still running after cleanup')
+            finally:
+                try:os.killpg(process.pid,signal.SIGKILL)
+                except ProcessLookupError:pass
+                process.wait(timeout=5)
+
+    def test_observer_failure_calls_group_cleanup_and_preserves_error(self):
+        import subprocess
+        with patch.object(M.subprocess,'Popen') as launch, patch.object(M,'visible_bytes',side_effect=RuntimeError('observer failed')), patch.object(M,'stop_worker_group') as cleanup:
+            process=launch.return_value
+            with self.assertRaisesRegex(RuntimeError,'observer failed'):M.measure('full',3,400)
+        cleanup.assert_called_once_with(process)
+
+    def test_missing_group_is_already_clean_and_waits_are_bounded(self):
+        from unittest.mock import Mock
+        process=Mock(pid=123)
+        with patch.object(M.os,'killpg',side_effect=ProcessLookupError):M.stop_worker_group(process)
+        self.assertEqual(process.wait.call_args_list,[unittest.mock.call(timeout=2),unittest.mock.call(timeout=5)])

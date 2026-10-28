@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import subprocess
 import stat
+import signal
 import sys
 import tempfile
 import time
@@ -83,6 +84,29 @@ def allocated_bytes(root,pid=None,coverage=None):
     return sum(seen.values())
 
 
+def stop_worker_group(process,grace_seconds=2):
+    """Stop this probe's private process group, even if its leader exits first.
+
+    Children that deliberately change process groups/sessions are outside this
+    cleanup contract, just as escaping children are outside the RSS sample.
+    """
+    if type(grace_seconds) not in (int,float) or not 0<grace_seconds<=10:
+        raise ValueError('cleanup grace must be positive and at most ten seconds')
+    def send(sig):
+        try:os.killpg(process.pid,sig)
+        except ProcessLookupError:pass  # The private group has already exited.
+    send(signal.SIGTERM)
+    try:
+        process.wait(timeout=grace_seconds)
+    except subprocess.TimeoutExpired:
+        pass
+    finally:
+        # The leader can exit while a child ignores SIGTERM. Always kill the
+        # remaining group rather than inferring cleanup from the leader alone.
+        send(signal.SIGKILL)
+    process.wait(timeout=5)
+
+
 def measure(kind,signals,bars):
     if not sys.platform.startswith('linux'):raise RuntimeError('Linux required for ru_maxrss KiB semantics')
     if kind not in ('full','mixed','sparse','interrupted'):raise ValueError('unknown scenario')
@@ -108,7 +132,7 @@ def measure(kind,signals,bars):
                     if process.poll() is not None:break
                     time.sleep(.05)
             except BaseException:
-                process.terminate();process.wait();raise
+                stop_worker_group(process);raise
         elapsed=time.perf_counter()-started
         if process.returncode!=0:raise RuntimeError('synthetic worker failed: '+(root/'worker.log').read_text()[-4000:])
         data=json.loads(result.read_text())

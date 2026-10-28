@@ -504,3 +504,14 @@ eight-case protocol; a partial or invalid pair fails before measurement.
 Signals are **per available trial**, not total study signals. The fixed synthetic
 asset/trial population and bounds (3..100 signals, 400..4,000 bars) remain unchanged.
 These are diagnostic samples, not full-study qualification or an extrapolation.
+
+## Cleanup after observer failure
+
+If disk or memory observation raises, the probe now terminates the worker's
+private process group, waits at most two seconds, and forcibly stops remaining
+group members before a bounded five-second leader reap. Previously only the
+leader received termination and its wait had no timeout. A leader exiting does
+not imply its children exited; escalation therefore also runs in that case.
+Real Linux tests cover a child ignoring termination and both leader and child
+ignoring it. Processes that deliberately leave the private group/session remain
+outside this contract. This improves failed-probe cleanup, not resource bounds.
