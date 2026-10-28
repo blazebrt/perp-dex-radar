@@ -551,3 +551,18 @@ an asset boundary. All definitions still share simplified signal geometry and
 synthetic price histories; these counts do not establish representative diversity.
 History lengths, shard/publication volume, combined resource bounds and hosted
 identity remain unresolved. No workflow was dispatched by this change.
+
+## Output shard sizing for representative measurements
+
+The synthetic pipeline formerly forced four-row output shards. It now accepts
+`--shard-rows` from 1 through 25,000 in both CLIs, preserving four as the default
+while allowing the intended outcome runner's 25,000-row setting. The existing
+16 MiB uncompressed byte cap can still split a file earlier. Reports disclose
+both limits and pair/day/reuse shard counts. Input extraction sizing is unchanged.
+
+A small sparse test compares every retained packed pair, day and reuse record,
+side summaries, independently verified statistics and audit success between
+four-row and 25,000-row output layouts. Pair shards drop from four to two with
+identical records. CLI integration verifies forwarding to isolated workers.
+This is logical-layout parity, not large-volume compression, runtime, storage
+or remote-publication qualification. No workflow was dispatched by this change.

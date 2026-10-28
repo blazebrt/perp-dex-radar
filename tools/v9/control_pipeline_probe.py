@@ -19,9 +19,10 @@ def footprint(root):
     return {p.relative_to(root).as_posix():p.stat().st_size for p in sorted(root.rglob('*')) if p.is_file()}
 
 
-def scenario(kind,signals=8,bars=1000,retain=None,*,assets=61,definitions=3,unavailable=1):
+def scenario(kind,signals=8,bars=1000,retain=None,*,assets=61,definitions=3,unavailable=1,shard_rows=4):
     if kind not in ('full','mixed','sparse','interrupted'):raise ValueError('unknown scenario')
     shape=Shape.validate(signals,bars,assets,definitions,unavailable)
+    Shape.shard_limit(shard_rows)
     with tempfile.TemporaryDirectory() as directory:
         root=Path(directory);(root/'h4').mkdir();started=time.perf_counter()
         assets=['SYNTH%03d'%i for i in range(8 if kind=='sparse' else assets)]
@@ -64,7 +65,7 @@ def scenario(kind,signals=8,bars=1000,retain=None,*,assets=61,definitions=3,unav
                 self.calls+=1
                 return super().match(signal)
         started=time.perf_counter()
-        result=O.run(root/'signals',root/'outcomes',lambda:(context,Adapter(root,context)),digest,max_rows=4)
+        result=O.run(root/'signals',root/'outcomes',lambda:(context,Adapter(root,context)),digest,max_rows=shard_rows)
         outcome_seconds=time.perf_counter()-started
         independent=dict(plan=dict(trials=trials),times=times,assets=assets,eligibility=eligibility,
                          start=context['start'],end=context['end'],sources=sources)
@@ -77,7 +78,9 @@ def scenario(kind,signals=8,bars=1000,retain=None,*,assets=61,definitions=3,unav
         if audit['status']!=expected:raise ValueError('unexpected audit: '+json.dumps(audit))
         files=footprint(root/'outcomes');audit_files=footprint(root/'audit')
         side_counts=[] if kind=='interrupted' else json.loads((root/'outcomes/sides.json').read_text())
-        return dict(requested_shape=shape,definitions=definitions,unavailable_definitions=unavailable,
+        return dict(outcome_shard_max_rows=shard_rows,outcome_shard_max_uncompressed_bytes=16*1024*1024,
+            pair_shards=sum(1 for k in files if '/' not in k and k.endswith('.jsonl.gz')),
+            day_shards=sum(k.startswith('days/') for k in files),reuse_shards=sum(k.startswith('reuse/') for k in files),requested_shape=shape,definitions=definitions,unavailable_definitions=unavailable,
             expected_signals=(definitions-unavailable)*signals,publication=retain(root) if retain is not None else None,scenario=kind,assets=len(assets),bars_per_asset=bars,signals_per_available_trial=signals,
             preparation_seconds=preparation_seconds,outcome_seconds=outcome_seconds,audit_seconds=audit_seconds,
             processed_signals=result['processed_signals'],outcome_status=result['status'],audit_status=audit['status'],
@@ -92,8 +95,8 @@ def scenario(kind,signals=8,bars=1000,retain=None,*,assets=61,definitions=3,unav
             failure_retained=(root/'audit/failure.json').exists(),net_inference_available=False,promotion_authority=False)
 
 
-def probe(signals=8,bars=1000,*,assets=61,definitions=3,unavailable=1):
-    cases=[scenario(k,signals,bars,assets=assets,definitions=definitions,unavailable=unavailable) for k in ('full','mixed','sparse','interrupted')]
+def probe(signals=8,bars=1000,*,assets=61,definitions=3,unavailable=1,shard_rows=4):
+    cases=[scenario(k,signals,bars,assets=assets,definitions=definitions,unavailable=unavailable,shard_rows=shard_rows) for k in ('full','mixed','sparse','interrupted')]
     modules=(Path(Shape.__file__),Path(__file__),Path(X.__file__),Path(S.__file__),Path(A.__file__),Path(A.P.__file__),Path(A.E.__file__),
              Path(O.__file__),Path(O.S.__file__),Path(O.W.__file__),Path(V.__file__),Path(V.O.__file__),
              Path(V.O.T.__file__),Path(V.C.__file__),Path(V.P.__file__),Path(V.S.__file__),Path(P.__file__))
@@ -109,7 +112,8 @@ if __name__=='__main__':
     ap.add_argument('--signals',type=int,default=8);ap.add_argument('--bars',type=int,default=1000)
     ap.add_argument('--assets',type=int,default=61);ap.add_argument('--definitions',type=int,default=3)
     ap.add_argument('--unavailable',type=int,default=1)
+    ap.add_argument('--shard-rows',type=int,default=4)
     args=ap.parse_args();path=Path(args.out)
     if path.exists():raise FileExistsError('preserve previous pipeline probe')
-    result=probe(args.signals,args.bars,assets=args.assets,definitions=args.definitions,unavailable=args.unavailable)
+    result=probe(args.signals,args.bars,assets=args.assets,definitions=args.definitions,unavailable=args.unavailable,shard_rows=args.shard_rows)
     with path.open('x',encoding='utf8',newline='\n') as stream:stream.write(json.dumps(result,sort_keys=True,indent=2)+'\n')

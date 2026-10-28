@@ -88,3 +88,36 @@ class PipelineProbe(unittest.TestCase):
         self.assertEqual(result['audit_status'],'VERIFIED_REGISTERED_PRICE_DIAGNOSTICS')
         self.assertTrue(result['statistics']['descriptive_statistics_verified'])
         self.assertFalse(result['promotion_authority'])
+
+
+    def test_shard_limit_changes_layout_without_changing_retained_records(self):
+        import gzip,json,inspect
+        from tools.v9 import control_outcomes as O
+        self.assertEqual(inspect.signature(O.run).parameters['max_rows'].default,25000)
+        def capture(root):
+            rows={}
+            for category in ('pairs','days','reuse'):
+                directory=root/'outcomes' if category=='pairs' else root/'outcomes'/category
+                rows[category]=sorted(line for path in sorted(directory.glob('*.jsonl.gz')) for line in gzip.decompress(path.read_bytes()).splitlines())
+            rows['sides']=json.loads((root/'outcomes/sides.json').read_text())
+            return rows
+        tiny=P.scenario('sparse',8,400,retain=capture,shard_rows=4)
+        large=P.scenario('sparse',8,400,retain=capture,shard_rows=25000)
+        self.assertEqual(tiny['publication'],large['publication'])
+        self.assertEqual(tiny['dispositions'],large['dispositions'])
+        self.assertEqual(tiny['statistics'],large['statistics'])
+        self.assertEqual(tiny['pair_shards'],4)
+        self.assertEqual(large['pair_shards'],2)
+        self.assertLess(large['outcome_files'],tiny['outcome_files'])
+        self.assertEqual(large['outcome_shard_max_uncompressed_bytes'],16*1024*1024)
+        self.assertEqual(large['audit_status'],'VERIFIED_REGISTERED_PRICE_DIAGNOSTICS')
+
+    def test_shard_limit_rejected_before_work(self):
+        from unittest.mock import patch
+        from tools.v9 import control_resource_measure as M
+        with patch.object(P.tempfile,'TemporaryDirectory') as temporary,patch.object(M,'measure') as measure:
+            for value in (0,-1,25001,True,4.5,'4'):
+                with self.subTest(value=value):
+                    with self.assertRaises(ValueError):P.scenario('full',3,400,shard_rows=value)
+                    with self.assertRaises(ValueError):M.probe(3,400,shard_rows=value)
+        temporary.assert_not_called();measure.assert_not_called()

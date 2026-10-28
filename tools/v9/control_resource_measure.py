@@ -108,14 +108,15 @@ def stop_worker_group(process,grace_seconds=2):
     process.wait(timeout=5)
 
 
-def measure(kind,signals,bars,*,assets=61,definitions=3,unavailable=1):
+def measure(kind,signals,bars,*,assets=61,definitions=3,unavailable=1,shard_rows=4):
     if not sys.platform.startswith('linux'):raise RuntimeError('Linux required for ru_maxrss KiB semantics')
     if kind not in ('full','mixed','sparse','interrupted'):raise ValueError('unknown scenario')
     Shape.validate(signals,bars,assets,definitions,unavailable)
+    Shape.shard_limit(shard_rows)
     with tempfile.TemporaryDirectory(prefix='a6-measure-') as directory:
         root=Path(directory);result=root/'result.json'
         env=dict(os.environ,TMPDIR=directory,TEMP=directory,TMP=directory,SQLITE_TMPDIR=directory)
-        command=[sys.executable,str(Path(__file__).resolve()),'--worker',kind,'--signals',str(signals),'--bars',str(bars),'--out',str(result),'--assets',str(assets),'--definitions',str(definitions),'--unavailable',str(unavailable)]
+        command=[sys.executable,str(Path(__file__).resolve()),'--worker',kind,'--signals',str(signals),'--bars',str(bars),'--out',str(result),'--assets',str(assets),'--definitions',str(definitions),'--unavailable',str(unavailable),'--shard-rows',str(shard_rows)]
         started=time.perf_counter();peak=0;allocated_peak=0;samples=0
         memory_peak=0;process_peak=0;memory_gaps=0;memory_errors=0;memory_vanished=0
         coverage={'fd_access_denied_samples':0}
@@ -144,18 +145,19 @@ def measure(kind,signals,bars,*,assets=61,definitions=3,unavailable=1):
         return data
 
 
-def probe(signals=None,bars=None,*,assets=61,definitions=3,unavailable=1):
+def probe(signals=None,bars=None,*,assets=61,definitions=3,unavailable=1,shard_rows=4):
     if (signals is None)!=(bars is None):
         raise ValueError('signals and bars must be supplied together')
     Shape.validate(8 if signals is None else signals,1000 if bars is None else bars,assets,definitions,unavailable)
+    Shape.shard_limit(shard_rows)
     scales=((8,1000),(32,4000)) if signals is None else ((signals,bars),)
     from tools.v9.control_cgroup_memory import snapshot
     cgroup_before=snapshot()
-    cases=[measure(kind,signals,bars,assets=assets,definitions=definitions,unavailable=unavailable) for signals,bars in scales
+    cases=[measure(kind,signals,bars,assets=assets,definitions=definitions,unavailable=unavailable,shard_rows=shard_rows) for signals,bars in scales
            for kind in ('full','mixed','sparse','interrupted')]
     import hashlib
     return dict(schema='v9.a6-isolated-resource-probe/3',status='NOT_RESOURCE_QUALIFIED',synthetic_only=True,
-        market_data_loaded=False,platform=sys.platform,cases=cases,
+        market_data_loaded=False,platform=sys.platform,cases=cases,outcome_shard_max_rows=shard_rows,
         requested_scales=[Shape.validate(n,b,assets,definitions,unavailable) for n,b in scales],
         cgroup_capability_before=cgroup_before,cgroup_capability_after=snapshot(),
         observer_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
@@ -174,6 +176,7 @@ if __name__=='__main__':
     ap.add_argument('--signals',type=int);ap.add_argument('--bars',type=int)
     ap.add_argument('--assets',type=int,default=61);ap.add_argument('--definitions',type=int,default=3)
     ap.add_argument('--unavailable',type=int,default=1)
+    ap.add_argument('--shard-rows',type=int,default=4)
     args=ap.parse_args();path=Path(args.out)
     if path.exists():raise FileExistsError('preserve previous resource measurement')
     if args.worker:
@@ -181,8 +184,8 @@ if __name__=='__main__':
         import resource
         from tools.v9 import control_pipeline_probe as P
         from tools.v9 import control_extract as X, control_publication_probe as G
-        data=dict(pipeline=P.scenario(args.worker,8 if args.signals is None else args.signals,1000 if args.bars is None else args.bars,retain=G.retain,assets=args.assets,definitions=args.definitions,unavailable=args.unavailable),
+        data=dict(pipeline=P.scenario(args.worker,8 if args.signals is None else args.signals,1000 if args.bars is None else args.bars,retain=G.retain,assets=args.assets,definitions=args.definitions,unavailable=args.unavailable,shard_rows=args.shard_rows),
                   peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*1024,
                   pipeline_probe_sha256=X.sha(Path(P.__file__)),publication_probe_sha256=X.sha(Path(G.__file__)))
-    else:data=probe(args.signals,args.bars,assets=args.assets,definitions=args.definitions,unavailable=args.unavailable)
+    else:data=probe(args.signals,args.bars,assets=args.assets,definitions=args.definitions,unavailable=args.unavailable,shard_rows=args.shard_rows)
     with path.open('x',encoding='utf8',newline='\n') as stream:stream.write(json.dumps(data,sort_keys=True,indent=2)+'\n')

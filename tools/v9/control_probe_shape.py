@@ -39,3 +39,9 @@ def signal_coordinates(signals,bars,assets):
     indices=[180+n%span for n in range(signals-1)]+[bars-1]
     columns=[n//span for n in range(signals-1)]+[0]
     return indices,columns
+
+
+def shard_limit(value):
+    if type(value) is not int or not 1<=value<=25000:
+        raise ValueError('shard rows must be 1..25000')
+    return value
