@@ -104,3 +104,37 @@ class Measurements(unittest.TestCase):
             finally:
                 import signal
                 os.killpg(process.pid,signal.SIGTERM);process.wait(timeout=5)
+
+
+class ProbeScale(unittest.TestCase):
+    def test_custom_scale_reaches_every_scenario_and_is_recorded(self):
+        with patch.object(M,'measure',return_value={}) as measure, patch('tools.v9.control_cgroup_memory.snapshot',return_value={}):
+            result=M.probe(100,4000)
+        self.assertEqual(measure.call_args_list,[unittest.mock.call(k,100,4000) for k in ('full','mixed','sparse','interrupted')])
+        self.assertEqual(result['requested_scales'],[dict(signals_per_available_trial=100,bars_per_asset=4000)])
+        self.assertEqual(result['status'],'NOT_RESOURCE_QUALIFIED')
+        self.assertFalse(result['promotion_authority'])
+
+    def test_default_scales_preserve_eight_case_protocol(self):
+        with patch.object(M,'measure',return_value={}) as measure, patch('tools.v9.control_cgroup_memory.snapshot',return_value={}):
+            result=M.probe()
+        self.assertEqual(measure.call_args_list,[unittest.mock.call(k,n,b) for n,b in ((8,1000),(32,4000)) for k in ('full','mixed','sparse','interrupted')])
+        self.assertEqual(len(result['requested_scales']),2)
+
+    def test_partial_or_invalid_scale_rejected_before_measurement(self):
+        with patch.object(M,'measure') as measure, patch('tools.v9.control_cgroup_memory.snapshot') as snapshot:
+            for n,b in [(3,None),(None,400),(True,400),(101,400),(3,4001),(3,False)]:
+                with self.subTest(signals=n,bars=b),self.assertRaises(ValueError):M.probe(n,b)
+        measure.assert_not_called();snapshot.assert_not_called()
+
+
+    @unittest.skipUnless(sys.platform.startswith('linux'),'Linux measurement CLI')
+    def test_cli_honors_explicit_scale_in_actual_report(self):
+        import json,subprocess
+        with tempfile.TemporaryDirectory() as directory:
+            out=Path(directory)/'report.json'
+            subprocess.run([sys.executable,str(Path(M.__file__).resolve()),'--signals','3','--bars','400','--out',str(out)],check=True,capture_output=True)
+            report=json.loads(out.read_text())
+        self.assertEqual(report['requested_scales'],[dict(signals_per_available_trial=3,bars_per_asset=400)])
+        self.assertEqual(len(report['cases']),4)
+        self.assertEqual([case['pipeline']['audit_status'] for case in report['cases']],['VERIFIED_REGISTERED_PRICE_DIAGNOSTICS']*3+['FAILED'])

@@ -120,14 +120,21 @@ def measure(kind,signals,bars):
         return data
 
 
-def probe():
+def probe(signals=None,bars=None):
+    if (signals is None)!=(bars is None):
+        raise ValueError('signals and bars must be supplied together')
+    if signals is not None:
+        if type(signals) is not int or not 3<=signals<=100:raise ValueError('signals must be 3..100')
+        if type(bars) is not int or not 400<=bars<=4000:raise ValueError('bars must be 400..4000')
+    scales=((8,1000),(32,4000)) if signals is None else ((signals,bars),)
     from tools.v9.control_cgroup_memory import snapshot
     cgroup_before=snapshot()
-    cases=[measure(kind,signals,bars) for signals,bars in ((8,1000),(32,4000))
+    cases=[measure(kind,signals,bars) for signals,bars in scales
            for kind in ('full','mixed','sparse','interrupted')]
     import hashlib
     return dict(schema='v9.a6-isolated-resource-probe/3',status='NOT_RESOURCE_QUALIFIED',synthetic_only=True,
         market_data_loaded=False,platform=sys.platform,cases=cases,
+        requested_scales=[dict(signals_per_available_trial=n,bars_per_asset=b) for n,b in scales],
         cgroup_capability_before=cgroup_before,cgroup_capability_after=snapshot(),
         observer_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         memory_measurement='LINUX_PROCESS_LIFETIME_PEAK_RSS_IN_BYTES_INCLUDES_IMPORTS',
@@ -141,7 +148,7 @@ def probe():
 if __name__=='__main__':
     ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--out',required=True)
     ap.add_argument('--worker',choices=('full','mixed','sparse','interrupted'))
-    ap.add_argument('--signals',type=int,default=8);ap.add_argument('--bars',type=int,default=1000)
+    ap.add_argument('--signals',type=int);ap.add_argument('--bars',type=int)
     args=ap.parse_args();path=Path(args.out)
     if path.exists():raise FileExistsError('preserve previous resource measurement')
     if args.worker:
@@ -149,8 +156,8 @@ if __name__=='__main__':
         import resource
         from tools.v9 import control_pipeline_probe as P
         from tools.v9 import control_extract as X, control_publication_probe as G
-        data=dict(pipeline=P.scenario(args.worker,args.signals,args.bars,retain=G.retain),
+        data=dict(pipeline=P.scenario(args.worker,8 if args.signals is None else args.signals,1000 if args.bars is None else args.bars,retain=G.retain),
                   peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*1024,
                   pipeline_probe_sha256=X.sha(Path(P.__file__)),publication_probe_sha256=X.sha(Path(G.__file__)))
-    else:data=probe()
+    else:data=probe(args.signals,args.bars)
     with path.open('x',encoding='utf8',newline='\n') as stream:stream.write(json.dumps(data,sort_keys=True,indent=2)+'\n')

@@ -494,3 +494,13 @@ This is a conservative snapshot of visible capacity, not a memory reservation.
 Concurrent usage and limits can change, and namespace/host identity still requires
 the independently qualified hosted environment. It does not qualify sampled disk,
 small synthetic scale or remote publication, and does not authorize the market run.
+
+## Explicit synthetic measurement sizes
+
+The measurement CLI now honors paired `--signals` and `--bars` options for all
+four scenarios and records `requested_scales`. Previously these options were
+accepted by the normal entry point but ignored. Omitting both preserves the
+eight-case protocol; a partial or invalid pair fails before measurement.
+Signals are **per available trial**, not total study signals. The fixed synthetic
+asset/trial population and bounds (3..100 signals, 400..4,000 bars) remain unchanged.
+These are diagnostic samples, not full-study qualification or an extrapolation.
