@@ -10,6 +10,7 @@ import time
 
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT))
+from tools.v9 import control_probe_shape as Shape
 from tools.v9 import control_extract as X, control_signals as S, control_adapter as A
 from tools.v9 import control_outcomes as O, audit_control_outcomes as V, verify_control_population as P
 
@@ -18,13 +19,12 @@ def footprint(root):
     return {p.relative_to(root).as_posix():p.stat().st_size for p in sorted(root.rglob('*')) if p.is_file()}
 
 
-def scenario(kind,signals=8,bars=1000,retain=None):
+def scenario(kind,signals=8,bars=1000,retain=None,*,assets=61,definitions=3,unavailable=1):
     if kind not in ('full','mixed','sparse','interrupted'):raise ValueError('unknown scenario')
-    if type(signals) is not int or not 3<=signals<=100:raise ValueError('signals must be 3..100')
-    if type(bars) is not int or not 400<=bars<=4000:raise ValueError('bars must be 400..4000')
+    shape=Shape.validate(signals,bars,assets,definitions,unavailable)
     with tempfile.TemporaryDirectory() as directory:
         root=Path(directory);(root/'h4').mkdir();started=time.perf_counter()
-        assets=['SYNTH%03d'%i for i in range(8 if kind=='sparse' else 61)]
+        assets=['SYNTH%03d'%i for i in range(8 if kind=='sparse' else assets)]
         times=list(range(0,bars*14400,14400));segments={};sources={}
         for j,asset in enumerate(assets):
             calendar=[];volumes=[];lines=['t,o,h,l,c,qv'];disputes=[]
@@ -46,7 +46,7 @@ def scenario(kind,signals=8,bars=1000,retain=None):
             segments[asset]=view;sources[asset]=P.Source(meta,calendar,volumes,disputes,digest)
         eligibility=[[True]*len(assets) for _ in times]
         if kind=='mixed':eligibility[181][0]=False
-        trials=[dict(trial_id=str(i)*64,archive_requirement='hourly' if i==2 else '4h') for i in range(3)]
+        trials=Shape.trials(definitions,unavailable)
         indices=list(range(180,180+signals-1))+[bars-1]
         generated=dict(i=indices,j=[0]*signals,d=[1 if i%2==0 else -1 for i in range(signals)],
             stop=[.02]*signals,target=[2.]*signals,trail=[.01]*signals,be=[1.]*signals,
@@ -77,7 +77,8 @@ def scenario(kind,signals=8,bars=1000,retain=None):
         if audit['status']!=expected:raise ValueError('unexpected audit: '+json.dumps(audit))
         files=footprint(root/'outcomes');audit_files=footprint(root/'audit')
         side_counts=[] if kind=='interrupted' else json.loads((root/'outcomes/sides.json').read_text())
-        return dict(publication=retain(root) if retain is not None else None,scenario=kind,assets=len(assets),bars_per_asset=bars,signals_per_available_trial=signals,
+        return dict(requested_shape=shape,definitions=definitions,unavailable_definitions=unavailable,
+            expected_signals=(definitions-unavailable)*signals,publication=retain(root) if retain is not None else None,scenario=kind,assets=len(assets),bars_per_asset=bars,signals_per_available_trial=signals,
             preparation_seconds=preparation_seconds,outcome_seconds=outcome_seconds,audit_seconds=audit_seconds,
             processed_signals=result['processed_signals'],outcome_status=result['status'],audit_status=audit['status'],
             candidate_paths=audit.get('candidate_paths'),control_paths=audit.get('control_paths'),
@@ -91,9 +92,9 @@ def scenario(kind,signals=8,bars=1000,retain=None):
             failure_retained=(root/'audit/failure.json').exists(),net_inference_available=False,promotion_authority=False)
 
 
-def probe(signals=8,bars=1000):
-    cases=[scenario(k,signals,bars) for k in ('full','mixed','sparse','interrupted')]
-    modules=(Path(__file__),Path(X.__file__),Path(S.__file__),Path(A.__file__),Path(A.P.__file__),Path(A.E.__file__),
+def probe(signals=8,bars=1000,*,assets=61,definitions=3,unavailable=1):
+    cases=[scenario(k,signals,bars,assets=assets,definitions=definitions,unavailable=unavailable) for k in ('full','mixed','sparse','interrupted')]
+    modules=(Path(Shape.__file__),Path(__file__),Path(X.__file__),Path(S.__file__),Path(A.__file__),Path(A.P.__file__),Path(A.E.__file__),
              Path(O.__file__),Path(O.S.__file__),Path(O.W.__file__),Path(V.__file__),Path(V.O.__file__),
              Path(V.O.T.__file__),Path(V.C.__file__),Path(V.P.__file__),Path(V.S.__file__),Path(P.__file__))
     return dict(schema='v9.a6-synthetic-pipeline-probe/1',status='NOT_RESOURCE_QUALIFIED',synthetic_only=True,
@@ -106,7 +107,9 @@ def probe(signals=8,bars=1000):
 if __name__=='__main__':
     ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--out',required=True)
     ap.add_argument('--signals',type=int,default=8);ap.add_argument('--bars',type=int,default=1000)
+    ap.add_argument('--assets',type=int,default=61);ap.add_argument('--definitions',type=int,default=3)
+    ap.add_argument('--unavailable',type=int,default=1)
     args=ap.parse_args();path=Path(args.out)
     if path.exists():raise FileExistsError('preserve previous pipeline probe')
-    result=probe(args.signals,args.bars)
+    result=probe(args.signals,args.bars,assets=args.assets,definitions=args.definitions,unavailable=args.unavailable)
     with path.open('x',encoding='utf8',newline='\n') as stream:stream.write(json.dumps(result,sort_keys=True,indent=2)+'\n')

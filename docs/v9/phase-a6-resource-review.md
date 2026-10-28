@@ -515,3 +515,22 @@ not imply its children exited; escalation therefore also runs in that case.
 Real Linux tests cover a child ignoring termination and both leader and child
 ignoring it. Processes that deliberately leave the private group/session remain
 outside this contract. This improves failed-probe cleanup, not resource bounds.
+
+## Configurable synthetic population width
+
+Both probe CLIs accept `--assets`, `--definitions` and `--unavailable` alongside
+signal/history sizes. Defaults remain 61 assets, three definitions and one
+unavailable definition. Bounds permit 781 assets and 199 definitions, with an
+explicit unavailable count that leaves at least two available definitions. Trial
+identities are unique and preserve the original three identities by default.
+The sparse scenario deliberately retains eight assets; reports distinguish its
+actual assets from requested population dimensions. Expected signals are
+`(definitions - unavailable) * signals_per_available_trial`; interrupted cases
+report their smaller processed count separately.
+
+Validation covers the 199-definition/seven-unavailable roster without executing
+that population. End-to-end tests execute a small 62-asset expanded population,
+including independent audit and isolated CLI forwarding. Neither is a resource
+bound. The limits of 100 signals per available definition and 4,000 history bars,
+repetitive synthetic prices, sampled disk and excluded remote publication still
+prevent representative qualification. No workflow was activated or dispatched.

@@ -110,15 +110,15 @@ class ProbeScale(unittest.TestCase):
     def test_custom_scale_reaches_every_scenario_and_is_recorded(self):
         with patch.object(M,'measure',return_value={}) as measure, patch('tools.v9.control_cgroup_memory.snapshot',return_value={}):
             result=M.probe(100,4000)
-        self.assertEqual(measure.call_args_list,[unittest.mock.call(k,100,4000) for k in ('full','mixed','sparse','interrupted')])
-        self.assertEqual(result['requested_scales'],[dict(signals_per_available_trial=100,bars_per_asset=4000)])
+        self.assertEqual(measure.call_args_list,[unittest.mock.call(k,100,4000,assets=61,definitions=3,unavailable=1) for k in ('full','mixed','sparse','interrupted')])
+        self.assertEqual(result['requested_scales'],[dict(signals_per_available_trial=100,bars_per_asset=4000,assets=61,definitions=3,unavailable_definitions=1)])
         self.assertEqual(result['status'],'NOT_RESOURCE_QUALIFIED')
         self.assertFalse(result['promotion_authority'])
 
     def test_default_scales_preserve_eight_case_protocol(self):
         with patch.object(M,'measure',return_value={}) as measure, patch('tools.v9.control_cgroup_memory.snapshot',return_value={}):
             result=M.probe()
-        self.assertEqual(measure.call_args_list,[unittest.mock.call(k,n,b) for n,b in ((8,1000),(32,4000)) for k in ('full','mixed','sparse','interrupted')])
+        self.assertEqual(measure.call_args_list,[unittest.mock.call(k,n,b,assets=61,definitions=3,unavailable=1) for n,b in ((8,1000),(32,4000)) for k in ('full','mixed','sparse','interrupted')])
         self.assertEqual(len(result['requested_scales']),2)
 
     def test_partial_or_invalid_scale_rejected_before_measurement(self):
@@ -133,10 +133,12 @@ class ProbeScale(unittest.TestCase):
         import json,subprocess
         with tempfile.TemporaryDirectory() as directory:
             out=Path(directory)/'report.json'
-            subprocess.run([sys.executable,str(Path(M.__file__).resolve()),'--signals','3','--bars','400','--out',str(out)],check=True,capture_output=True)
+            subprocess.run([sys.executable,str(Path(M.__file__).resolve()),'--signals','3','--bars','400','--assets','62','--definitions','4','--unavailable','2','--out',str(out)],check=True,capture_output=True)
             report=json.loads(out.read_text())
-        self.assertEqual(report['requested_scales'],[dict(signals_per_available_trial=3,bars_per_asset=400)])
+        self.assertEqual(report['requested_scales'],[dict(signals_per_available_trial=3,bars_per_asset=400,assets=62,definitions=4,unavailable_definitions=2)])
         self.assertEqual(len(report['cases']),4)
+        self.assertEqual([c['pipeline']['assets'] for c in report['cases']],[62,62,8,62])
+        self.assertTrue(all(c['pipeline']['definitions']==4 and c['pipeline']['unavailable_definitions']==2 for c in report['cases']))
         self.assertEqual([case['pipeline']['audit_status'] for case in report['cases']],['VERIFIED_REGISTERED_PRICE_DIAGNOSTICS']*3+['FAILED'])
 
 

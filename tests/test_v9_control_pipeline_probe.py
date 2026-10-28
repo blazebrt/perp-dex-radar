@@ -34,3 +34,28 @@ class PipelineProbe(unittest.TestCase):
     def test_unbounded_inputs_rejected_before_synthetic_creation(self):
         for kind,n,bars in [('bad',3,400),('full',True,400),('full',101,400),('full',3,399),('full',3,4001)]:
             with self.subTest(kind=kind,n=n,bars=bars),self.assertRaises(ValueError):P.scenario(kind,n,bars)
+
+
+    def test_expanded_population_runs_and_audits_every_available_definition(self):
+        result=P.scenario('full',3,400,assets=62,definitions=5,unavailable=2)
+        self.assertEqual(result['assets'],62)
+        self.assertEqual(result['definitions'],5)
+        self.assertEqual(result['unavailable_definitions'],2)
+        self.assertEqual(result['expected_signals'],9)
+        self.assertEqual(result['processed_signals'],9)
+        self.assertEqual(result['audit_status'],'VERIFIED_REGISTERED_PRICE_DIAGNOSTICS')
+        self.assertFalse(result['promotion_authority'])
+
+    def test_population_bounds_and_full_roster_without_large_execution(self):
+        from tools.v9 import control_probe_shape as S
+        from unittest.mock import patch
+        shape=S.validate(100,4000,781,199,7)
+        self.assertEqual(shape['definitions'],199)
+        roster=S.trials(199,7)
+        self.assertEqual(len({r['trial_id'] for r in roster}),199)
+        self.assertEqual(sum(r['archive_requirement']=='4h' for r in roster),192)
+        self.assertEqual(S.trials(3,1),[dict(trial_id=str(i)*64,archive_requirement='hourly' if i==2 else '4h') for i in range(3)])
+        with patch.object(P.tempfile,'TemporaryDirectory') as temporary:
+            for kwargs in (dict(assets=60),dict(assets=782),dict(assets=True),dict(definitions=200),dict(definitions=2),dict(unavailable=0),dict(unavailable=2),dict(unavailable=True)):
+                with self.subTest(kwargs=kwargs),self.assertRaises(ValueError):P.scenario('full',3,400,**kwargs)
+        temporary.assert_not_called()
