@@ -13,6 +13,7 @@ import time
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT))
 from tools.v9 import control_outcome_job as J,control_input_prepare as I,control_resource_gate as G
+from tools.v9 import control_runner_identity as RI
 from tools.v9.control_reservation_api import GitHubReservationAPI
 
 PROFILE='ubuntu-24.04-x64-github-hosted'
@@ -75,6 +76,9 @@ def verify_runtime(raw,expected_hash,env):
                   runner_image_version=env.get('ImageVersion'))
     if any(type(value) is not str or not value or report.get(key)!=value for key,value in required.items()):
         raise ValueError('qualified source or runtime mismatch')
+    identity=RI.collect(env)
+    if identity.get('status')!='CONSISTENT_CLAIMS_NOT_ATTESTED':
+        raise ValueError('runner image identity is unavailable or conflicting')
     expected=report.get('installed_distributions')
     if type(expected) is not dict or not expected or any(
         type(name) is not str or re.fullmatch('[a-z0-9]+(?:-[a-z0-9]+)*',name) is None

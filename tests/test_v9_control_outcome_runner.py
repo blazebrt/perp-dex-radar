@@ -24,6 +24,8 @@ class Runner(unittest.TestCase):
         platform=patch.object(R.sys,'platform','linux');platform.start();self.addCleanup(platform.stop)
         inventory=patch.object(R,'installed_distributions',return_value={'synthetic-package':'1.0'})
         inventory.start();self.addCleanup(inventory.stop)
+        identity=patch.object(R.RI,'collect',return_value={'status':'CONSISTENT_CLAIMS_NOT_ATTESTED'})
+        identity.start();self.addCleanup(identity.stop)
 
     def test_environment_source_trigger_and_rerun_refused(self):
         R.validate(self.env,1100,1000)
@@ -89,6 +91,14 @@ class Runner(unittest.TestCase):
             with self.assertRaises(ValueError):R.verify_runtime(raw,self.digest,env)
         with self.assertRaisesRegex(ValueError,'hash mismatch'):
             R.verify_runtime(raw+b' ',self.digest,self.env)
+
+    def test_identity_conflict_or_unavailable_refuses_before_api(self):
+        for status in ('CONFLICTING_IDENTITY_CLAIMS','UNAVAILABLE',None):
+            with self.subTest(status=status),patch.object(R.time,'time',return_value=1000),patch.object(R.RI,'collect',return_value={'status':status}),patch.object(R,'GitHubReservationAPI') as api,patch.object(R.J,'run') as job:
+                with self.assertRaisesRegex(ValueError,'identity is unavailable or conflicting'):
+                    R.run(self.env,self.qualification,self.digest,1100)
+                api.assert_not_called();job.assert_not_called()
+                self.assertFalse((self.root/'a6-outcome-123-1').exists())
 
     def test_duplicate_nonfinite_and_nonobject_runtime_report_refuse(self):
         for raw in (b'{"python_version":"a","python_version":"b"}',b'{"extra":NaN}',b'[]'):

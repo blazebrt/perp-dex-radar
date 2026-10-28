@@ -172,3 +172,19 @@ The separate read-only `a6_identity_probe.yml` runs only this collector under sy
 Python and retains its result. It neither reinstalls packages nor repeats research.
 A successful workflow means collection succeeded, even if the report identifies a
 conflict. Independent review and reconciliation remain required before qualification.
+
+### Hosted conflict confirmed and execution refused
+
+[Identity-only run 40655572012](https://github.com/blazebrt/perp-dex-radar/actions/runs/40655572012)
+at `590be5bb0b31044a72e68f18ec18f7651964c1cd` confirmed that image-generation
+metadata and setup logs both claim 20261012.334.1, whereas /etc/environment and
+runtime ImageVersion claim 20261023.334.3. The artifact digest and original report
+are retained under `research/v9/a6_runner_identity_probe*.json`. This demonstrates
+configuration disagreement; it does not identify the actual provisioned image.
+
+The study entry point now collects these claims itself and rejects conflict or
+unavailability before creating its API client or workspace. Even consistent claims
+do not establish attestation or satisfy independent environment/resource review.
+The current conflicting environment cannot pass this gate. A reviewed consistent
+environment must be obtained before approving the single market attempt; no recorded
+claim should be overwritten or arbitrarily designated authoritative to bypass it.
