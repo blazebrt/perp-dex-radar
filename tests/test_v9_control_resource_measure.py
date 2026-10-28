@@ -29,7 +29,7 @@ class Measurements(unittest.TestCase):
 
     @unittest.skipUnless(sys.platform.startswith('linux'),'Linux RSS unit contract')
     def test_invalid_inputs_rejected_before_worker(self):
-        for kind,n,bars in [('unknown',3,400),('full',True,400),('full',101,400),('full',3,4001)]:
+        for kind,n,bars in [('unknown',3,400),('full',True,400),('full',25001,400),('full',3,4001)]:
             with self.assertRaises(ValueError):M.measure(kind,n,bars)
 
     @unittest.skipUnless(sys.platform.startswith('linux'),'Linux allocated-block semantics')
@@ -123,7 +123,7 @@ class ProbeScale(unittest.TestCase):
 
     def test_partial_or_invalid_scale_rejected_before_measurement(self):
         with patch.object(M,'measure') as measure, patch('tools.v9.control_cgroup_memory.snapshot') as snapshot:
-            for n,b in [(3,None),(None,400),(True,400),(101,400),(3,4001),(3,False)]:
+            for n,b in [(3,None),(None,400),(True,400),(25001,400),(3,4001),(3,False)]:
                 with self.subTest(signals=n,bars=b),self.assertRaises(ValueError):M.probe(n,b)
         measure.assert_not_called();snapshot.assert_not_called()
 

@@ -32,7 +32,7 @@ class PipelineProbe(unittest.TestCase):
         self.assertIsNone(failed['statistics'])
 
     def test_unbounded_inputs_rejected_before_synthetic_creation(self):
-        for kind,n,bars in [('bad',3,400),('full',True,400),('full',101,400),('full',3,399),('full',3,4001)]:
+        for kind,n,bars in [('bad',3,400),('full',True,400),('full',25001,400),('full',3,399),('full',3,4001)]:
             with self.subTest(kind=kind,n=n,bars=bars),self.assertRaises(ValueError):P.scenario(kind,n,bars)
 
 
@@ -59,3 +59,32 @@ class PipelineProbe(unittest.TestCase):
             for kwargs in (dict(assets=60),dict(assets=782),dict(assets=True),dict(definitions=200),dict(definitions=2),dict(unavailable=0),dict(unavailable=2),dict(unavailable=True)):
                 with self.subTest(kwargs=kwargs),self.assertRaises(ValueError):P.scenario('full',3,400,**kwargs)
         temporary.assert_not_called()
+
+
+    def test_signal_coordinates_cover_study_count_without_repetition(self):
+        from tools.v9 import control_probe_shape as S
+        for n in (3,8,32,100):
+            indices,columns=S.signal_coordinates(n,400,61)
+            self.assertEqual(indices,list(range(180,180+n-1))+[399])
+            self.assertEqual(columns,[0]*n)
+        n=22207
+        S.validate(n,4000,781,199,7)
+        self.assertGreaterEqual(n*192,4263580)
+        for assets in (8,781):
+            indices,columns=S.signal_coordinates(n,4000,assets)
+            self.assertEqual(len(set(zip(indices,columns))),n)
+            self.assertTrue(all(180<=i<4000 and 0<=j<assets for i,j in zip(indices,columns)))
+            self.assertEqual((indices[-1],columns[-1]),(3999,0))
+            self.assertEqual(sum(i==3999 for i in indices),1)
+        with self.assertRaises(ValueError):S.validate(1754,400,61,3,1)
+        with self.assertRaises(ValueError):S.signal_coordinates(1754,400,8)
+        indices,columns=S.signal_coordinates(1753,400,8)
+        self.assertEqual(len(set(zip(indices,columns))),1753)
+
+    def test_expanded_signal_count_crosses_asset_boundary_and_audits(self):
+        result=P.scenario('sparse',221,400)
+        self.assertEqual(result['expected_signals'],442)
+        self.assertEqual(result['processed_signals'],442)
+        self.assertEqual(result['audit_status'],'VERIFIED_REGISTERED_PRICE_DIAGNOSTICS')
+        self.assertTrue(result['statistics']['descriptive_statistics_verified'])
+        self.assertFalse(result['promotion_authority'])

@@ -534,3 +534,20 @@ including independent audit and isolated CLI forwarding. Neither is a resource
 bound. The limits of 100 signals per available definition and 4,000 history bars,
 repetitive synthetic prices, sampled disk and excluded remote publication still
 prevent representative qualification. No workflow was activated or dispatched.
+
+## Study-volume signal generation capacity
+
+The signal limit is now 25,000 per available definition, with an additional
+capacity check against the eight-asset sparse scenario. Generation fills each
+asset's pre-terminal indices 180 through `bars-2`, then moves to the next asset;
+the final attempt remains asset zero at `bars-1`. No asset/time pair is repeated.
+Original <=100-signal cases retain their exact coordinates. With 400 bars, the
+sparse-case maximum is 1,753; with 4,000 bars, 22,207 signals are possible and
+192 available definitions would yield 4,263,744 signals.
+
+That full volume has **not been executed or measured**. Tests generate its index
+arrays only, and separately execute/audit a 221-signal sparse case that crosses
+an asset boundary. All definitions still share simplified signal geometry and
+synthetic price histories; these counts do not establish representative diversity.
+History lengths, shard/publication volume, combined resource bounds and hosted
+identity remain unresolved. No workflow was dispatched by this change.

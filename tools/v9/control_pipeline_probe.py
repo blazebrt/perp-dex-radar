@@ -47,8 +47,8 @@ def scenario(kind,signals=8,bars=1000,retain=None,*,assets=61,definitions=3,unav
         eligibility=[[True]*len(assets) for _ in times]
         if kind=='mixed':eligibility[181][0]=False
         trials=Shape.trials(definitions,unavailable)
-        indices=list(range(180,180+signals-1))+[bars-1]
-        generated=dict(i=indices,j=[0]*signals,d=[1 if i%2==0 else -1 for i in range(signals)],
+        indices,columns=Shape.signal_coordinates(signals,bars,len(assets))
+        generated=dict(i=indices,j=columns,d=[1 if i%2==0 else -1 for i in range(signals)],
             stop=[.02]*signals,target=[2.]*signals,trail=[.01]*signals,be=[1.]*signals,
             hold=[6 if i%2==0 else 36 for i in range(signals)])
         context=dict(trials=trials,times=times,assets=assets,eligibility=eligibility,segments=segments,
