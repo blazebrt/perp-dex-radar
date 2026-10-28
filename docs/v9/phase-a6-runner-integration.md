@@ -157,3 +157,18 @@ reports 20261012.334.1. The readable image-generation JSON supplied no selected
 identity fields; its hash alone is not evidence of a particular image version.
 The discrepancy is narrowed but unresolved. Candidate approval, durable retention,
 full-scale resource bounds and remote-publication qualification remain open.
+
+## Image-generation record correction
+
+The [official image-data generator](https://github.com/actions/runner-images/blob/main/images/ubuntu/scripts/build/configure-image-data.sh)
+writes a JSON list of group/detail records. The earlier top-level-key collector
+therefore recorded a readable hash but no version; that report is retained unchanged.
+`control_runner_identity.py` now parses the Runner Image record explicitly, rejects
+duplicate or malformed identities, bounds file reads and retains separate claims.
+It reports `CONFLICTING_IDENTITY_CLAIMS`, `UNAVAILABLE`, or
+`CONSISTENT_CLAIMS_NOT_ATTESTED`; none grants resource or promotion authority.
+
+The separate read-only `a6_identity_probe.yml` runs only this collector under system
+Python and retains its result. It neither reinstalls packages nor repeats research.
+A successful workflow means collection succeeded, even if the report identifies a
+conflict. Independent review and reconciliation remain required before qualification.
