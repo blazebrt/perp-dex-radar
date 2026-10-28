@@ -135,6 +135,13 @@ class ProbeScale(unittest.TestCase):
             out=Path(directory)/'report.json'
             subprocess.run([sys.executable,str(Path(M.__file__).resolve()),'--signals','3','--bars','400','--assets','62','--definitions','4','--unavailable','2','--shard-rows','25000','--out',str(out)],check=True,capture_output=True)
             report=json.loads(out.read_text())
+            progress=Path(str(out)+'.progress')
+            receipts=sorted(progress.glob('case-*.completed.json'))
+            self.assertEqual(len(receipts),4)
+            import hashlib
+            completion=json.loads((progress/'completed.json').read_text())
+            self.assertEqual(completion['report_sha256'],hashlib.sha256(out.read_bytes()).hexdigest())
+            self.assertEqual([json.loads(p.read_text())['measurement'] for p in receipts],report['cases'])
         self.assertEqual(report['requested_scales'],[dict(signals_per_available_trial=3,bars_per_asset=400,assets=62,definitions=4,unavailable_definitions=2)])
         self.assertEqual(report['outcome_shard_max_rows'],25000)
         self.assertTrue(all(c['pipeline']['outcome_shard_max_rows']==25000 for c in report['cases']))
@@ -192,3 +199,63 @@ class WorkerCleanup(unittest.TestCase):
         process=Mock(pid=123)
         with patch.object(M.os,'killpg',side_effect=ProcessLookupError):M.stop_worker_group(process)
         self.assertEqual(process.wait.call_args_list,[unittest.mock.call(timeout=2),unittest.mock.call(timeout=5)])
+
+
+@unittest.skipUnless(sys.platform.startswith('linux'),'Linux fsync directory receipts')
+class ProgressReceipts(unittest.TestCase):
+    def test_later_error_preserves_completed_case_and_sanitizes_failure(self):
+        import json
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)/'progress'
+            with patch.object(M,'measure',side_effect=[{'value':1},RuntimeError('secret error details')]),patch('tools.v9.control_cgroup_memory.snapshot',return_value={}):
+                with self.assertRaisesRegex(RuntimeError,'secret error details'):M.probe(3,400,checkpoint_dir=root)
+            self.assertEqual(json.loads((root/'case-000.completed.json').read_text())['measurement'],{'value':1})
+            self.assertTrue((root/'case-001.started.json').exists())
+            self.assertFalse((root/'case-001.completed.json').exists())
+            self.assertFalse((root/'completed.json').exists())
+            failure=json.loads((root/'failed.json').read_text())
+            self.assertEqual(failure['error_type'],'RuntimeError')
+            self.assertEqual(len(failure['completed_cases']),1)
+            self.assertNotIn('secret',json.dumps(failure))
+            self.assertFalse(failure['resource_qualified'])
+
+    def test_existing_directory_and_invalid_options_refused_before_work(self):
+        with tempfile.TemporaryDirectory() as directory,patch.object(M,'measure') as measure:
+            with self.assertRaises(FileExistsError):M.probe(3,400,checkpoint_dir=directory)
+            target=Path(directory)/'invalid'
+            with self.assertRaises(ValueError):M.probe(3,400,shard_rows=0,checkpoint_dir=target)
+            self.assertFalse(target.exists())
+        measure.assert_not_called()
+
+    def test_abrupt_exit_leaves_completed_receipt_without_false_completion(self):
+        import json,subprocess
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)/'progress'
+            code="""import os,sys
+from tools.v9 import control_resource_measure as M,control_cgroup_memory as C
+C.snapshot=lambda:{}
+calls=0
+def measure(*args,**kwargs):
+    global calls
+    calls+=1
+    if calls==2:os._exit(23)
+    return {'finished':True}
+M.measure=measure
+M.probe(3,400,checkpoint_dir=sys.argv[1])
+"""
+            result=subprocess.run([sys.executable,'-c',code,str(root)],cwd=M.ROOT,capture_output=True,timeout=15)
+            self.assertEqual(result.returncode,23,result.stderr)
+            self.assertTrue(json.loads((root/'case-000.completed.json').read_text())['measurement']['finished'])
+            self.assertTrue((root/'case-001.started.json').exists())
+            self.assertFalse((root/'completed.json').exists())
+            self.assertFalse((root/'failed.json').exists())
+
+    def test_duplicate_receipt_cannot_replace_original(self):
+        from tools.v9.control_probe_progress import Journal
+        with tempfile.TemporaryDirectory() as directory:
+            journal=Journal(Path(directory)/'progress',[],{})
+            journal.complete(0,{'value':1})
+            path=journal.root/'case-000.completed.json';original=path.read_bytes()
+            with self.assertRaises(FileExistsError):journal.complete(0,{'value':2})
+            self.assertEqual(path.read_bytes(),original)
+            self.assertEqual(len(journal.completed),1)

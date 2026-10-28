@@ -12,7 +12,7 @@ import time
 
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT))
-from tools.v9 import control_probe_shape as Shape
+from tools.v9 import control_probe_shape as Shape, control_probe_progress as Progress
 
 
 def paths_below(root):
@@ -145,29 +145,51 @@ def measure(kind,signals,bars,*,assets=61,definitions=3,unavailable=1,shard_rows
         return data
 
 
-def probe(signals=None,bars=None,*,assets=61,definitions=3,unavailable=1,shard_rows=4):
+def probe(signals=None,bars=None,*,assets=61,definitions=3,unavailable=1,shard_rows=4,checkpoint_dir=None):
     if (signals is None)!=(bars is None):
         raise ValueError('signals and bars must be supplied together')
     Shape.validate(8 if signals is None else signals,1000 if bars is None else bars,assets,definitions,unavailable)
     Shape.shard_limit(shard_rows)
     scales=((8,1000),(32,4000)) if signals is None else ((signals,bars),)
     from tools.v9.control_cgroup_memory import snapshot
-    cgroup_before=snapshot()
-    cases=[measure(kind,signals,bars,assets=assets,definitions=definitions,unavailable=unavailable,shard_rows=shard_rows) for signals,bars in scales
-           for kind in ('full','mixed','sparse','interrupted')]
     import hashlib
-    return dict(schema='v9.a6-isolated-resource-probe/3',status='NOT_RESOURCE_QUALIFIED',synthetic_only=True,
-        market_data_loaded=False,platform=sys.platform,cases=cases,outcome_shard_max_rows=shard_rows,
-        requested_scales=[Shape.validate(n,b,assets,definitions,unavailable) for n,b in scales],
-        cgroup_capability_before=cgroup_before,cgroup_capability_after=snapshot(),
-        observer_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-        population_shape_sha256=hashlib.sha256(Path(Shape.__file__).read_bytes()).hexdigest(),
-        memory_measurement='LINUX_PROCESS_LIFETIME_PEAK_RSS_IN_BYTES_INCLUDES_IMPORTS',
-        combined_memory_measurement='SAMPLED_PRIVATE_SESSION_SUM_RSS_SHARED_PAGES_MAY_REPEAT_NOT_A_BOUND',
-        combined_memory_exclusions=['OBSERVER_PROCESS','BETWEEN_SAMPLE_PEAKS','CHILDREN_ESCAPING_SESSION'],
-        disk_measurement='SAMPLED_LOGICAL_AND_ALLOCATED_BLOCKS_WITH_WORKER_OPEN_DELETED_FILES_LOWER_BOUND',
-        exclusions=['REAL_ARCHIVE_PREPARATION','REMOTE_GIT_PUBLICATION','HOSTED_RUNNER_QUALIFICATION','FULL_MARKET_SCALE'],
-        promotion_authority=False)
+    plan=[dict(scenario=kind,signals=n,bars=b,assets=assets,definitions=definitions,
+               unavailable=unavailable,shard_rows=shard_rows) for n,b in scales
+          for kind in ('full','mixed','sparse','interrupted')]
+    journal=None
+    if checkpoint_dir is not None:
+        modules=[Path(__file__),Path(Shape.__file__),Path(Progress.__file__),
+                 Path(__file__).with_name('control_pipeline_probe.py'),
+                 Path(__file__).with_name('control_publication_probe.py')]
+        journal=Progress.Journal(checkpoint_dir,plan,
+            {p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in modules})
+    try:
+        cgroup_before=snapshot();cases=[]
+        for index,case in enumerate(plan):
+            if journal is not None:journal.begin(index,case)
+            measured=measure(case['scenario'],case['signals'],case['bars'],assets=assets,
+                             definitions=definitions,unavailable=unavailable,shard_rows=shard_rows)
+            if journal is not None:journal.complete(index,measured)
+            cases.append(measured)
+        report=dict(schema='v9.a6-isolated-resource-probe/3',status='NOT_RESOURCE_QUALIFIED',synthetic_only=True,
+            market_data_loaded=False,platform=sys.platform,cases=cases,outcome_shard_max_rows=shard_rows,
+            requested_scales=[Shape.validate(n,b,assets,definitions,unavailable) for n,b in scales],
+            cgroup_capability_before=cgroup_before,cgroup_capability_after=snapshot(),
+            observer_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+            population_shape_sha256=hashlib.sha256(Path(Shape.__file__).read_bytes()).hexdigest(),
+            memory_measurement='LINUX_PROCESS_LIFETIME_PEAK_RSS_IN_BYTES_INCLUDES_IMPORTS',
+            combined_memory_measurement='SAMPLED_PRIVATE_SESSION_SUM_RSS_SHARED_PAGES_MAY_REPEAT_NOT_A_BOUND',
+            combined_memory_exclusions=['OBSERVER_PROCESS','BETWEEN_SAMPLE_PEAKS','CHILDREN_ESCAPING_SESSION'],
+            disk_measurement='SAMPLED_LOGICAL_AND_ALLOCATED_BLOCKS_WITH_WORKER_OPEN_DELETED_FILES_LOWER_BOUND',
+            exclusions=['REAL_ARCHIVE_PREPARATION','REMOTE_GIT_PUBLICATION','HOSTED_RUNNER_QUALIFICATION','FULL_MARKET_SCALE'],
+            promotion_authority=False)
+        if journal is not None:journal.finish(report)
+        return report
+    except BaseException as error:
+        if journal is not None:
+            try:journal.fail(error)
+            except Exception:pass  # Preserve the original error if storage also fails.
+        raise
 
 
 if __name__=='__main__':
@@ -177,7 +199,9 @@ if __name__=='__main__':
     ap.add_argument('--assets',type=int,default=61);ap.add_argument('--definitions',type=int,default=3)
     ap.add_argument('--unavailable',type=int,default=1)
     ap.add_argument('--shard-rows',type=int,default=4)
+    ap.add_argument('--checkpoint-dir',help='Fresh directory; defaults to OUT.progress for the parent probe')
     args=ap.parse_args();path=Path(args.out)
+    if args.worker and args.checkpoint_dir is not None:ap.error('checkpoints belong to the parent probe')
     if path.exists():raise FileExistsError('preserve previous resource measurement')
     if args.worker:
         if not sys.platform.startswith('linux'):raise RuntimeError('Linux worker required')
@@ -187,5 +211,5 @@ if __name__=='__main__':
         data=dict(pipeline=P.scenario(args.worker,8 if args.signals is None else args.signals,1000 if args.bars is None else args.bars,retain=G.retain,assets=args.assets,definitions=args.definitions,unavailable=args.unavailable,shard_rows=args.shard_rows),
                   peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*1024,
                   pipeline_probe_sha256=X.sha(Path(P.__file__)),publication_probe_sha256=X.sha(Path(G.__file__)))
-    else:data=probe(args.signals,args.bars,assets=args.assets,definitions=args.definitions,unavailable=args.unavailable,shard_rows=args.shard_rows)
+    else:data=probe(args.signals,args.bars,assets=args.assets,definitions=args.definitions,unavailable=args.unavailable,shard_rows=args.shard_rows,checkpoint_dir=args.checkpoint_dir or str(path)+'.progress')
     with path.open('x',encoding='utf8',newline='\n') as stream:stream.write(json.dumps(data,sort_keys=True,indent=2)+'\n')

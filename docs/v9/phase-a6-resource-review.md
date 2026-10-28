@@ -584,3 +584,22 @@ unclean journal handling do not identify the cause. With no durable case-level
 receipts, neither completed cases nor local Git verification can be inferred.
 Add durable progress receipts before another larger attempt. No successful
 measurement or qualification is claimed, and no market study was started.
+
+## Per-case progress receipts
+
+The parent measurement CLI now creates `OUT.progress` by default, or accepts a
+fresh `--checkpoint-dir`. It records the plan/source hashes before work, a
+started receipt before each case, and the original measurement after completion.
+A later exception preserves earlier cases and records only its class. An abrupt
+exit can leave a started-only case without a failure receipt; that is incomplete,
+not success. Existing directories are refused, and no automatic resume is offered.
+
+Each receipt is exclusively created and file-flushed, published by a non-overwriting
+hard link, then directory-flushed. The new directory's parent is flushed too.
+Ignore `.pending` files. The final marker says measurements completed and includes
+the expected final-report hash; it does not prove the report exists or was published.
+Tests cover abrupt process exit, later exceptions, overwrite refusal and actual
+CLI case/report equality. Durability still depends on OS/filesystem semantics;
+this is not a guarantee against VM or storage loss. Active-case internal progress
+and observer/checkpoint overhead are not measured by completed-case timings.
+Attempt 1 remains unchanged; no replacement large measurement has been run.
