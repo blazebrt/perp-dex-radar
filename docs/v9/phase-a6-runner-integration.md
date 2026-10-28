@@ -140,3 +140,20 @@ allowlisted image/runner environment values, selected OS/image fields from local
 configuration files and hashes of those files. Unreadable files are explicitly
 unavailable. These claims do not independently attest the host; they must be compared
 with the setup log and independently reviewed before qualification.
+
+### Verified committed-lock replay
+
+[Run 40558677982](https://github.com/blazebrt/perp-dex-radar/actions/runs/40558677982)
+at `752d4d7ef89cfc2f63fabc56e1ab837bc9a59581` reproduced the committed lock and
+manifest byte-for-byte, passed offline installation and exact inventory checks, and
+completed all eight synthetic cases as expected. Report artifact `12757114174` has
+verified ZIP digest `de86ff4691126b73c3cae7fcd3fb7cb86ec7416908f28c9def7acc0fae9b3fb4`.
+Separate replay reports are retained as `research/v9/a6_dependency_replay*.json`.
+The replay wheel ZIP was not downloaded independently; hosted hash-required checks
+and byte-identical manifest bind it to the candidate's previously verified wheels.
+
+Runtime ImageVersion matches /etc/environment at 20261023.334.3, while the setup log
+reports 20261012.334.1. The readable image-generation JSON supplied no selected
+identity fields; its hash alone is not evidence of a particular image version.
+The discrepancy is narrowed but unresolved. Candidate approval, durable retention,
+full-scale resource bounds and remote-publication qualification remain open.
