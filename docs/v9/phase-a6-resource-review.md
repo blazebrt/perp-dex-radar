@@ -566,3 +566,21 @@ four-row and 25,000-row output layouts. Pair shards drop from four to two with
 identical records. CLI integration verifies forwarding to isolated workers.
 This is logical-layout parity, not large-volume compression, runtime, storage
 or remote-publication qualification. No workflow was dispatched by this change.
+
+## Intermediate local attempt 1: no measurement report
+
+A local synthetic invocation at `a39b753f73fa8b0514edf9873ad9177486f2af7d`
+requested 128 assets, 12 definitions (two unavailable), 128 signals per available
+definition, 4,000 bars and 25,000-row shards across four scenarios. It used a clean
+checkout under WSL, with a requested 180-second timeout and ten-second kill grace.
+The tool returned exit 1; no final report was created and the log was empty.
+The underlying timeout exit status and termination cause are **unknown**. This
+is not evidence of an OOM, a runtime bound, or a defect in scientific results.
+
+The original environment and log plus provenance are retained under
+`research/v9/a6_intermediate_attempt1_*`. A later process snapshot found no matching
+probe processes; that does not establish graceful cleanup. Kernel messages about
+unclean journal handling do not identify the cause. With no durable case-level
+receipts, neither completed cases nor local Git verification can be inferred.
+Add durable progress receipts before another larger attempt. No successful
+measurement or qualification is claimed, and no market study was started.
