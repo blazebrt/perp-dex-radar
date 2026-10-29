@@ -1,0 +1,32 @@
+{
+  "adapter_cache_windows": 8,
+  "assets": 61,
+  "bars_per_asset": 400,
+  "compressed_price_bytes_read": 84119,
+  "distinct_available_price_files": 61,
+  "elapsed_seconds": 1.348320099990815,
+  "extrapolation_warning": "SYNTHETIC_REPETITIVE_PRICES_NOT_A_MARKET_SIZE_OR_RUNTIME_GUARANTEE",
+  "market_data_loaded": false,
+  "measured_scope": "ADAPTER_AND_PAIR_SHARD_ONLY_EXCLUDES_PREPARATION_SUMMARY_AUDIT_AND_GIT",
+  "naive_full_inventory_gzip_bytes": 14411326758.0,
+  "naive_full_inventory_json_bytes": 242633942430.0,
+  "observed_price_pairs": 20,
+  "pair_gzip_bytes": 67602,
+  "pair_json_bytes": 1138170,
+  "price_file_reads": 61,
+  "price_storage": "HASH_BOUND_SQLITE_WINDOW_INDEX",
+  "promotion_authority": false,
+  "rereads_beyond_available_files": 0,
+  "schema": "v9.a6-synthetic-resource-probe/1",
+  "signals": 20,
+  "source_sha256": {
+    "control_adapter.py": "3fc6955a1329cc59ecb77a9de5d7876bd6ccd1d3c27a9df993f37f8f83797f00",
+    "control_execution.py": "952ec4bd98783b376e84b6052a45120f06ab8ae1b2c152bf894272b7f73c44ce",
+    "control_extract.py": "42cb4799352af31d235cdd7c39f8629fc12ad81dfebe4329c16933afe0e9312b",
+    "control_pairs.py": "1ac7e9dcad4ca4ae7a6ec20e0a470cf73a85e2f705b69a294f115b275b97f636",
+    "control_resource_probe.py": "c0bd74335941c04c479580c22360fb5efd79532b9e7eee2089a50f13497aba08",
+    "control_signals.py": "970e0a8306c46d4b7754bafb7fc48037f6bc5d1f7061ea0d229020e9584a72f2"
+  },
+  "status": "NOT_RESOURCE_QUALIFIED",
+  "synthetic_only": true
+}

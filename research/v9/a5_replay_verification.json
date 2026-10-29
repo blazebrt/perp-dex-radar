@@ -1,0 +1,208 @@
+{
+  "actions_run": 39464874726,
+  "full_family_complete": false,
+  "limitations": [
+    "Signal comparison reuses unchanged original strategy functions; it independently checks adapter mapping, not the original strategy mathematics.",
+    "All seven net-return series remain unavailable. Funding observations do not establish complete coverage.",
+    "FUND_CARRY remains unavailable for causal quorum mapping; two FUND_FADE segments are unavailable for off-grid funding.",
+    "Retrospective source-quality selection, continuity warm-up restrictions and differing hourly/four-hour universes prevent an unrestricted common-universe interpretation."
+  ],
+  "promotion_authority": false,
+  "regression": {
+    "passed": true,
+    "seconds": 341.138,
+    "tests": 1082
+  },
+  "reports": {
+    "artifact": {
+      "actions_run": 39464874726,
+      "all_artifact_hashes_verified": true,
+      "all_preregistrations_match_source": true,
+      "independent_price_signal_reconciliation_complete": false,
+      "promotion_authority": false,
+      "result_commit": "84412b14ae8a1dee7299c2ebdbb32a45ac5d0e0e",
+      "schema": "v9.a5-independent-artifact-accounting/1",
+      "source_commit": "491ca15b235a1f635cc5f858115d03162d8e1a5d",
+      "status": "COMPLETED_WITH_UNAVAILABLE_RESULTS",
+      "trial_accounting_verified": true,
+      "trials": {
+        "BTC_LEAD": {
+          "attempts": 30230,
+          "counts": {
+            "UNEXECUTED": 8378,
+            "UNRESOLVED": 1,
+            "UNRESOLVED_FUNDING": 21851
+          },
+          "failed_segments": 0,
+          "net_series_available": false,
+          "segments": 690,
+          "unavailable_segments": 0
+        },
+        "FAIL_BRK": {
+          "attempts": 243504,
+          "counts": {
+            "UNEXECUTED": 109512,
+            "UNRESOLVED": 91,
+            "UNRESOLVED_FUNDING": 133901
+          },
+          "failed_segments": 0,
+          "net_series_available": false,
+          "segments": 690,
+          "unavailable_segments": 0
+        },
+        "FUND_CARRY": {
+          "attempts": 0,
+          "counts": {},
+          "failed_segments": 0,
+          "net_series_available": false,
+          "segments": 0,
+          "unavailable_segments": 0
+        },
+        "FUND_FADE": {
+          "attempts": 55185,
+          "counts": {
+            "UNEXECUTED": 39308,
+            "UNRESOLVED": 42,
+            "UNRESOLVED_FUNDING": 15835
+          },
+          "failed_segments": 0,
+          "net_series_available": false,
+          "segments": 690,
+          "unavailable_segments": 2
+        },
+        "LIQ_FLUSH": {
+          "attempts": 34112,
+          "counts": {
+            "UNEXECUTED": 12227,
+            "UNRESOLVED": 5,
+            "UNRESOLVED_FUNDING": 21880
+          },
+          "failed_segments": 0,
+          "net_series_available": false,
+          "segments": 690,
+          "unavailable_segments": 0
+        },
+        "PULLBACK": {
+          "attempts": 48286,
+          "counts": {
+            "UNEXECUTED": 21032,
+            "UNRESOLVED": 26,
+            "UNRESOLVED_FUNDING": 27228
+          },
+          "failed_segments": 0,
+          "net_series_available": false,
+          "segments": 690,
+          "unavailable_segments": 0
+        },
+        "VOL_SPIKE": {
+          "attempts": 24500,
+          "counts": {
+            "UNEXECUTED": 10728,
+            "UNRESOLVED": 8,
+            "UNRESOLVED_FUNDING": 13764
+          },
+          "failed_segments": 0,
+          "net_series_available": false,
+          "segments": 690,
+          "unavailable_segments": 0
+        }
+      }
+    },
+    "price": {
+      "complete_signal_population_independently_verified": false,
+      "counts": {
+        "BTC_LEAD": {
+          "UNEXECUTED": 8378,
+          "UNRESOLVED": 1,
+          "UNRESOLVED_FUNDING": 21851
+        },
+        "FAIL_BRK": {
+          "UNEXECUTED": 109512,
+          "UNRESOLVED": 91,
+          "UNRESOLVED_FUNDING": 133901
+        },
+        "FUND_FADE": {
+          "UNEXECUTED": 39308,
+          "UNRESOLVED": 42,
+          "UNRESOLVED_FUNDING": 15835
+        },
+        "LIQ_FLUSH": {
+          "UNEXECUTED": 12227,
+          "UNRESOLVED": 5,
+          "UNRESOLVED_FUNDING": 21880
+        },
+        "PULLBACK": {
+          "UNEXECUTED": 21032,
+          "UNRESOLVED": 26,
+          "UNRESOLVED_FUNDING": 27228
+        },
+        "VOL_SPIKE": {
+          "UNEXECUTED": 10728,
+          "UNRESOLVED": 8,
+          "UNRESOLVED_FUNDING": 13764
+        }
+      },
+      "every_retained_attempt_reconciled": true,
+      "promotion_authority": false,
+      "result_commit": "84412b14ae8a1dee7299c2ebdbb32a45ac5d0e0e",
+      "schema": "v9.a5-independent-price-reconciliation/1"
+    },
+    "signal": {
+      "every_successfully_generated_segment_population_reconciled": true,
+      "full_family_complete": false,
+      "new_signal_adapter_imported": false,
+      "original_strategy_code_reused": true,
+      "promotion_authority": false,
+      "result_commit": "84412b14ae8a1dee7299c2ebdbb32a45ac5d0e0e",
+      "schema": "v9.a5-independent-signal-reconciliation/1",
+      "source_commit": "491ca15b235a1f635cc5f858115d03162d8e1a5d",
+      "trials": {
+        "BTC_LEAD": {
+          "failed_segments": 0,
+          "reconciled_segments": 690,
+          "signals": 30230,
+          "unavailable_segments": 0
+        },
+        "FAIL_BRK": {
+          "failed_segments": 0,
+          "reconciled_segments": 690,
+          "signals": 243504,
+          "unavailable_segments": 0
+        },
+        "FUND_FADE": {
+          "failed_segments": 0,
+          "reconciled_segments": 688,
+          "signals": 55185,
+          "unavailable_segments": 2
+        },
+        "LIQ_FLUSH": {
+          "failed_segments": 0,
+          "reconciled_segments": 690,
+          "signals": 34112,
+          "unavailable_segments": 0
+        },
+        "PULLBACK": {
+          "failed_segments": 0,
+          "reconciled_segments": 690,
+          "signals": 48286,
+          "unavailable_segments": 0
+        },
+        "VOL_SPIKE": {
+          "failed_segments": 0,
+          "reconciled_segments": 690,
+          "signals": 24500,
+          "unavailable_segments": 0
+        }
+      }
+    }
+  },
+  "result_commit": "84412b14ae8a1dee7299c2ebdbb32a45ac5d0e0e",
+  "schema": "v9.a5-replay-verification/1",
+  "source_commit": "491ca15b235a1f635cc5f858115d03162d8e1a5d",
+  "verified_date": "2026-10-21",
+  "verifier_sha256": {
+    "tools/v9/verify_hourly_artifacts.py": "5b9d3a5b964a85fd11e57cac06be74be1812b1405824ecb4b68be479db7870cc",
+    "tools/v9/verify_hourly_prices.py": "5aad7a80be1db49de262076251f361778747f0272a58019c0f8f5929a6c3a9f7",
+    "tools/v9/verify_hourly_signals.py": "71f7f15bff2162b8e1a8bbed8df8813bd55aa786c1ac48c134290e939a42468c"
+  }
+}

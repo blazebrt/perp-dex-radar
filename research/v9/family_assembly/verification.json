@@ -1,0 +1,17 @@
+{
+  "assembly_sha256": "d7666b61e016c674c9b3a0c1d1f776fc34e93a0d80fe98e2d7857cb388a766cf",
+  "columns": 199,
+  "compared_cells": 466854,
+  "days": 2346,
+  "every_column_metadata_reconciled": true,
+  "inherited_statistics_unchanged": true,
+  "matrix_bytes_identical": true,
+  "promotion_authority": false,
+  "schema": "v9.family-assembly-verification/1",
+  "sources": {
+    "A4": "18c14932bcc2ba9e8685f231e1725a786869edd9",
+    "A5": "84412b14ae8a1dee7299c2ebdbb32a45ac5d0e0e"
+  },
+  "unavailable_columns": 7,
+  "verifier_sha256": "75b4ac638f8ab7fb638677f20a0b2933b7d91941b2e10459d85a77845a00ada6"
+}

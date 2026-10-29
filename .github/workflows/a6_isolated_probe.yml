@@ -1,0 +1,93 @@
+name: A6 isolated synthetic resource pilot
+
+on:
+  push:
+    branches: [v9/census-evidence]
+    paths: [.github/workflows/a6_isolated_probe.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: a6-isolated-resource-pilot
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    if: github.repository == 'blazebrt/perp-dex-radar' && github.ref == 'refs/heads/v9/census-evidence'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.10.12'
+      - name: Capture pilot environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir "$RUNNER_TEMP/a6-pilot"
+          python - <<'PY'
+          import json, os, platform, sys
+          from pathlib import Path
+          report = dict(schema='v9.a6-hosted-pilot-environment/1',
+              source_commit=os.environ['GITHUB_SHA'], run_id=os.environ['GITHUB_RUN_ID'],
+              run_attempt=os.environ['GITHUB_RUN_ATTEMPT'], python=sys.version,
+              platform=platform.platform(), runner_os=os.environ['RUNNER_OS'],
+              runner_arch=os.environ['RUNNER_ARCH'], image_os=os.environ.get('ImageOS'),
+              image_version=os.environ.get('ImageVersion'), synthetic_only=True,
+              resource_qualified=False, promotion_authority=False)
+          Path(os.environ['RUNNER_TEMP'], 'a6-pilot', 'environment.json').write_text(json.dumps(report, indent=2)+'\n')
+          PY
+          git --version > "$RUNNER_TEMP/a6-pilot/git-version.txt"
+      - name: Install pilot dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install numpy==2.2.6 pandas==2.2.3 numba==0.61.2 2>&1 | tee "$RUNNER_TEMP/a6-pilot/install.log"
+          python -m pip freeze --all > "$RUNNER_TEMP/a6-pilot/dependencies.txt"
+      - name: Measure synthetic pipeline in a fresh cgroup
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo env LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}" "$(command -v python)" - "$RUNNER_TEMP/a6-pilot" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" <<'PY'
+          import hashlib, json, sys
+          from pathlib import Path
+          from tools.v9.control_cgroup_run import run
+          output=Path(sys.argv[1]); run_id,attempt=sys.argv[2:]
+          if not run_id.isdecimal() or not attempt.isdecimal(): raise ValueError('invalid run identity')
+          root=Path('/sys/fs/cgroup')
+          parent=root/('a6-isolated-'+run_id+'-'+attempt)
+          state=dict(parent_created=False,parent_removed=False,resource_qualified=False)
+          try:
+              if 'memory' not in (root/'cgroup.subtree_control').read_text().split():
+                  raise RuntimeError('root memory controller unavailable; no system reconfiguration permitted')
+              parent.mkdir(); state['parent_created']=True
+              (parent/'cgroup.subtree_control').write_text('+memory')
+              command=[sys.executable,'tools/v9/control_resource_measure.py','--out',str(output/'measurements.json')]
+              report=run(parent,command,output/'isolated',1200)
+              print(json.dumps(report,sort_keys=True))
+              if report['status']!='MEASURED_DIAGNOSTIC' or not report['placement_verified'] or not report['group_removed']:
+                  raise RuntimeError('isolated synthetic measurement failed')
+              raw=(output/'measurements.json').read_bytes()
+              (output/'measurements.sha256').write_text(hashlib.sha256(raw).hexdigest()+'  measurements.json\n')
+          finally:
+              if state['parent_created']:
+                  try: parent.rmdir(); state['parent_removed']=True
+                  except OSError as error: state['cleanup_error_type']=type(error).__name__
+              (output/'parent-cleanup.json').write_text(json.dumps(state,sort_keys=True,indent=2)+'\n')
+              if state['parent_created'] and not state['parent_removed']:
+                  raise RuntimeError('isolated parent cleanup incomplete')
+          PY
+      - name: Retain pilot diagnostics even on failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: a6-isolated-pilot-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/a6-pilot/
+          if-no-files-found: error
+          retention-days: 90

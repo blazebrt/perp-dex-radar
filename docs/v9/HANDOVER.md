@@ -32,12 +32,15 @@ This file is that plan. Keep it current.
 | Release | **v9 is merged into `main`** (PR #28, merge commit `f58c058`, 2026-10-15, at the owner's request), carrying #25, #26 and #27; those three are closed. The first production Scan on `main` published the v9 desk and the first market-history record. | PR #28 |
 | v8 desk (Today, Analyzer, Funding, Portfolio, Research) | **Merged into main** (PR #24, 2026-10-14, with the owner's accuracy fixes). | `today.html`, `desk.js`, `desk.css` |
 | Data-source survey | **Done.** 102 sources probed from the Actions runner; 81 answer. | `docs/v9/data-sources.md`, branch `probe-results` |
+| Known-trial replay (A4) | **A4.1â€“A4.3 complete (verified 2026-10-16), draft PR #30.** All 192 four-hour/daily definitions replayed on the pinned archive; 2,670,894 trades independently reconciled across 2,346 daily rows. Seven hourly columns remain missing. A4.4 assembly/reporting is complete (2026-10-21): the retained artifact in `research/v9/family_assembly/` preserves all 466,854 cells and every column metadata record, independently verified. The complete-return objective remains open. All seven hourly net series remain unavailable; no promotion follows. | `tools/v9/census_plan.py`, `research/v9/census_replay_plan.json` |
+| Hourly liquid-universe archive (A5) | **A5.1 and conditional A5.2 complete (2026-10-19), draft PR #30.** The original archive remains rejected. A separate 690-segment quality-restricted archive is published at `0859e683910a7eea7ef446b27cf9773f33d9e9f8`; all 1,386 retained files match the independently verified candidate. It retains 13,862,226 rows, reconstructs 264 hours, quarantines 112, preserves 7,026 original missing hours and 663 zero-trade hours, and blocks new entries on 70/2,345 days. Acceptance is conditional on retrospective-quality disclosure and registered gap-aware execution. A5.3 execution contract and uncertainty-preserving kernel are implemented; batch position accounting and feature-readiness boundaries are implemented; session-reset indicator/signal integration is implemented for six definitions with eight synthetic checks; Funding parsing now explicitly preserves unknown coverage; FUND_CARRY will be recorded unavailable without changing its definition. The bound archive replay driver is implemented and synthetically tested; Durable replay workflow and evidence-recording support are implemented; all 1,082 full regression tests pass. First market replay completed in Actions run `39464874726`, result `84412b14ae8a1dee7299c2ebdbb32a45ac5d0e0e` from `491ca15b235a1f635cc5f858115d03162d8e1a5d`. Artifact accounting, all 435,817 retained attempts and all successfully generated signal populations independently reconciled; evidence history now has five intact records. All seven net series remain unavailable; A5.3 is not fully satisfied because FUND_CARRY could not execute and two FUND_FADE segments are unavailable. A4.4 evidence review and assembly specification are recorded; the verified assembly and provenance are retained in `research/v9/family_assembly/`. Complete net-return evidence remains unavailable. | `research/v9/a5_quality_acceptance.json`, `docs/v9/phase-a5-quality-acceptance.md` |
+| Matched controls (A6) | **A6.1/A6.2 complete for registered diagnostic scope; A6.3 remains open, draft PR #30.** Result `eb785a908dce572958336649291b8feeb4ee9575` independently verifies 4,263,580 signals from 192 available definitions, all 670 package files and 781 original candle files; seven hourly populations remain unavailable. Outcome execution, independent audits and reservation/retention support are implemented but the market outcome study is not activated. Synthetic probes now support population/signal/shard sizing, flushed per-case progress and up to 32,768 history bars with optional spread placement and an explicit deterministic diverse-price fixture. Intermediate local attempts 2, 3 and 4 completed with verified receipts and local Git bytes (attempts 3/4: 16,384-bar histories and spread placement; attempt 4 uses diverse prices); attempt 1 remains unsuccessful with unknown cause. Attempt 5 completed the 199-definition/781-asset synthetic roster diagnostic with short histories and eight signals per available definition. Parent SIGTERM now enters bounded worker cleanup and failure-receipt handling, including termination received during worker launch. Disposable execution/audit price indexes now avoid disk-sync overhead while retained evidence keeps its durability settings. **Still required:** representative full-scale history/diversity/resource and remote-publication bounds, hosted identity reconciliation (conflicting image claims), independent qualification review, then controlled activation. No net inference, promotion authority or new evidence-history record follows. | `research/v9/a6_result_verification.json`, `docs/v9/phase-a6-extraction-review.md`, `docs/v9/phase-a6-resource-review.md`, session log below |
 | Survivorship-free evidence engine | **v1 done.** 17 daily/4h strategies plus the coin-picks swing score, on 750 coins (170 delisted), 2020-01 to 2026-09. Every run is recorded, hash-chained and pinned to its dataset (A8). | `tools/v9/archive_fetch.py`, `tools/v9/evidence.py`, `research/v9/evidence_runs.jsonl`, branch `evidence-results` |
-| Probation tier (first governed trades) | **Implemented** (`dada154`, in PR #28). XSMOM long is CONFIRMED on (a)–(j). It trades at half size inside a 24h window. Its forward test `V9-PROBATION-XSMOM-LONG-1` starts 2026-10-15 00:00 UTC. The live check is B8. | `docs/v9/phase-b-probation.md`, `research/v9/probation_evidence.json` |
-| Live multi-venue data layer | **C1–C3 built** (in PR #28): `v9/market.py`, `data/v9/market.json`, an hourly history on `v9-market-history`, a Today panel and Analyzer context. 16 of 16 sources answered from Actions. | `docs/v9/market-context.md`, branch `market-results` |
+| Probation tier (first governed trades) | **Implemented** (`dada154`, in PR #28). XSMOM long is CONFIRMED on (a)â€“(j). It trades at half size inside a 24h window. Its forward test `V9-PROBATION-XSMOM-LONG-1` starts 2026-10-15 00:00 UTC. The live check is B8. | `docs/v9/phase-b-probation.md`, `research/v9/probation_evidence.json` |
+| Live multi-venue data layer | **C1â€“C3 built** (in PR #28): `v9/market.py`, `data/v9/market.json`, an hourly history on `v9-market-history`, a Today panel and Analyzer context. 16 of 16 sources answered from Actions. | `docs/v9/market-context.md`, branch `market-results` |
 | Trade alerts | **Built** (F5, in PR #28): Telegram and/or Discord on every new TRADE, with the full plan. Sends nothing until the owner adds the secrets. | `v9/alerts.py` |
 | New signal research (positioning, funding, OI, liquidations, basis, regime) | **D1 and D2 done, D7 answered.** Four strategies (funding fade, taker flow, top-trader divergence, crowd fade) were pre-registered and each tested once on the phase B dataset. **None is confirmed.** XSMOM long remains the only tradable side. | `docs/v9/phase-d1-preregistration.md`, `docs/v9/phase-d2-preregistration.md`, branches `evidence-d1-results`, `evidence-d2-results` |
-| Decision engine v2 (expected-R ranking, regime, sizing) | **E4 done**: the forward test is evaluated every scan, shown on Today and demotes a side automatically. E1–E3 not started. | section 6, phase E |
+| Decision engine v2 (expected-R ranking, regime, sizing) | **E4 done**: the forward test is evaluated every scan, shown on Today and demotes a side automatically. E1â€“E3 not started. | section 6, phase E |
 | Pro UX (rich trade plans, market board, performance ledger, alerts) | **F1 done** (full trade plan: entry, stop, trailing stop, time exit, size on the page account and in the trader's own dollars, evidence, forward test). F2 first version, F5 alerts. F3 and F4 not started. | section 6, phase F |
 
 ## 2. Diagnosis: why there are no trades, and what got worse
@@ -100,12 +103,12 @@ The full table is in `docs/v9/evidence-2026-10-14.md`; the latest run is on the 
 | Hypothesis | Holdout 2020-01..2023-09 | Design window 2023-10..2026-09 | Since 2025-01 |
 |---|---|---|---|
 | **XSMOM long** (momentum rotation, longs) | **+0.167R, 95% low +0.030, p=0.009, 503 trades** | **+0.231R, 95% low +0.014, p=0.018, 443 trades** | +0.139R, p=0.15, 206 trades |
-| XSMOM short | +0.068R (p=0.06) | **−0.131R (significantly negative)** | −0.029R |
-| TSMOM short | +0.163R (p=0.001) | −0.001R | +0.106R (p=0.03) |
-| TSMOM long | +0.009R | +0.062R | −0.064R |
-| TREND_EMA (both sides) | −0.012R | +0.012R | −0.001R |
+| XSMOM short | +0.068R (p=0.06) | **âˆ’0.131R (significantly negative)** | âˆ’0.029R |
+| TSMOM short | +0.163R (p=0.001) | âˆ’0.001R | +0.106R (p=0.03) |
+| TSMOM long | +0.009R | +0.062R | âˆ’0.064R |
+| TREND_EMA (both sides) | âˆ’0.012R | +0.012R | âˆ’0.001R |
 | Swing score, short 80+, one trade per coin at a time | +0.069R | +0.148R | 2024 +0.10, 2025 +0.27 |
-| Swing score, long 80+ | **−0.128R** | +0.303R | mixed |
+| Swing score, long 80+ | **âˆ’0.128R** | +0.303R | mixed |
 
 **What it means.**
 
@@ -119,7 +122,7 @@ The full table is in `docs/v9/evidence-2026-10-14.md`; the latest run is on the 
     p=0.006 and XSMOM long p=0.043 survive.
   - Only XSMOM long is also confirmed in the design window.
 - **The family-wide tests do not pass.** Across all 17 candidates, White Reality Check p=0.76, Hansen SPA p=0.16 and
-  PBO 0.28 (the gate needs ≤ 0.20).
+  PBO 0.28 (the gate needs â‰¤ 0.20).
   - Those tests ask whether the best of 17 in-sample is real.
   - The holdout test asks a different question: does a strategy chosen on other data work on unseen data? That is
     the right test for strategies whose selection happened in 2023-2026.
@@ -153,14 +156,14 @@ Everything is honest about uncertainty and nothing places orders.
 
 ```
   data layer (Actions, every scan)          evidence engine (Actions, daily/weekly)        decision engine
-  ─────────────────────────────────         ──────────────────────────────────────        ───────────────
-  venues: HL, OKX, Gate, Bitget, MEXC,       archive_fetch.py  ──►  md_bn (archive-data)    v8/decision.py + v9 tiers
-  HTX, KuCoin, Kraken, dYdX, Aster,          evidence.py       ──►  evidence-results         (TRADE needs a tier:
-  Deribit, CoinGecko derivatives             confirm.py (B)    ──►  research/v9/*.json         FULL or PROBATION)
+  â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€         â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€        â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  venues: HL, OKX, Gate, Bitget, MEXC,       archive_fetch.py  â”€â”€â–º  md_bn (archive-data)    v8/decision.py + v9 tiers
+  HTX, KuCoin, Kraken, dYdX, Aster,          evidence.py       â”€â”€â–º  evidence-results         (TRADE needs a tier:
+  Deribit, CoinGecko derivatives             confirm.py (B)    â”€â”€â–º  research/v9/*.json         FULL or PROBATION)
   market: DVOL, F&G, ETF flows,              + new signal studies (phase D)                  governed book only
   stablecoins, DefiLlama OI,                                                                 sizing x tier multiplier
-  Coinbase/Korea premium                                                                     ─► decision.json ─► desk
-  → data/v9/market.json (phase C)
+  Coinbase/Korea premium                                                                     â”€â–º decision.json â”€â–º desk
+  â†’ data/v9/market.json (phase C)
 ```
 
 ## 6. Roadmap (in order; tick items as they land, with the commit)
@@ -174,23 +177,37 @@ Everything is honest about uncertainty and nothing places orders.
   - Non-ASCII tickers are URL-quoted.
 - [x] A3. Re-test the 17 4h/daily candidates and the swing score (`evidence.py`), with Phase 9 statistics.
 - [ ] A4. Run all census trials (the qgrid grids, 199 or more) on the archive. That gives a complete known-trial
-  return matrix, so DSR uses the real across-trial Sharpe variance and PBO covers the whole family.
+  return matrix, so DSR uses measured across-trial Sharpe variance and PBO covers the known family.
+  - [x] A4.1 (`7427b5e`, 2026-10-15, draft PR #30). Validate and pin all 199 trial IDs, expanded parameters, required timeframes and replay code hash. Three tests cover reproduction and corrupted identities/counts/parameters.
+  - [x] A4.2 (`d292f0c`, draft PR #30). Implemented `tools/v9/census_replay.py` and the common daily return matrix; synthetic validation exercises all 192 compatible definitions and retains seven missing hourly columns. The fixed protocol is `docs/v9/phase-a4-replay-protocol.md`, committed before any A4 market-data run. Full-family statistics remain unavailable; subset statistics are explicitly diagnostic.
+  - [x] A4.3 (`ad2374f`, draft PR #30; verified 2026-10-16). Replayed all 192 4h/daily definitions on phase B's pinned dataset in [run 38777519358](https://github.com/blazebrt/perp-dex-radar/actions/runs/38777519358). Results `18c14932bcc2ba9e8685f231e1725a786869edd9`: 2,670,894 trades, 2,346 daily rows, 199 columns (seven hourly columns explicitly missing). All artifact hashes and every trial/day total independently verified; appended to the hash-chained evidence history. The failed preflight is retained in `research/v9/a4_attempts.jsonl`.
+  - [ ] A4.4. Evidence review and fixed assembly specification completed (2026-10-21): `phase-a4-evidence-review.md` and `phase-a4-family-assembly.md`. The pinned 199-column assembly and seven synthetic rejection tests are implemented; independent verification matches all 466,854 cells and hourly metadata. Full validation passed 1,089 tests; the artifact, manifest and independent verification are retained in `research/v9/family_assembly/`. Assembly/reporting is complete; the complete-return objective remains blocked. Seven hourly columns remain unavailable; full-family statistics cannot be calculated. Assembly/reporting completion must not imply complete return evidence.
+  - **Dependency correction:** A4 cannot finish before A5. A4.1 discovers seven hourly trials: BTC_LEAD, FAIL_BRK, FUND_CARRY, FUND_FADE, LIQ_FLUSH, PULLBACK and VOL_SPIKE.
+  - **Interpretation:** these are new replays of known definitions under a pinned simulator, not recovered historical returns. The unknown historical trial census remains incomplete, even after all known columns are populated. No new promotion authority follows from this inventory.
 - [ ] A5. Run the 1h candidates on an hourly archive for the liquid subset (top 150 by point-in-time volume).
+  - [x] A5.1 (draft PR #30). Causal daily schedule and pre-acquisition protocol implemented: prior seven complete days, 30-day segment age, $5M/day minimum, deterministic top-150 ties, no current-listing filter. Synthetic tests prove future volume cannot affect a prior selection and relistings cannot inherit age.
+  - [x] A5.2 (**conditionally accepted separate research dataset, 2026-10-19**). Original collection and all conflict diagnostics remain unchanged and rejected. Registered reconstruction/quarantine policy applied and independently verified; exact candidate reproduced in run `39274041013` and durably published at `0859e683910a7eea7ef446b27cf9773f33d9e9f8` on `hourly-a5-quality-results`. All 1,386 remote file hashes verified. Coverage: 13,862,226 retained rows across 690 segments; 264 reconstructed hours; 112 quarantined plus 7,026 original missing hours (7,138 unavailable); all 663 zero-trade hours retained; 70 entry-embargo days among 2,345 scheduled days. This is retrospective quality selection, not historically known tradability. Formal conditions and provenance: `phase-a5-quality-acceptance.md`, `research/v9/a5_quality_acceptance.json`. The first registered A5.3 replay and independent verification are now recorded below; complete return evidence remains unavailable.
+  - [ ] A5.3. Adapter, synthetic validation, first replay, independent reconciliation and hash-chained record are complete (2026-10-21). All seven trial identities are retained, but FUND_CARRY cannot execute under its causal-quorum disposition and two FUND_FADE segments are unavailable. All seven net series are unavailable due to explicit uncertainty. This acceptance item remains open; no gap fill, zero substitution or definition change is permitted. See `research/v9/a5_replay_verification.json`.
+  - A4.4 must disclose the differing hourly top-150 and broad four-hour universes; simply filling seven columns is not a common-universe experiment.
 - [ ] A6. Use 50 matched controls per signal (time, liquidity bucket, listing-age bucket; listing age is known from
   the archive) to meet the Phase 9 matched-control gate.
+  - [x] A6.1. Fixed diagnostic cohort design and selector implemented with six synthetic tests. Exact time/direction and fixed volume/archive-age buckets; 50 distinct controls without replacement, deterministic outcome-independent ordering, no widening or future information.
+  - **Correction:** segment first bar measures archive age, not verified listing inception. Phase 9 also requires eight observed matching dimensions; the three-dimension diagnostic does not satisfy the gate.
+  - [x] A6.2. First registered source-bound extraction and independent audit completed and retained (2026-10-23). All 192 four-hour/daily definitions and 4,263,580 in-window ordinals reconcile; 16,168 warm-up signals are separately counted. All original source bindings, 465 shards, 199 trial identities and 670 package files are verified. Seven hourly populations remain explicitly unavailable under the registered scope. Report: `research/v9/a6_result_verification.json`; interpretation: `phase-a6-extraction-review.md`.
+  - [ ] A6.3. Execute and independently audit the registered candidate/control outcome study only after resource qualification. Preregistered identical four-hour geometry/costs, explicit unknown funding, null net inference and complete price-only missingness accounting remain unchanged (`phase-a6-execution-inference.md`). Execution, indexed storage, independent audits and reservation/retention support are implemented. Synthetic progress: configurable populations/signals/shards, flushed case receipts, completed intermediate attempts 2/3/4, retained full-roster attempt 5, parent termination cleanup including launch-time deferral, disposable price-index synchronization optimization and long-history/spread-placement plus diverse-price fixture support. Remaining: representative full-volume/history/price-diversity measurements; combined memory, allocated-disk, runtime and remote-publication bounds; resolve hosted image identity conflict; independently review qualification and activate the controlled workflow. No market outcome attempt has been reserved or executed. Detailed milestones and retained failures remain in the session log and `phase-a6-resource-review.md`.
 - [ ] A7. Cross-check on the execution venue: Hyperliquid candles, delisted coins included (56 of 234 perps are
   `isDelisted` and their candles still load). Daily from 2022, 4h for about 830 days.
 - [x] A8. Pin the evidence run to a dataset hash and keep the history of evidence runs.
-  - `research/v9/evidence_runs.jsonl` holds one record per run: phase A/B, D1 and D2 so far. Each record pins the code
+  - `research/v9/evidence_runs.jsonl` holds one record per run: phase A/B, D1, D2, A4 and A5 so far. Each record pins the code
     commit, the dataset digest, the data branches read, the sha256 of the evidence, report and trades files, the
     pre-registration hash and what was confirmed.
   - Records are hash-chained, so an edited or removed record breaks the chain.
   - `tests/test_v9_evidence_runs.py` (in CI) verifies the following:
     - the chain is intact;
     - the phase A/B record is the run the probation tier is bound to;
-    - every study ran on phase B's candles and funding;
+    - earlier studies retain their phase B binding; A5 pins its separate accepted hourly dataset;
     - no pre-registration document changed after its run.
-  - After every new evidence run, append its record with `python tools/v9/record_run.py --study <A/B|D1|D2>`. Fetch the
+  - After every new evidence run, append its record with `python tools/v9/record_run.py --study <A/B|D1|D2|A4|A5>`. Fetch the
     results branch first.
 
 ### Phase B: evidence tiers, the first governed trades (next session's main task)
@@ -201,7 +218,7 @@ Probation gate, per (strategy, side). All of these must hold on archive evidence
 - (b) Holdout mean R > 0, Holm-adjusted one-sided p < 0.05 over all side-hypotheses submitted.
 - (c) Design-window mean R > 0, one-sided p < 0.10 (consistent, not contradicted).
 - (d) The most recent third has mean R > 0.
-- (e) Cost stress ×1.5 keeps mean R > 0.
+- (e) Cost stress Ã—1.5 keeps mean R > 0.
 - (f) The edge over the random twin is positive.
 - (g) The Phase 9 concentration limits hold.
 - (h) At least 500 trades in total and 100 in the holdout.
@@ -221,7 +238,7 @@ Added on 2026-10-14, before the evidence run that first measures them (`evidence
 
 Result (evidence run `fd03198`, `tools/v9/confirm.py`):
 
-- **XSMOM long is CONFIRMED on every check (a)–(j).**
+- **XSMOM long is CONFIRMED on every check (a)â€“(j).**
   - Top-80 universe: +0.19R in the holdout, +0.21R in the design window.
   - Entered 4h, 8h, 12h or 24h late: +0.18R to +0.20R, so the TRADE window is 24h.
 - Every other side is NOT_CONFIRMED.
@@ -242,7 +259,7 @@ Result (evidence run `fd03198`, `tools/v9/confirm.py`):
   - `decision_policy.json` gains `probation_deployment_states` and `probation_research_states`.
   - The `v8/decision.py` STRATEGY_AUTHORITY gate passes with `tier: PROBATION` for a confirmed side, and caps the
     other side at WATCH (`STRATEGY_SIDE_NOT_CONFIRMED`).
-  - PROPOSED_TRADE risk becomes `risk_per_trade × risk_multiplier`.
+  - PROPOSED_TRADE risk becomes `risk_per_trade Ã— risk_multiplier`.
   - Candidates carry `authority_tier`.
 - [x] B5 (`dada154`). Governed book:
   - The Phase 10 gates evaluate only the positions of trade-authorized strategy sides.
@@ -273,7 +290,7 @@ Result (evidence run `fd03198`, `tools/v9/confirm.py`):
     previous close the cause was that all top-5 coins needed stops wider than 20% (the archive's rule). The path is
     covered by `tests/test_v9_decision.py`, and the first live one will show on Today, in the journal and in the
     alerts.
-  - Next session: on the first close with an XSMOM long signal, confirm it is TRADE, tier PROBATION, at 0.5× size.
+  - Next session: on the first close with an XSMOM long signal, confirm it is TRADE, tier PROBATION, at 0.5Ã— size.
 - [ ] B9. Known follow-ups:
   - TREND_EMA has no edge in the archive. A reviewed policy change could mark it REJECTED (AVOID).
   - Legacy WATCH signals still feed Emerging.
@@ -319,7 +336,7 @@ How every phase D study runs (D1 set the pattern):
 
 1. Write the definitions and a pre-registration document, and commit them **before** any run on market data.
    Synthetic-archive checks are allowed; they test mechanics, not hypotheses.
-2. Test once, with phase B's gate (b)–(j), and a Holm family per study.
+2. Test once, with phase B's gate (b)â€“(j), and a Holm family per study.
 3. Record the result as is. A confirmed side is a probation candidate: it still needs a runtime implementation,
    re-bound evidence, a forward-test registration and the owner's merge. A failed side is never adjusted; a changed
    definition is a new hypothesis with a new name.
@@ -329,20 +346,20 @@ How every phase D study runs (D1 set the pattern):
   on data the archive already holds: XS_FUND_FADE and XS_FLOW_MOM.
   - Pre-registered in `docs/v9/phase-d1-preregistration.md`, committed before any run on market data.
   - Code: `tools/v9/d1.py`, `tools/v9/evidence_d1.py`, `tests/test_v9_d1.py` (rankings and no look-ahead).
-  - Tested once by `evidence_d1.yml` on the `archive-data` dataset: digest `cd4651eb…`, the same as phase B's.
+  - Tested once by `evidence_d1.yml` on the `archive-data` dataset: digest `cd4651ebâ€¦`, the same as phase B's.
   - **Result: no side is confirmed. Nothing deploys, and no definition will be changed.**
 
   | Side | Trades | Holdout R (Holm p) | Design window R (p) | Fails |
   |---|---|---|---|---|
-  | XS_FUND_FADE long | 916 | +0.064 (0.30) | −0.020 (0.61) | b, c, d, f |
-  | XS_FUND_FADE short | 871 | −0.071 (0.99) | −0.164 (1.00) | b, c, d, e, f, g, i, j |
+  | XS_FUND_FADE long | 916 | +0.064 (0.30) | âˆ’0.020 (0.61) | b, c, d, f |
+  | XS_FUND_FADE short | 871 | âˆ’0.071 (0.99) | âˆ’0.164 (1.00) | b, c, d, e, f, g, i, j |
   | XS_FLOW_MOM long | 2715 | +0.042 (0.20; raw p 0.050) | +0.010 (0.34) | b, c |
-  | XS_FLOW_MOM short | 2116 | +0.001 (0.95) | −0.040 (0.98) | b, c, d, e, g, i, j |
+  | XS_FLOW_MOM short | 2116 | +0.001 (0.95) | âˆ’0.040 (0.98) | b, c, d, e, g, i, j |
 
   - Shorting the coins whose longs paid the most funding lost money in both windows: crowded longs kept rising more
     often than they unwound. That is an observation, not a tested hypothesis. Going long those coins would also pay
     the highest funding.
-  - XS_FLOW_MOM long is positive in every window, at a 1.5× cost stress (+0.013R) and against its random twin
+  - XS_FLOW_MOM long is positive in every window, at a 1.5Ã— cost stress (+0.013R) and against its random twin
     (+0.081R), but too small to be significant. It is not a strategy. It may be worth recording forward, since the
     live data exists (D1b).
 - [ ] D1b (optional). A forward-only record of XS_FLOW_MOM long, registered in the shadow ledger before its first
@@ -358,16 +375,16 @@ How every phase D study runs (D1 set the pattern):
     from the dataset fetched or read. The study ran once, at 18:41, triggered by that commit. The document's line
     "its download was still running" was true when written, not at commit time. The document is left unedited because
     its hash is in the result.
-  - It used the same candles and funding as phase B (digest `cd4651eb…`). Signal coverage was 79% / 89% of eligible
+  - It used the same candles and funding as phase B (digest `cd4651ebâ€¦`). Signal coverage was 79% / 89% of eligible
     coin-days, from 2020-09-04.
   - **Result: no side is confirmed. Nothing deploys, and no definition will be changed.**
 
   | Side | Trades | Holdout R (Holm p) | Design window R (p) | Fails |
   |---|---|---|---|---|
-  | XS_TOP_DIV long | 1069 | +0.025 (0.49) | −0.032 (0.86) | b, c, e, f, g, i, j |
-  | XS_TOP_DIV short | 1282 | −0.021 (0.88) | −0.093 (1.00) | b, c, d, e, f, g, i, j |
-  | XS_CROWD_FADE long | 1050 | +0.041 (0.16; raw p 0.039) | −0.005 (0.57) | b, c, d, f, i |
-  | XS_CROWD_FADE short | 1373 | +0.004 (0.88) | −0.019 (0.79) | b, c, e, f, g, i, j |
+  | XS_TOP_DIV long | 1069 | +0.025 (0.49) | âˆ’0.032 (0.86) | b, c, e, f, g, i, j |
+  | XS_TOP_DIV short | 1282 | âˆ’0.021 (0.88) | âˆ’0.093 (1.00) | b, c, d, e, f, g, i, j |
+  | XS_CROWD_FADE long | 1050 | +0.041 (0.16; raw p 0.039) | âˆ’0.005 (0.57) | b, c, d, f, i |
+  | XS_CROWD_FADE short | 1373 | +0.004 (0.88) | âˆ’0.019 (0.79) | b, c, e, f, g, i, j |
 
   - Neither definition shows an edge after costs in either window. The legacy picks used these ratios as score inputs;
     as daily rotations on survivorship-free data, they do not hold up. Open interest and the taker ratio are in the
@@ -394,7 +411,7 @@ How every phase D study runs (D1 set the pattern):
     (`strategy_tiers`, `_forward_test`). A side below the band is capped at WATCH automatically
     (`PROBATION_FORWARD_TEST_FAILED`).
   - Today's "Authorized to trade" note shows the live record against the band on every scan, signal or not, e.g.
-    "live forward test: 40 closed, mean +0.20R, demoted below …R at 30 trades". TRADE cards show the same.
+    "live forward test: 40 closed, mean +0.20R, demoted below â€¦R at 30 trades". TRADE cards show the same.
   - "Generalised": the rule applies to every probation side that is registered. A full-tier (ACTIVE_REQUALIFIED)
     side is governed by Phase 9's requalification, which carries its own 180-day prospective registration. No
     full-tier side exists today.
@@ -434,7 +451,7 @@ How every phase D study runs (D1 set the pattern):
   - `test_v9_tools` proves the committed forward-test registration is exactly what the tool computes from the bound
     evidence, and that a probe never keeps an API key.
   - `test_v9_research_tools` checks the gate statistics (Holm, clustering, concentration, demotion band, every check
-    (b)–(j)) on hand-checked values.
+    (b)â€“(j)) on hand-checked values.
   - Every published change (desk.js, desk.css, analyze.js, analyze.html, quant.html, index.html and four quant.json
     leaves) is pinned in `v9b_expected_deltas.json`, and CI proves differential parity against main.
 
@@ -442,7 +459,7 @@ How every phase D study runs (D1 set the pattern):
 
 - Trade alerts (optional): add `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`, and/or `DISCORD_WEBHOOK_URL`, as
   repository secrets. Create the bot with Telegram's @BotFather and get your chat id from the bot's getUpdates.
-- Optional, free API keys, added under GitHub repository Settings → Secrets → Actions:
+- Optional, free API keys, added under GitHub repository Settings â†’ Secrets â†’ Actions:
   - `COINALYZE_API_KEY`: the best free liquidation history. Sign up at coinalyze.net, then API key.
   - `CRYPTOPANIC_API_KEY`: news.
   - `FRED_API_KEY`: macro.
@@ -491,10 +508,614 @@ How every phase D study runs (D1 set the pattern):
     - D2 and D7, recorded above.
   - Tested on head `3fa4c91`: the full suite, CI on push and on the pull request, and live Research run 38621408999
     (every mandatory step green; four XSMOM shorts WATCH `STRATEGY_SIDE_NOT_CONFIRMED`, no XSMOM long signal yet).
-  - PR #28 (`v9/research-d1` → `main`) carries #25, #26 and #27. The first merge API call was blocked by the session's
+  - PR #28 (`v9/research-d1` â†’ `main`) carries #25, #26 and #27. The first merge API call was blocked by the session's
     automatic safety check; the owner then asked for the merge explicitly and it went through.
   - B8 ran after the 2026-10-15 00:00 UTC close (see below and the B8 item).
   - Merged at the owner's request (2026-10-15 01:35 IST): PR #28 into `main` as merge commit `f58c058`. #25 to #27
     closed. A Scan on `main` published the v9 desk; CI on `main` is green.
   - B8 after the 00:00 UTC close: the gates behave as designed live, nothing became TRADE, and there was no XSMOM long
     signal at that close (see B8).
+
+- **2026-10-15 (Codex continuation): A4 inventory.**
+  - Started from main `0953535` on `v9/census-evidence`; read CLAUDE.md and the three A/B, D1 and D2 result reports.
+  - Completed A4.1 (`7427b5e`, draft PR #30): deterministic, fail-closed inventory of all 199 known definitions and the seven-trial dependency on A5. The plan retains historical and replay code identities separately.
+  - A4 remains IN PROGRESS. No new market-data evidence run, strategy promotion, merge or deployment has occurred.
+  - Next: A4.2 runner and synthetic validation, then A4.3; A5 is required before A4.4. All other unchecked roadmap items remain open.
+  - Validation on `7427b5e`: focused inventory tests pass; push CI [38709165498](https://github.com/blazebrt/perp-dex-radar/actions/runs/38709165498) and PR CI [38709216458](https://github.com/blazebrt/perp-dex-radar/actions/runs/38709216458) both pass, including research, no-edge, parity and desk checks. The dependency-enabled local Linux full suite also passes: 976 tests, no skips. The Windows full run (962 tests) encountered path-separator, CSV-newline and parity failures; CI runs on Linux.
+
+- **2026-10-15 (Codex continuation): A4 replay runner.**
+  - A4.2 implemented on the existing draft PR #30. Requires the exact phase B evidence binding and matching archive digest, validates the replay plan, streams trial-tagged trades, preserves all 199 columns, and writes the final evidence document only on success.
+  - Synthetic end-to-end validation runs all 192 compatible definitions, reconciles saved trades with the daily matrix, checks artifact hashes, and tests dataset/plan mismatch, invalid returns, interrupted execution and missing-column handling. No production signals or evidence bindings changed.
+  - A4.3 remains pending: wire the Actions run, record every result in the evidence history and review it. A5 hourly data remains required for A4.4. No market-data replay, merge or deployment has occurred in this continuation.
+  - Follow-on A4.3 work: added a research-only Actions job pinned to archive `4828a2d` and evidence `e4c0f0d`. Trade artifacts are stored per trial, with a verified hash manifest. The recording tool now supports A4 and rejects corrupted trade shards or matrices. Full-suite validation is required before launching the job.
+  - A4.3 attempt 1, Actions run `38775986212` on `b432a65`, stopped BEFORE any trial at the dataset digest check; failure result commit `9b6eb1e3e6968b63655eec38d45cacf68a2bf02b`. Cause: the runner hashed before constructing features; phase B hashes after feature construction, whose resampling updates partial-day panel views. Correcting the order to phase B's existing order, with a partial-day regression fixture; no definition, parameter, cost or protocol change. Retry pending validation.
+
+- **2026-10-16 (Codex continuation): A4.3 verified and recorded.**
+  - Run `38777519358` succeeded on `ad2374fa4d25f03c204ce7c0cdbecac95cba6246`; result commit `18c14932bcc2ba9e8685f231e1725a786869edd9`. The partial-day fingerprint correction matches phase B's construction order and passed the new regression test. No strategy definition, cost, parameter or pre-registered protocol changed.
+  - Independently read all 192 trade shards (2,670,894 rows), verified their hashes, and reconciled every daily return against the 2,346-by-199 matrix. All seven hourly columns remain NaN. Recorded the successful run using `record_run.py --study A4`; both attempts remain visible.
+  - Diagnostic 192-trial subset only: across-trial Sharpe variance 0.0004801958204680863; PBO 0.17622377622377622; White reality-check p=0.41831633673265345; Hansen SPA p=0.12297540491901619. Full-family statistics remain unavailable. No new strategy is confirmed, and unknown historical trials remain unknown.
+  - Validation of replay code: 983 dependency-enabled Linux tests pass without skips; push CI `38777519267` and PR CI `38777526986` pass. This records successful reproduction, not independent review of the strategy's economic validity.
+  - Next unblocked roadmap item: A5 hourly archive with point-in-time liquid-universe selection, then A4.4's seven hourly trials and complete known-family matrix. All other unchecked items remain open. PR #30 stays draft and unmerged; no production deployment.
+
+- **2026-10-16 (Codex continuation): A5 causal universe and collector.**
+  - Implemented a daily top-150 schedule using only the preceding seven complete days from pinned archive `4828a2d`, including delisted segments. It keeps the original listing clock for each relisting, rejects malformed input and missing source files, and retains empty days.
+  - Implemented hourly monthly-file collection for the ever-selected union plus BTC context. Strict row validation and hourly-to-four-hour OHLC/volume reconciliation fail closed; missing hours are explicitly counted. Funding bytes are copied from the pinned archive. Every input/output is hashed, and only a final manifest indicates completed collection.
+  - Fourteen synthetic tests pass, covering causality, ties, gaps, relistings, bad rows, missing months, changed plans, aggregation disagreement, artifact hashes and deterministic output. Full regression validation precedes the acquisition commit; no hourly market data has been read at this point.
+  - Next: A5.2 acquisition and independent dataset verification, then A5.3 hourly adapter/replay and A4.4 family assembly. A5 remains open; no production authority changes.
+
+- **2026-10-16: A5 acquisition attempt 1 and correction.**
+  - Committed the protocol and collector as `8ffb61d` after all 997 Linux tests passed. Run `38871226842` built 2,345 daily selections covering 690 distinct segments, then stopped at an hourly/four-hour opening-price mismatch. Partial results `149da2f8d5e5fc796fcb6060cc0ce8b9b4200df5` have no completion manifest; the attempt is retained in `research/v9/a5_attempts.jsonl`.
+  - Direct inspection of the specific 1000BONK source files showed a zero-trade hour with a carried price. Exchange four-hour OHLC starts with the first actual trade. The collector now aggregates prices from traded hours while retaining zero-trade observations and the same strict tolerance. `phase-a5-hourly-aggregation.md` records exact source hashes and the correction; the original protocol is unchanged.
+  - Fifteen focused tests pass, including no-trade-hour regression coverage. Full regression validation and retry are next. A5.2 and A5.3 remain open; no strategy simulation or promotion occurred.
+
+- **2026-10-16: A5 provider inconsistency and diagnostic audit.**
+  - Correction `d0c4a35` passed all 998 tests; retry `38902486359` passed the earlier 1000BONK issue, then failed on 1000SHIB volume at timestamp `1657944000`. Partial results `30674ea2e5f5f876a214f6ce4461a1799a56d487` remain unaccepted; attempt 2 is recorded.
+  - Independently checked the relevant pinned four-hour file and current 1m, 1h and 4h source ZIPs. All 240 minute rows exactly reproduce the four hourly rows, while the provider's four-hour row has extra quote volume and 13 extra trades. This cannot be explained by rounding. Exact values and hashes are in `docs/v9/phase-a5-data-conflicts.md`.
+  - The collector now gathers all numerical conflicts in one diagnostic run, retains raw hourly data and hashes, and writes only a rejected-data manifest if any conflict exists. It still exits with failure and never emits an accepted completion marker. Sixteen focused tests pass; full validation precedes the audit run.
+  - A5.2 stays incomplete. Next: quantify all conflicts and affected ranking windows before specifying a defensible dataset correction or exclusion protocol; then A5.3 and A4.4. No disputed data is used for strategy qualification.
+
+- **2026-10-17 (Codex continuation): A5 source audit verified.**
+  - Run `38903923119` on `34ec1d328034bd2a5cff7322fe14bbe8db4f0f80` deliberately failed acceptance on 189 source-field conflicts; diagnostics were successfully saved at `003ddccc825b5aeaec1beab834c56f21b8baa9a8`. Only a rejected manifest exists. Attempt 3 and the compact independent verification are recorded in `research/v9/`.
+  - Independently verified every artifact hash, 13,862,338 hourly rows and coverage, 2,345 daily selection schedules, and recomputed recorded hourly conflict values. There are 94 disputed four-hour blocks across 87 segments, 7,026 missing hours and 663 zero-trade hours. Potential ranking exposure: 630 coin/day windows across 63 days; actual selection changes have not been measured.
+  - Trade-level investigation of the SHIB case supports the four-hour source: minute/hourly data omit 13 records relative to the daily tape and have an incorrect hourly close. The tape itself has one ID gap, so it does not prove complete transaction coverage. Repair cannot assume finer candles are authoritative or change only volumes.
+  - Validation: 999 Linux tests pass without skips; source commit push CI `38903923108` and PR CI `38903933467` pass. The audit verifies stored artifacts and structure, not every provider transaction.
+  - Completed: A5.1 and diagnostic acquisition/audit. Remaining: pre-registered repair/exclusion and gap protocol, accepted A5.2 dataset, A5.3 seven hourly replays, A4.4 family assembly. All other unchecked roadmap steps remain open. PR #30 remains draft; no merge, promotion or production deployment.
+
+- **2026-10-17 (Codex continuation): A5 trade-reconstruction diagnostics.**
+  - Added `phase-a5-trade-reconstruction.md` as an additive protocol before running the new tool on market data. Scope is all 94 disputed blocks; the previous SHIB inspection is explicitly prior knowledge. Original protocols and data are unchanged.
+  - Implemented offline `tools/v9/hourly_trades.py`: verifies provider checksum and UTC day, rejects malformed/out-of-order records, reconstructs every hourly OHLC/volume field with decimal arithmetic, reports missing hours and ID gaps, and compares all six four-hour fields against the pinned source. Requires bracketing trades and contiguous IDs before claiming local continuity. Matching aggregates remain diagnostic, never accepted data.
+  - Eight synthetic tests pass, including hour boundaries, buyer/taker direction, ID gaps, missing hours, timestamp precision, tiny prices, corrupt checksums and immutable output/source files. Full regression validation precedes publication and market-data application.
+  - Remaining: apply the committed diagnostic to all 94 blocks, review unresolved continuity/source conflicts, specify dataset replacement/exclusion and gap execution policy, verify accepted A5.2 data, then A5.3 and A4.4. No strategy trial or production change occurred.
+
+- **2026-10-17 (Codex continuation): all-block trade diagnostic complete and verified.**
+  - Protocol and offline tool committed as `2bf7eac01150f62ce75648df668eb3f9b6c77260` before application. All 1,007 Linux tests passed; push CI `38957686288` and PR CI `38957693308` passed.
+  - Examined all 94 disputed blocks using 94 checksummed daily trade files (64,523,776 records scanned), with no acquisition or parsing failures. Independently recomputed all 376 hourly candidates and checked all 378 artifact hashes. Full diagnostic values and provenance are recorded in `research/v9/a5_trade_diagnostics.json`; downloaded sources remain in the local `outputs/a5-trade-diagnostics/` folder.
+  - Fifty blocks match the pinned four-hour aggregate; 70 pass local ID-continuity and bracketing checks; 40 pass both. Forty-four have aggregate disagreements. Twenty have ID gaps and five lack boundary brackets, with one overlapping (24 continuity limitations). No requested candidate hour is empty. These checks do not establish complete provider transaction history or accept a dataset.
+  - Exploratory ALGO precision check: summing rounded `quote_qty` gives 5326605.1193, while decimal price-times-quantity gives 5326605.75953, matching pinned 5326605.76 within the unchanged tolerance. This was discovered after the diagnostic protocol and is recorded separately; no first-pass result was altered. Price disagreements also remain (including BTC and EOS), so precision correction alone cannot settle acceptance.
+  - Next: separately register and test dual quote-precision diagnostics, then address missing-ID/boundary and price conflicts before any replacement/exclusion policy and gap-aware replay. A5.2 acceptance, A5.3 and A4.4 remain open. No strategy trial, promotion, merge or deployment occurred.
+
+- **2026-10-17 (Codex continuation): dual quote-precision diagnostic implementation.**
+  - Added a separate `phase-a5-quote-precision.md` protocol and `tools/v9/hourly_quote_precision.py`. The original trade tool, protocol and first-pass report remain unchanged. The new runner binds the exact prior record and all 94 objects, reproduces published quote totals and counts, and separately reports decimal price-times-quantity volumes under the unchanged tolerance.
+  - Preserves price conflicts, ID gaps and boundary limitations even when product volumes match. Streams trades with bounded accumulation memory; never accepts data or changes source candles. Eight focused tests pass, including completed and failed batch retention, corrupt inputs, empty hours and precision differences. Full-suite validation precedes publication and market-data application.
+  - Next: apply the committed diagnostic once to all saved objects and independently verify it; then resolve remaining source/boundary issues and specify the dataset replacement/exclusion and gap policy. A5.2 acceptance, A5.3 and A4.4 remain incomplete.
+
+- **2026-10-17 (Codex continuation): dual quote-precision diagnostic verified.**
+  - Protocol/tool committed as `0de60555c04f3b1208dff676634d5c8651539975` before application. Applied once to all 94 original saved objects; every published quote sum and trade count reproduced. All 1,015 Linux tests pass; source-commit CI `38999580764` and `38999578499` pass. A test-fixture checksum was subsequently made independent of ZIP creation time; focused tests pass.
+  - Exact rational-arithmetic verification reproduces all 376 hourly published/product volumes and differing-quote counts. Independently checked every aggregate comparison against the original reference and confirmed price/continuity limitations remain unchanged. Complete values, hashes and verification are in `research/v9/a5_quote_precision.json`.
+  - Product volumes explain 29 earlier mismatches: 79 blocks now match the pinned aggregate (previously 50), with no prior matches lost. Sixty-six also pass local continuity (previously 40). Fifteen blocks still disagree, including five with price disagreements; 24 continuity limitations remain and overlap those categories. The 2,530,674 differing quote records are within the requested blocks, not a count across the entire daily tape.
+  - Completed: separate precision diagnostic and independent verification. Still remaining: 15 source disagreements, 20 ID-gap blocks and five missing boundary brackets (one overlaps), explicit repair/exclusion and missing-hour execution policy, accepted A5.2 dataset, A5.3 replay, A4.4 family assembly. All earlier diagnostics remain unchanged; no data substitution, strategy trial, promotion, merge or deployment occurred.
+
+- **2026-10-17 (Codex continuation): adjacent-day continuity diagnostic implementation.**
+  - Added `phase-a5-boundary-continuity.md` and `tools/v9/hourly_boundary.py` for the five unbracketed blocks. The diagnostic reproduces original counts/gaps, checks only the immediately adjacent UTC day with checksummed same-symbol data, and preserves internal ID gaps. Existing source discrepancies and original reports are unchanged.
+  - Six synthetic tests pass: both day edges, retained internal gaps, new boundary gaps, duplicate/overlapping IDs, wrong symbols/dates/checksums, changed original diagnostics, and empty/malformed adjacent data. Full validation precedes publication and market-data application.
+  - Next: apply the committed diagnostic to all five cases, verify the boundary records independently, then record what remains unresolved. This cannot accept a dataset or settle the 15 aggregate disagreements or 20 existing ID-gap blocks.
+
+- **2026-10-17 (Codex continuation): adjacent-day continuity verified.**
+  - Protocol/tool committed as `a648ab08dd3032fe46fba280534cfd7fdb64833b` before acquiring three additional public daily files; two previously saved XRP objects were reused only after hash verification. All five requested diagnostics completed without failures. Regression validation: 1,021 Linux tests pass.
+  - Independent CSV-level verification reproduced boundary IDs/timestamps, record counts, internal/join gap ranges and artifact hashes for every case. All five missing brackets now have valid adjacent-day records. ALPHA, EOS and both XRP blocks gain local continuity passes; TRUMP retains its original 137 internal ID-gap ranges. No new join gap appears and no original gap was removed.
+  - Across the 94 disputed blocks, 74 now pass local continuity, and 66 also match the pinned aggregates after quote-precision checks. Fifteen aggregate disagreements and 20 ID-gap blocks remain, overlapping in seven blocks (28 distinct cases). Source prices, volumes, rankings and previous diagnostics are unchanged. Full evidence is in `research/v9/a5_boundary_continuity.json`.
+  - Completed: adjacent-day continuity investigation. Remaining: resolve or explicitly quarantine the 28 cases under a committed data-quality policy; account for ranking effects and 7,026 missing hours; verify a separate repair/exclusion dataset; then A5.3 replay and A4.4 family assembly. No accepted dataset, strategy trial, promotion, merge or deployment.
+
+- **2026-10-19 (Codex continuation): boundary findings recorded and quality policy registered.**
+  - Completed the pending publication of verified boundary findings. Both source-code CI runs (`39018841966`, `39018838921`) passed; the final Linux suite passed all 1,021 tests. The results resolve missing day brackets, not internal ID gaps or candle disagreements.
+  - Registered `phase-a5-quality-overlay.md` before building a derived archive: bind all diagnostics, reconstruct only the 66 aggregate-matching/continuous blocks, quarantine the other 28, preserve original gaps/funding/source artifacts, and embargo all new entries on days whose ranking window intersects a quarantined block. No replacement ranking or slot backfill is permitted.
+  - The mask is explicitly retrospective source-quality selection. Its coverage cost must be reported; unknown trade outcomes cannot be dropped or converted to zero. Implementation, independent derived-data verification, gap-aware replay and A4.4 remain pending. PR #30 stays draft and unmerged.
+
+- **2026-10-19 (Codex continuation): quality-overlay transformation and binding helpers implemented.**
+  - Added `tools/v9/hourly_quality.py`: fixed diagnostic-hash bindings, streaming artifact verification, strict block/continuity checks, whole-block replacement, quarantine with nonduplicated missing-hour coverage, and a separate entry embargo that preserves schedule order and empty days. Source data and frozen protocols remain unchanged.
+  - Ten synthetic tests cover corrupted/missing evidence, unsafe artifact paths, boundary supplementation without erasing ID gaps, complete replacement, unchanged zero-volume/unaffected rows, overlapping masks, missing replacement hours, inconsistent flags, ranking-window endpoints, and no backfill. Full dependency-enabled Linux regression validation passed all 1,031 tests (313.633 seconds).
+  - This is the transformation layer, not a completed derived dataset. Remaining: join all 94 blocks by source/segment identity, integrate the archive writer with funding/manifest preservation and failure retention, independently verify derived artifacts and coverage, register execution-gap rules, then A5.3 replay and A4.4. No strategy trials or production changes.
+
+- **2026-10-19 (Codex continuation): quality archive builder implemented.**
+  - Added `hourly_quality_build.py` with exact source/day/segment/conflict joins, original archive hash verification, deterministic derived candles, unchanged funding and schedule files, before/after correction ledger, per-segment coverage and a separate entry-embargo schedule. Failed builds retain a failure record; successful builds remain unaccepted candidates pending independent verification.
+  - Four new synthetic integration tests cover mismatched and missing identities, source corruption, funding/schedule/source preservation, quarantine and embargo behavior, non-overwrite behavior and injected writer failure. All 14 focused quality tests pass; the complete Linux regression suite passed all 1,035 tests in 323.964 seconds.
+  - Remaining: apply the committed builder, independently verify every changed row, unchanged artifact, exclusion and embargo day, record derived coverage/acceptance, then preregister execution-gap rules and perform A5.3 replay. No strategy trials or production changes.
+
+- **2026-10-19 (Codex continuation): corrected archive built and independently verified locally.**
+  - Applied builder commit `0463010d9866fdedbe7167a03c2bef9e1a85c084` after all 1,035 tests passed. Both source CI runs (`39230631624`, `39230623860`) succeeded. All fixed diagnostic hashes, diagnostic artifact inventories and original collection artifacts passed verification before construction.
+  - Completed a separate 690-segment candidate with 13,862,226 retained hourly rows: 66 corroborated blocks reconstruct 264 hours; 28 unresolved blocks quarantine 112 hours. All 7,026 original gaps remain, yielding 7,138 unavailable hours without overlap. The original 663 zero-trade hours, funding bytes, universe and ordered daily schedule are preserved.
+  - An independent verifier importing no builder helpers checked all output/source artifact hashes, every modified row and before/after ledger entry, exclusions, unchanged files, funding and schedule. It independently reproduced 70 entry-embargo days among 2,345 scheduled days. This is retrospective source-quality selection and must remain disclosed in later comparisons.
+  - Evidence and the complete candidate hash inventory are committed in `research/v9/a5_quality_candidate.json`; the local artifact is `outputs/a5-quality-candidate`, manifest SHA-256 `d9eaba6b1a190d86529b01362a665f83c1c52d2a88e04f4cd71f4d333e8527b2`. The candidate marker intentionally remains unaccepted; the verification record is separate and does not rewrite build history.
+  - Completed: builder implementation, full local construction, independent derived-data verification and coverage accounting. Still remaining: durable archive publication and formal conditional A5.2 acceptance; preregister contiguous-lookback/reset, funding and exit-gap behavior before A5.3 replay; then A4.4 family assembly. No strategy trial, promotion, merge or production deployment occurred.
+
+- **2026-10-19 (Codex continuation): durable quality-archive publication implementation.**
+  - Added a research-only workflow and `hourly_quality_publish.py` to reproduce the previously verified candidate from the pinned rejected archive and committed diagnostics. Publication requires an exact match of the complete candidate manifest and every artifact hash; this replication does not replace the prior raw-evidence audit or confer dataset acceptance.
+  - The dedicated `hourly-a5-quality-results` branch preserves the exact candidate and uses ordinary fast-forward updates, retaining prior versions. The workflow never writes production branches or deploys Pages. Three focused publication tests cover exact replication, changed/missing verification evidence and output divergence without a completion marker.
+  - Full regression validation passed all 1,038 tests in 335.219 seconds. Remaining: run the committed workflow, verify the remotely retained archive against the independent candidate, record formal conditional A5.2 acceptance, then register gap-aware execution before A5.3 replay.
+
+- **2026-10-19 (Codex continuation): durable archive verified; A5.2 conditionally complete.**
+  - Publication code `0a370ff8a8b74b7453b63a4cf6fa4b8139d47eb3` passed 1,038 full regression tests and both GitHub CI runs (`39274047623`, `39274040564`). Workflow `39274041013` reproduced the complete candidate byte-for-byte and published research result `0859e683910a7eea7ef446b27cf9773f33d9e9f8`.
+  - Fetched the retained result and independently streamed all 1,386 Git blobs through SHA-256 verification against the previously verified inventory. Every file, including the candidate manifest, matches. Formal conditional research-data acceptance is a new record; neither the rejected source nor the historical candidate marker was edited.
+  - Completed: durable publication, remote verification and conditional A5.2 acceptance. Remaining: preregister and test the A5.3 execution adapter's lookback/reset, funding and exit-gap rules; run all seven definitions and retain unresolved outcomes; independently verify trials and assemble A4.4 with universe/quality restrictions disclosed. No strategy trial, promotion, merge or deployment occurred.
+
+- **2026-10-20 (Codex continuation): A5.3 execution contract and kernel implemented.**
+  - Inspected all seven registered hourly definitions and the legacy simulator. Its preceding-close exit on missing bars and zero-default funding are not suitable for the accepted archive's explicit gaps. Added a separate `hourly_execution.py` without modifying evidence-bound code, and `phase-a5-execution-contract.md` before any hourly market replay.
+  - The kernel retains unexecuted attempts, unobservable price paths and unknown funding; no previous-close fallback, delayed fill or assumed archive-end exit. Preserves stop-first, gap-open stop, next-bar trailing/breakeven and declared fee/slippage rules. Funding completeness is explicit, including the entry hour; absent records cannot become zero.
+  - Eight synthetic tests cover gap/zero-volume/end censoring, entry gating, stop/target priority, gap prices, trailing/breakeven timing, funding sign and entry-instant exclusion, unknown funding, cost arithmetic and early exits unaffected by later missing bars. Full Linux regression validation passed all 1,046 tests in 316.787 seconds.
+  - Still remaining: exact per-definition feature reset/warm-up and causal cross-sectional mapping, funding-completeness evidence or explicit unavailable intervals, batch position-state tracking and unavailable daily series, additional synthetic tests, committed market replay and independent verification. No hourly strategy trial or production change occurred.
+
+- **2026-10-20 (Codex continuation): A5.3 batch ledger and feature-readiness rules.**
+  - Added `hourly_batch.py`: preserves every signal attempt, uses entry-day membership/quality gates, tracks one position per trial/segment, locks unknown price states, permits reuse after observed exits with unknown funding, and makes the complete daily net series unavailable if any executed outcome is unresolved. Execution input is clipped to the study end.
+  - Registered `phase-a5-feature-state.md` and implemented readiness/session boundaries in `hourly_feature_state.py`: 720 consecutive usable hours, full UTC four-hour EMA200 warm-up for PULLBACK, joint BTC/alt continuity for BTC_LEAD, no recursive state across gaps or zero-trade hours. This additional retrospective continuity restriction must be disclosed.
+  - Eleven synthetic tests pass for batch uncertainty, midnight/embargo gating, no backfill, daily accounting, archive-end censoring, invalid inputs, gap restart, zero-trade reset, four-hour alignment, paired BTC context and future-append invariance. Full Linux regression validation passed all 1,057 tests in 337.683 seconds.
+  - Found FUND_CARRY compatibility issue: its legacy settlement quorum uses full panel size, which includes future listings in a fixed historical union. Changing to a contemporaneous roster changes that trigger. The preregistration explicitly keeps this trial unavailable until the mapping decision is recorded; no silent substitution or zero-return column.
+  - Remaining: actual session-reset indicator/signal adapter and equivalence tests, FUND_CARRY compatibility resolution, funding-completeness evidence or explicit unavailable intervals, then committed market replay and independent verification. No hourly strategy trial or production change occurred.
+
+- **2026-10-20 (Codex continuation): A5.3 registered signal integration.**
+  - Added `hourly_signals.py`, importing unchanged registered strategy functions with exact census/code bindings. Features restart on each contiguous usable session; original predicates and the registered warm-up restrictions apply. BTC context cannot emit trades.
+  - FUND_FADE requires an observed finite hourly event to emit, and missing observations cannot reuse a stale funding event. No signal sentinel establishes execution-cost completeness. FUND_CARRY remains explicitly unavailable, without fabricated signals or returns.
+  - Eight synthetic tests pass, including nonempty legacy equivalence, fresh-session gap reset, numerical ATR/EMA and signal future-append invariance, complete UTC four-hour alignment, input preservation and missing/off-grid funding.
+  - Full Linux regression validation passed all 1,065 tests in 498.426 seconds, including the explicit observed-zero funding guard. Remaining: FUND_CARRY compatibility disposition, funding-completeness evidence or explicit unavailable intervals, archive-to-batch replay driver, committed market replay and independent verification. No hourly strategy trial or production change occurred.
+
+- **2026-10-20 (Codex continuation): explicit funding-coverage and compatibility disposition.**
+  - Added strict `hourly_funding.py`: preserves observed zero and off-grid events, rejects malformed/duplicate observations, and never infers complete hourly funding from interval hints or regularly spaced payments. The source collector can skip malformed rows; its retained files cannot prove absent settlements.
+  - Registered `phase-a5-funding-disposition.md`: all execution funding coverage remains explicitly unknown; the driver must retain unresolved net outcomes. FUND_FADE remains observed-event conditional and off-grid events require unavailable status. FUND_CARRY retains its registered identity with an unavailable causal-quorum attempt rather than a redefined strategy or zero-return column.
+  - Five synthetic tests pass, including execution integration proving that an observed zero rate cannot establish known net return without completeness evidence. Full Linux suite: 1,070 tests passed in 327.272 seconds. The final log-display shell command failed after successful tests because the local wrapper was edited while running; the complete unittest summary is retained in outputs/v9-a5-funding-full-tests.log. The subsequent CI-only import-guard/workflow edits were checked separately with and without scientific dependencies (13 passed; 5 passed plus 8 expected skips) and YAML parsing.
+  - Remaining: bound archive-to-batch driver enforcing these dispositions, committed replay and independent result verification. A5.3 and A4.4 remain open; full-family statistics remain unavailable. No hourly market strategy trial, promotion or production change occurred.
+  - Follow-up CI correction: signal commit `18c8d2d` passed local scientific-stack tests, but GitHub unit jobs `39324248728` / `39324242166` failed importing NumPy in their intentionally dependency-free environment. Signal tests now skip only when NumPy/pandas is missing, and the research CI job explicitly runs both signal and funding suites. Unexpected import errors still fail. Both local dependency configurations are checked before publication.
+
+- **2026-10-20 (Codex continuation): pinned hourly archive replay driver.**
+  - Confirmed both GitHub CI runs for funding/CI-fix commit `7e06c5e` succeeded (`39398997338`, `39398991315`).
+  - Added `hourly_replay.py` and registered `phase-a5-replay-driver.md`: exact accepted manifest/inventory/hash verification, strict candle parsing, unchanged segment identities and schedule, bounded warm-up history, per-segment processing without reranking, streamed attempt artifacts and final source/artifact hashes.
+  - Retains explicit FUND_CARRY unavailability, off-grid FUND_FADE unavailability, failed segment records, unknown funding and unresolved net series. Fatal preflight/writer errors retain failure records without a completion manifest; existing output directories cannot be overwritten. No market trial has run.
+  - Seven synthetic driver tests pass: corruption/missing/extra-file rejection, malformed candles, all-seven trial accounting, unavailable net values, shard hashes, no overwrite, equivalence to joint batch positions, off-grid funding, failed segments and writer/preflight failure retention. Dependency-free discovery also passes with five expected scientific skips; the research CI job explicitly runs this suite. Full Linux regression validation passed all 1,077 tests in 306.651 seconds.
+  - Remaining: durable replay workflow/output publication and append-only evidence-run registration support, committed market application, independent reconciliation, then A4.4 reporting of incomplete family evidence. A5.3 remains open; no promotion or production change.
+
+- **2026-10-20 (Codex continuation): A5 replay publication and evidence recording prepared.**
+  - Added `hourly_replay_publish.py`, a separate outer attempt record/report that preserves driver artifacts, partial streams and fatal failures without manufacturing a driver completion marker. Registered `phase-a5-replay-publication.md` before market use.
+  - Added research-only `evidence_a5.yml`: focused tests, pinned accepted-dataset export, one replay, normal fast-forward publication to `evidence-a5-results`, failure backup and duplicate-registration guard. An export failure is retained through replay preflight; partial/failed runs report workflow failure only after publication.
+  - Extended `record_run.py` for A5's distinct dataset and compressed attempt hashes, without editing historical records. Committed-history tests retain the phase-B binding for earlier studies and additionally validate all A5 preregistration hashes.
+  - Five synthetic publication/recording tests cover successful, partial and fatal attempts, no overwrite, retained partial artifacts, source/data/driver binding and tamper rejection. Full Linux regression validation passed all 1,082 tests in 297.243 seconds; all workflow shell blocks passed syntax checks. Both driver CI runs (`39400986758`, `39400977952`) passed. Publishing the new workflow starts the first market attempt; result verification and history append have not happened yet; A5.3 remains open.
+
+- **2026-10-20 (Codex continuation): first A5 market replay launched.**
+  - Published workflow/recording source `491ca15b235a1f635cc5f858115d03162d8e1a5d` after all 1,082 tests passed. Both hosted CI runs (`39464886775`, `39464874869`) succeeded.
+  - Research run `39464874726` passed synthetic checks and pinned dataset export and is executing the first market replay. Do not start another attempt; inspect this run and recover its `evidence-a5-results` commit when published. It is not yet verified or appended to the evidence history.
+  - Prepared local independent verification scripts `work/verify_a5_replay_result.py` (artifact/source/catalogue hashes and trial/stream/daily accounting) and `work/verify_a5_replay_prices.py` (entry gates, position state and observable price outcomes against accepted candles). The price checker passes four hand-calculated cases. These scripts have not yet audited market results; signal-population verification remains separate.
+  - Next: fetch the exact retained result; run artifact/accounting and price reconciliation; append its verified A5 run record; retain any unavailable/failed trial honestly and finish the remaining independent signal checks. A5.3 remains open. No merge, promotion or production deployment.
+
+- **2026-10-20 (Codex continuation): independent signal verifier prepared while first replay runs.**
+  - Original run `39464874726` completed successfully during verification preparation. No duplicate attempt was launched. The retained result still requires all independent checks and the evidence-history append.
+  - Added local `work/verify_a5_replay_signals.py`, which reconstructs continuity, warm-up and paired BTC sessions independently of the new adapter, calls only unchanged original strategy functions, and compares the full retained signal population and parameters for every successfully generated segment. Failed/unavailable segments remain explicitly counted, not silently accepted.
+  - Its mapping matches all six supported definitions on synthetic data. Together with the artifact/accounting and price-outcome scripts, it is ready for the retained result. All three still need to run against the actual result commit; their preparation does not complete A5.3.
+
+- **2026-10-21 (Codex continuation): first A5 replay independently verified and recorded.**
+  - Run `39464874726` succeeded and retained result `84412b14ae8a1dee7299c2ebdbb32a45ac5d0e0e` with status `COMPLETED_WITH_UNAVAILABLE_RESULTS`. Source `491ca15b235a1f635cc5f858115d03162d8e1a5d` and every preregistration/artifact hash match. No repeat market attempt was run.
+  - Three retained verification tools check artifact/trial accounting, every price outcome and entry/position gate, and complete signal populations for successfully generated segments. Signal verification reconstructs sessions independently but deliberately reuses unchanged original strategy functions; it does not independently validate their mathematics. Full reports and verifier hashes: `research/v9/a5_replay_verification.json`.
+  - All 435,817 attempts reconcile: 201,185 unexecuted, 173 unresolved price paths and 234,459 observed price exits with unknown funding. No segment failed. FUND_CARRY is unavailable for causal quorum mapping; two FUND_FADE segments are unavailable for off-grid funding. All seven net-return series remain unavailable, with no invented zero returns.
+  - Appended A5 as evidence-history record 5 and verified the intact hash chain. The full Linux regression suite passed 1,082 tests in 341.138 seconds.
+  - Completed: first replay, independent reconciliation and evidence registration. Remaining: A4.4 reporting/assembly with explicit missing hourly columns and differing universes; complete A5.3 return evidence remains blocked by the recorded funding/definition limitations. Other roadmap items remain open. PR #30 stays draft; no merge, promotion or production deployment.
+
+- **2026-10-21 (Codex continuation): A4.4 evidence review and assembly specification.**
+  - Reviewed the exact retained A4 and A5 reports and metadata. Their declared windows match, but their universes, funding treatment and execution rules differ. A5 provides no usable net-return column, so all seven hourly columns and full-family DSR/PBO/bootstrap results remain unavailable.
+  - Added `phase-a4-evidence-review.md`, including every hourly attempt disposition, explicit statistical limits and remaining work. Added `phase-a4-family-assembly.md` before implementation/application: preserve all 199 identities, days, A4 values and seven missing columns; verify source hashes; reject contradictory availability; retain a separately hashed derived manifest with no new replay or statistics.
+  - Completed: combined evidence review and fixed assembly rules. Remaining: assembly implementation, synthetic rejection tests, independent output verification and durable manifest. A4.4 and A5.3 remain open; existing evidence history and preregistrations are unchanged. No promotion, merge or production deployment.
+  - Validation: all seven report rows match the independently verified counts; full Linux regression suite passed 1,082 tests in 371.668 seconds. Both CI runs for prior verification commit `863278f` passed (`39509241311`, `39509236434`).
+
+- **2026-10-21 (Codex continuation): fixed-input family assembly implemented and verified locally.**
+  - Added `family_assembly.py` under the committed specification. It checks source identities and hashes, the evidence chain, plan/definition bindings, exact daily axes, availability and attempt metadata; it preserves the original matrix bytes and inherited unavailable statistics. No simulation or new statistical calculation runs.
+  - Seven synthetic tests cover reordered/duplicate/missing identities, changed dates/definitions/counts, corrupt hashes, invented return values or authority, contradictory availability, output overwrite and retained preflight/writer failures without a completion marker.
+  - Applied the assembly to the two fixed results. Separate `verify_family_assembly.py` imported no assembler helpers and compared all 466,854 cells (2,346 by 199), exact matrix bytes, every column definition and hourly metadata, all input/output hashes and inherited statistics. All checks passed. Artifacts are in `research/v9/family_assembly/`; the derived inventory references evidence-history entries 4 and 5 without adding a fictitious replay.
+  - Completed: assembly implementation, independent verification and retained artifact package. Full Linux validation passed 1,089 tests in 393.943 seconds. Seven hourly columns remain unavailable, so the complete-return objectives of A4.4/A5.3 remain open; no strategy promotion, merge or deployment.
+  - Next unblocked roadmap work: A6 matched-control study design and preregistration. Keep A4/A5 complete-return limitations open; resolving funding coverage or redefining FUND_CARRY requires separate evidence/registration, not a repeat of the frozen A5 attempt.
+
+- **2026-10-21 (Codex continuation): A6.1 matched-control design and selector.**
+  - Inspected the existing Phase 9 matcher/gate and archive collection code. Corrected two planning assumptions: the full gate requires eight matching dimensions, and the archive first bar is not independently verified listing inception. No gate or existing matcher was changed.
+  - Added `phase-a6-control-design.md` before A6 market use, and `control_cohort.py`: exact decision-time/direction matching, fixed seven-day-volume and archive-age buckets, 50 distinct controls without replacement, same-symbol exclusions, deterministic hash ordering and explicit sparse/unavailable results. All results remain diagnostic with authority false.
+  - Six synthetic tests pass for boundaries/relisting resets, deterministic unique selection, input-order/future/outcome invariance, no bucket widening, coverage counts, missing/stale/invalid features and ambiguous identities. No A6 market matching or outcome calculation has run.
+  - Full Linux validation passed 1,095 tests in 303.950 seconds. Remaining: registered disposition of known archive conflicts/gaps, source-bound complete-signal/feature adapter, separate execution/inference registration, then one recorded and independently verified study. A6 remains open; A4/A5 limitations remain unchanged.
+  - Previous assembly commit `9d8b62b` passed both hosted CI runs (`39570808464`, `39570803428`). A6.1 is complete; the broader matched-control study and Phase 9 qualification remain open.
+
+- **2026-10-21 (Codex continuation): A6.2 feature-window quality layer.**
+  - Added `phase-a6-feature-quality.md` before market application: any seven-day window intersecting an original disputed A5 four-hour block is unavailable; gaps remain missing; quality exclusions are retrospective and the limited audit does not establish broad-universe correctness. The exact 94-block source-bound inventory remains to be integrated.
+  - Added `control_features.py` for exact 42-bar UTC windows, observed zero volume, segment first-bar identity, reconstructed availability, explicit missing/disputed timestamps and causal window hashes. It preserves eligibility and does not qualify the underlying signal's longer indicator history.
+  - Six new synthetic tests pass (12 combined cohort/feature tests): window boundaries, gap/dispute overlap, zeros, future append invariance, invalid/duplicate inputs, relisting age, preserved eligibility and rejection of unavailable inputs by the cohort selector.
+  - Completed: fixed quality disposition and synthetic feature construction. Full Linux regression validation passed 1,101 tests in 294.949 seconds. Remaining: bind the actual dispute inventory/source files, complete generated-signal adapter and independent population/feature audit, then separately register execution/inference. No A6 market matching or outcome computation, strategy promotion, merge or deployment.
+
+- **2026-10-21 (Codex continuation): A6.2 source bindings and original dispute inventory.**
+  - Added `control_sources.py`: verifies the pinned original audit/plan and corroborating quality-ledger hashes; retains all 94 original disputed blocks across 87 segments and all 189 fields. The inventory preserves 782 original broad-source hash bindings, not the saved 690-segment hourly subset.
+  - Added original-universe and segment loaders with exact byte hashes, full file inventory, segment identity/bounds/count, safe names and strict timestamp/volume checks. Five synthetic tests cover missing/duplicate/wrong audit evidence, changed or subset sources, malformed candles, observed zeros and segment identity.
+  - Independently reconciled every retained dispute, source symbol/reference hash and all bound input objects without importing builder helpers. Records: `a6_source_inventory.json` and `a6_source_inventory_verification.json`. This verifies bindings, not actual loading/validation of the broad archive; that distinction is explicit.
+  - Completed: source-binding helpers and independently verified original dispute inventory. Full Linux regression validation passed 1,106 tests in 285.189 seconds. Remaining: apply the loaders to the pinned broad archive, integrate the complete generated-signal/feature adapter and independently audit the population, then register execution/inference. No A6 market matching, outcomes, promotion, merge or deployment.
+  - Both hosted CI runs for prior feature commit `0a9f4fb` passed (`39573456826`, `39573449787`). Inventory and loader implementation are complete; full archive application and generated-signal reconciliation remain pending.
+
+- **2026-10-21 (Codex continuation): A6.2 generated-signal streaming adapter.**
+  - Registered `phase-a6-signal-population.md`: retain every original generator ordinal before simulator/position/entry filtering, distinguish warm-up and after-window counts, keep duplicates and terminal signals, and retain exact geometry and eligibility. No market generator has run.
+  - Added `control_signals.py`: validates array shapes, indices/directions/geometry and panel identities, streams every in-window signal, and attaches indexed feature windows equivalent to full-source construction. Own-segment missing/disputed history is annotated separately; clean volume windows never imply qualified signal history.
+  - Seven synthetic tests pass for full denominator accounting, duplicates/terminal signals, false eligibility, missing/disputed history, retained unavailable features, malformed generator output, empty/after-window accounting and future-append invariance. Terminal next-bar availability may legitimately change when a new bar is observed, while existing signal identity/features remain unchanged.
+  - Completed: population contract and streaming projection layer. Full Linux regression validation passed 1,113 tests in 275.435 seconds. Remaining: bound archive/generator driver with safe sharding and failure manifests, one source-validation/signal extraction application and independent population audit, then separate execution/inference registration. A6.2 remains open; no market matching/outcomes, promotion, merge or deployment.
+  - Both hosted CI runs for prior source commit `3e3b2a9` passed (`39627505796`, `39627496243`).
+
+- **2026-10-22 (Codex continuation): A6.2 bound extraction driver.**
+  - Added `control_extract.py` and registered `phase-a6-extraction-driver.md` before market application. The driver verifies original research bytes, census/inventory bindings, every broad candle file, phase-B reference/panel digest and the exact window before generating signals.
+  - All 199 identities are retained: 192 definitions called once, seven hourly populations explicitly unavailable. Deterministic shards have row and byte limits; partial trial outputs survive validation failures, filesystem failures abort without completion, and existing results cannot be overwritten. No matching, execution or outcomes run.
+  - Eight synthetic tests cover all-199 accounting, complete ordinals, deterministic shard hashes/limits, partial and empty populations, fatal writers, source corruption and unsafe/duplicate identities. Full Linux regression validation passed all 1,121 tests in 318.689 seconds. All six original code files and the census/inventory hashes were also checked directly.
+  - Remaining: durable Actions publication and duplicate guard, independent population verifier, one retained source-validation/extraction application and audit; then separate execution/inference registration. A6.2 remains open; no promotion, merge or deployment.
+
+- **2026-10-22 (Codex continuation): A6 independent artifact accounting.**
+  - Added `verify_control_artifacts.py`, which imports no extraction/projection helpers. It requires separately supplied plan/provenance anchors and checks every trial file, bounded shard, hash, size, ordinal, signal identity, feature identity, authority flag and population count. Unlisted/partial files and ambiguous JSON are rejected.
+  - Five synthetic tests cover complete/partial extraction, unavailable hourly populations, corrupt/missing/extra files, changed provenance/rosters/counts, duplicate/reordered identities and tampering with recomputed hashes. This is artifact verification only: generator population and source feature values remain explicitly unverified. Full Linux regression validation passed all 1,126 tests in 317.235 seconds.
+  - Remaining: independent generator/feature reconciliation, durable Actions retention and duplicate-attempt guard, first extraction and retained-result audit. A6.2 stays open; no market extraction, matching/outcomes, promotion, merge or deployment.
+
+- **2026-10-22 (Codex continuation): A6 independent source/array reconciliation.**
+  - Added `verify_control_population.py` without importing extraction, projection or feature helpers. It independently reconstructs exact 42-bar volume windows, missing/disputed history and retained row identities, then compares every original in-window generator ordinal, geometry, eligibility and terminal-entry flag. It rejects extra/missing rows and verifies all population counts.
+  - Seven synthetic tests cover hand-calculated volume, clean/missing/disputed/zero-volume windows, duplicate/reordered/omitted signals, tampered geometry/features/history/identities, malformed raw arrays and source data, and empty populations. Full Linux regression validation passed all 1,133 tests in 305.500 seconds. Both prior artifact-verifier CI runs (`39673843424`, `39673836234`) passed.
+  - This helper verifies supplied source rows and original arrays, not the original generator mathematics or external input provenance. Remaining: a source-bound audit runner, durable Actions retention/duplicate guard, first extraction and retained-result audit. A6.2 remains open; no market extraction, matching/outcomes, promotion, merge or deployment.
+
+- **2026-10-22 (Codex continuation): A6 source-bound independent audit runner.**
+  - Added `audit_control_extraction.py` and `phase-a6-independent-audit.md`. The runner independently reads and hashes original candles, checks unchanged research bytes and the extraction commit, reconstructs phase-B panel provenance, verifies artifacts, and compares each successfully extracted trial against the unchanged original generator and independent feature checker.
+  - Six synthetic tests cover complete/partial trial dispositions, generator/source/window tampering, independent archive reading and hash rejection, failed preflight, extraction preservation and refusal to overwrite prior audits. Full Linux regression validation passed all 1,139 tests in 298.724 seconds. The source reader accepts all 781 pinned identities, including relisting suffixes and non-Latin names, with dedicated synthetic coverage.
+  - Failed and hourly populations remain explicitly unverified; generator mathematics and full-family qualification are not claimed. Verification repeat calculations produce no new outcomes or strategy test.
+  - Remaining: durable Actions publication and duplicate-attempt protection, first retained extraction and audit, independent result inspection. A6.2 remains open; no market extraction, matching/outcomes, promotion, merge or deployment.
+
+- **2026-10-22 (Codex continuation): A6 durable attempt retention and first-run reservation.**
+  - Added `control_publish.py`, `phase-a6-publication.md` and research-only `evidence_a6.yml`. The workflow reserves `evidence-a6-results` before exporting data, rejects any existing attempt, runs extraction and audit in separate processes, and retains every output as a normal descendant of the reservation without force pushes. A hard interruption leaves the reservation blocking accidental repeats.
+  - The outer attempt record retains stage exit codes, hashed files, partial outputs and failures. Success requires 192 independently audited available trials and seven explicit hourly unavailabilities. Four synthetic tests cover success/count rejection, fatal/partial retention, exception handling and refusal to overwrite attempts. Full Linux regression validation passed all 1,143 tests in 288.274 seconds. Workflow parsing and every shell block passed syntax checks.
+  - Published source `269cb2b0360310ac6bac9fd5ef8b102505c6d997` started the first registered workflow run `39774700211`. Do not launch another attempt; recover and inspect this run. Synthetic checks, reservation and pinned archive export passed; extraction/audit is running. Durable reservation `3d9162699c2507ec35b542e9e6e6031fa5d429c4` binds this source and run. Its extraction/audit results are not yet verified. Remaining: inspect that run and exact retained result, reconcile all source/artifact/audit bindings and counts, and update A6.2 only after verification. Separate execution/inference registration remains required; no matching/outcomes, promotion, merge or deployment.
+
+- **2026-10-22 (Codex continuation): A6 retained-package verification prepared while extraction runs.**
+  - Confirmed original run `39774700211` remains in its extraction/audit stage and results head is still reservation `3d9162699c2507ec35b542e9e6e6031fa5d429c4`; no duplicate attempt was launched.
+  - Added `verify_control_result.py` to stream-check every retained Git blob against the outer inventory, verify reservation ancestry and source/run/protocol bindings, and reconcile all 199 trial identities, available-population counts and audited-source hashes. Interrupted/failed attempts remain explicit. This checks the retained audit and package; it does not rerun generators or reload market data locally.
+  - Four synthetic tests cover successful 192/7 accounting, incomplete/failed states, corrupt/extra files, and rehashed source/audit/count/identity tampering. Full Linux regression validation passed all 1,147 tests in 322.195 seconds.
+  - Remaining: run this verifier on the exact completed result commit and inspect its findings. A6.2 remains open until retained-result verification; separate execution/inference registration remains outstanding. No matching/outcomes, promotion, merge or deployment.
+
+- **2026-10-23 (Codex continuation): A6.2 first extraction/audit independently reconciled.**
+  - Original run `39774700211` completed successfully and retained result `eb785a908dce572958336649291b8feeb4ee9575` as a normal descendant of reservation `3d9162699c2507ec35b542e9e6e6031fa5d429c4`. No repeat attempt was run.
+  - Ran the retained-package verifier against the exact result/source commits. All 670 files, source/protocol/auditor bindings and 199 identities reconcile. The source-bound audit verified all 192 available definitions, 4,263,580 retained signals and 465 shards; 4,279,748 generated minus 16,168 pre-window signals reconciles exactly. Seven hourly populations remain unavailable; zero available trials failed.
+  - Retained `research/v9/a6_result_verification.json` and `phase-a6-extraction-review.md`. A6.2 is complete for its registered scope; no full-family, original-generator-mathematics or matched-control authority is claimed. No fictitious strategy-outcome record was appended to evidence history. Full Linux regression validation passed all 1,147 tests in 314.363 seconds.
+  - Next: A6.3 separate execution/inference preregistration, implementation and synthetic tests before any market matching/outcomes. The eight-dimension qualification gate remains unsatisfied; A4/A5 return-evidence limitations remain unchanged. No promotion, merge or deployment.
+
+- **2026-10-23 (Codex continuation): A6.3 execution and inference preregistration.**
+  - Added `phase-a6-execution-inference.md` before market matching/outcomes. It pins the verified A6.2 inventory, defines independent paired hypothetical attempts with identical geometry/costs, preserves all missing/sparse/failed dispositions, and rejects original disputed execution bars.
+  - Explicitly keeps every entered net outcome and all 398 inferential slots unavailable because funding coverage/exit timing are unestablished. Resolved-only price-after-cost summaries are descriptive and labelled conditional; no bootstrap, p-values, winner selection or edge claim is permitted. Day/reuse counts preserve dependence for audit without pretending independent observations.
+  - Completed: execution/inference specification. Remaining: new four-hour kernel, streaming matcher/aggregation, synthetic tests, durable single-attempt workflow, evidence recording and independent result reconciliation. No matching/outcome application occurred. A6.3 and full qualification remain open. Full Linux regression validation passed all 1,147 tests in 379.025 seconds.
+
+- **2026-10-23 (Codex continuation): A6.3 four-hour hypothetical execution kernel.**
+  - Added `control_execution.py` under the committed execution/inference contract, without changing the legacy simulator or A5 kernel. It preserves original geometry and four-hour hold units, applies identical fixed costs, stop-before-target priority, opening gaps, next-bar trailing/breakeven and exact time exits.
+  - Missing/disputed/zero-volume/malformed bars and archive-end censorship remain explicit; no delayed entry or price fill occurs. Attempts have no shared position state. Observed price-after-cost R is labelled separately while net R is always null and funding remains unknown.
+  - Eight synthetic tests cover both directions, hand-calculated costs and returns, target/gap behavior, trailing/breakeven timing, unknown data, eligibility, censorship, unchanged inputs, independent reuse, future append invariance and panel-bar holds. Full Linux regression validation passed all 1,155 tests in 296.325 seconds.
+  - Remaining: matching/aggregation, source-bound outcome adapter, independent verification, durable single-attempt publication and evidence recording, then one registered application. A6.3 remains open; no market matching/outcomes, promotion, merge or deployment.
+
+- **2026-10-23 (Codex continuation): A6.3 paired matching and descriptive aggregation.**
+  - Added `control_pairs.py`: fixes all selected controls before any execution, applies identical signal geometry/timing to candidate and controls, retains sparse/unresolved attempts and only computes price contrasts with all 51 price outcomes observed. No net contrast or inference is produced.
+  - Added `control_summary.py`: disk-backed values and exact medians, all trial/direction slots including unavailable hourly populations, matching/entry/price dispositions, conditional-versus-complete denominators, UTC decision-day sums and counts, and per-side asset/time control reuse. Duplicate IDs and altered pair arithmetic/authority are rejected.
+  - Seven synthetic tests cover fixed selection, identical geometry, missing control outcomes without replacement, sparse/ineligible signals, exact means/medians/counts, reuse and duplicate detection, conditional missingness, tampering and all 398 inference slots. Full Linux regression validation passed all 1,162 tests in 371.532 seconds.
+  - Remaining: source-bound outcome adapter, independent verification, durable single-attempt publication and evidence recording, then one registered application. A6.3 remains open; no market matching/outcomes, promotion, merge or deployment.
+
+- **2026-10-23 (Codex continuation): A6.3 source/price integration adapter.**
+  - Added control_adapter.py, using the verified extraction context without changing original research code. It checks retained signal identities, panel indices, eligibility, source hashes, features and history before selecting controls. Price files are hash-bound and checked against feature calendars/volumes; a bounded cache avoids retaining the full OHLC archive.
+  - Missing/malformed/disputed prices remain explicit, and segment/study ends censor execution. Six synthetic tests cover bound execution, corrupt bytes, signal tampering, ineligible/terminal attempts, malformed prices and disputes. Full Linux regression validation passed all 1,168 tests in 361.603 seconds.
+  - This adapter requires a verified input context and independently verified A6.2 package; it does not independently prove generator geometry. Remaining: bound streaming outcome driver, independent verification, durable single-attempt publication and evidence recording, then one registered application. A6.3 remains open; no market outcome run, promotion, merge or deployment.
+
+- **2026-10-23 (Codex continuation): A6.3 bound streaming outcome driver.**
+  - Added control_outcomes.py, pinned to the accepted A6.2 manifest hash and result commit. It verifies the full artifact inventory against source preparation before execution, rechecks each shard, streams retained signals through the adapter, and writes bounded outcome/day/reuse shards plus all direction summaries. Original generators are not rerun.
+  - Existing attempts and overlapping input/output directories are rejected. Preparation or execution failures retain an explicit failed/partial manifest, processed counts and hashed partial artifacts; unavailable hourly populations stay explicit. Six synthetic tests cover complete accounting, corrupt/unregistered input, preparation/interruption failures and overwrite/input isolation. Full Linux regression validation passed all 1,174 tests in 281.589 seconds.
+  - Remaining: independent matching/execution verification, durable one-attempt reservation/publication and evidence-run recording, resource qualification for the full inventory, then one registered market application. A6.3 remains open; no market outcome run, promotion, merge or deployment.
+
+- **2026-10-23 (Codex continuation): A6.3 independent outcome accounting verifier.**
+  - Added verify_control_outcomes.py without importing matching, execution, aggregation or the outcome driver. It verifies external input/code/protocol bindings, every output hash, exact source-to-outcome ordering and counts, control identities, geometry, complete-pair arithmetic, side/disposition counts and unavailable inference fields. Unexpected files, unsafe paths and rehashed inconsistencies are rejected.
+  - Seven synthetic tests cover valid accounting, missing outcomes, changed geometry, sparse/full-pair contrast tampering, summary/inference changes, external bindings and unlisted files. Full Linux regression validation passed all 1,181 tests in 287.723 seconds.
+  - This is deliberately limited accounting verification: control selection/ranks, source price paths, descriptive statistics and day/reuse aggregates still require independent audits. Remaining also includes durable single-attempt publication, evidence-run recording and resource qualification before one market application. A6.3 remains open; no market outcome run, promotion, merge or deployment.
+
+- **2026-10-24 (Codex continuation): A6.3 independent control-selection checker.**
+  - Completed the prior interrupted publication verification: commit 94bfec5a1d1067bfb5f4fd273fed798a62a21c10 matches the tested local files and the checkout is synchronized.
+  - Added verify_control_selection.py without importing the production selection, feature or matching code. It independently checks fixed bucket boundaries, eligibility/time/direction filtering, same-symbol exclusions, exact ranks/order, retained feature fields, cohort counts and sparse/unavailable dispositions.
+  - Five synthetic tests cover every bucket boundary, sparse/full/unavailable cohorts, exclusions, rank/order/feature/count tampering, omitted/duplicate population rows and future/outcome invariance. Full Linux regression validation passed all 1,186 tests in 310.092 seconds.
+  - The checker requires the complete externally verified source snapshot; it does not establish snapshot provenance or execution correctness. Remaining: source-bound audit integration, independent price-path/statistics/day/reuse checks, durable publication, evidence recording and resource qualification before one market application. A6.3 remains open; no market outcome run, promotion, merge or deployment.
+
+- **2026-10-24 (Codex continuation): A6.3 independent price-path checker.**
+  - Added verify_control_prices.py without importing the production execution kernel. Direction-oriented candle paths independently reconstruct stop/target priority, opening gaps, delayed trailing/breakeven updates, time exits, costs and uncertainty dispositions, then compare every recorded outcome field. Float comparisons use 1e-12 relative/absolute tolerance; categorical fields remain exact. Funding and promotion authority remain unavailable.
+  - Five synthetic tests cover both directions, target/stop/time/gap behavior, missing/zero/disputed/malformed/terminal data, trailing/breakeven timing, changed exits/costs/authority and 400 seeded direction/path cases with future-append invariance. Full Linux regression validation passed all 1,191 tests in 319.998 seconds.
+  - The checker requires externally verified source candles; source-bound batch integration, statistics/day/reuse verification, durable publication, evidence recording and resource qualification remain before one market application. A6.3 remains open; no market outcome run, promotion, merge or deployment.
+
+- **2026-10-24 (Codex continuation): A6.3 independent descriptive-statistics audit.**
+  - Added verify_control_statistics.py without importing production aggregation. A separate disk-backed audit database reconstructs conditional means with math.fsum, exact medians/extrema, complete-versus-conditional availability, ordered UTC-day totals and asset/time control reuse. Duplicate signal IDs, missing/extra rows and invented inference remain failures. Numerical aggregates use 1e-10 relative/absolute comparison tolerance.
+  - Five synthetic tests cover hand-calculated varied means/medians, every altered statistic, missing day rows, changed reuse counts, incomplete populations, empty sides, unavailable hourly counts and duplicate IDs. Full Linux regression validation passed all 1,196 tests in 317.916 seconds.
+  - This audit requires independently checked pair records; it does not establish source provenance. Remaining: source-bound integration of accounting/selection/price/statistics audits, durable single-attempt publication, evidence recording and resource qualification before one registered market application. A6.3 remains open; no market outcome run, promotion, merge or deployment.
+
+- **2026-10-24 (Codex continuation): A6.3 source-bound outcome audit integration.**
+  - Added audit_control_outcomes.py, integrating independent accounting, reconstructed source features/eligibility, registered cohort selection, candle-path/cost checks and descriptive/day/reuse statistics. It pins the accepted A6.2 inventory and original extraction source, checks output implementation/protocol bytes against an explicit source commit, and independently parses/hash-checks OHLC files with a bounded cache. Original signal generators are not rerun.
+  - Separate success/failure artifacts preserve outcome files; previous audits and overlapping output directories are rejected. Five synthetic integration tests cover complete layered verification, corrupted source candles, rehashed wrong exits, source-eligibility mismatch and overwrite/input isolation. Full Linux regression validation passed all 1,201 tests in 310.367 seconds.
+  - Remaining: durable one-attempt reservation/publication, evidence-run recording, resource qualification, then one registered market application and retained-result reconciliation. Original-generator mathematics and net-return qualification remain unverified/unavailable. A6.3 remains open; no market outcome run, promotion, merge or deployment.
+
+- **2026-10-24 (Codex continuation): A6.3 reserved-attempt retention wrapper.**
+  - Added control_outcome_publish.py and phase-a6-outcome-publication.md. The wrapper validates a source/input/protocol-bound first-attempt reservation, writes STARTED before execution, runs outcomes and audit separately, and inventories all logs and partial artifacts. Success requires the fixed signal/trial/side counts and every audit layer; net inference stays unavailable.
+  - Six synthetic tests cover successful retention/hashes, incomplete audit rejection, partial exceptions, interruption retaining STARTED and blocking retry, invalid reservations/input overlap, and changed inputs failing before execution. Full Linux regression validation passed all 1,207 tests in 330.928 seconds.
+  - This wrapper does not create or prove the remote reservation. Remaining: durable reservation/fast-forward workflow, evidence-run recording, resource qualification, then one registered market application and retained-result reconciliation. No workflow was activated and no market outcome attempt was run. A6.3 remains open; no promotion, merge or deployment.
+
+- **2026-10-24 (Codex continuation): A6 outcome evidence-history support.**
+  - Added record_control_outcome.py and routed record_run.py --study A6 through it. The builder verifies immutable root-reservation ancestry, source/input/protocol bindings and retained-file hashes, then prepares a canonical record for the existing append-only chain. Reserved, STARTED, failed/partial and audited states remain explicit; absent outcomes stay absent and no strategy confirmation is invented. Commit time is labelled as retention time, not execution start.
+  - Six synthetic tests cover successful/unfinished/failed records, altered reservation/artifact/authority rejection, append-chain preservation, duplicate refusal and CLI routing. Full Linux regression validation passed all 1,213 tests in 293.486 seconds.
+  - No real evidence record was appended: the actual A6 outcome attempt has not run. Remaining: durable reservation/publication workflow, resource qualification, one registered application, retained-result reconciliation and recording. A6.3 remains open; no promotion, merge or deployment.
+
+- **2026-10-24 (Codex continuation): A6 synthetic resource qualification probe.**
+  - Added control_resource_probe.py, its retained synthetic report and phase-a6-resource-review.md. Generated 61 synthetic assets with 400 bars and processed 20 full fifty-control comparisons; no market data or registered study attempt was used.
+  - Found 1,009 price-file reads for 61 available files: the eight-segment cache repeatedly reloads histories. Pair artifacts total 1,138,170 JSON bytes / 67,602 gzip bytes. Naive full-inventory extrapolations are 242.6 GB / 14.4 GB, explicitly not reliable market-size predictions. The measured 1.964 seconds covers only local adapter/shard execution, not full pipeline or hosted-runner performance.
+  - Two synthetic probe tests verify real adapter measurement, explicit nonqualification and bounded inputs. Full Linux regression validation passed all 1,215 tests in 301.624 seconds.
+  - Resource qualification is NOT satisfied. Next: bounded indexed price reuse and lossless metadata/storage reduction, full synthetic pipeline/resource qualification, durable workflow, then one registered application/reconciliation/recording. A6.3 remains open; no market outcome run, promotion, merge or deployment.
+
+- **2026-10-24 (Codex continuation): A6 indexed execution price windows.**
+  - Replaced repeated execution-adapter history parsing with a temporary hash-bound SQLite index. Each source file is parsed/validated once; execution retrieves only its requested hold window with eight cached windows. The outcome driver closes/removes the scratch index on completion or failure. Original geometry, source checks, gaps and execution rules are unchanged.
+  - Retained a separate indexed synthetic probe: source reads decreased from 1,009 to 61 for the same 20 signals, with zero excess reloads. Pair JSON/gzip byte counts remain 1,138,170/67,602; local elapsed time was 1.348 seconds versus baseline 1.964, not a hosted-runtime guarantee.
+  - Added three adapter tests for one-time source reading under memory eviction, exact full-source execution parity and scratch cleanup/closed-index rejection; 22 focused integration/probe tests pass. Full Linux regression validation passed all 1,218 tests in 350.911 seconds.
+  - Resource qualification remains unsatisfied: independently index the audit reader, reduce lossless outcome storage, qualify the complete pipeline, then finish durable workflow and run/reconcile/record one registered application. A6.3 remains open; no market outcome run, promotion, merge or deployment.
+
+- **2026-10-24 (Codex continuation): A6 independent audit price windows.**
+  - Added a separate temporary SQLite index to the independent audit reader without sharing the execution parser/index. Each bound source is parsed once; only requested hold windows enter the eight-window cache. Index cleanup is explicit on success and failure.
+  - The expanded synthetic probe retains a new report, leaving both baselines intact. Execution and independent audit each read 61 files once; 1,020 candidate/control paths independently verify. Local execution/shard time is 1.308 seconds and price-audit time is 0.890 seconds. Pair bytes remain 1,138,170 JSON / 67,602 gzip. This excludes source preparation, selection/accounting/statistics audits and Git; it is not hosted-runner qualification.
+  - Added eviction/read-once/window-parity and success/failure cleanup tests. Full Linux regression validation passed all 1,220 tests in 316.245 seconds.
+  - Remaining: lossless outcome-storage reduction, complete synthetic pipeline and runner budgets, durable workflow, then one registered application/reconciliation/recording. A6.3 stays open; no market outcome run, promotion, merge or deployment.
+
+- **2026-10-24 (Codex continuation): A6 lossless compact-record experiment.**
+  - Added control_storage.py and an independently implemented verify_control_storage.py. Per-pair outcome and selected-feature tables store repeated values/keys once while retaining every field and row in order. Exact JSON number forms, nulls, unknown outcomes, source metadata and geometry survive reconstruction; malformed structures fail closed.
+  - Retained a new synthetic probe: all 20 pairs reconstruct exactly and all 1,020 price paths independently verify from compact records. JSON decreases 1,138,170 to 251,790 bytes (77.9%); gzip decreases 67,602 to 51,140 bytes (24.4%). Packing/reconstruction/writing takes 0.229 seconds locally. Synthetic shared values are not representative market-size guarantees.
+  - Four codec tests cover sparse/full cohorts, 80 varied seeded cases, type/signed-zero preservation, isolation and malformed tables. Full Linux regression validation passed all 1,224 tests in 301.098 seconds.
+  - Remaining: enable a versioned compact format in the outcome driver, independent package readers and implementation bindings together; qualify full pipeline resources and failure retention; complete durable workflow, then one registered application/reconciliation/recording. A6.3 remains open. No market outcome run, promotion, merge or deployment.
+
+- **2026-10-25 (Codex continuation): A6 compact package integration.**
+  - Enabled version-two compact pair shards in the outcome driver while leaving logical aggregation and day/reuse formats unchanged. The encoder is included in reserved-source implementation bindings. Independent package/accounting and source/price/statistics audits reconstruct compact records through their separate reader; audit reports bind the decoder bytes.
+  - Preserved version-one reading and original implementation binding rosters. Exact manifest encoding is required; mixed or unknown formats fail closed. Four new integration tests cover legacy accounting/full audits, encoding confusion and a packing interruption retaining earlier shards. Existing tampering tests now decode, alter and repack compact evidence before independent rejection.
+  - Full Linux regression validation passed all 1,228 tests in 318.539 seconds. Remaining: diverse complete-pipeline resource measurements including summary/reuse storage, explicit runner/publication budgets, durable workflow, then one registered application/reconciliation/recording. A6.3 stays open; no market run, promotion, merge or deployment.
+
+- **2026-10-25 (Codex continuation): A6 synthetic pipeline resource measurements.**
+  - Added control_pipeline_probe.py and retained a four-case report covering synthetic extraction, compact outcomes, summaries/day/reuse storage and every independent outcome-audit layer. Full, mixed-quality and sparse cases independently verify 48 candidate and 1,556 control paths; the interrupted case retains three records and a failed audit. Both directions, variable holds, terminal entries and unavailable hourly slots remain explicit.
+  - Full-case retained outcome files total 371,999 bytes: summary database 172,032, pair shards 64,691 and reuse shards 24,828. Outcome/audit times are 4.024/3.111 seconds locally. Summary storage exceeds pair storage at this small scale. Figures are retained sizes, not peak memory/disk or market-scale forecasts.
+  - Two tests cover the complete successful/failure scenarios and bounded inputs. Full Linux regression validation passed all 1,230 tests in 316.023 seconds.
+  - Remaining: larger/diverse scaling and peak-resource measurements, explicit hosted-runner/publication budgets, durable workflow, then one registered application/reconciliation/recording. A6.3 stays open; no market run, promotion, merge or deployment.
+
+- **2026-10-25 (Codex continuation): A6 isolated resource measurements.**
+  - Added control_resource_measure.py. Each case runs in a fresh Linux worker, reports OS lifetime peak RSS including native allocations, and directs scratch paths into an isolated directory sampled every 50 ms. Disk figures explicitly remain lower bounds on visible logical bytes, excluding unlinked/unsampled allocations and observer memory.
+  - Retained eight local WSL cases: eight/32 signals per available trial and 1,000/4,000 bars, each full/mixed/sparse/interrupted. The larger full case took 8.785 seconds, peaked at 52,568,064 resident bytes and 18,592,478 sampled visible bytes. Successful cases pass independent audits; interruptions retain failures. No market-scale extrapolation or hosted qualification is claimed.
+  - Proposed conservative operational budget criteria are documented, pending target-runner capacity and allocated-disk/publication measurements. Three tests cover visible-file accounting, isolated process metrics/failure evidence and bounded inputs. Full Linux regression validation passed all 1,233 tests in 341.791 seconds.
+  - Remaining: allocated scratch/publication overhead, representative scale and hosted-runner budget enforcement, durable workflow, then one registered application/reconciliation/recording. A6.3 stays open; no market run, promotion, merge or deployment.
+
+- **2026-10-25 (Codex continuation): A6 allocated scratch and local retention overhead.**
+  - Added local synthetic Git retention verification and extended the observer to sampled allocated blocks, inode deduplication and accessible worker open-deleted files. Directory-removal races are handled; unavailable descriptor samples are reported. Git uses isolated config, disabled hooks/signing and no remote/network; every committed payload byte and tracked path is checked.
+  - Retained eight measured cases. Larger full case: 19.009 seconds, 22,167,552 sampled allocated bytes, payload 1,430,675 bytes and Git metadata 669,236 bytes. Each case records one descriptor-access gap. These remain lower bounds and local measurements; combined subprocess memory and remote publication are not qualified.
+  - Four new tests cover hard-link/open-deleted accounting, disappearing directories, reported descriptor denial and exact local retention of failed/partial artifacts. Full Linux regression validation passed all 1,237 tests in 458.926 seconds.
+  - Remaining: representative-scale hosted measurements and conservative budget enforcement, remote retention/publication limits, durable workflow, then one registered application/reconciliation/recording. A6.3 stays open; no market run, promotion, merge or deployment.
+
+- **2026-10-25 (Codex continuation): A6 fail-closed resource preflight.**
+  - Added control_resource_gate.py and integrated it into the reserved-attempt wrapper before any study process. Reservation pins qualification bytes and guard implementation; source/input/protocol/profile and representative workload must match. Linux CLI snapshots available memory/free disk; bounds must fit half of memory/disk and 60% of remaining time. Missing, sampled, ambiguous or insufficient evidence refuses execution and retains failure.
+  - Updated the operational publication contract without changing scientific definitions. Qualification reports require independent review; the checker does not prove measurement truth or monitor runtime usage. All retained local probes remain nonqualifying. No qualifying report or hosted market workflow was created.
+  - Five gate tests plus two wrapper refusal tests cover exact boundaries, invalid/insufficient capacities, changed bindings/profile, incomplete workloads/coverage, ambiguous JSON, rejection of all local reports and retained refusal before execution. Full Linux regression validation passed all 1,244 tests in 486.838 seconds.
+  - Remaining: independently reviewed representative hosted/remote qualification, durable workflow with pre-reservation and pre-execution checks, then one registered application/reconciliation/recording. A6.3 stays open; no market run, promotion, merge or deployment.
+
+- **2026-10-26 (Codex continuation): A6 retained reservation ancestry checks.**
+  - Strengthened the history recorder to inspect every retained commit, rejecting changed-then-restored reservations, merges, shallow history, results already present in the reservation root, and symlink/executable payloads. Reservation-only and interrupted partial records remain recordable without granting strategy authority.
+  - Added five synthetic Git-history tests. All 1,249 full Linux regression tests passed in 355.933 seconds.
+  - These checks establish local retained lineage, not that a reservation reached the remote before execution. Hosted resource qualification, durable remote workflow and the one registered outcome application/reconciliation/recording remain outstanding. A6.3 stays open; no market run, promotion, merge or deployment.
+
+- **2026-10-26 (Codex continuation): A6 retained resource evidence validation.**
+  - The history recorder now checks the reserved resource-guard hash against the pinned source and revalidates saved qualification/preflight bindings, capacity and bounds. Successful attempts require that evidence. Failed resource checks remain recordable with their invalid or missing reports retained for diagnosis; no result gains strategy authority.
+  - Four regression tests cover missing success evidence, tampered reports/capacity/bounds, failed-preflight retention and wrong guard binding. All 1,253 full Linux regression tests passed in 329.769 seconds.
+  - Revalidation checks the saved declarations, not measurement truth or remote durability. Hosted qualification, durable remote workflow and the registered outcome run/reconciliation/recording remain open. No market workflow was activated.
+
+- **2026-10-26 (Codex continuation): A6 retention commit preparation.**
+  - Added a local builder that creates a single child of the reservation-only root using a private index, raw Git blob writes and explicit identity. It preserves partial or reservation-only attempts, refuses changed observed tips/reservation bytes, symlinks and unsafe paths, and leaves branch refs and the caller index untouched.
+  - Four synthetic Git tests cover partial binary bytes/index isolation, reservation-only failure, changed tip/reservation, nonroot ancestry and unsafe paths. All 1,257 full Linux regression tests passed in 344.206 seconds.
+  - This prepares objects only: the future workflow must observe the actual remote tip, use a normal fast-forward push, verify retained bytes and handle concurrent changes without rerunning the study. Hosted qualification and durable remote workflow remain open; no market workflow or remote evidence branch was activated.
+
+- **2026-10-26 (Codex continuation): A6 remote retention helper with local integration tests.**
+  - Added explicit-destination publication of a prepared reservation-child commit, with fresh remote-tip checks, normal fast-forward push, exact post-push tip verification and fetch-back verification. Missing/changed reservations and divergent concurrent writers fail without retries or deleting local payloads; an already-published identical commit can be verified without rerunning the study.
+  - Four tests use temporary local bare repositories only: exact partial bytes/recovery, missing/changed tips, a competing writer between observation and push, and differing fetch/push destinations. All 1,261 full Linux regression tests passed in 307.593 seconds.
+  - No real remote result branch was written or market workflow activated. Reservation creation, hosted resource/publication qualification and workflow integration remain outstanding before the registered outcome run.
+
+- **2026-10-26 (Codex continuation): A6 create-only reservation orchestration.**
+  - Added a resource-gated reservation orchestrator with an injected API transport, fixed repository/branch, source-bound protocol and guard hashes, attempt-one restriction, atomic create-ref operation, and read-back verification of the orphan root, sole regular reservation file and exact bytes. Existing branches and API failures block execution; no PATCH or retry is used.
+  - Six simulated API tests cover unexpected read-back tips/parents/trees, creation/repeat refusal, capacity/rerun rejection before API calls, non-404 failures, concurrent creation and a post-create verification failure that leaves the reservation blocking repetition. All 1,267 full Linux regression tests passed in 343.457 seconds.
+  - This is orchestration only: authenticated transport, hosted resource/publication qualification and workflow integration remain outstanding. No real reservation or market run was created.
+
+- **2026-10-26 (Codex continuation): A6 authenticated reservation API transport.**
+  - Added an explicit-token transport restricted to the fixed GitHub repository, reservation ref and Git object endpoints. It refuses redirects, unsupported writes, wrong destinations and non-reservation trees; enforces request/response size and timeout limits; rejects ambiguous JSON; sanitizes errors and never retries mutations. Only a 404 on the exact ref GET maps to missing reservation.
+  - Six mocked-transport tests cover headers/host/redirects, error mapping, no-retry timeout, destination/payload restrictions, malformed/oversized responses and complete orchestration through the transport. All 1,273 full Linux regression tests passed in 359.276 seconds.
+  - No credential was read and no real API request/reservation was made by these tests. Workflow integration and representative hosted resource/publication qualification remain open before the single market attempt.
+
+- **2026-10-26 (Codex continuation): A6 job coordination and failure retention.**
+  - Added a coordinator requiring its clean pinned executing checkout and a separate fresh workspace. It reserves through the supplied authenticated API, fetch-verifies the exact reservation before execution, refreshes capacity, executes the retained wrapper and prepares/publishes the result. Execution errors/interruption still attempt retention; publication failure keeps local payload and commit for inspection. Ambiguous reservation failure never executes or retries.
+  - Seven isolated orchestration tests cover pinned/clean checkout and fixed origin, ordering/capacity refresh/repeat refusal, ambiguous reservation, fetch failure, interruption, publication failure and workspace overlap. All 1,280 full Linux regression tests passed in 338.579 seconds.
+  - No CLI or active workflow was installed and tests mock study/network operations. SIGKILL or runner loss still needs the future workflow's backup/recovery policy; the remote reservation blocks repetition. Hosted qualification and workflow activation remain outstanding.
+
+- **2026-10-26 (Codex continuation): A6 reservation-first input preparation.**
+  - Corrected the coordinator ordering: it now refuses preexisting input paths and invokes a supplied input-preparation stage only after remote reservation fetch verification. Capacity is refreshed after preparation before execution. The outcome wrapper copies and inventories the preparation log; preparation failure retains its partial log and a no-execution failure marker before publication.
+  - Three new tests cover preexisting-input refusal, preparation failure without study execution and exact preparation-log inventory; existing ordering tests now include the preparation stage. All 1,283 full Linux regression tests passed in 334.070 seconds.
+  - The concrete immutable-source preparation adapter and hosted qualification/workflow integration remain open. No market inputs were fetched and no workflow was activated.
+
+- **2026-10-26 (Codex continuation): A6 immutable input preparation adapter.**
+  - Added a callable preparation adapter for the registered archive, phase B evidence, accepted A6.2 extraction and original research-source commits. It exports raw regular Git blobs without archive filters, verifies object hashes, checks evidence/manifest SHA-256 bindings, rejects unsafe paths/links/overwrites and writes flushed per-file provenance/failure logs.
+  - Five synthetic tests cover exact binary export, corrupted-blob refusal, unsafe/nonregular entries, complete multi-commit preparation with network calls replaced, and failed-fetch log preservation/retry refusal. All 1,288 full Linux regression tests passed in 320.295 seconds.
+  - No market archive was fetched locally. Actual fetch/storage/runtime costs remain part of hosted qualification; connecting the adapter into the inactive runner/workflow is next. A6.3 remains open.
+
+- **2026-10-26 (Codex continuation): A6 guarded hosted runner entry point.**
+  - Connected the API client, coordinator and pinned-input adapter in a CLI restricted to the expected hosted Linux/X64 research environment, source/run identity and attempt one. It requires a qualification file/hash, uses a fresh runner-temp workspace, refreshes remaining time against one absolute deadline and reports success only after verified retention without authority.
+  - Added the inactive runner integration contract, including deadline capture before setup, independent report review, backup/recovery limits and post-run recording/reconciliation. Six mocked tests cover environment/rerun checks, deadlines, wiring/capacity refresh, workspace reuse, final status and sanitized CLI errors. All 1,294 full Linux regression tests passed in 441.246 seconds.
+  - No workflow references this entry point yet; no credential or market input was used in tests. Representative hosted resource/publication qualification and the guarded workflow remain outstanding.
+
+- **2026-10-26 (Codex continuation): A6 inactive workflow and local recovery bundle.**
+  - Added a documentation-only workflow template with manual trigger, repository/branch/attempt guards, fixed pre-setup deadline, independently hashed report/dependency lock, runtime-image checks, reserved runner invocation and always-run backups. It is outside .github/workflows and cannot trigger a job.
+  - Added a local self-contained Git bundle helper for the recorded reservation/result. Four tests restore partial binary bytes in a fresh repository, preserve caller refs, handle reservation-only/absent records and reject wrong ancestry/overwrites. The inactive template parses, and all 1,298 full Linux regression tests passed in 318.843 seconds.
+  - No qualifying report or reviewed dependency lock exists. Hosted qualification, final action/runtime/source pinning and activation sequence remain open; moving the template changes the source and must be accounted for. No market run or workflow activation occurred.
+
+- **2026-10-26 (Codex continuation): A6 hosted synthetic pilot preparation.**
+  - Added a branch-scoped, read-only Actions pilot for the existing eight synthetic scenarios, with commit-pinned actions, Python 3.10.12 and the validated NumPy/pandas/numba versions. It captures source/run/image identity, resolved dependencies, logs and report hashes, with always-run artifact retention. No market input, reservation or results-branch publication is used.
+  - This is an exploratory pilot: transitive dependencies are recorded rather than hash-locked, memory excludes subprocess aggregation and sampled disk remains a lower bound. Hosted results are pending; A6 resource qualification and A6.3 remain open.
+  - Validation: the workflow parses, and all 1,298 full Linux regression tests passed in 330.307 seconds.
+
+- **2026-10-26 (Codex continuation): A6 hosted synthetic pilot results retained.**
+  - Run `40315708480`, source `ee9082006088a7c249d4b4d564a707ce4e6b007a`, succeeded. All six non-interrupted cases passed diagnostic audits; both deliberately interrupted cases retained partial results and failed audits as expected. All eight local Git payload verifications passed.
+  - Downloaded artifact `12647176082`, verified its SHA-256 and measurement checksum, and confirmed the report printed in logs matches the artifact bytes. Retained the original report plus environment/dependency/provenance record under `research/v9/a6_hosted_synthetic_pilot*.json`. Connected-app artifact/log retrieval now works, superseding the older environment limitation for this run.
+  - Largest sampled allocated footprint: 22,163,456 bytes; maximum worker RSS: 52,199,424 bytes; slowest case: 9.810 seconds. These are small-case observations, not full-study bounds. Descriptor access gaps remain (one or two samples per case), and combined memory/remote publication are unqualified. Resolved python-dateutil 3.0.0 differs from local 2.9.0.post0: a reviewed hash-locked environment remains required. The setup log reports image 20261012.334.1 while captured ImageVersion reports 20261023.334.3; this unresolved metadata discrepancy is retained and prevents runner qualification. No market outcome reservation/run or evidence-history append occurred.
+  - Validation: all 1,298 full Linux regression tests passed in 314.505 seconds; both hosted CI runs for the pilot source also passed. Next: combined-resource instrumentation and representative hosted qualification, followed by independent review before activation.
+
+- **2026-10-27 (Codex continuation): A6 session-wide memory visibility.**
+  - Isolated workers now use private Linux sessions. The observer samples summed RSS across visible session members, including child processes, and retains worker-only lifetime RSS separately. Schema /3 reports member counts and explicit unreadable/disappearing-process coverage gaps without changing prior reports.
+  - Three new synthetic tests cover session membership and complex process names, malformed/negative/unreadable/vanished records, and a real child allocating 16 MiB. All nine focused observer tests pass; all 1,301 full Linux regression tests passed in 285.395 seconds.
+  - This is not a physical-memory bound: shared pages may repeat, peaks/session-escaping children may be missed, and the observer is excluded. No hosted rerun or market input was used. Next: bounded resource instrumentation and representative hosted qualification, plus dependency/image reconciliation and remote retention before independent review/activation. A6.3 remains open.
+
+- **2026-10-27 (Codex continuation): A6 kernel memory capability checks.**
+  - Added read-only cgroup v2 membership/mount verification and current/peak/limit/swap/OOM-counter inspection. The synthetic observer records before/after snapshots. Unsupported layouts, unavailable/malformed counters and read errors remain explicitly unavailable; successful reads remain shared-group diagnostics, never isolated-run qualification. No system groups, limits or counters are changed.
+  - Four synthetic tests cover valid shared counters/unlimited limits, missing/denied reads, unsafe/ambiguous membership and unsupported mounts, and malformed counters/events. All 1,305 full Linux regression tests passed in 286.035 seconds.
+  - Local Linux lacks memory.peak at its current root group. Next: a verified isolated delegated group and workload placement for per-run kernel accounting; bounded disk/representative hosted measurements, environment reconciliation and remote-retention qualification remain open. No market run, hosted rerun or evidence-history append occurred.
+
+- **2026-10-27 (Codex continuation): A6 isolated accounting runner.**
+  - Added an opt-in runner requiring an existing delegated non-root cgroup parent. It creates a fresh child, checks empty/zero/clean baseline, verifies bootstrap placement before exec, retains kernel peak/events/logs/receipt, and records timeout/OOM/cleanup failures. It removes only its own group and does not configure the parent or enable controllers.
+  - Six synthetic tests with mocked kernel/process lifecycle cover successful accounting, wrong placement, invalid input, contaminated baseline, unavailable peak cleanup, timeout and OOM retention. All 1,311 full Linux regression tests passed in 296.954 seconds.
+  - No real delegated cgroup or hosted workflow was used. The outer observer and pre-migration bootstrap allocations are excluded; trusted workloads could escape the group. Thus this remains unqualified instrumentation. Next: hosted delegation/placement verification and complete-start accounting, then disk/scale/environment/remote-retention qualification. No market study, reservation, evidence-history append or deployment occurred.
+
+- **2026-10-27 (Codex continuation): hosted isolated synthetic pilot preparation.**
+  - Added a separate branch-scoped read-only workflow that uses a fresh run-specific parent and isolated child on the disposable Actions host. It requires the existing root memory controller, enables only its new parent subtree, runs the eight trusted synthetic scenarios and retains accounting/placement/cleanup/environment artifacts. It neither changes existing system groups nor passes repository credentials to the elevated process.
+  - All 1,311 full Linux regression tests passed in 307.589 seconds; workflow YAML and embedded Python parse/compile. Hosted results are pending; no market inputs, reservation or evidence-history append are involved. The pilot remains unqualified for full-scale resources and excludes pre-migration bootstrap/outer accounting memory.
+
+- **2026-10-27 (Codex continuation): hosted isolated pilot result verified.**
+  - Run `40386820291` at source `30e8bbcf0af39cea4fd09c6d53a0a2a246047ae8` succeeded. Eight synthetic scenarios completed as expected, including two retained intentional failures; six normal audits and all eight local Git payload checks passed. The fresh cgroup recorded peak 83,361,792 bytes over 23.170 seconds with all memory events zero. Placement receipt, before/after membership, final peak and child/parent cleanup agree.
+  - Downloaded artifact `12681816238`, verified ZIP SHA-256 and measurement checksum, and retained original report plus provenance/accounting/environment/dependencies/file hashes under `research/v9/a6_hosted_isolated_pilot*.json`. All 1,311 full Linux regression tests passed in 319.291 seconds; both hosted CI runs for the pilot source passed.
+  - Hosted placement/accounting and clean-group lifecycle are now exercised, not merely mocked. The prior image discrepancy recurs: job setup logs say 20261012.334.1 while captured ImageVersion says 20261023.334.3; both are retained without selecting an authoritative value. This still excludes pre-migration bootstrap and outer accounting memory, is not representative scale, and leaves disk bounds, dependency/image reconciliation and remote-retention qualification open. No market run or evidence-history append occurred.
+
+- **2026-10-27 (Codex continuation): service-managed startup accounting adapter.**
+  - Added an opt-in transient oneshot service adapter to launch the trusted workload through systemd before Python startup, avoiding the Python migration bootstrap. It verifies a fresh unit name, disables argument environment expansion, retains logs/properties and checks inactive/absent cleanup after stopping only that unit. Prior cgroup runner and reports remain unchanged.
+  - Five mocked tests cover successful property collection, unavailable/malformed peaks, command/argument boundaries, workload failure/timeout and cleanup refusal. All 1,316 full Linux regression tests passed in 341.793 seconds.
+  - No actual service was launched; hosted startup placement is explicitly unverified. Next: synthetic hosted validation against in-workload group receipts, then disk/scale/runtime/remote-retention qualification. Manager/orchestrator memory remains excluded; no market study or deployment occurred.
+
+- **2026-10-27 (Codex continuation): hosted service-startup pilot preparation.**
+  - Added a separate read-only branch-scoped synthetic workflow using the transient-service adapter. It cross-checks both workload cgroup snapshots against the service identity and kernel peaks against the final service report, preserving logs/accounting/cleanup/placement/runtime artifacts even on failure. Startup interpretation is explicitly based on the manager launch contract, not an independent startup trace.
+  - All 1,316 full Linux regression tests passed in 370.009 seconds; workflow YAML and embedded Python parse/compile. Actual hosted results are pending. The manager/orchestrator remain excluded; no market inputs, reservation, evidence-history append or production deployment is involved.
+
+- **2026-10-27 (Codex continuation): service pilot failure retained and counter lifetime corrected.**
+  - Run `40413541548` at `cda2b30b06c7dc69b37b869ae48f6b342473f163` completed all eight synthetic scenarios and verified cleanup, but failed verification because systemd discarded ControlGroup/MemoryPeak after the oneshot exited. Verified artifact `12694028784` SHA-256 and retained original measurements/provenance as `research/v9/a6_hosted_service_attempt1*.json`; no checksum file was produced before failure, which is explicit in provenance.
+  - Corrected the adapter to use an exec-service holder that stays alive after workload completion until counters are captured. A real local subprocess test verifies completion/release behavior; five mocked lifecycle tests also pass. Schema /2 excludes holder shutdown after collection as well as manager/orchestrator overhead; it does not claim a whole-job peak. All 1,317 full Linux regression tests passed in 333.597 seconds.
+  - Updated the synthetic workflow to trigger a distinct corrected pilot. Hosted verification remains pending; prior failure remains intact. No market study, reservation, evidence-history append or production change occurred.
+
+- **2026-10-27 (Codex continuation): corrected service pilot verified.**
+  - Run `40458892344` at `242fd30e47ffa7c912c49506d4fc2a5462f904a4` passed all eight synthetic scenarios: six normal audits, two retained intentional failures, and eight local Git payload verifications. Workload membership and the live service counters agree on a 90,574,848-byte peak; elapsed adapter time was 22.791 seconds, memory events were zero, and cleanup was verified.
+  - Verified artifact `12713547882` ZIP digest and measurement checksum; retained unchanged report and provenance as `research/v9/a6_hosted_service_attempt2*.json`. Attempt 1 remains intact. All 1,317 full Linux regression tests passed in 333.397 seconds; both hosted CI runs for the pilot source also passed.
+  - This closes hosted verification of the holder/collector correction, not A6.3 or resource qualification. Startup relies on the service-manager contract plus workload receipts; manager/orchestrator and post-snapshot holder shutdown remain excluded. Small synthetic scale, sampled disk, unresolved image-version discrepancy and remote-retention qualification remain open. No market run, reservation, evidence-history append or deployment occurred.
+
+- **2026-10-27 (Codex continuation): ancestor-aware live memory capacity.**
+  - Found that the live preflight used host MemAvailable alone, which could overstate memory available to a constrained job. It now takes the minimum of host availability and each visible non-root cgroup ancestor's memory.max minus memory.current, counting shared parent usage and clamping exhausted limits to zero. The result records host availability and each ancestor receipt; it credits neither swap nor hypothetical reclaim.
+  - Unified-only membership, a full-root cgroup2 mount, valid counters and stable membership are required. Missing/malformed counters, hidden mount roots and ambiguous membership fail closed. This is a changing capacity snapshot, not reserved capacity or independent host/namespace qualification; the hosted environment still needs separate qualification.
+  - Ten focused Linux resource-gate tests passed, including five new capacity tests. The initial Windows test attempt could not create sandbox temporary directories; target-Linux verification succeeded. All 1,322 full Linux regression tests passed in 323.692 seconds.
+  - No hosted market study, reservation, evidence append, workflow activation or deployment occurred. A6.3 and full resource qualification remain open.
+
+- **2026-10-27 (Codex continuation): runtime binding enforced before reservation.**
+  - The inactive workflow checked Python/image identity, but the runner could be invoked directly without those checks. The runner now verifies the reviewed qualification hash and rejects schema, source, runner-profile, exact Python-version or ImageVersion mismatches before constructing the API client or creating its workspace. Duplicate keys, nonfinite JSON and non-object reports are refused.
+  - Nine focused synthetic Linux runner tests passed, including three new runtime-binding tests that assert no API/job/workspace side effects on mismatch. All 1,325 full Linux regression tests passed in 310.978 seconds. Both CI runs for the previous capacity correction passed.
+  - ImageVersion remains a runner-provided claim, not independent image attestation. The earlier image discrepancy, reviewed dependency lock, representative resource bounds and remote-retention qualification remain unresolved. No market run, reservation, evidence append, workflow activation or deployment occurred; A6.3 remains open.
+
+- **2026-10-27 (Codex continuation): installed dependency drift gate.**
+  - Runtime qualification now requires a complete installed_distributions map in the independently hashed report. The runner normalizes installed package names, rejects duplicate/ambiguous metadata and requires exact inventory equality before creating the reservation API or workspace. Missing, extra and changed packages refuse execution.
+  - Thirteen focused synthetic Linux runner/inventory tests passed, including four new drift/metadata tests. All 1,329 full Linux regression tests passed in 333.966 seconds.
+  - This checks visible distribution metadata and versions, not installed-file integrity or packages shadowed on the import path. Reviewed hash-locked installation, independent image reconciliation, representative resource bounds and remote-retention qualification remain open. No market study, reservation, evidence append, activation or deployment occurred; A6.3 remains open.
+
+- **2026-10-27 (Codex continuation): reproducible dependency candidate preparation.**
+  - Added a standard-library wheel lock builder that retains exact wheel hashes/sizes and refuses duplicate package identities, ambiguous metadata, unsafe version fields and non-wheel inputs. Four synthetic archive tests passed; no packages or market archive were fetched locally.
+  - Added a branch-scoped, contents-read-only hosted workflow with pinned actions and Python 3.10.12. It resolves candidate wheels, creates a complete hash lock, installs offline into a fresh virtual environment with hash checking, verifies the exact inventory and numerical imports, checks dependency consistency and runs the eight synthetic research scenarios. Reports and wheel bytes are retained separately even on failure.
+  - The candidate is not an approved environment: resolution occurs before independent review, and image reconciliation and representative resource/remote-retention qualification remain open. All 1,333 full Linux regression tests passed in 313.872 seconds. Hosted result pending; no market study, reservation or deployment occurred.
+
+- **2026-10-27 (Codex continuation): hosted dependency candidate verified and retained.**
+  - Run `40497702104` at `a843e92abe81bd5a498e258617166f24472b16fa` succeeded. Eleven wheels installed offline with hash-required mode in a fresh Python 3.10.12 environment; exact inventory, pip consistency and numpy/pandas/numba imports passed. All eight synthetic scenarios completed as expected, including six normal audits, two retained deliberate failures and eight local Git byte verifications.
+  - Downloaded report artifact `12731421659` and wheel artifact `12731601476`, verified both ZIP digests and every wheel's size/hash, and reconciled lock digest, manifest and installed inventory. Candidate lock, manifest, installation report, measurements and provenance are retained as `research/v9/a6_dependency_candidate*`. Push CI run 40497702534 exposed a filesystem-order assumption in the existing arithmetic-tampering test; PR CI and the candidate pilot passed. The test now selects a PRICE_PAIR_OBSERVED record explicitly instead of assuming the first shard has one; all nine focused outcome-verification tests passed. All 1,333 full Linux regression tests passed in 319.421 seconds after the test correction.
+  - This completes candidate creation and hosted synthetic validation, not independent approval or A6.3. Setup logs still say image 20261012.334.1 while the runtime says 20261023.334.3. Wheel artifacts expire 2027-01-25; durable storage and reviewed reuse remain open alongside full-scale disk/memory/time bounds and remote retention. No market study, reservation, evidence append or deployment occurred.
+
+- **2026-10-27 (Codex continuation): committed-lock replay preparation.**
+  - Changed only the synthetic dependency workflow to consume the committed candidate with hash-required download, then require byte-identical regenerated lock and wheel manifest before offline installation. The initial candidate and its hosted evidence remain immutable; the replay will have a separate run/result.
+  - Added bounded read-only identity diagnostics for allowlisted environment values and selected fields from /etc/environment, /etc/os-release and /imagegeneration/imagedata.json. File hashes and unavailable/error states are retained without dumping unrelated environment values. These are diagnostic claims, not attestation or automatic resolution of the image discrepancy.
+  - All 1,333 full Linux regression tests passed in 313.445 seconds; workflow shell and embedded Python syntax checks also passed. No market study, reservation, qualification approval or deployment occurred.
+
+- **2026-10-27 (Codex continuation): committed-lock replay verified.**
+  - Run `40558677982` at `752d4d7ef89cfc2f63fabc56e1ab837bc9a59581` passed hash-required downloads, exact lock/manifest byte comparisons, offline fresh installation, complete package inventory and all eight synthetic pipeline scenarios (six normal audits, two retained deliberate failures and eight local Git byte checks). Original candidate evidence remains unchanged.
+  - Verified report artifact `12757114174` ZIP digest and retained installation, measurements, identity and provenance as `research/v9/a6_dependency_replay*.json`. The second wheel ZIP was not downloaded again: this result relies on hosted hash-required checks and manifest identity to the previously independently verified candidate wheels; provenance states that distinction. All 1,333 full Linux regression tests passed in 306.387 seconds.
+  - Runtime ImageVersion and /etc/environment both say 20261023.334.3; setup logs still say 20261012.334.1. The image-generation JSON was readable but yielded no allowlisted identity fields, so its hash is retained without inferring a version. Independent reconciliation/approval, durable wheel retention and representative resource/remote-publication qualification remain open. No market study, reservation, evidence append or deployment occurred.
+
+- **2026-10-28 (Codex continuation): image-generation metadata parser corrected.**
+  - Inspected the official actions/runner-images configure-image-data.sh: imagedata.json is a list of group/detail records, not the top-level key mapping assumed by the earlier collector. Added a bounded strict parser for that shape, preserving separate runtime, /etc/environment and image-generation claims and explicitly distinguishing conflict, unavailable and agreement-without-attestation.
+  - Five synthetic tests passed for the official shape, duplicates/malformed values, unrelated environment filtering, disagreement/agreement and unavailable/oversized files. Added a separate read-only identity-only workflow using system Python, without installing dependencies or running the research pipeline. Workflow success means diagnostic collection, not qualified identity.
+  - All 1,338 full Linux regression tests passed in 359.486 seconds. Earlier candidate/replay records remain unchanged. No market study, reservation, qualification approval or deployment occurred.
+
+- **2026-10-28 (Codex continuation): hosted image conflict confirmed and refused by runner.**
+  - Identity-only run `40655572012` at `590be5bb0b31044a72e68f18ec18f7651964c1cd` collected the official image-generation format successfully. The setup log and imagedata.json agree on 20261012.334.1; runtime ImageVersion and /etc/environment agree on 20261023.334.3. This confirms a conflict between configuration sources; it does not establish which image was actually provisioned.
+  - Verified artifact `12801731242` ZIP digest and retained original report/provenance as `research/v9/a6_runner_identity_probe*.json`. The runner now requires consistent visible identity claims before API/workspace creation, refusing conflicts and unavailable readings. Nineteen focused runner/identity tests passed, including a new test asserting no reservation setup on conflict/unavailability. All 1,339 full Linux regression tests passed in 401.666 seconds; both hosted CI runs for the collector source passed.
+  - A consistent independently reviewed environment is now an explicit prerequisite. Do not pick one version, rewrite the conflicting receipts or approve the current runner by assumption. Dependency candidate/replay evidence remains valid within its synthetic scope; representative resource bounds, durable wheel storage and remote-publication qualification remain open. No market study, reservation, evidence append or deployment occurred.
+
+- **2026-10-28 (Codex continuation): resource-probe size options corrected.**
+  - The normal measurement entry point previously accepted but ignored --signals and --bars. Explicit paired values now select that scale across all four scenarios; requested_scales records signals per available trial and bars per asset. Supplying only one dimension, booleans or out-of-range sizes fails before measurement. With neither option, the original eight-case protocol remains unchanged.
+  - Added synthetic regression coverage for custom/default selection, early rejection and an actual four-case CLI run. All 13 focused tests passed; the full Linux regression suite passed 1,343 tests in 414.474 seconds. Limits remain 100 signals per available trial and 4,000 bars per asset; this change does not make the fixed asset/trial population representative or turn samples into resource bounds.
+  - Remaining: resolve the confirmed hosted image conflict, obtain representative combined-memory/disk/time bounds including preparation and remote retention, and independently review qualification before activating the market study. A6.3 remains open; no market inputs, reservation, evidence-history append, promotion or deployment.
+
+- **2026-10-28 (Codex continuation): bounded synthetic worker cleanup.**
+  - Fixed observer-failure cleanup that previously terminated only the worker leader and waited without a timeout. Cleanup now sends SIGTERM to the private process group, waits up to two seconds for the leader, then sends SIGKILL to remaining group members even if the leader already exited; the final reap is bounded to five seconds.
+  - Added real Linux cases with a termination-resistant child and with both leader/child resistant, plus observer-error propagation and already-exited-group coverage. All 17 focused tests passed; the full Linux regression suite passed 1,347 tests in 424.443 seconds. Processes deliberately leaving the group/session remain outside this cleanup contract; no whole-job containment or qualification is claimed.
+  - Remaining: hosted identity reconciliation, representative resource bounds including preparation/remote retention, independent qualification review and controlled study activation. A6.3 stays open. No market inputs, reservation, evidence-history append, promotion or deployment.
+
+- **2026-10-28 (Codex continuation): configurable synthetic population width.**
+  - Removed the fixed 61-asset/three-definition restriction from the probe interface. Both pipeline and isolated measurement CLIs now accept --assets (61..781), --definitions (3..199) and --unavailable (at least one, leaving at least two available). Shared validation rejects invalid dimensions before scratch creation or worker launch. Default identities and counts remain unchanged.
+  - Reports distinguish requested population shape, actual scenario assets, unavailable definitions and expected/processed signals. The sparse scenario deliberately stays at eight assets. The roster can represent 199 definitions with seven unavailable; that roster validation is not a full-scale execution result.
+  - Synthetic integration covers 62 assets, multiple available/unavailable definitions, independent outcome audit and subprocess CLI forwarding. All 21 focused tests passed; the final full Linux suite passed 1,349 tests in 384.113 seconds. Measurement provenance also hashes the shared population validator. No automatic hosted run or large local workload was started. Signal/history bounds remain 100 per available definition and 4,000 bars per asset; generated histories/cohorts remain simplified.
+  - Remaining: representative signal/history/price diversity and combined resource bounds, hosted identity reconciliation, remote-retention bounds and independent qualification review. A6.3 remains open; no market inputs, reservation, evidence-history append, promotion or deployment.
+
+- **2026-10-28 (Codex continuation): study-volume synthetic signal generation prepared.**
+  - Replaced the 100-signal cap with a bounded maximum of 25,000 per available definition. Generation fills distinct asset/time pairs, then retains the original final-bar attempt. The original <=100-signal cases remain identical. Requests exceeding the eight-asset sparse-case capacity fail before any scenario starts.
+  - Pure generation tests cover 22,207 signals across 192 available definitions (4,263,744 total, above the 4,263,580 registered count) without running that workload. A small 221-signal sparse integration crosses an asset boundary and runs the independent audit. All 23 focused tests passed; the full Linux regression suite passed 1,351 tests in 432.093 seconds.
+  - This only establishes generator capacity. The full-volume pipeline, representative history lengths/price diversity, large shard/publication volume, combined resource bounds and hosted identity remain unqualified. No large local measurement, market data, reservation, evidence-history append, promotion or deployment. A6.3 stays open.
+
+- **2026-10-29 (Codex continuation): representative output shard limits prepared.**
+  - The probe previously forced four-row output shards, unlike the intended outcome runner's 25,000-row default. Both synthetic CLIs now accept --shard-rows (1..25,000), retain four as the existing default and report row/byte limits plus pair/day/reuse shard counts. The existing 16 MiB uncompressed byte cap remains in force; the actual outcome engine is unchanged.
+  - Tests compare all retained packed pair, day and reuse records and side summaries across four-row and 25,000-row layouts, alongside independent audit/statistics and CLI forwarding. Invalid limits fail before work. All 25 focused tests passed; the full Linux regression suite passed 1,353 tests in 340.675 seconds.
+  - Remaining: execute representative large-volume/history/diversity measurements, establish combined resource/publication bounds, reconcile hosted identity and independently review qualification. This is layout support, not a large-workload result. A6.3 stays open; no market inputs, reservation, evidence-history append, promotion or deployment.
+
+- **2026-10-29 (Codex continuation): unsuccessful intermediate synthetic attempt retained.**
+  - Ran the exact published a39b753f73fa8b0514edf9873ad9177486f2af7d source in a clean Linux checkout, requesting 128 assets, 12 definitions (two unavailable), 128 signals per available definition, 4,000 bars and 25,000-row shards across all four scenarios. The wrapper requested a 180-second timeout and ten-second kill grace. An initial checkout setup failed on the Windows worktree pointer before measurement; using the common repository resolved checkout.
+  - The measurement invocation ended with tool-reported exit 1, no final report and an empty log. The inner timeout status and termination cause were not observed; do not label this a timeout, OOM, throughput limit or scientific failure. A later process snapshot found no matching probe processes. Kernel journal messages were insufficient to establish a cause.
+  - Retained unchanged environment and empty log plus explicit provenance as research/v9/a6_intermediate_attempt1_*. No case completion or local Git verification can be inferred. The lack of case-level durable receipts is now an explicit diagnostic gap to address before another larger attempt. The full Linux regression suite passed 1,353 tests in 424.998 seconds before this result publication.
+  - A6.3 remains open. No resource bound, hosted qualification, market inputs, reservation, evidence-history append, promotion or deployment was produced.
+
+- **2026-10-29 (Codex continuation): per-case synthetic progress receipts implemented.**
+  - The parent measurement CLI now creates OUT.progress by default (or a fresh --checkpoint-dir), writes the planned cases and source hashes, then records case-started and case-completed receipts outside worker scratch. Completed receipts contain the original measurements. Existing directories/receipts are never reused or overwritten.
+  - Receipts use exclusive temporary files, file fsync, non-overwriting hard-link publication and directory fsync; the progress directory's parent is also flushed. Caught failures retain only the error class and completed-receipt hashes, preserving the original exception. Abrupt process death leaves prior completed receipts and a started-only current case; absence of a failure receipt is not success. Files ending .pending are not completed receipts.
+  - The final progress marker means measurements completed, not that the final report was written or published; it binds the expected report hash. No resume/retry or qualification authority is introduced. Tests cover actual CLI receipt/report equality, a later exception, abrupt os._exit, existing-directory refusal and duplicate-receipt protection. The focused 21-test run passed; the final full Linux suite passed 1,357 tests in 391.979 seconds.
+  - Limits: operating-system/filesystem durability semantics still apply, especially across VM/storage failure; active-case internal progress and observer/checkpoint overhead remain outside the completed-case measurements. Intermediate attempt 1 is unchanged. A6.3 remains open; no larger rerun, market study, reservation, evidence-history append, promotion or deployment.
+
+- **2026-10-29 (Codex continuation): smaller intermediate synthetic attempt 2 completed.**
+  - Exact source 12397a3204eaaecb89d6f62b1e9844645e72491b, clean local Linux checkout: 96 requested assets (eight for sparse), six definitions/one unavailable, 64 signals per available definition, 2,000 bars and 25,000-row shards. Both wrapper and tool exit codes were zero within the requested 180-second limit. Three normal cases each processed 320 signals and passed independent audits; the intentional interruption retained its expected failure after three signals. All four local Git byte checks passed.
+  - Preserved raw environment, log, exit, measurements and all ten progress receipts under research/v9/a6_intermediate_attempt2/, with hash/size provenance. Verified all four case payloads and hashes against the final report, plus its completion hash. Slowest measured case: 25.185 seconds; largest worker RSS peak: 51,195,904 bytes; largest sampled session RSS: 95,657,984 bytes; largest sampled allocated disk: 21,606,400 bytes.
+  - These are local samples, not bounds: all cases recorded descriptor-access gaps and some session scans had gaps; shared-page double counting, observer/checkpoint overhead, simplified histories/signals, incomplete dependency attestation and excluded remote publication remain. The smaller success does not explain unsuccessful attempt 1, which remains unchanged. The full Linux regression suite passed 1,357 tests in 450.287 seconds before result publication.
+  - Remaining: representative full-volume/history/diversity measurements and combined resource/publication bounds, hosted identity reconciliation and independent qualification review. A6.3 stays open; no market inputs, reservation, evidence-history append, promotion or deployment.
+
+- **2026-10-29 (Codex continuation): long histories and spread signal placement prepared.**
+  - Raised the bounded synthetic history cap from 4,000 to 32,768 bars and added --signal-placement spread to both CLIs. Spread uses unique flattened time/asset positions throughout the pre-terminal history, retaining the separate terminal attempt. Prefix placement remains the default and preserves all original small cases. Progress plans and reports identify the placement.
+  - Pure coordinate checks cover the maximum dimensions and sparse capacity; an 8,192-bar sparse run with spread signals passes the independent audit. CLI integration verifies placement reaches workers. All 31 focused tests passed. The final full Linux regression suite passed 1,359 tests in 381.513 seconds. The cap is a diagnostic limit, not a verified upper bound on real source lengths; no market archive was loaded.
+  - Condensed the accumulated current A6 state and A6.3 roadmap entries while retaining detailed chronology in this log and the resource review. No major roadmap item was closed. Full-population/history/diversity resource measurements, hosted identity reconciliation, remote-publication bounds and independent qualification remain pending. No market attempt, reservation, evidence-history append, promotion or deployment.
+
+- **2026-10-29 (Codex continuation): long-history intermediate attempt 3 completed.**
+  - Exact source ccfc29e90f606ebdf962777b8c01dc2f62b87f4c, clean local Linux checkout: 16,384 bars per asset, spread placement, 96 requested assets (eight for sparse), six definitions/one unavailable, 64 signals per available definition and 25,000-row shards. Wrapper and tool exits were zero within the requested 300-second limit. Three normal scenarios each processed 320 signals and passed independent audits; the intentional interruption retained its expected failure after three signals. All local Git checks passed.
+  - Raw reports, environment, log, exit and ten progress receipts are retained under research/v9/a6_intermediate_attempt3/ with hash/size provenance. Verified all four case receipts and the final-report hash. Slowest case: 58.167 seconds; largest worker peak RSS: 156,397,568 bytes; largest sampled session RSS: 169,697,280 bytes; largest sampled allocated disk: 115,019,776 bytes.
+  - All cases recorded descriptor-access and session-scan gaps. This is local diagnostic evidence only: no combined resource bound, real-archive history coverage, complete dependency attestation or remote-publication verification. The signal/definition/asset population and prices remain unrepresentative. Earlier attempts remain unchanged. The full Linux regression suite passed 1,359 tests in 377.640 seconds before result publication.
+  - A6.3 remains open pending representative full-scale qualification, hosted identity reconciliation and independent review. No market inputs, reservation, evidence-history append, promotion or deployment.
+
+### 2026-10-29 — Deterministic synthetic price diversity
+
+Added opt-in `--price-profile diverse` to pipeline and resource probes. Asset-offset trend reversals, varying candle wicks, signed returns and quote volumes replace the repetitive baseline only when selected. The default preserves original candle values; historical reports remain untouched. Profile selection is recorded in worker results and progress plans, with implementation hashes bound into reports/receipts. This is fixture diversity, not representative-market coverage or a qualification bound. CLI regression runs all four scenarios through independent audit and local retention with the diverse fixture; malformed profile selection fails before temporary work. Validation: 33 focused tests passed; all 1,361 Linux regression tests passed in 349.944 seconds before publication.
+
+Remaining: retained larger diverse-profile measurements, representative full-scale bounds and remote publication, reconciled hosted identity, independent qualification review and controlled activation. A6.3 remains open; no market outcome reservation, evidence-history append, promotion, merge or deployment. Whole-roadmap unchecked major items remain 18 (16 core, two optional).
+
+### 2026-10-29 — Retained diverse-price long-history diagnostics
+
+Attempt 4 completed all four synthetic scenarios at the same dimensions as baseline attempt 3, using the explicit diverse-price profile. Three normal cases independently verified 320 signals each; the intentional interruption retained its failure after three signals. All four local Git byte checks and progress/report hashes verified. Retained raw measurements, environment, exit, empty log, ten receipts and provenance under `research/v9/a6_intermediate_attempt4/`; resource table and sampling limitations are in `phase-a6-resource-review.md`. Validation: all 1,361 Linux regression tests passed in 334.044 seconds before publication.
+
+Remaining: representative full-volume/history/price-distribution measurements and combined resource/remote-publication bounds, hosted identity reconciliation, independent qualification review, then controlled activation. This diagnostic does not close A6.3 or any major roadmap item; 18 remain (16 core, two optional). No market outcome reservation, evidence-history append, promotion, merge or deployment.
+
+### 2026-10-29 — Full synthetic roster diagnostic
+
+All four cases completed, all normal independent audits verified 1,536 signals each, and the deliberate interruption retained its expected failure after three signals. Four local Git byte checks and final report/receipt hashes verified. The workload used 199 definitions (seven unavailable), 781 assets (eight in sparse), eight signals per available definition and 1,200 bars with diverse prices. Retained original files, progress receipts and source-bound provenance under `research/v9/a6_intermediate_attempt5/`. Also fixed parent CLI SIGTERM handling: it now raises through the existing bounded private-group cleanup and failure-receipt path. A real subprocess test verifies exit 143, worker removal and the failed receipt. Repeated TERM is ignored during cleanup; SIGKILL, host loss and escaped process groups cannot be guaranteed cleanup or receipts. The retained attempt remains bound to the preceding source; it did not exercise this new handler. Validation: all 1,362 Linux regression tests passed in 342.562 seconds before publication.
+
+Remaining: full-volume and representative-history/price-distribution measurements, combined resource/remote-publication bounds, reconciled hosted identity and independent qualification review before controlled activation. No major roadmap checkbox is closed; 18 remain (16 core, two optional). No market outcome reservation, evidence-history append, promotion, merge or deployment.
+
+### 2026-10-29 — Close parent termination race during worker launch
+
+The observer now records SIGTERM received during child creation and raises only after the returned child handle is inside its cleanup scope. It restores the prior parent handler before sampling; the child inherits no blocked termination mask. Real subprocess regressions terminate during launch and during sampling, verify exit 143, worker removal, failure receipts and an unblocked child SIGTERM mask. Validation: all 1,363 Linux regression tests passed in 366.114 seconds before publication. No retained measurement was rerun or reinterpreted.
+
+Remaining A6.3 requirements are unchanged: full-volume representative-history measurements, combined resource and remote-publication bounds, reconciled hosted identity and independent review before activation. No major roadmap item closed; 18 remain. No market study, merge or deployment.
+
+### 2026-10-29 — Remove synchronization overhead from disposable price indexes
+
+Synthetic profiling identified SQLite commit synchronization as a material hotspot. Execution and independent-audit price indexes now use `synchronous=OFF` only inside their private temporary databases. They are rebuilt from separately hash-verified source candles on every run and are never resumed; retained outcome/summary databases, evidence files, progress receipts and publication behavior are unchanged. A crash may invalidate the scratch index, requiring the run to fail/rebuild rather than recover it. Reference-mode tests compare windows and execution records against `synchronous=FULL`; source-corruption and scratch cleanup tests remain in place. All 19 focused checks passed. Validation: all 1,365 Linux regression tests passed in 349.075 seconds before publication.
+
+Remaining: a newly pinned representative full-volume measurement and combined resource/publication bounds, hosted identity reconciliation and independent qualification review. Profiling is diagnostic, not a runtime bound. Old resource reports do not qualify changed implementation bytes. No A6.3 closure, market outcome run, merge or deployment; 18 major roadmap items remain.

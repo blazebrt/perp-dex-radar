@@ -1,0 +1,52 @@
+{
+  "implementation_sha256": {
+    "control_pipeline_probe.py": "4714d872fd99a8f25503af42104a754fcb2f58c1a4c09a2736c9178c86cfc8e7",
+    "control_probe_progress.py": "f81f15caa4b7d43ca2d778c7ef4e40bb573000dab8656f66c4ccdd65efb89277",
+    "control_probe_shape.py": "45ede46865b09e81b0c04d5b1c6e992855c2df5d1870affa27edaa7ecf9b5c39",
+    "control_publication_probe.py": "9f1268e5511aceec76b6c7406bb439392cb4cb6962288ac0c87cfa47beb0e328",
+    "control_resource_measure.py": "40f5647401a6556f037524afc9c03c4d181b8de076d586d33746edd38172fe9b"
+  },
+  "plan": [
+    {
+      "assets": 96,
+      "bars": 2000,
+      "definitions": 6,
+      "scenario": "full",
+      "shard_rows": 25000,
+      "signals": 64,
+      "unavailable": 1
+    },
+    {
+      "assets": 96,
+      "bars": 2000,
+      "definitions": 6,
+      "scenario": "mixed",
+      "shard_rows": 25000,
+      "signals": 64,
+      "unavailable": 1
+    },
+    {
+      "assets": 96,
+      "bars": 2000,
+      "definitions": 6,
+      "scenario": "sparse",
+      "shard_rows": 25000,
+      "signals": 64,
+      "unavailable": 1
+    },
+    {
+      "assets": 96,
+      "bars": 2000,
+      "definitions": 6,
+      "scenario": "interrupted",
+      "shard_rows": 25000,
+      "signals": 64,
+      "unavailable": 1
+    }
+  ],
+  "promotion_authority": false,
+  "resource_qualified": false,
+  "schema": "v9.a6-synthetic-progress/1",
+  "status": "STARTED",
+  "synthetic_only": true
+}
