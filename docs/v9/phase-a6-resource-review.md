@@ -706,3 +706,7 @@ This covers synthetic roster dimensions only, not 4,263,580 signals or archive h
 ## Parent termination cleanup
 
 The parent measurement CLI installs a SIGTERM handler that raises `SystemExit(143)` through the existing worker-group cleanup and failure-journal paths. Repeated TERM is ignored during bounded cleanup; an external SIGKILL can still interrupt it. A real subprocess regression sends TERM while the observer is sampling, verifies the worker has been reaped and checks a failed receipt without false completion. This covers orderly parent termination during active sampling, not host loss, SIGKILL or children escaping the private group. Attempt 5 was measured at the preceding pinned source and is not evidence for the new handler.
+
+### Launch-time termination ownership
+
+SIGTERM during worker creation is temporarily recorded by the parent, then raised inside the cleanup scope after the child handle is assigned. The previous handler is restored on both successful and failed launch. This avoids inheriting a blocked signal mask into the child. Regression subprocesses exercise launch and sampling termination, verify worker reaping and failure receipts, and inspect the child signal mask. SIGKILL, host loss and escaped groups remain outside this guarantee.

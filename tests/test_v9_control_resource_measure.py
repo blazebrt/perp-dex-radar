@@ -268,16 +268,25 @@ M.probe(3,400,checkpoint_dir=sys.argv[1])
 @unittest.skipUnless(sys.platform.startswith('linux'),'Linux process groups')
 class TerminationReceipts(unittest.TestCase):
     def test_parent_sigterm_cleans_private_worker_and_records_failure(self):
+        self.check_termination(False)
+
+    def test_sigterm_during_launch_waits_for_cleanup_ownership(self):
+        self.check_termination(True)
+
+    def check_termination(self,during_launch):
         import subprocess,signal,time,json,os
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory)
-            code="""import sys,subprocess
+            code="""import sys,subprocess,os,signal,time
 from pathlib import Path
 from tools.v9 import control_resource_measure as M
 root=Path(sys.argv[1]);original=M.subprocess.Popen
 def launch(*args,**kwargs):
-    p=original([sys.executable,'-c','import time; time.sleep(60)'],**kwargs)
+    p=original([sys.executable,'-c',"import time,signal,sys; from pathlib import Path; Path(sys.argv[1]).write_text(str(signal.SIGTERM in signal.pthread_sigmask(signal.SIG_BLOCK,set()))); time.sleep(60)",str(root/'child-mask')],**kwargs)
+    deadline=time.monotonic()+5
+    while not (root/'child-mask').exists() and time.monotonic()<deadline:time.sleep(.01)
     (root/'pid').write_text(str(p.pid))
+    if sys.argv[2]=='launch':os.kill(os.getpid(),signal.SIGTERM)
     return p
 M.subprocess.Popen=launch
 original_visible=M.visible_bytes
@@ -288,18 +297,20 @@ M.visible_bytes=visible
 M.install_termination_handler()
 M.probe(3,400,checkpoint_dir=root/'progress')
 """
-            parent=subprocess.Popen([sys.executable,'-c',code,str(root)],cwd=M.ROOT,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            parent=subprocess.Popen([sys.executable,'-c',code,str(root),'launch' if during_launch else 'sampling'],cwd=M.ROOT,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             worker=None
             try:
                 deadline=time.monotonic()+10
-                while not (root/'ready').exists() and time.monotonic()<deadline:
+                marker=root/('pid' if during_launch else 'ready')
+                while not marker.exists() and time.monotonic()<deadline:
                     if parent.poll() is not None:break
                     time.sleep(.02)
-                self.assertTrue((root/'ready').exists())
+                self.assertTrue(marker.exists())
                 worker=int((root/'pid').read_text())
-                parent.send_signal(signal.SIGTERM)
+                if not during_launch:parent.send_signal(signal.SIGTERM)
                 stdout,stderr=parent.communicate(timeout=10)
                 self.assertEqual(parent.returncode,143,stderr)
+                self.assertEqual((root/'child-mask').read_text(),'False')
                 self.assertFalse(Path('/proc/%s'%worker).exists())
                 failure=json.loads((root/'progress/failed.json').read_text())
                 self.assertEqual(failure['error_type'],'SystemExit')

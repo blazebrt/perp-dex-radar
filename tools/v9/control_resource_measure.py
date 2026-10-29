@@ -134,8 +134,19 @@ def measure(kind,signals,bars,*,assets=61,definitions=3,unavailable=1,shard_rows
         memory_peak=0;process_peak=0;memory_gaps=0;memory_errors=0;memory_vanished=0
         coverage={'fd_access_denied_samples':0}
         with (root/'worker.log').open('wb') as log:
-            process=subprocess.Popen(command,env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+            # Record TERM during launch rather than blocking it: a blocked signal
+            # mask would be inherited by the child across exec.
+            pending=[]
+            previous_handler=signal.getsignal(signal.SIGTERM)
+            signal.signal(signal.SIGTERM,lambda signum,frame:pending.append(signum))
             try:
+                process=subprocess.Popen(command,env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+            except BaseException:
+                signal.signal(signal.SIGTERM,previous_handler)
+                raise
+            try:
+                signal.signal(signal.SIGTERM,previous_handler)
+                if pending:raise SystemExit(128+pending[0])
                 while True:
                     peak=max(peak,visible_bytes(root));samples+=1
                     allocated_peak=max(allocated_peak,allocated_bytes(root,process.pid,coverage))
