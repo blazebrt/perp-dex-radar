@@ -603,3 +603,27 @@ CLI case/report equality. Durability still depends on OS/filesystem semantics;
 this is not a guarantee against VM or storage loss. Active-case internal progress
 and observer/checkpoint overhead are not measured by completed-case timings.
 Attempt 1 remains unchanged; no replacement large measurement has been run.
+
+## Intermediate local attempt 2: completed with progress receipts
+
+A smaller run at `12397a3204eaaecb89d6f62b1e9844645e72491b` used 96 assets
+(eight for sparse), six definitions/one unavailable, 64 signals per available
+definition, 2,000 bars and 25,000-row shards. Both observed exit codes were zero.
+Three normal cases each processed 320 signals and passed their independent audits;
+the intentional interruption retained its expected failure after three signals.
+All four local Git byte checks passed. All case receipts, their hashes and the
+final-report hash were verified. Raw records and provenance are retained in
+`research/v9/a6_intermediate_attempt2/`; attempt 1 remains unchanged.
+
+| Scenario | Measured seconds | Worker peak RSS bytes | Sampled session RSS bytes | Sampled allocated disk bytes |
+|---|---:|---:|---:|---:|
+| Full | 25.185 | 51,195,904 | 60,854,272 | 21,606,400 |
+| Mixed | 24.950 | 50,950,144 | 95,657,984 | 21,307,392 |
+| Sparse | 3.599 | 24,936,448 | 34,500,608 | 2,686,976 |
+| Intentional interruption | 3.663 | 44,855,296 | 49,180,672 | 12,111,872 |
+
+Every case recorded a descriptor-access gap; session scan gaps also occurred.
+These are local WSL diagnostic samples, not combined memory/disk upper bounds,
+representative histories or hosted-runner qualification. Session RSS can double
+count shared pages. Observer/checkpoint overhead and remote publication are
+excluded. This smaller successful run does not identify attempt 1's cause.
