@@ -674,3 +674,18 @@ still apply. No hosted qualification, market attempt or promotion follows.
 Both probe entry points accept `--price-profile baseline|diverse`; baseline remains the default and preserves the original OHLC/volume values. The deterministic diverse profile varies bounded asset-offset triangular trends, signed within-bar returns, wick widths and quote volume using integer mixing, without random state, network calls or market inputs. Existing mixed-case faults remain applied after price generation. Reports, worker results and progress plans identify the selection; report and receipt source bindings include `control_probe_prices.py`.
 
 This addresses repetitive-fixture coverage only. The profile is not calibrated to market distributions, does not prove worst-case compressibility or outcome diversity, and is not a resource bound. Prior retained attempts remain baseline measurements. Larger diverse-profile measurements, representative archive dimensions and full-volume resource/publication bounds are still required. Qualification remains unsatisfied.
+
+## Diverse-price long-history local diagnostic (2026-10-29)
+
+Attempt 4 ran source `195e951a5de58bd1058c4249fe39277aa143830c` with 96 assets (eight in sparse), six definitions (one unavailable), 64 signals per available definition, 16,384 bars, spread placement, 25,000-row output cap and `--price-profile diverse`. All three normal cases independently verified 320 signals each; the deliberate interruption retained the expected failure after three signals. All four local Git byte checks, case receipt hashes/content and final report hash verified. Wrapper and tool exit codes were zero. Raw files and provenance: `research/v9/a6_intermediate_attempt4/`.
+
+| Case | Seconds | Worker peak RSS bytes | Sampled session RSS bytes | Sampled allocated bytes |
+|---|---:|---:|---:|---:|
+| full | 64.399 | 215728128 | 223490048 | 164241408 |
+| mixed | 72.505 | 215207936 | 424648704 | 163676160 |
+| sparse | 8.008 | 64151552 | 69001216 | 14680064 |
+| interrupted | 44.043 | 215457792 | 219521024 | 140447744 |
+
+Report SHA-256: `b8df989a1be11ddb562e1168b15690659c22c76557461cabeb94a09409b6d620`. These are local WSL synthetic diagnostics, not hosted or full-scale qualification. Price diversity is uncalibrated; history coverage and worst-case output compressibility are not established. Sampled resources are not upper bounds, shared pages can be counted twice, observer/checkpoint overhead and remote publication are excluded. Prior attempts remain unchanged. A6.3 stays open.
+
+Observed descriptor-access gap samples: [1, 1, 1, 1]; session-scan gap samples: [3, 12, 2, 2].
