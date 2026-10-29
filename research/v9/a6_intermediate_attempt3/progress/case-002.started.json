@@ -1,0 +1,18 @@
+{
+  "case": {
+    "assets": 96,
+    "bars": 16384,
+    "definitions": 6,
+    "scenario": "sparse",
+    "shard_rows": 25000,
+    "signal_placement": "spread",
+    "signals": 64,
+    "unavailable": 1
+  },
+  "index": 2,
+  "promotion_authority": false,
+  "resource_qualified": false,
+  "schema": "v9.a6-synthetic-progress/1",
+  "status": "CASE_STARTED",
+  "synthetic_only": true
+}

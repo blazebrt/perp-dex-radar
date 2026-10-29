@@ -643,3 +643,28 @@ Pure tests verify maximum bounds, uniqueness and terminal handling; a small
 CLI integration verifies worker forwarding. Synthetic prices and definitions
 remain simplified. No large history/population combination or market archive
 was measured here; all prior retained reports remain unchanged.
+
+## Intermediate local attempt 3: long histories with spread placement
+
+Source `ccfc29e90f606ebdf962777b8c01dc2f62b87f4c` completed all four scenarios
+with 16,384-bar synthetic histories, spread placement, 96 requested assets (eight
+for sparse), six definitions/one unavailable, 64 signals per available definition
+and 25,000-row shards. Wrapper and tool exit codes were zero. Each normal case
+processed 320 signals and passed its independent audit; the intentional interruption
+retained its expected failure after three signals. All four local Git byte checks,
+case-receipt hashes and the final-report hash verified. Original files are retained
+in `research/v9/a6_intermediate_attempt3/`; earlier attempts remain unchanged.
+
+| Scenario | Measured seconds | Worker peak RSS bytes | Sampled session RSS bytes | Sampled allocated disk bytes |
+|---|---:|---:|---:|---:|
+| Full | 58.167 | 156,151,808 | 168,386,560 | 115,019,776 |
+| Mixed | 52.718 | 156,397,568 | 169,697,280 | 114,974,720 |
+| Sparse | 5.535 | 54,296,576 | 59,670,528 | 10,584,064 |
+| Intentional interruption | 19.309 | 153,546,752 | 163,115,008 | 91,693,056 |
+
+All cases recorded descriptor-access and session-scan gaps. These local samples
+are not resource upper bounds. Long synthetic histories do not establish coverage
+of every real bound source; signal/definition/asset counts and prices remain
+unrepresentative. Shared-page double counting, missing peaks, observer/checkpoint
+overhead, incomplete dependency attestation and remote-publication exclusions
+still apply. No hosted qualification, market attempt or promotion follows.
