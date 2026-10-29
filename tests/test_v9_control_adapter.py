@@ -87,3 +87,11 @@ class Adapter(unittest.TestCase):
         self.adapter.close();self.adapter.close()
         self.assertFalse(path.exists())
         with self.assertRaises(ValueError):self.adapter.price_rows('A')
+
+    def test_disposable_index_matches_durable_reference(self):
+        reference=A.Adapter(self.root,self.context,1)
+        self.addCleanup(reference.close)
+        reference.db.execute('PRAGMA synchronous=FULL')
+        self.assertEqual(self.adapter.db.execute('PRAGMA synchronous').fetchone()[0],0)
+        for row in self.rows:
+            self.assertEqual(self.adapter.match(row),reference.match(row))

@@ -710,3 +710,9 @@ The parent measurement CLI installs a SIGTERM handler that raises `SystemExit(14
 ### Launch-time termination ownership
 
 SIGTERM during worker creation is temporarily recorded by the parent, then raised inside the cleanup scope after the child handle is assigned. The previous handler is restored on both successful and failed launch. This avoids inheriting a blocked signal mask into the child. Regression subprocesses exercise launch and sampling termination, verify worker reaping and failure receipts, and inspect the child signal mask. SIGKILL, host loss and escaped groups remain outside this guarantee.
+
+## Disposable price-index synchronization
+
+Execution (`control_adapter.py`) and independent audit (`audit_control_outcomes.py`) now disable SQLite synchronization only for their private, disposable price indexes. Synthetic profiling showed repeated transaction synchronization was a material hotspot. Both implementations still verify original source bytes before indexing and keep bounded window caches and the existing SQLite cache budget. Indexes are not recovery artifacts and are never reused across runs. Disk journals remain enabled; an interrupted/corrupt index cannot serve as accepted evidence and must be rebuilt. Retained summary/evidence durability and progress-receipt fsync behavior are unchanged.
+
+Tests compare execution records and audit windows with independent connections set to `synchronous=FULL`; existing source-corruption, audit-failure and cleanup tests still apply. This is an implementation optimization, not a resource-qualification result. Prior pinned reports remain historical; new full-scale bounds must bind the changed source.

@@ -104,3 +104,12 @@ class Audit(unittest.TestCase):
         self.doc['schema']='v9.a6-outcomes/1';self.doc.pop('pair_encoding')
         (self.output/'manifest.json').write_text(json.dumps(self.doc),encoding='utf8')
         self.assertEqual(self.run_audit()['status'],'VERIFIED_REGISTERED_PRICE_DIAGNOSTICS')
+
+    def test_disposable_prices_match_durable_reference(self):
+        fast=B.Prices(self.root,self.context['sources'])
+        reference=B.Prices(self.root,self.context['sources'])
+        self.addCleanup(fast.close);self.addCleanup(reference.close)
+        reference.db.execute('PRAGMA synchronous=FULL')
+        self.assertEqual(fast.db.execute('PRAGMA synchronous').fetchone()[0],0)
+        for start in (0,179*14400,359*14400):
+            self.assertEqual(fast.get('A',start,start+36*14400),reference.get('A',start,start+36*14400))

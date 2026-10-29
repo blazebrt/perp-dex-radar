@@ -30,6 +30,9 @@ class Prices:
         self.loaded=set()
         self.temporary=tempfile.TemporaryDirectory(prefix='a6-audit-prices-')
         self.db=sqlite3.connect(Path(self.temporary.name)/'audit.sqlite')
+        # Disposable private index: rebuilt from hash-verified sources, never resumed.
+        # Retained evidence databases/files keep their existing durability settings.
+        self.db.execute('PRAGMA synchronous=OFF')
         self.db.execute('PRAGMA cache_size=-8192')
         self.db.execute('CREATE TABLE candles(asset TEXT,t INTEGER,o REAL,h REAL,l REAL,c REAL,qv REAL,PRIMARY KEY(asset,t)) WITHOUT ROWID')
 
