@@ -12,6 +12,7 @@ import time
 
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT))
+from tools.v9 import control_probe_prices as Prices
 from tools.v9 import control_probe_shape as Shape, control_probe_progress as Progress
 
 
@@ -108,16 +109,17 @@ def stop_worker_group(process,grace_seconds=2):
     process.wait(timeout=5)
 
 
-def measure(kind,signals,bars,*,assets=61,definitions=3,unavailable=1,shard_rows=4,placement='prefix'):
+def measure(kind,signals,bars,*,assets=61,definitions=3,unavailable=1,shard_rows=4,placement='prefix',price_profile='baseline'):
     if not sys.platform.startswith('linux'):raise RuntimeError('Linux required for ru_maxrss KiB semantics')
     if kind not in ('full','mixed','sparse','interrupted'):raise ValueError('unknown scenario')
     Shape.validate(signals,bars,assets,definitions,unavailable)
     Shape.shard_limit(shard_rows)
     Shape.signal_placement(placement)
+    Prices.validate(price_profile)
     with tempfile.TemporaryDirectory(prefix='a6-measure-') as directory:
         root=Path(directory);result=root/'result.json'
         env=dict(os.environ,TMPDIR=directory,TEMP=directory,TMP=directory,SQLITE_TMPDIR=directory)
-        command=[sys.executable,str(Path(__file__).resolve()),'--worker',kind,'--signals',str(signals),'--bars',str(bars),'--out',str(result),'--assets',str(assets),'--definitions',str(definitions),'--unavailable',str(unavailable),'--shard-rows',str(shard_rows),'--signal-placement',placement]
+        command=[sys.executable,str(Path(__file__).resolve()),'--worker',kind,'--signals',str(signals),'--bars',str(bars),'--out',str(result),'--assets',str(assets),'--definitions',str(definitions),'--unavailable',str(unavailable),'--shard-rows',str(shard_rows),'--signal-placement',placement,'--price-profile',price_profile]
         started=time.perf_counter();peak=0;allocated_peak=0;samples=0
         memory_peak=0;process_peak=0;memory_gaps=0;memory_errors=0;memory_vanished=0
         coverage={'fd_access_denied_samples':0}
@@ -146,21 +148,22 @@ def measure(kind,signals,bars,*,assets=61,definitions=3,unavailable=1,shard_rows
         return data
 
 
-def probe(signals=None,bars=None,*,assets=61,definitions=3,unavailable=1,shard_rows=4,checkpoint_dir=None,placement='prefix'):
+def probe(signals=None,bars=None,*,assets=61,definitions=3,unavailable=1,shard_rows=4,checkpoint_dir=None,placement='prefix',price_profile='baseline'):
     if (signals is None)!=(bars is None):
         raise ValueError('signals and bars must be supplied together')
     Shape.validate(8 if signals is None else signals,1000 if bars is None else bars,assets,definitions,unavailable)
     Shape.shard_limit(shard_rows)
     Shape.signal_placement(placement)
+    Prices.validate(price_profile)
     scales=((8,1000),(32,4000)) if signals is None else ((signals,bars),)
     from tools.v9.control_cgroup_memory import snapshot
     import hashlib
     plan=[dict(scenario=kind,signals=n,bars=b,assets=assets,definitions=definitions,
-               unavailable=unavailable,shard_rows=shard_rows,signal_placement=placement) for n,b in scales
+               unavailable=unavailable,shard_rows=shard_rows,signal_placement=placement,price_profile=price_profile) for n,b in scales
           for kind in ('full','mixed','sparse','interrupted')]
     journal=None
     if checkpoint_dir is not None:
-        modules=[Path(__file__),Path(Shape.__file__),Path(Progress.__file__),
+        modules=[Path(__file__),Path(Shape.__file__),Path(Prices.__file__),Path(Progress.__file__),
                  Path(__file__).with_name('control_pipeline_probe.py'),
                  Path(__file__).with_name('control_publication_probe.py')]
         journal=Progress.Journal(checkpoint_dir,plan,
@@ -170,14 +173,15 @@ def probe(signals=None,bars=None,*,assets=61,definitions=3,unavailable=1,shard_r
         for index,case in enumerate(plan):
             if journal is not None:journal.begin(index,case)
             measured=measure(case['scenario'],case['signals'],case['bars'],assets=assets,
-                             definitions=definitions,unavailable=unavailable,shard_rows=shard_rows,placement=placement)
+                             definitions=definitions,unavailable=unavailable,shard_rows=shard_rows,placement=placement,price_profile=price_profile)
             if journal is not None:journal.complete(index,measured)
             cases.append(measured)
         report=dict(schema='v9.a6-isolated-resource-probe/3',status='NOT_RESOURCE_QUALIFIED',synthetic_only=True,
-            market_data_loaded=False,platform=sys.platform,cases=cases,signal_placement=placement,outcome_shard_max_rows=shard_rows,
+            market_data_loaded=False,platform=sys.platform,cases=cases,signal_placement=placement,price_profile=price_profile,outcome_shard_max_rows=shard_rows,
             requested_scales=[Shape.validate(n,b,assets,definitions,unavailable) for n,b in scales],
             cgroup_capability_before=cgroup_before,cgroup_capability_after=snapshot(),
             observer_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+            price_profile_sha256=hashlib.sha256(Path(Prices.__file__).read_bytes()).hexdigest(),
             population_shape_sha256=hashlib.sha256(Path(Shape.__file__).read_bytes()).hexdigest(),
             memory_measurement='LINUX_PROCESS_LIFETIME_PEAK_RSS_IN_BYTES_INCLUDES_IMPORTS',
             combined_memory_measurement='SAMPLED_PRIVATE_SESSION_SUM_RSS_SHARED_PAGES_MAY_REPEAT_NOT_A_BOUND',
@@ -202,6 +206,7 @@ if __name__=='__main__':
     ap.add_argument('--unavailable',type=int,default=1)
     ap.add_argument('--shard-rows',type=int,default=4)
     ap.add_argument('--checkpoint-dir',help='Fresh directory; defaults to OUT.progress for the parent probe')
+    ap.add_argument('--price-profile',choices=('baseline','diverse'),default='baseline')
     ap.add_argument('--signal-placement',choices=('prefix','spread'),default='prefix')
     args=ap.parse_args();path=Path(args.out)
     if args.worker and args.checkpoint_dir is not None:ap.error('checkpoints belong to the parent probe')
@@ -211,8 +216,8 @@ if __name__=='__main__':
         import resource
         from tools.v9 import control_pipeline_probe as P
         from tools.v9 import control_extract as X, control_publication_probe as G
-        data=dict(pipeline=P.scenario(args.worker,8 if args.signals is None else args.signals,1000 if args.bars is None else args.bars,retain=G.retain,assets=args.assets,definitions=args.definitions,unavailable=args.unavailable,shard_rows=args.shard_rows,placement=args.signal_placement),
+        data=dict(pipeline=P.scenario(args.worker,8 if args.signals is None else args.signals,1000 if args.bars is None else args.bars,retain=G.retain,assets=args.assets,definitions=args.definitions,unavailable=args.unavailable,shard_rows=args.shard_rows,placement=args.signal_placement,price_profile=args.price_profile),
                   peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*1024,
                   pipeline_probe_sha256=X.sha(Path(P.__file__)),publication_probe_sha256=X.sha(Path(G.__file__)))
-    else:data=probe(args.signals,args.bars,assets=args.assets,definitions=args.definitions,unavailable=args.unavailable,shard_rows=args.shard_rows,checkpoint_dir=args.checkpoint_dir or str(path)+'.progress',placement=args.signal_placement)
+    else:data=probe(args.signals,args.bars,assets=args.assets,definitions=args.definitions,unavailable=args.unavailable,shard_rows=args.shard_rows,checkpoint_dir=args.checkpoint_dir or str(path)+'.progress',placement=args.signal_placement,price_profile=args.price_profile)
     with path.open('x',encoding='utf8',newline='\n') as stream:stream.write(json.dumps(data,sort_keys=True,indent=2)+'\n')

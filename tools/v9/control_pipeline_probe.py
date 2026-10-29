@@ -10,6 +10,7 @@ import time
 
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT))
+from tools.v9 import control_probe_prices as Prices
 from tools.v9 import control_probe_shape as Shape
 from tools.v9 import control_extract as X, control_signals as S, control_adapter as A
 from tools.v9 import control_outcomes as O, audit_control_outcomes as V, verify_control_population as P
@@ -19,11 +20,12 @@ def footprint(root):
     return {p.relative_to(root).as_posix():p.stat().st_size for p in sorted(root.rglob('*')) if p.is_file()}
 
 
-def scenario(kind,signals=8,bars=1000,retain=None,*,assets=61,definitions=3,unavailable=1,shard_rows=4,placement='prefix'):
+def scenario(kind,signals=8,bars=1000,retain=None,*,assets=61,definitions=3,unavailable=1,shard_rows=4,placement='prefix',price_profile='baseline'):
     if kind not in ('full','mixed','sparse','interrupted'):raise ValueError('unknown scenario')
     shape=Shape.validate(signals,bars,assets,definitions,unavailable)
     Shape.shard_limit(shard_rows)
     Shape.signal_placement(placement)
+    Prices.validate(price_profile)
     with tempfile.TemporaryDirectory() as directory:
         root=Path(directory);(root/'h4').mkdir();started=time.perf_counter()
         assets=['SYNTH%03d'%i for i in range(8 if kind=='sparse' else assets)]
@@ -32,13 +34,13 @@ def scenario(kind,signals=8,bars=1000,retain=None,*,assets=61,definitions=3,unav
             calendar=[];volumes=[];lines=['t,o,h,l,c,qv'];disputes=[]
             for i,t in enumerate(times):
                 if kind=='mixed' and i==183 and j%5==1:continue
-                price=100+j*.25+(i%11)*.03;volume=2e6
-                close=str(price+.02)
+                price,high,low,close,volume=Prices.bar(j,i,price_profile)
+                close=str(close)
                 if kind=='mixed' and i==183:
                     if j%5==2:volume=0
                     if j%5==3:close='bad'
                     if j%5==4:disputes.append(t)
-                lines.append(f'{t},{price},{price+1},{price-1},{close},{volume}')
+                lines.append(f'{t},{price},{high},{low},{close},{volume}')
                 calendar.append(t);volumes.append(volume)
             raw=gzip.compress(('\n'.join(lines)+'\n').encode(),mtime=0)
             (root/'h4'/(asset+'.csv.gz')).write_bytes(raw)
@@ -79,7 +81,7 @@ def scenario(kind,signals=8,bars=1000,retain=None,*,assets=61,definitions=3,unav
         if audit['status']!=expected:raise ValueError('unexpected audit: '+json.dumps(audit))
         files=footprint(root/'outcomes');audit_files=footprint(root/'audit')
         side_counts=[] if kind=='interrupted' else json.loads((root/'outcomes/sides.json').read_text())
-        return dict(signal_placement=placement,outcome_shard_max_rows=shard_rows,outcome_shard_max_uncompressed_bytes=16*1024*1024,
+        return dict(signal_placement=placement,price_profile=price_profile,outcome_shard_max_rows=shard_rows,outcome_shard_max_uncompressed_bytes=16*1024*1024,
             pair_shards=sum(1 for k in files if '/' not in k and k.endswith('.jsonl.gz')),
             day_shards=sum(k.startswith('days/') for k in files),reuse_shards=sum(k.startswith('reuse/') for k in files),requested_shape=shape,definitions=definitions,unavailable_definitions=unavailable,
             expected_signals=(definitions-unavailable)*signals,publication=retain(root) if retain is not None else None,scenario=kind,assets=len(assets),bars_per_asset=bars,signals_per_available_trial=signals,
@@ -96,9 +98,9 @@ def scenario(kind,signals=8,bars=1000,retain=None,*,assets=61,definitions=3,unav
             failure_retained=(root/'audit/failure.json').exists(),net_inference_available=False,promotion_authority=False)
 
 
-def probe(signals=8,bars=1000,*,assets=61,definitions=3,unavailable=1,shard_rows=4,placement='prefix'):
-    cases=[scenario(k,signals,bars,assets=assets,definitions=definitions,unavailable=unavailable,shard_rows=shard_rows,placement=placement) for k in ('full','mixed','sparse','interrupted')]
-    modules=(Path(Shape.__file__),Path(__file__),Path(X.__file__),Path(S.__file__),Path(A.__file__),Path(A.P.__file__),Path(A.E.__file__),
+def probe(signals=8,bars=1000,*,assets=61,definitions=3,unavailable=1,shard_rows=4,placement='prefix',price_profile='baseline'):
+    cases=[scenario(k,signals,bars,assets=assets,definitions=definitions,unavailable=unavailable,shard_rows=shard_rows,placement=placement,price_profile=price_profile) for k in ('full','mixed','sparse','interrupted')]
+    modules=(Path(Shape.__file__),Path(Prices.__file__),Path(__file__),Path(X.__file__),Path(S.__file__),Path(A.__file__),Path(A.P.__file__),Path(A.E.__file__),
              Path(O.__file__),Path(O.S.__file__),Path(O.W.__file__),Path(V.__file__),Path(V.O.__file__),
              Path(V.O.T.__file__),Path(V.C.__file__),Path(V.P.__file__),Path(V.S.__file__),Path(P.__file__))
     return dict(schema='v9.a6-synthetic-pipeline-probe/1',status='NOT_RESOURCE_QUALIFIED',synthetic_only=True,
@@ -114,8 +116,9 @@ if __name__=='__main__':
     ap.add_argument('--assets',type=int,default=61);ap.add_argument('--definitions',type=int,default=3)
     ap.add_argument('--unavailable',type=int,default=1)
     ap.add_argument('--shard-rows',type=int,default=4)
+    ap.add_argument('--price-profile',choices=('baseline','diverse'),default='baseline')
     ap.add_argument('--signal-placement',choices=('prefix','spread'),default='prefix')
     args=ap.parse_args();path=Path(args.out)
     if path.exists():raise FileExistsError('preserve previous pipeline probe')
-    result=probe(args.signals,args.bars,assets=args.assets,definitions=args.definitions,unavailable=args.unavailable,shard_rows=args.shard_rows,placement=args.signal_placement)
+    result=probe(args.signals,args.bars,assets=args.assets,definitions=args.definitions,unavailable=args.unavailable,shard_rows=args.shard_rows,placement=args.signal_placement,price_profile=args.price_profile)
     with path.open('x',encoding='utf8',newline='\n') as stream:stream.write(json.dumps(result,sort_keys=True,indent=2)+'\n')
