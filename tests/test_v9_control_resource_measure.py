@@ -263,3 +263,50 @@ M.probe(3,400,checkpoint_dir=sys.argv[1])
             with self.assertRaises(FileExistsError):journal.complete(0,{'value':2})
             self.assertEqual(path.read_bytes(),original)
             self.assertEqual(len(journal.completed),1)
+
+
+@unittest.skipUnless(sys.platform.startswith('linux'),'Linux process groups')
+class TerminationReceipts(unittest.TestCase):
+    def test_parent_sigterm_cleans_private_worker_and_records_failure(self):
+        import subprocess,signal,time,json,os
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            code="""import sys,subprocess
+from pathlib import Path
+from tools.v9 import control_resource_measure as M
+root=Path(sys.argv[1]);original=M.subprocess.Popen
+def launch(*args,**kwargs):
+    p=original([sys.executable,'-c','import time; time.sleep(60)'],**kwargs)
+    (root/'pid').write_text(str(p.pid))
+    return p
+M.subprocess.Popen=launch
+original_visible=M.visible_bytes
+def visible(path):
+    (root/'ready').write_text('ready')
+    return original_visible(path)
+M.visible_bytes=visible
+M.install_termination_handler()
+M.probe(3,400,checkpoint_dir=root/'progress')
+"""
+            parent=subprocess.Popen([sys.executable,'-c',code,str(root)],cwd=M.ROOT,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            worker=None
+            try:
+                deadline=time.monotonic()+10
+                while not (root/'ready').exists() and time.monotonic()<deadline:
+                    if parent.poll() is not None:break
+                    time.sleep(.02)
+                self.assertTrue((root/'ready').exists())
+                worker=int((root/'pid').read_text())
+                parent.send_signal(signal.SIGTERM)
+                stdout,stderr=parent.communicate(timeout=10)
+                self.assertEqual(parent.returncode,143,stderr)
+                self.assertFalse(Path('/proc/%s'%worker).exists())
+                failure=json.loads((root/'progress/failed.json').read_text())
+                self.assertEqual(failure['error_type'],'SystemExit')
+                self.assertEqual(failure['completed_cases'],[])
+                self.assertFalse((root/'progress/completed.json').exists())
+            finally:
+                if parent.poll() is None:parent.kill();parent.wait(timeout=5)
+                if worker is not None:
+                    try:os.killpg(worker,signal.SIGKILL)
+                    except ProcessLookupError:pass

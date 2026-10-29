@@ -86,6 +86,16 @@ def allocated_bytes(root,pid=None,coverage=None):
     return sum(seen.values())
 
 
+def install_termination_handler():
+    """Turn a parent SIGTERM into the existing cleanup and failure-receipt path."""
+    def terminate(signum,frame):
+        # Allow bounded cleanup to finish if an external wrapper repeats TERM.
+        # SIGKILL and whole-host loss cannot be handled or promised a receipt.
+        signal.signal(signal.SIGTERM,signal.SIG_IGN)
+        raise SystemExit(128+signum)
+    signal.signal(signal.SIGTERM,terminate)
+
+
 def stop_worker_group(process,grace_seconds=2):
     """Stop this probe's private process group, even if its leader exits first.
 
@@ -219,5 +229,7 @@ if __name__=='__main__':
         data=dict(pipeline=P.scenario(args.worker,8 if args.signals is None else args.signals,1000 if args.bars is None else args.bars,retain=G.retain,assets=args.assets,definitions=args.definitions,unavailable=args.unavailable,shard_rows=args.shard_rows,placement=args.signal_placement,price_profile=args.price_profile),
                   peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*1024,
                   pipeline_probe_sha256=X.sha(Path(P.__file__)),publication_probe_sha256=X.sha(Path(G.__file__)))
-    else:data=probe(args.signals,args.bars,assets=args.assets,definitions=args.definitions,unavailable=args.unavailable,shard_rows=args.shard_rows,checkpoint_dir=args.checkpoint_dir or str(path)+'.progress',placement=args.signal_placement,price_profile=args.price_profile)
+    else:
+        install_termination_handler()
+        data=probe(args.signals,args.bars,assets=args.assets,definitions=args.definitions,unavailable=args.unavailable,shard_rows=args.shard_rows,checkpoint_dir=args.checkpoint_dir or str(path)+'.progress',placement=args.signal_placement,price_profile=args.price_profile)
     with path.open('x',encoding='utf8',newline='\n') as stream:stream.write(json.dumps(data,sort_keys=True,indent=2)+'\n')

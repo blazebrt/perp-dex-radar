@@ -689,3 +689,20 @@ Attempt 4 ran source `195e951a5de58bd1058c4249fe39277aa143830c` with 96 assets (
 Report SHA-256: `b8df989a1be11ddb562e1168b15690659c22c76557461cabeb94a09409b6d620`. These are local WSL synthetic diagnostics, not hosted or full-scale qualification. Price diversity is uncalibrated; history coverage and worst-case output compressibility are not established. Sampled resources are not upper bounds, shared pages can be counted twice, observer/checkpoint overhead and remote publication are excluded. Prior attempts remain unchanged. A6.3 stays open.
 
 Observed descriptor-access gap samples: [1, 1, 1, 1]; session-scan gap samples: [3, 12, 2, 2].
+
+## Full synthetic roster diagnostic (2026-10-29)
+
+Attempt 5 ran source `8b0e3bbf4f902ddcae1e0cc728cd56636ccf40c3` with 781 assets (eight in sparse), 199 definitions/seven unavailable, eight signals per available definition, 1,200 bars, spread placement, diverse prices and 25,000-row shards under a 600-second wrapper limit. All four cases completed, all normal independent audits verified 1,536 signals each, and the deliberate interruption retained its expected failure after three signals. Four local Git byte checks and final report/receipt hashes verified. Raw artifacts and provenance: `research/v9/a6_intermediate_attempt5/`.
+
+| Case | Seconds | Worker peak RSS bytes | Sampled session RSS bytes | Sampled allocated bytes |
+|---|---:|---:|---:|---:|
+| full | 281.650 | 151363584 | 271966208 | 136978432 |
+| mixed | 278.899 | 150982656 | 271237120 | 136859648 |
+| sparse | 11.217 | 32837632 | 58597376 | 15597568 |
+| interrupted | 19.477 | 124067840 | 124067840 | 47939584 |
+
+This covers synthetic roster dimensions only, not 4,263,580 signals or archive history coverage. Definitions reuse synthetic geometry rather than the real strategy-generator distribution. Resource samples are not bounds; local WSL, incomplete dependency attestation, sampling gaps, shared-page double counting and remote-publication exclusions remain. A6.3 is open.
+
+## Parent termination cleanup
+
+The parent measurement CLI installs a SIGTERM handler that raises `SystemExit(143)` through the existing worker-group cleanup and failure-journal paths. Repeated TERM is ignored during bounded cleanup; an external SIGKILL can still interrupt it. A real subprocess regression sends TERM while the observer is sampling, verifies the worker has been reaped and checks a failed receipt without false completion. This covers orderly parent termination during active sampling, not host loss, SIGKILL or children escaping the private group. Attempt 5 was measured at the preceding pinned source and is not evidence for the new handler.
