@@ -32,7 +32,7 @@ class PipelineProbe(unittest.TestCase):
         self.assertIsNone(failed['statistics'])
 
     def test_unbounded_inputs_rejected_before_synthetic_creation(self):
-        for kind,n,bars in [('bad',3,400),('full',True,400),('full',25001,400),('full',3,399),('full',3,4001)]:
+        for kind,n,bars in [('bad',3,400),('full',True,400),('full',25001,400),('full',3,399),('full',3,32769)]:
             with self.subTest(kind=kind,n=n,bars=bars),self.assertRaises(ValueError):P.scenario(kind,n,bars)
 
 
@@ -121,3 +121,27 @@ class PipelineProbe(unittest.TestCase):
                     with self.assertRaises(ValueError):P.scenario('full',3,400,shard_rows=value)
                     with self.assertRaises(ValueError):M.probe(3,400,shard_rows=value)
         temporary.assert_not_called();measure.assert_not_called()
+
+
+    def test_long_history_spread_coordinates_are_unique_and_in_range(self):
+        from tools.v9 import control_probe_shape as S
+        S.validate(25000,32768,781,199,7)
+        for bars,assets,n in ((8192,8,8),(32768,781,25000),(400,8,1753)):
+            indices,columns=S.signal_coordinates(n,bars,assets,'spread')
+            self.assertEqual(len(set(zip(indices,columns))),n)
+            self.assertEqual((indices[0],columns[0]),(180,0))
+            self.assertEqual((indices[-2],columns[-2]),(bars-2,assets-1))
+            self.assertEqual((indices[-1],columns[-1]),(bars-1,0))
+            self.assertTrue(all(180<=i<bars and 0<=j<assets for i,j in zip(indices,columns)))
+        from unittest.mock import patch
+        with patch.object(P.tempfile,'TemporaryDirectory') as temporary:
+            with self.assertRaises(ValueError):P.scenario('sparse',8,8192,placement='invalid')
+        temporary.assert_not_called()
+
+    def test_long_history_spread_case_passes_independent_audit(self):
+        result=P.scenario('sparse',8,8192,placement='spread',shard_rows=25000)
+        self.assertEqual(result['bars_per_asset'],8192)
+        self.assertEqual(result['signal_placement'],'spread')
+        self.assertEqual(result['processed_signals'],16)
+        self.assertEqual(result['audit_status'],'VERIFIED_REGISTERED_PRICE_DIAGNOSTICS')
+        self.assertFalse(result['promotion_authority'])

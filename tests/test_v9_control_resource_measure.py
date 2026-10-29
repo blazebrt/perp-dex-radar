@@ -29,7 +29,7 @@ class Measurements(unittest.TestCase):
 
     @unittest.skipUnless(sys.platform.startswith('linux'),'Linux RSS unit contract')
     def test_invalid_inputs_rejected_before_worker(self):
-        for kind,n,bars in [('unknown',3,400),('full',True,400),('full',25001,400),('full',3,4001)]:
+        for kind,n,bars in [('unknown',3,400),('full',True,400),('full',25001,400),('full',3,32769)]:
             with self.assertRaises(ValueError):M.measure(kind,n,bars)
 
     @unittest.skipUnless(sys.platform.startswith('linux'),'Linux allocated-block semantics')
@@ -110,7 +110,7 @@ class ProbeScale(unittest.TestCase):
     def test_custom_scale_reaches_every_scenario_and_is_recorded(self):
         with patch.object(M,'measure',return_value={}) as measure, patch('tools.v9.control_cgroup_memory.snapshot',return_value={}):
             result=M.probe(100,4000)
-        self.assertEqual(measure.call_args_list,[unittest.mock.call(k,100,4000,assets=61,definitions=3,unavailable=1,shard_rows=4) for k in ('full','mixed','sparse','interrupted')])
+        self.assertEqual(measure.call_args_list,[unittest.mock.call(k,100,4000,assets=61,definitions=3,unavailable=1,shard_rows=4,placement='prefix') for k in ('full','mixed','sparse','interrupted')])
         self.assertEqual(result['requested_scales'],[dict(signals_per_available_trial=100,bars_per_asset=4000,assets=61,definitions=3,unavailable_definitions=1)])
         self.assertEqual(result['status'],'NOT_RESOURCE_QUALIFIED')
         self.assertFalse(result['promotion_authority'])
@@ -118,12 +118,12 @@ class ProbeScale(unittest.TestCase):
     def test_default_scales_preserve_eight_case_protocol(self):
         with patch.object(M,'measure',return_value={}) as measure, patch('tools.v9.control_cgroup_memory.snapshot',return_value={}):
             result=M.probe()
-        self.assertEqual(measure.call_args_list,[unittest.mock.call(k,n,b,assets=61,definitions=3,unavailable=1,shard_rows=4) for n,b in ((8,1000),(32,4000)) for k in ('full','mixed','sparse','interrupted')])
+        self.assertEqual(measure.call_args_list,[unittest.mock.call(k,n,b,assets=61,definitions=3,unavailable=1,shard_rows=4,placement='prefix') for n,b in ((8,1000),(32,4000)) for k in ('full','mixed','sparse','interrupted')])
         self.assertEqual(len(result['requested_scales']),2)
 
     def test_partial_or_invalid_scale_rejected_before_measurement(self):
         with patch.object(M,'measure') as measure, patch('tools.v9.control_cgroup_memory.snapshot') as snapshot:
-            for n,b in [(3,None),(None,400),(True,400),(25001,400),(3,4001),(3,False)]:
+            for n,b in [(3,None),(None,400),(True,400),(25001,400),(3,32769),(3,False)]:
                 with self.subTest(signals=n,bars=b),self.assertRaises(ValueError):M.probe(n,b)
         measure.assert_not_called();snapshot.assert_not_called()
 
@@ -133,7 +133,7 @@ class ProbeScale(unittest.TestCase):
         import json,subprocess
         with tempfile.TemporaryDirectory() as directory:
             out=Path(directory)/'report.json'
-            subprocess.run([sys.executable,str(Path(M.__file__).resolve()),'--signals','3','--bars','400','--assets','62','--definitions','4','--unavailable','2','--shard-rows','25000','--out',str(out)],check=True,capture_output=True)
+            subprocess.run([sys.executable,str(Path(M.__file__).resolve()),'--signals','3','--bars','400','--assets','62','--definitions','4','--unavailable','2','--shard-rows','25000','--signal-placement','spread','--out',str(out)],check=True,capture_output=True)
             report=json.loads(out.read_text())
             progress=Path(str(out)+'.progress')
             receipts=sorted(progress.glob('case-*.completed.json'))
@@ -143,6 +143,8 @@ class ProbeScale(unittest.TestCase):
             self.assertEqual(completion['report_sha256'],hashlib.sha256(out.read_bytes()).hexdigest())
             self.assertEqual([json.loads(p.read_text())['measurement'] for p in receipts],report['cases'])
         self.assertEqual(report['requested_scales'],[dict(signals_per_available_trial=3,bars_per_asset=400,assets=62,definitions=4,unavailable_definitions=2)])
+        self.assertEqual(report['signal_placement'],'spread')
+        self.assertTrue(all(c['pipeline']['signal_placement']=='spread' for c in report['cases']))
         self.assertEqual(report['outcome_shard_max_rows'],25000)
         self.assertTrue(all(c['pipeline']['outcome_shard_max_rows']==25000 for c in report['cases']))
         self.assertEqual(len(report['cases']),4)

@@ -627,3 +627,19 @@ These are local WSL diagnostic samples, not combined memory/disk upper bounds,
 representative histories or hosted-runner qualification. Session RSS can double
 count shared pages. Observer/checkpoint overhead and remote publication are
 excluded. This smaller successful run does not identify attempt 1's cause.
+
+## Longer histories and distributed signal placement
+
+The synthetic history cap is now 32,768 bars (minimum 400). This is a diagnostic
+limit, not a verified bound on the pinned archive's longest source. Neither
+source-history coverage nor full-scale resources are qualified by this change.
+
+Both CLIs accept `--signal-placement spread`. It distributes distinct signal
+positions through the flattened pre-terminal time/asset grid and keeps the final
+asset-zero terminal attempt separate. The default `prefix` retains earlier
+behavior. Reports and per-case progress plans identify the chosen placement.
+Pure tests verify maximum bounds, uniqueness and terminal handling; a small
+8,192-bar sparse case with spread placement passes the independent audit, and
+CLI integration verifies worker forwarding. Synthetic prices and definitions
+remain simplified. No large history/population combination or market archive
+was measured here; all prior retained reports remain unchanged.
