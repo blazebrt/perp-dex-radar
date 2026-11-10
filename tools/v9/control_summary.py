@@ -21,7 +21,7 @@ class Summary:
             candidate REAL,control REAL,difference REAL);
           CREATE INDEX side_values ON pairs(trial,direction,difference);
           CREATE TABLE reuse(trial TEXT,direction INTEGER,asset TEXT,time INTEGER,n INTEGER,
-            PRIMARY KEY(trial,direction,asset,time));
+            PRIMARY KEY(trial,direction,asset,time)) WITHOUT ROWID;
         ''')
         self.counts={}
 
