@@ -763,3 +763,20 @@ The production summary reuse table now uses `WITHOUT ROWID`. Its long `(trial,di
 `a6_reuse_storage_comparison.json` records an isolated synthetic 100,000-key comparison, including its reproducible row recipe, source hash and environment versions. Each key is counted twice. Both layouts yielded logical-row SHA-256 `3bff1f48027d3369cd6c296d34b9b9348facbcc8302f5ef39fa75fb1449166c0`. Original/compact database file lengths were 20,439,040 / 10,113,024 bytes, a 10,326,016-byte (about 50.5%) reduction. These lengths include empty summary tables/indexes; they are not filesystem allocated-byte or combined-process bounds. The fixture does not establish real-population compression, total study storage, runtime or qualification.
 
 A separate regression compares all emitted side/day/reuse records against the original layout, checks repeated uses and duplicate rejection, reopens the retained databases and verifies both outputs with the unmodified independent statistics auditor. Full-scale resource qualification must bind the changed source. No control outcome, scientific definition, missingness rule or authority threshold changes.
+
+## Compact reuse storage: complete synthetic pipeline (2026-11-10)
+
+Attempt 8 ran pinned source `20a1ebb5625cb8ee7e5dcaa93862bc74f18816b0` on the same synthetic dimensions as attempt 7: 199 definitions (seven unavailable), 781 assets (eight in sparse), 1,200 bars, eight signals per available definition, spread placement, diverse prices and 25,000-row shards. All four scenarios completed within the 600-second limit. Each normal scenario independently audited 1,536 signals; the intentional interruption retained the expected failed result after three signals. Local Git byte checks, case receipts and final report hash verified.
+
+| Case | Seconds | Prior outcome bytes | Outcome bytes | Prior sampled allocated peak | Sampled allocated peak |
+|---|---:|---:|---:|---:|---:|
+| full | 111.397 | 23305827 | 16105058 | 136966144 | 129769472 |
+| mixed | 107.892 | 23320850 | 16120081 | 136855552 | 129654784 |
+| sparse | 11.669 | 4448284 | 3465244 | 15736832 | 13373440 |
+| interrupted | 18.675 | 41844 | 37748 | 47874048 | 47714304 |
+
+The full case retained 7,200,769 fewer outcome bytes (about 30.9%); its summary database fell from 15,441,920 to 8,241,152 bytes. Sampled allocated peak fell by 7,196,672 bytes (about 5.3%), substantially less than the isolated-table percentage because audit scratch, input indexes and publication copies remain. Full/mixed wall times were 111.397/107.892 seconds versus 95.989/97.906 in attempt 7. No speedup is established; these are sequential observations, not a controlled performance experiment.
+
+Retained workload, disposition counts, audit statistics/coverage and authority fields match attempt 7. This comparison does not claim complete pair-record parity. Original reports, ten progress receipts, environment, exit, log, comparison and source-bound hash provenance are retained in `research/v9/a6_intermediate_attempt8/`. No earlier report was rewritten.
+
+Limitations remain: local WSL, short histories, only 1,536 normal signals rather than 4,263,580, uncalibrated synthetic geometry/prices, selected rather than fully attested dependencies, sampled resources with coverage gaps, and excluded observer/checkpoint and remote-publication costs. This verifies a pipeline storage reduction for this fixture, not full-scale resource qualification or resolution of the runtime gap. A6.3 remains open.
