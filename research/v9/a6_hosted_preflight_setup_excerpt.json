@@ -1,0 +1,8 @@
+[
+  "2026-11-10T10:03:19.9437191Z ##[group]Runner Image",
+  "2026-11-10T10:03:19.9438285Z Image: ubuntu-24.04",
+  "2026-11-10T10:03:19.9439239Z Version: 20261101.360.1",
+  "2026-11-10T10:03:19.9441492Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261101.360/images/ubuntu/Ubuntu2404-Readme.md",
+  "2026-11-10T10:03:19.9444236Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261101.360",
+  "2026-11-10T10:03:19.9446385Z ##[endgroup]"
+]

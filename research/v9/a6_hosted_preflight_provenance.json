@@ -1,0 +1,24 @@
+{
+  "artifact_id": 13753630961,
+  "artifact_zip_bytes": 1383,
+  "artifact_zip_sha256": "2eb6ea458251dd6d54073f4cc0253307926f26035fef45e3dccfc599b1481358",
+  "claims_and_setup_agree": true,
+  "job_id": 129760698191,
+  "limitations": [
+    "Identity claims are consistent, not independently attested.",
+    "Capacity is a snapshot, not reserved capacity or a resource bound.",
+    "Historical conflicting identity report is preserved unchanged.",
+    "System Python preflight does not validate candidate study dependencies."
+  ],
+  "promotion_authority": false,
+  "report_bytes": 2838,
+  "report_sha256": "c7ff66aaa2c100fc631739aad08cc97c1238a1c527e7e4dce95b47feb6358a95",
+  "resource_qualified": false,
+  "run_id": 42795844660,
+  "run_url": "https://github.com/blazebrt/perp-dex-radar/actions/runs/42795844660",
+  "schema": "v9.a6-hosted-preflight-provenance/1",
+  "setup_excerpt_sha256": "e8a428f6ba58fd0225c36fdc3c7448e7e9491e48dfe949fcce9da150ab64013d",
+  "setup_log_version": "20261101.360.1",
+  "source_commit": "16926703cdd894c382dffedb2982f018375e4ab8",
+  "verification_date": "2026-11-10"
+}
