@@ -726,3 +726,9 @@ Attempt 6 ran source `7c408082068ad08275a6f4e8b28d98e842f8d893` with 781 assets 
 | full | 312.160 | 151482368 | 272220160 | 136937472 |
 
 This covers synthetic roster dimensions only, not 4,263,580 signals or archive history coverage. Definitions reuse synthetic geometry rather than the real strategy-generator distribution. Resource samples are not bounds; local WSL, incomplete dependency attestation, sampling gaps, shared-page double counting and remote-publication exclusions remain. A6.3 is open.
+
+## Bounded population snapshot reuse (2026-11-10)
+
+Both execution and independent audit now keep their own least-recently-used population cache with at most eight `(panel index, direction)` keys for a fixed source-verified context. Revisiting a cached decision avoids rebuilding the complete universe. Per-signal source/identity/history checks and trial-specific ranking remain active; neither outcome paths nor selected controls are reused. The audit cache is built solely with the independent source reconstruction. Context inputs must remain fixed throughout an adapter/audit lifetime, as required for the existing single-snapshot cache.
+
+Regression checks compare every retained pair record against a one-entry reference, require independent audits to pass, demonstrate fewer reconstruction calls in both implementations, and test bounded eviction plus cleanup. This trades extra bounded-entry memory for less repeated work; eight entries are not a byte/resource bound. Prior measurements cannot qualify the changed source, and no full-scale speedup is claimed before remeasurement.

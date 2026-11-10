@@ -95,3 +95,17 @@ class Adapter(unittest.TestCase):
         self.assertEqual(self.adapter.db.execute('PRAGMA synchronous').fetchone()[0],0)
         for row in self.rows:
             self.assertEqual(self.adapter.match(row),reference.match(row))
+
+    def test_population_cache_is_bounded_and_evicted_rows_recompute_identically(self):
+        reference=A.Adapter(self.root,self.context,1)
+        self.addCleanup(reference.close)
+        with patch.object(A,'POPULATION_CACHE_SIZE',1):
+            expected=[reference.match(row) for row in self.rows+self.rows]
+        with patch.object(A,'POPULATION_CACHE_SIZE',2):
+            actual=[]
+            for row in self.rows+self.rows:
+                actual.append(self.adapter.match(row))
+                self.assertLessEqual(len(self.adapter.populations),2)
+        self.assertEqual(actual,expected)
+        self.adapter.close()
+        self.assertFalse(self.adapter.populations)

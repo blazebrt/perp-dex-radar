@@ -145,3 +145,30 @@ class PipelineProbe(unittest.TestCase):
         self.assertEqual(result['processed_signals'],16)
         self.assertEqual(result['audit_status'],'VERIFIED_REGISTERED_PRICE_DIAGNOSTICS')
         self.assertFalse(result['promotion_authority'])
+
+    def test_population_cache_reuse_preserves_pairs_and_independent_audit(self):
+        import json
+        from unittest.mock import patch
+        from tools.v9 import control_adapter as A,audit_control_outcomes as V,verify_control_population as B
+        from tools.v9 import control_signals as S,verify_control_outcomes as O
+        retained=[]
+        def capture(root):
+            manifest=json.loads((root/'outcomes/manifest.json').read_text())
+            names=sorted(r['path'] for r in manifest['files'] if '/' not in r['path'] and r['path'].endswith('.jsonl.gz'))
+            retained.append(list(O.pair_records(root/'outcomes',names,manifest)))
+        original=S.SegmentView.snapshot;independent=B.Source.reconstruct
+        totals=[];reports=[]
+        for size in (1,8):
+            count=[0,0]
+            def snapshot(self,*args,**kwargs):
+                count[0]+=1;return original(self,*args,**kwargs)
+            def reconstruct(self,*args,**kwargs):
+                count[1]+=1;return independent(self,*args,**kwargs)
+            with patch.object(A,'POPULATION_CACHE_SIZE',size),patch.object(V,'POPULATION_CACHE_SIZE',size),patch.object(S.SegmentView,'snapshot',snapshot),patch.object(B.Source,'reconstruct',reconstruct):
+                reports.append(P.scenario('mixed',3,400,retain=capture,price_profile='diverse',shard_rows=25000))
+            totals.append(count)
+        self.assertEqual(retained[0],retained[1])
+        self.assertTrue(all(b<a for a,b in zip(totals[0],totals[1])),totals)
+        for report in reports:
+            self.assertEqual(report['audit_status'],'VERIFIED_REGISTERED_PRICE_DIAGNOSTICS')
+            self.assertEqual(report['processed_signals'],6)

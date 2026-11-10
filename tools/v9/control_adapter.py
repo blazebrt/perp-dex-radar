@@ -16,6 +16,9 @@ from pathlib import Path
 from tools.v9 import control_execution as E, control_pairs as P, control_sources as S
 
 
+POPULATION_CACHE_SIZE=8
+
+
 class Adapter:
     def __init__(self, directory, context, price_cache_size=8):
         S.require(type(price_cache_size) is int and price_cache_size > 0, 'invalid cache size')
@@ -29,7 +32,7 @@ class Adapter:
         self.db.execute('PRAGMA synchronous=OFF')
         self.db.execute('PRAGMA cache_size=-8192')
         self.db.execute('CREATE TABLE prices(asset TEXT,t INTEGER,o REAL,h REAL,l REAL,c REAL,qv REAL, PRIMARY KEY(asset,t)) WITHOUT ROWID')
-        self.candidate_key, self.candidate_rows = None, None
+        self.populations = OrderedDict()
         self.trials = {t['trial_id'] for t in context['trials'] if t['archive_requirement']=='4h'}
 
     def close(self):
@@ -38,6 +41,7 @@ class Adapter:
         if getattr(self,'temporary',None) is not None:
             self.temporary.cleanup();self.temporary=None
         if hasattr(self,'prices'):self.prices.clear()
+        if hasattr(self,'populations'):self.populations.clear()
 
     def __del__(self):self.close()
 
@@ -102,8 +106,9 @@ class Adapter:
         S.require(signal['full_matched_authority'] is False and signal['promotion_authority'] is False,
                   'unsupported signal authority')
         key = (i,direction)
-        if key != self.candidate_key:
-            self.candidate_rows = [c['segments'][a].snapshot(decision,direction,bool(c['eligibility'][i][k]))
+        if key not in self.populations:
+            self.populations[key] = [c['segments'][a].snapshot(decision,direction,bool(c['eligibility'][i][k]))
                                    for k,a in enumerate(c['assets'])]
-            self.candidate_key = key
-        return P.match(signal,self.candidate_rows,self.execute)
+            if len(self.populations)>POPULATION_CACHE_SIZE:self.populations.popitem(last=False)
+        self.populations.move_to_end(key)
+        return P.match(signal,self.populations[key],self.execute)

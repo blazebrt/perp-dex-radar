@@ -17,6 +17,8 @@ from tools.v9 import audit_control_extraction as B
 from tools.v9 import verify_control_outcomes as O, verify_control_selection as C
 from tools.v9 import verify_control_prices as P, verify_control_statistics as S
 
+POPULATION_CACHE_SIZE=8
+
 INPUT_COMMIT='eb785a908dce572958336649291b8feeb4ee9575'
 INPUT_HASH='ea45d68a337ab682406748f2b94c833a5ca00b8e495aa7bdd38fe9b1f5d02a5e'
 EXTRACTION_SOURCE='269cb2b0360310ac6bac9fd5ef8b102505c6d997'
@@ -91,10 +93,9 @@ def audit(directory,signals,context,prices,bindings,scratch,input_hash=INPUT_HAS
     O.require([t['definition'] for t in original['trials']]==context['plan']['trials'] and
               original['window']==[context['start'],context['end']],'source roster/window mismatch')
     verified=dict(signals=0,candidate_paths=0,control_paths=0)
-    cache_key=None;population=None
+    populations=OrderedDict()
 
     def pairs():
-        nonlocal cache_key,population
         for trial in original['trials']:
             tid=trial['trial_id']
             names=sorted(r['path'] for r in manifest['files'] if r['path'].startswith(tid+'-') and r['path'].endswith('.jsonl.gz'))
@@ -108,11 +109,13 @@ def audit(directory,signals,context,prices,bindings,scratch,input_hash=INPUT_HAS
                 feature,history=src.reconstruct(t,d,eligible)
                 O.require(signal['features']==feature and signal['history']==history and signal['source_sha256']==src.sha
                           and signal['original_eligible'] is eligible,'signal/source mismatch')
-                if cache_key!=(i,d):
-                    population=[context['sources'][a].reconstruct(t,d,bool(context['eligibility'][i][k]))[0]
+                key=(i,d)
+                if key not in populations:
+                    populations[key]=[context['sources'][a].reconstruct(t,d,bool(context['eligibility'][i][k]))[0]
                                 for k,a in enumerate(context['assets'])]
-                    cache_key=(i,d)
-                C.verify(tid,feature,population,pair['cohort'])
+                    if len(populations)>POPULATION_CACHE_SIZE:populations.popitem(last=False)
+                populations.move_to_end(key)
+                C.verify(tid,feature,populations[key],pair['cohort'])
                 hold=signal['geometry']['hold']
                 O.require(type(hold) is int and hold>0,'invalid audit hold')
                 window_end=min(context['end'],t+hold*14400)
