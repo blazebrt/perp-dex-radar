@@ -1,0 +1,31 @@
+{
+  "after_seconds": 312.16041883500003,
+  "baseline_report_sha256": "9fe314192e10a5dd7b51df3804ea2a071c4563960134a96029da69a146c83d42",
+  "before_seconds": 281.64952100200003,
+  "candidate_case_receipt_sha256": "e6d20fd152ceec225c3f5c6eb5432195fe81e88d4d059f2330233c76cc8cd9c6",
+  "causal_speedup_established": false,
+  "compared_scenario": "full",
+  "complete_pair_record_parity_verified": false,
+  "promotion_authority": false,
+  "report_fields_equal": {
+    "assets": true,
+    "audit_status": true,
+    "bars_per_asset": true,
+    "candidate_paths": true,
+    "control_paths": true,
+    "definitions": true,
+    "dispositions": true,
+    "net_inference_available": true,
+    "outcome_status": true,
+    "price_profile": true,
+    "processed_signals": true,
+    "promotion_authority": true,
+    "scenario": true,
+    "signal_placement": true,
+    "signals_per_available_trial": true,
+    "statistics": true,
+    "unavailable_definitions": true
+  },
+  "resource_qualified": false,
+  "schema": "v9.a6-synthetic-report-comparison/1"
+}

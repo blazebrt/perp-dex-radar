@@ -716,3 +716,13 @@ SIGTERM during worker creation is temporarily recorded by the parent, then raise
 Execution (`control_adapter.py`) and independent audit (`audit_control_outcomes.py`) now disable SQLite synchronization only for their private, disposable price indexes. Synthetic profiling showed repeated transaction synchronization was a material hotspot. Both implementations still verify original source bytes before indexing and keep bounded window caches and the existing SQLite cache budget. Indexes are not recovery artifacts and are never reused across runs. Disk journals remain enabled; an interrupted/corrupt index cannot serve as accepted evidence and must be rebuilt. Retained summary/evidence durability and progress-receipt fsync behavior are unchanged.
 
 Tests compare execution records and audit windows with independent connections set to `synchronous=FULL`; existing source-corruption, audit-failure and cleanup tests still apply. This is an implementation optimization, not a resource-qualification result. Prior pinned reports remain historical; new full-scale bounds must bind the changed source.
+
+## Optimized full synthetic roster diagnostic (2026-10-29)
+
+Attempt 6 ran source `7c408082068ad08275a6f4e8b28d98e842f8d893` with 781 assets (eight in sparse), 199 definitions/seven unavailable, eight signals per available definition, 1,200 bars, spread placement, diverse prices and 25,000-row shards under a 600-second wrapper limit. The attempt is incomplete (wrapper exit 124). One completed case receipt and its failure-journal hash were verified. The 600-second wrapper budget expired (exit 124; outer tool exit 1); the failed receipt records SystemExit. A post-exit process snapshot found no worker matching this attempt, without proving absence of escaped/renamed processes. No complete report exists. The completed full case matches attempt 5 in retained disposition counts, audit coverage/statistics and workload fields, but took 312.160 seconds versus 281.650; no reliable end-to-end speedup is established. The cause of timing variation is not established. Raw artifacts and provenance: `research/v9/a6_intermediate_attempt6/`.
+
+| Case | Seconds | Worker peak RSS bytes | Sampled session RSS bytes | Sampled allocated bytes |
+|---|---:|---:|---:|---:|
+| full | 312.160 | 151482368 | 272220160 | 136937472 |
+
+This covers synthetic roster dimensions only, not 4,263,580 signals or archive history coverage. Definitions reuse synthetic geometry rather than the real strategy-generator distribution. Resource samples are not bounds; local WSL, incomplete dependency attestation, sampling gaps, shared-page double counting and remote-publication exclusions remain. A6.3 is open.
