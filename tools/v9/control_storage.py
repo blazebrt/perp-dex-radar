@@ -11,8 +11,12 @@ def table(rows):
     if not rows:return dict(shared={},columns=[],rows=[])
     keys=sorted(rows[0])
     if any(set(row)!=set(keys) for row in rows):raise ValueError('inconsistent table fields')
-    shared={k:copy.deepcopy(rows[0][k]) for k in keys
-            if all(canonical(row[k])==canonical(rows[0][k]) for row in rows)}
+    shared={}
+    remaining=rows[1:]
+    for k in keys:
+        reference=canonical(rows[0][k])
+        if all(canonical(row[k])==reference for row in remaining):
+            shared[k]=copy.deepcopy(rows[0][k])
     columns=[k for k in keys if k not in shared]
     return dict(shared=shared,columns=columns,rows=[[copy.deepcopy(row[k]) for k in columns] for row in rows])
 

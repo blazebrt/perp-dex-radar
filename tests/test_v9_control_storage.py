@@ -2,10 +2,34 @@ import copy
 import json
 import random
 import unittest
+from unittest.mock import patch
 from tools.v9 import control_storage as W, verify_control_storage as R
 
 
 class Storage(unittest.TestCase):
+    def test_packed_bytes_equal_original_encoder_with_fewer_serializations(self):
+        def original_table(rows):
+            if not rows:return dict(shared={},columns=[],rows=[])
+            keys=sorted(rows[0])
+            if any(set(row)!=set(keys) for row in rows):raise ValueError('inconsistent table fields')
+            shared={k:copy.deepcopy(rows[0][k]) for k in keys
+                    if all(W.canonical(row[k])==W.canonical(rows[0][k]) for row in rows)}
+            columns=[k for k in keys if k not in shared]
+            return dict(shared=shared,columns=columns,
+                        rows=[[copy.deepcopy(row[k]) for k in columns] for row in rows])
+        for n in (0,1,49,50):
+            pair=self.pair(n)
+            values=[False,0,0.0,-0.0,None,1,1.0,'quoted " text \\ 雪',{'nested':[False,-0.0,None]}]
+            for i,outcome in enumerate([pair['candidate']]+[r['outcome'] for r in pair['controls']]):
+                outcome['value']=values[i%len(values)]
+            with patch.object(W,'canonical',wraps=W.canonical) as encoded:
+                actual=W.pack(pair);new_calls=encoded.call_count
+            with patch.object(W,'table',side_effect=original_table), patch.object(W,'canonical',wraps=W.canonical) as encoded:
+                expected=W.pack(pair);old_calls=encoded.call_count
+            self.assertEqual(W.canonical(actual),W.canonical(expected))
+            self.assertEqual(W.canonical(R.unpack(actual)),W.canonical(pair))
+            self.assertLess(new_calls,old_calls)
+
     def pair(self,n):
         return dict(signal_id='s',candidate=dict(net_R=None,known=False,value=-0.0,geometry={'hold':6}),
                     controls=[dict(asset=str(i),outcome=dict(net_R=None,known=False,value=i/3,geometry={'hold':6})) for i in range(n)],
