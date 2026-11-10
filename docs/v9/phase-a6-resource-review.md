@@ -732,3 +732,18 @@ This covers synthetic roster dimensions only, not 4,263,580 signals or archive h
 Both execution and independent audit now keep their own least-recently-used population cache with at most eight `(panel index, direction)` keys for a fixed source-verified context. Revisiting a cached decision avoids rebuilding the complete universe. Per-signal source/identity/history checks and trial-specific ranking remain active; neither outcome paths nor selected controls are reused. The audit cache is built solely with the independent source reconstruction. Context inputs must remain fixed throughout an adapter/audit lifetime, as required for the existing single-snapshot cache.
 
 Regression checks compare every retained pair record against a one-entry reference, require independent audits to pass, demonstrate fewer reconstruction calls in both implementations, and test bounded eviction plus cleanup. This trades extra bounded-entry memory for less repeated work; eight entries are not a byte/resource bound. Prior measurements cannot qualify the changed source, and no full-scale speedup is claimed before remeasurement.
+
+## Bounded-cache full synthetic roster diagnostic (2026-11-10)
+
+Attempt 7 ran source `0701d869459e0c281131eec4e60a3774ae0c1aa3` with 781 assets (eight in sparse), 199 definitions/seven unavailable, eight signals per available definition, 1,200 bars, spread placement, diverse prices and 25,000-row shards under a 600-second wrapper limit. Retained report disposition counts, audit statistics/coverage and workload fields match attempt 5; complete pair-record parity and a causal speedup are not claimed. All four cases completed, all normal independent audits verified 1,536 signals each, and the deliberate interruption retained its expected failure after three signals. Four local Git byte checks and final report/receipt hashes verified. Raw artifacts and provenance: `research/v9/a6_intermediate_attempt7/`.
+
+| Case | Seconds | Worker peak RSS bytes | Sampled session RSS bytes | Sampled allocated bytes |
+|---|---:|---:|---:|---:|
+| full | 95.989 | 160858112 | 171872256 | 136966144 |
+| mixed | 97.906 | 160669696 | 171646976 | 136855552 |
+| sparse | 9.233 | 33087488 | 59097088 | 15736832 |
+| interrupted | 17.528 | 126349312 | 126349312 | 47874048 |
+
+This covers synthetic roster dimensions only, not 4,263,580 signals or archive history coverage. Definitions reuse synthetic geometry rather than the real strategy-generator distribution. Resource samples are not bounds; local WSL, incomplete dependency attestation, sampling gaps, shared-page double counting and remote-publication exclusions remain. A6.3 is open.
+
+Attempt 7 timing observation: full/mixed cases took 95.989/97.906 seconds versus 281.650/278.899 in attempt 5. Their worker peaks rose from 151,363,584/150,982,656 to 160,858,112/160,669,696 bytes. These sequential local observations are not a controlled speedup estimate, a combined-memory upper bound or full-volume qualification.
