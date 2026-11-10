@@ -188,3 +188,7 @@ do not establish attestation or satisfy independent environment/resource review.
 The current conflicting environment cannot pass this gate. A reviewed consistent
 environment must be obtained before approving the single market attempt; no recorded
 claim should be overwritten or arbitrarily designated authoritative to bypass it.
+
+## Hosted prerequisite gate (2026-11-10)
+
+`a6_qualification_preflight.yml` runs only on its explicit workflow-file push or manual dispatch on the draft branch. It records identity and conservative live memory/disk capacity before qualification work, failing on inconsistent/unavailable identity or capacity. The always-run artifact upload retains the report on failure. This is a read-only five-minute system-Python check, not a market or resource qualification run. A successful status is only `PREREQUISITES_OBSERVED_NOT_QUALIFIED`; independent environment review and full-scale bounded resource/publication evidence are still required.
