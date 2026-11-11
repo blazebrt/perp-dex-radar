@@ -67,6 +67,7 @@ def select(trial_id, signal, candidates):
         raise ValueError('ambiguous duplicate asset or source symbol')
     result['eligible_candidates'] = len(eligible)
     selected = []
+    rank_prefix = None
     for row in eligible:
         if row['asset'] == signal['asset'] or row['source_symbol'] == signal['source_symbol']:
             result['same_symbol_excluded'] += 1
@@ -78,17 +79,22 @@ def select(trial_id, signal, candidates):
         if other != bins:
             result['bucket_mismatched'] += 1
             continue
-        key = [VERSION, trial_id, decision, direction, signal['asset'], row['asset']]
-        rank = hashlib.sha256(json.dumps(key, separators=(',', ':'), ensure_ascii=False).encode()).hexdigest()
-        # Retain only selection-time inputs, never arbitrary outcome fields.
+        if rank_prefix is None:
+            prefix = json.dumps([VERSION, trial_id, decision, direction, signal['asset']],
+                                separators=(',', ':'), ensure_ascii=False)
+            rank_prefix = hashlib.sha256((prefix[:-1]+',').encode())
+        digest = rank_prefix.copy()
+        digest.update((json.dumps(row['asset'], ensure_ascii=False)+']').encode())
+        selected.append((digest.hexdigest(), row['asset'], row, other))
+    selected.sort(key=lambda r: (r[0], r[1]))
+    result['matching_candidates'] = len(selected)
+    for rank, asset, row, other in selected[:COUNT]:
+        # Copy provenance only for retained controls; every candidate was still ranked.
         provenance = {k: row[k] for k in ('asset', 'source_symbol', 'decision_time', 'direction',
                       'eligible', 'provenance', 'segment_first_bar', 'first_bar_known_at',
                       'volume_window_start', 'volume_window_end', 'volume_known_at',
                       'volume_observations', 'mean_daily_quote_volume')}
-        selected.append(dict(asset=row['asset'], rank_sha256=rank, features=provenance, buckets=other))
-    selected.sort(key=lambda r: (r['rank_sha256'], r['asset']))
-    result['matching_candidates'] = len(selected)
-    result['controls'] = selected[:COUNT]
+        result['controls'].append(dict(asset=asset, rank_sha256=rank, features=provenance, buckets=other))
     result['control_count'] = len(result['controls'])
     result['status'] = 'DIAGNOSTIC_COHORT_50' if len(selected) >= COUNT else 'INSUFFICIENT_CONTROLS'
     return result

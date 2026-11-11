@@ -1,10 +1,32 @@
 import copy
+import hashlib
+import json
+import random
 import unittest
 from tools.v9 import control_cohort as C, verify_control_selection as V
 from tests.test_v9_control_cohort import row
 
 
 class Selection(unittest.TestCase):
+    def test_prefix_hashing_exact_json_bytes_and_full_roster_independent_parity(self):
+        rng=random.Random(147)
+        for n in (0,3,49,50,51,781):
+            for direction in (-1,1):
+                signal=row('sig"\\雪\nx',direction=direction)
+                trial='trial"\\雪\nx'
+                population=[row('asset"\\雪\nx-'+str(i),direction=direction) for i in range(n)]
+                result=C.select(trial,signal,population)
+                self.assertTrue(V.verify(trial,signal,population,result)['selection_verified'])
+                for control in result['controls']:
+                    raw=json.dumps([C.VERSION,trial,signal['decision_time'],direction,signal['asset'],control['asset']],
+                                   separators=(',',':'),ensure_ascii=False).encode()
+                    self.assertEqual(control['rank_sha256'],hashlib.sha256(raw).hexdigest())
+                rng.shuffle(population)
+                self.assertEqual(C.select(trial,signal,population),result)
+                if population:
+                    population[0]['source_symbol']='mutated'
+                    self.assertNotIn('mutated',[c['features']['source_symbol'] for c in result['controls']])
+
     def test_all_registered_bucket_edges(self):
         for age in (29,30,89,90,179,180,364,365,729,730):
             for volume in (4999999,5000000,9999999,10000000,25000000,50000000,100000000):

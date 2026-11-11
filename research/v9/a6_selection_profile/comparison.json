@@ -1,0 +1,56 @@
+{
+  "baseline_commit": "c10d458b1ed44b78d67dfe483413ac319cf33cf2",
+  "baseline_median_seconds": 1.124875699984841,
+  "baseline_source_sha256": "d440ee4361cf24db16d26654faccda6bd7c543a53fde2c8cce1446780b6dcafd",
+  "candidate_median_seconds": 0.641655899991747,
+  "candidate_source_sha256": "493f8d03b6ba33e99218cbb7a9ed66e4b615d3b12a5c40ea0193c19e7bf36d7e",
+  "candidates": 781,
+  "exact_canonical_outputs_equal": true,
+  "limitations": [
+    "Isolated local selector timing, not a complete-pipeline or hosted benchmark.",
+    "Alternating order reduces but does not eliminate timing noise.",
+    "Synthetic features do not establish real-population runtime or history coverage.",
+    "No full-volume resource bound or independent qualification follows."
+  ],
+  "market_data_loaded": false,
+  "platform": "Windows-11-10.0.26300-SP0",
+  "promotion_authority": false,
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "recipe_sha256": "35bd6151b5f8830f10410889f90dbd715cde17c264b16870216ed7e9c5ddcdd2",
+  "resource_qualified": false,
+  "rounds": [
+    {
+      "baseline_seconds": 0.9944347999989986,
+      "candidate_seconds": 0.5540714000235312,
+      "output_sha256": "cfedbbcb1a2a6339fb4a3b6f19f3475d22bb3106c1c8811e5035909cf665bf29",
+      "round": 0
+    },
+    {
+      "baseline_seconds": 1.2754454999812879,
+      "candidate_seconds": 0.5814725999953225,
+      "output_sha256": "cfedbbcb1a2a6339fb4a3b6f19f3475d22bb3106c1c8811e5035909cf665bf29",
+      "round": 1
+    },
+    {
+      "baseline_seconds": 1.3351583000039682,
+      "candidate_seconds": 0.6852212999947369,
+      "output_sha256": "cfedbbcb1a2a6339fb4a3b6f19f3475d22bb3106c1c8811e5035909cf665bf29",
+      "round": 2
+    },
+    {
+      "baseline_seconds": 1.0982362999930046,
+      "candidate_seconds": 0.641655899991747,
+      "output_sha256": "cfedbbcb1a2a6339fb4a3b6f19f3475d22bb3106c1c8811e5035909cf665bf29",
+      "round": 3
+    },
+    {
+      "baseline_seconds": 1.124875699984841,
+      "candidate_seconds": 0.6758609000244178,
+      "output_sha256": "cfedbbcb1a2a6339fb4a3b6f19f3475d22bb3106c1c8811e5035909cf665bf29",
+      "round": 4
+    }
+  ],
+  "schema": "v9.a6-selection-timing/1",
+  "selections_per_round": 100,
+  "synthetic_only": true
+}
