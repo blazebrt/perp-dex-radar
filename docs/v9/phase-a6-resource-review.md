@@ -811,3 +811,18 @@ The registered SHA-256 key remains the UTF-8 compact JSON array `[version, trial
 Regression checks independently reconstruct complete selection results at boundaries and full roster size; explicit full-key digest comparisons include Unicode, quotes, backslashes and embedded newlines in identities. Shuffled populations, both directions, output provenance isolation, unavailable features and duplicate identity rejection remain covered.
 
 The reproducible isolated comparison in `research/v9/a6_selection_profile/` loads the baseline from `c10d458b1ed44b78d67dfe483413ac319cf33cf2`, binds the modified source and recipe hashes, alternates execution order across five rounds and checks exact canonical outputs for 100 selections per round over 781 candidates. Baseline/candidate median times were 1.124876/0.641656 seconds (about 43.0% lower). This local synthetic selector-only result excludes execution, packing, independent audit, retention and network costs; it cannot establish total pipeline speedup, full-population performance or resource bounds. New pipeline measurement and qualification remain required.
+
+## Selection-prefix optimization: complete synthetic pipeline (2026-11-11)
+
+Attempt 10 measured pinned source `2117c5e4fee3063f520650bca196ff0ea699c117` with the same dimensions as attempt 9: 199 definitions/seven unavailable, 781 assets (eight in sparse), 1,200 bars, eight signals per available definition, diverse prices, spread placement and 25,000-row shards. All four cases completed within the 600-second wrapper limit. Each normal case independently audited 1,536 signals; deliberate interruption retained the expected failure after three. Local Git byte checks, completed-case receipt hashes and the final-report hash verified.
+
+| Case | Prior seconds | Seconds | Outcome bytes (unchanged) | Sampled allocated peak bytes |
+|---|---:|---:|---:|---:|
+| full | 109.301 | 101.035 | 16105058 | 129732608 |
+| mixed | 107.049 | 100.128 | 16120081 | 129691648 |
+| sparse | 10.023 | 8.937 | 3465244 | 13971456 |
+| interrupted | 18.657 | 18.083 | 37748 | 47337472 |
+
+The full/mixed observations were about 7.6%/6.5% shorter than attempt 9. This is substantially smaller than the isolated selector's approximately 43% timing improvement because execution, packing, independent audit and retention remain. These sequential local measurements are not a controlled causal estimate or a reliable full-scale runtime bound. All outcome package sizes, workload/disposition counts, audit statistics and authority fields match attempt 9; this report comparison does not claim complete pair-record parity. Exact selection-result/rank parity is separately covered by the unchanged independent verifier and regression tests.
+
+Original report, environment, exit, log, ten progress receipts, comparison and source-bound provenance are retained under `research/v9/a6_intermediate_attempt10/`. The two larger scenarios' sampled allocated peaks matched attempt 9; sparse/interruption peaks varied, illustrating why samples are not upper bounds. Local WSL, short histories, 1,536 rather than 4,263,580 normal signals, synthetic geometry/prices, incomplete dependency attestation, sampling gaps and excluded observer/checkpoint/remote-publication costs remain. A6.3 and full-volume feasibility remain open; earlier evidence is unchanged.
