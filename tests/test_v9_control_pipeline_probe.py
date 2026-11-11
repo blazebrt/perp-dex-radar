@@ -172,3 +172,25 @@ class PipelineProbe(unittest.TestCase):
         for report in reports:
             self.assertEqual(report['audit_status'],'VERIFIED_REGISTERED_PRICE_DIAGNOSTICS')
             self.assertEqual(report['processed_signals'],6)
+
+    def test_execution_cache_preserves_every_pair_and_independent_audit(self):
+        import json
+        from unittest.mock import patch
+        from tools.v9 import control_adapter as A,verify_control_outcomes as O
+        retained=[];calls=[];reports=[]
+        def capture(root):
+            manifest=json.loads((root/'outcomes/manifest.json').read_text())
+            names=sorted(r['path'] for r in manifest['files'] if '/' not in r['path'] and r['path'].endswith('.jsonl.gz'))
+            retained.append(list(O.pair_records(root/'outcomes',names,manifest)))
+        original=A.E.simulate
+        for size in (0,4096):
+            with patch.object(A,'EXECUTION_CACHE_SIZE',size),patch.object(A.E,'simulate',wraps=original) as kernel:
+                reports.append(P.scenario('mixed',3,400,retain=capture,price_profile='diverse',shard_rows=25000))
+                calls.append(kernel.call_count)
+        self.assertEqual(retained[0],retained[1])
+        self.assertLess(calls[1],calls[0])
+        for report in reports:
+            self.assertEqual(report['audit_status'],'VERIFIED_REGISTERED_PRICE_DIAGNOSTICS')
+            self.assertEqual(report['processed_signals'],6)
+        for key in ('dispositions','statistics','candidate_paths','control_paths'):
+            self.assertEqual(reports[0][key],reports[1][key])

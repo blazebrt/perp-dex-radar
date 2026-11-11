@@ -35,6 +35,41 @@ class Adapter(unittest.TestCase):
         self.assertIsNone(result['net_difference_R'])
         self.assertEqual(len(self.adapter.prices),1)
 
+    def test_execution_cache_exact_inputs_and_output_isolation(self):
+        t=self.rows[0]['decision_time'];g=self.rows[0]['geometry']
+        original=A.E.simulate
+        with patch.object(A.E,'simulate',wraps=original) as kernel:
+            expected=self.adapter.execute('A',t,1,g,True)
+            changed=self.adapter.execute('A',t,1,g,True)
+            changed['geometry']['hold']=999;changed['price_after_cost_R']=999
+            self.assertEqual(self.adapter.execute('A',t,1,g,True),expected)
+            self.assertEqual(kernel.call_count,1)
+            for direction,geometry,eligible in [(-1,g,True),(1,dict(g,stop=.03),True),(1,g,False),
+                                                (1,dict(g,target=1),True),(1,dict(g,target=1.0),True)]:
+                before=kernel.call_count
+                self.adapter.execute('A',t,direction,geometry,eligible)
+                self.assertEqual(kernel.call_count,before+1)
+            self.fixture.view.disputed=[t]
+            self.assertEqual(self.adapter.execute('A',t,1,g,True)['reason'],'DISPUTED_BAR')
+            self.fixture.view.disputed=[];self.context['end']=t
+            self.assertEqual(self.adapter.execute('A',t,1,g,True)['reason'],'ARCHIVE_END')
+            self.context['end']=60*86400
+            for eligible in (1,0):
+                with self.assertRaises(ValueError):self.adapter.execute('A',t,1,g,eligible)
+
+    def test_execution_cache_eviction_close_and_disabled_reference(self):
+        with patch.object(A,'EXECUTION_CACHE_SIZE',2):cached=A.Adapter(self.root,self.context)
+        with patch.object(A,'EXECUTION_CACHE_SIZE',0):reference=A.Adapter(self.root,self.context)
+        self.addCleanup(cached.close);self.addCleanup(reference.close)
+        t=self.rows[0]['decision_time'];g=self.rows[0]['geometry']
+        for offset in (0,1,2,0):
+            args=('A',t+offset*14400,1,g,True)
+            self.assertEqual(cached.execute(*args),reference.execute(*args))
+            self.assertLessEqual(len(cached.executions),2)
+        self.assertFalse(reference.executions)
+        cached.close();self.assertFalse(cached.executions)
+        with self.assertRaises(ValueError):cached.execute('A',t,1,g,True)
+
     def test_corrupt_price_bytes_rejected(self):
         (self.root/'h4/A.csv.gz').write_bytes(b'changed')
         with self.assertRaises(ValueError):self.adapter.match(self.rows[0])

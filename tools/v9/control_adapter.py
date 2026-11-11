@@ -5,6 +5,7 @@ independently verified A6.2 records. This adapter does not verify the package or
 recompute original generator geometry; those remain separate acceptance gates.
 """
 import csv
+import copy
 import gzip
 import hashlib
 import io
@@ -17,11 +18,15 @@ from tools.v9 import control_execution as E, control_pairs as P, control_sources
 
 
 POPULATION_CACHE_SIZE=8
+EXECUTION_CACHE_SIZE=4096
 
 
 class Adapter:
     def __init__(self, directory, context, price_cache_size=8):
         S.require(type(price_cache_size) is int and price_cache_size > 0, 'invalid cache size')
+        S.require(type(EXECUTION_CACHE_SIZE) is int and EXECUTION_CACHE_SIZE>=0, 'invalid execution cache size')
+        self.execution_limit=EXECUTION_CACHE_SIZE
+        self.executions=OrderedDict()
         self.directory, self.context = Path(directory), context
         self.limit, self.prices = price_cache_size, OrderedDict()
         self.loaded = set()
@@ -42,6 +47,7 @@ class Adapter:
             self.temporary.cleanup();self.temporary=None
         if hasattr(self,'prices'):self.prices.clear()
         if hasattr(self,'populations'):self.populations.clear()
+        if hasattr(self,'executions'):self.executions.clear()
 
     def __del__(self):self.close()
 
@@ -81,12 +87,26 @@ class Adapter:
         return self.prices[key]
 
     def execute(self, asset, decision, direction, geometry, eligible):
+        S.require(self.db is not None,'price index is closed')
         view = self.context['segments'][asset]
         # A terminal segment is censored, never extended using a different listing.
         end = min(self.context['end'], view.times[-1]+E.BAR)
         S.require(type(geometry.get('hold')) is int and geometry['hold']>0,'invalid hold')
+        # Context/source bytes are fixed for this adapter's lifetime. Preserve JSON
+        # types and signed zero; ordinals/trials do not enter the stateless kernel.
+        key=None
+        if self.execution_limit:
+            key=json.dumps([asset,view.source_sha256,decision,direction,geometry,eligible,end,view.disputed],
+                           sort_keys=True,separators=(',',':'),allow_nan=False)
+            if key in self.executions:
+                self.executions.move_to_end(key)
+                return copy.deepcopy(self.executions[key])
         rows=self.price_rows(asset,decision,min(end,decision+geometry['hold']*E.BAR))
-        return E.simulate(rows,decision,direction,geometry,eligible,view.disputed,end)
+        result=E.simulate(rows,decision,direction,geometry,eligible,view.disputed,end)
+        if key is not None:
+            self.executions[key]=copy.deepcopy(result)
+            if len(self.executions)>self.execution_limit:self.executions.popitem(last=False)
+        return result
 
     def match(self, signal):
         c = self.context
