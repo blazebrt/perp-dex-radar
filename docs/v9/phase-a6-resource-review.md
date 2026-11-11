@@ -788,3 +788,18 @@ Retained small/roster cProfile outputs and recipes are in `research/v9/a6_packin
 `control_storage.table` now computes each first-row canonical reference once, rather than serializing it again on every row comparison. It skips comparison of that reference against itself. Canonical JSON equality is retained instead of Python value equality, which would conflate booleans, integer/float representations and signed zero. Empty tables, field consistency, deep-copy isolation, final packed schema and independent decoding are unchanged. No outcomes, control selections or statistics are cached or altered.
 
 Regression evidence compares packed canonical bytes to the original implementation and independent decoding for empty/sparse/full cohorts, mixed scalar types, nested values and escaped Unicode, and verifies reduced canonical-serialization calls. This removes redundant work but does not yet establish an uninstrumented pipeline speedup or any full-scale resource bound. Future measurements must bind the new source; old profiles remain unchanged.
+
+## Packing-reference optimization: complete synthetic pipeline (reviewed 2026-11-11)
+
+Attempt 9 measured source `e2d88f653d6d3d676842079d8f70e90caef01872` on 2026-11-10; review/publication continued on 2026-11-11. Dimensions match attempt 8: 199 definitions/seven unavailable, 781 assets (eight in sparse), 1,200 bars, eight signals per available definition, diverse prices, spread placement and 25,000-row shards. All four cases completed within the 600-second wrapper limit. Each normal case independently audited 1,536 signals; the deliberate interruption retained the expected failure after three. Local Git bytes, completed-case receipts and final-report hash verified.
+
+| Case | Prior seconds | Seconds | Outcome bytes (unchanged) | Sampled allocated peak bytes |
+|---|---:|---:|---:|---:|
+| full | 111.397 | 109.301 | 16105058 | 129732608 |
+| mixed | 107.892 | 107.049 | 16120081 | 129691648 |
+| sparse | 11.669 | 10.023 | 3465244 | 13635584 |
+| interrupted | 18.675 | 18.657 | 37748 | 47558656 |
+
+The full/mixed observations improved by about 1.9%/0.8%, respectively. These small sequential differences do not establish a causal or reliable pipeline speedup. Workload, disposition counts, audit statistics/coverage and authority fields match attempt 8, and all outcome package sizes are unchanged. Complete pair-record parity is not claimed by this retained-report comparison; exact encoder-byte parity is separately covered by regression tests.
+
+Raw report, environment, exit, log, ten progress receipts, comparison and source-bound provenance are retained under `research/v9/a6_intermediate_attempt9/`. The result demonstrates completed audited operation with the packing change, not full-scale feasibility. Local WSL, short histories and small signal population, synthetic geometry/prices, incomplete dependency attestation, resource sampling gaps and excluded observer/checkpoint/remote-publication costs remain. The runtime gap and full-volume qualification are unresolved; do not extrapolate this observation into an accepted resource bound. Earlier evidence remains unchanged.
