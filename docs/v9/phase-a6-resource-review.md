@@ -836,3 +836,20 @@ Every matching decision and original signal identity check still runs. Each orig
 The retained small mixed-scenario comparison in `research/v9/a6_execution_cache_parity.json` binds implementation hashes and the exact fixture shape. Cached and uncached modes retain the same six signals, six candidate paths and 200 control paths with identical full-pair SHA-256 `0035d0b6b901bbc56aebb77dfd4271e77736976c4fcf2814e22977a14144a3e4`, identical disposition/statistics outputs and successful independent audits. Kernel invocations fall from 206 to 119, demonstrating reuse rather than proving a runtime speedup. Regression tests additionally cover changed geometry/types, eligibility, disputes, archive end, mutation isolation, eviction, disabled reference and cleanup.
 
 This trades bounded entry count for additional memory; it is not a byte bound or full-scale resource qualification. The independent audit still pays its complete verification cost. New full-pipeline measurement must bind the changed source and quantify cache memory/time tradeoffs before any activation. Scientific definitions, missingness, funding/null inference and qualification thresholds are unchanged.
+
+## Exact-input execution cache: complete synthetic pipeline (2026-11-11)
+
+Attempt 11 measured source `8ed6b160462370eaf42fdcb09b2b40458e5e62d0` with the same synthetic dimensions as attempt 10: 199 definitions/seven unavailable, 781 assets (eight in sparse), 1,200 bars, eight signals per available definition, diverse prices, spread placement and 25,000-row shards. All four cases completed within the 600-second limit. Each normal case independently audited 1,536 signals; deliberate interruption retained the expected failure after three. Local Git bytes, all completed-case receipts and final-report hash verified.
+
+| Case | Prior seconds | Seconds | Prior worker peak RSS bytes | Worker peak RSS bytes | Sampled allocated peak bytes |
+|---|---:|---:|---:|---:|---:|
+| full | 101.035 | 97.949 | 153526272 | 157245440 | 129740800 |
+| mixed | 100.128 | 98.237 | 153460736 | 156557312 | 129662976 |
+| sparse | 8.937 | 8.290 | 31023104 | 30072832 | 12460032 |
+| interrupted | 18.083 | 19.510 | 126386176 | 126803968 | 47636480 |
+
+Full/mixed wall times were about 3.1%/1.9% shorter. Their worker peak RSS increased by 3,719,168 / 3,096,576 bytes; sampled session RSS increased from 290,709,504 / 290,684,928 to 298,237,952 / 296,878,080 bytes. Session samples may double-count shared pages and miss peaks/processes. Sparse/interruption observations differ; no single-case trend is generalized. These sequential observations are not a causal or reliable speedup estimate and do not establish resource upper bounds.
+
+All retained outcome sizes, workload/disposition fields and audit statistics match attempt 10; this comparison does not assert complete pair-record parity. Separate regression/retained small-fixture evidence compares every pair record with the cache disabled. Every ordinal and selected control remains retained and independently audited; this implementation exercises the frozen registration's explicit exact-input caching allowance.
+
+Raw reports, environment, exit, log, ten progress receipts, comparison and source-bound provenance are retained under `research/v9/a6_intermediate_attempt11/`. The 4,096-entry cache is an entry limit, not a byte bound. Local WSL, incomplete dependency attestation, synthetic price/geometry distributions, short history, only 1,536 normal signals and excluded observer/checkpoint/remote-publication costs remain. Full-volume feasibility and A6.3 are still open. No earlier report was changed.
