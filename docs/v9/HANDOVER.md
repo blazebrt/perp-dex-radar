@@ -23,7 +23,7 @@ This file is that plan. Keep it current.
    - `git show origin/evidence-results:REPORT.md` (phase A/B: the legacy strategies);
    - `git show origin/evidence-d1-results:REPORT_D1.md` and `origin/evidence-d2-results:REPORT_D2.md` (phase D);
    - `research/v9/evidence_runs.jsonl` (every run, hash-chained).
-4. Pick an actionable unchecked item in section 6. Current delivery order: F4 performance ledger, then F3 Analyzer context; these do not depend on A6. Do not default to another small A6 benchmark. See `operations-monitoring.md` for the explicit remaining-work map.
+4. Pick an actionable unchecked item in section 6. F3 currently collected context is implemented; F4 has a usable source-bound retained-ledger page, but complete historical tier attribution requires immutable entry-time capture and full-history retention. Continue independent product/engine work rather than waiting on A6. Do not default to another small A6 benchmark. See `operations-monitoring.md` for the explicit remaining-work map.
 
 ## 1. Where things stand
 
@@ -40,9 +40,9 @@ This file is that plan. Keep it current.
 | Live multi-venue data layer | **C1â€“C3 built** (in PR #28): `v9/market.py`, `data/v9/market.json`, an hourly history on `v9-market-history`, a Today panel and Analyzer context. 16 of 16 sources answered from Actions. | `docs/v9/market-context.md`, branch `market-results` |
 | Trade alerts | **Built** (F5, in PR #28): Telegram and/or Discord on every new TRADE, with the full plan. Sends nothing until the owner adds the secrets. | `v9/alerts.py` |
 | New signal research (positioning, funding, OI, liquidations, basis, regime) | **D1 and D2 done, D7 answered.** Four strategies (funding fade, taker flow, top-trader divergence, crowd fade) were pre-registered and each tested once on the phase B dataset. **None is confirmed.** XSMOM long remains the only tradable side. | `docs/v9/phase-d1-preregistration.md`, `docs/v9/phase-d2-preregistration.md`, branches `evidence-d1-results`, `evidence-d2-results` |
-| Quality and operations | **G1 monitoring implemented in draft PR #30; G2 existing behavior verified complete (2026-11-12).** All active v9 market sources are monitored with explicit freshness limitations and retained alerts; activation awaits merge. Audit delivery is compressed and outside Today’s critical path. **16 major items remain: 14 core + 2 optional.** | `docs/v9/operations-monitoring.md` |
+| Quality and operations | **G1 monitoring implemented in draft PR #30; G2 existing behavior verified complete (2026-11-12).** All active v9 market sources are monitored with explicit freshness limitations and retained alerts; activation awaits merge. Audit delivery is compressed and outside Today’s critical path. **15 major items remain: 13 core + 2 optional.** | `docs/v9/operations-monitoring.md` |
 | Decision engine v2 (expected-R ranking, regime, sizing) | **E4 done**: the forward test is evaluated every scan, shown on Today and demotes a side automatically. E1â€“E3 not started. | section 6, phase E |
-| Pro UX (rich trade plans, market board, performance ledger, alerts) | **F1 done** (full trade plan: entry, stop, trailing stop, time exit, size on the page account and in the trader's own dollars, evidence, forward test). F2 first version, F5 alerts. F3 and F4 not started. | section 6, phase F |
+| Pro UX (rich trade plans, market board, performance ledger, alerts) | **F1 done** (full trade plan: entry, stop, trailing stop, time exit, size on the page account and in the trader's own dollars, evidence, forward test). F2 first version, F5 alerts. F3 currently collected source context is implemented. F4 retained-ledger page is implemented; complete historical entry-tier attribution/history remains open. | section 6, phase F |
 
 ## 2. Diagnosis: why there are no trades, and what got worse
 
@@ -433,8 +433,8 @@ How every phase D study runs (D1 set the pattern):
 - [x] F2 (first version; see phase C). Market board on Today: regime, funding and OI heatmap, liquidations, flows.
   Today's Market context panel shows the regime inputs, funding extremes, liquidations and flows. A funding/OI
   heatmap was not built.
-- [ ] F3. Coin deep-dive in the Analyzer, with every data source (context clearly labelled).
-- [ ] F4. Performance ledger page: every tier's live trades against expectation.
+- [x] F3. Analyzer deep-dive for all currently collected sources implemented (2026-11-12, draft PR #30): asset fields, full source inventory/fetch times, known observation times, separately labelled macro context and explicit missingness. Missing snapshot rows no longer claim delisting. Deferred collectors are not claimed implemented. See `product-context-ledger.md`.
+- [ ] F4. Source-bound retained paper-ledger page implemented (2026-11-12, draft PR #30), linked from Portfolio. Current-tier expectations/forward diagnostics and all retained journal rows are shown separately after exact audit hash binding. Complete historical per-entry tiers and lifetime history remain unavailable: entry-time authority is not consistently recorded and the journal prunes old records. Immutable prospective attribution/full-history capture is required for full closure. See `product-context-ledger.md`.
 - [x] F5 (`v9/alerts.py`, branch `v9/market-data`). A Telegram and/or Discord message for every new TRADE decision,
   with the engine's plan and the valid-until time. The owner adds the secrets `TELEGRAM_BOT_TOKEN` +
   `TELEGRAM_CHAT_ID` and/or `DISCORD_WEBHOOK_URL`; without them nothing is sent.
@@ -1258,3 +1258,13 @@ Reviewed every remaining major roadmap item and separated missing scientific evi
 Verified G2's already-existing compact/gzip and page-specific audit loading. Added runtime checks proving Today avoids the audit, Portfolio renders before audit detail resolves, actual gzip decodes correctly, and corrupt/missing/unsupported gzip falls back to JSON. This is verified existing functionality, not a claimed new optimization. The established deterministic snapshot/compression test remains intact. Validation: all 1,395 Linux regression tests passed in 327.893 seconds on the final implementation; the Scan workflow parses and the existing v9 scope checks pass. An earlier validation run was stopped to include the oversized-timestamp fix, then the complete suite was rerun.
 
 G1/G2 are now checked in the roadmap, leaving 16 major items (14 core and two optional). A6.3 and the scientific blockers remain open; no acceptance threshold is weakened. Next product work is F4 followed by F3, with expected-R/sizing work and preregistered studies tracked separately in `operations-monitoring.md`. No new benchmark, market outcome attempt, evidence-history append, promotion, merge or deployment occurred.
+
+### 2026-11-12 — Analyzer context completed; truthful retained ledger delivered
+
+Implemented the Analyzer's currently collected source deep-dive and corrected the false implication that a missing snapshot coin must be unlisted. All existing asset-level observations, source/fetch inventory, known observation timestamps and separate macro context are visible; missing values and unknown cap state stay unknown. This completes F3 for current collectors, without claiming deferred feeds.
+
+Added a Portfolio-linked paper performance page that binds decision and journal bytes to the same audit by SHA-256/size. It rejects mixed scans and ambiguous/missing references. Current FULL/PROBATION expectations and forward diagnostics are distinct from historical rows. All retained rows can be filtered, but the page explicitly reports unrecorded historical tiers, pruned lifetime history, unknown returns and unqualified diagnostic outcomes. F4's page implementation is delivered; its full historical-attribution objective remains open rather than being weakened to make a checkbox green.
+
+Only desk.js, portfolio.html and the two new performance page/module files differ in the published parity fixture. Numerical outputs, engine decisions and audit inventory are unchanged; exact hashes are pinned in the manifest and verified before accepting the new golden. All 1,402 Linux regression tests passed in 358.287 seconds after updating the obsolete missing-coin assertion to enforce the corrected wording. Differential parity passed with zero unexpected differences; the original base and current head each reproduce their pinned golden outputs. The retained differential report is `docs/v9/product-delta-report.json`. Browser visual preview could not connect to the local server; no visual inspection is claimed.
+
+Remaining: 15 major items (13 core + two optional), including the explicit F4 entry-attribution/full-history gap. No market study, evidence append, strategy promotion, merge or deployment. See `product-context-ledger.md` for implementation, acceptance limits and verification.

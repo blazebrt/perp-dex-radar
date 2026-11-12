@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Performance · Perp Decision Desk</title>
+<meta name="description" content="The paper book's governed risk: state, exposure, executable and stressed risk, every limit, concentration, missing authority and positions.">
+<script>try{var t=localStorage.getItem("picks_theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="stylesheet" href="desk.css">
+<style>
+.pfhead { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.pfhead p { margin: 0; color: var(--ink-2); }
+.lim td:first-child { font-weight: 600; }
+.lim .bar { max-width: 180px; }
+tr.blocked td { background: color-mix(in srgb, var(--unavail-bg) 70%, transparent); }
+.secsub { color: var(--ink-2); font-size: 14px; margin: 0 0 10px; max-width: 80ch; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="dk-wrap abwrap">
+    <a class="ablogo" href="./" aria-label="Perp Decision Desk, Today"><i><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".45"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".75"/><path d="M12 12 L19.5 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg></i><b>Perp Decision Desk</b></a>
+    <nav class="apptabs" aria-label="Pages">
+      <a href="./">Today</a>
+      <a href="analyze.html">Analyzer</a>
+      <a href="funding.html">Funding</a>
+      <a href="portfolio.html" aria-current="page">Portfolio</a>
+      <a href="research.html">Research</a>
+    </nav>
+    <button class="iconbtn" id="theme" type="button" aria-label="Switch light or dark theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+  </div>
+</header>
+
+<main id="main" class="dk-wrap">
+<div class="pagehead"><h1>Paper performance ledger</h1><p>Registered expectations and the retained paper journal, with missing evidence kept visible.</p></div>
+<p><a href="portfolio.html">Back to portfolio risk</a></p>
+<p id="status" role="status" aria-live="polite">Loading one consistent snapshot…</p>
+<div class="pfhead"><label>Strategy <select id="strategy"><option value="">All strategies</option></select></label>
+<label>Record <select id="state"><option value="">All records</option><option value="open">Open</option><option value="closed">Closed</option></select></label>
+<button id="reload" type="button">Reload snapshot</button></div>
+<div id="ledger"></div>
+<p class="foot">The decision and complete retained journal are matched to the audit snapshot by file size and SHA-256 before display. This checks consistency, not the truth of upstream observations. Nothing on this page changes a trade decision.</p>
+</main>
+<script src="desk.js"></script>
+<script src="performance.js"></script>
+<script>
+"use strict";
+(function () {
+ const D=window.DESK, P=window.PERFORMANCE, status=document.getElementById('status'), body=document.getElementById('ledger'), strategy=document.getElementById('strategy'), state=document.getElementById('state');
+ if(!D || !P){status.textContent='The ledger could not load. No performance is shown.';return;}
+ D.shell(); let data=null, request=0;
+ function render(){if(data)body.innerHTML=P.render(data,{strategy:strategy.value,state:state.value});}
+ async function reload(){
+  const token=++request; data=null; body.innerHTML=''; status.textContent='Loading and verifying one snapshot…';
+  try{
+   const next=await P.load(D);if(token!==request)return;data=next;
+   strategy.replaceChildren();const all=document.createElement('option');all.value='';all.textContent='All strategies';strategy.append(all);
+   for(const sid of [...new Set(data.records.map(r=>r.strategy).filter(s=>typeof s==='string'))].sort()){
+    const option=document.createElement('option');option.value=sid;option.textContent=sid;strategy.append(option);
+   }
+   status.textContent='Snapshot file bindings verified. Historical entry tiers and full lifetime coverage remain unavailable.';render();
+  }catch(error){if(token!==request)return;data=null;body.innerHTML='';status.textContent='Ledger unavailable: '+String(error.message || error)+'. Reload to try again.';}
+ }
+ strategy.addEventListener('change',render);state.addEventListener('change',render);document.getElementById('reload').addEventListener('click',reload);
+ setInterval(render,30000);reload();
+})();
+</script>
+</body>
+</html>

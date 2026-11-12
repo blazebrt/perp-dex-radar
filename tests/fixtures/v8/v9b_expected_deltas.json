@@ -11,8 +11,9 @@
  "rules": {
   "V9_XSMOM_LONG_PROBATION": "The reviewed strategy policy (v8.quant-strategy-policy/2) puts XSMOM on ACTIVE_PROBATION / PROBATION: its archive-confirmed long side may trade at half size inside its 24h entry window, bound to research/v9/probation_evidence.json and to the forward-test registration V9-PROBATION-XSMOM-LONG-1. quant.json publishes the new states, schema and policy hash; quant.py, its signals, universe and journal are unchanged.",
   "V9_PROBATION_LABEL": "The Analyzer's and the Quant desk page's strategy label read ACTIVE_PROBATION as 'Probation (confirmed side only)' instead of 'Legacy holdover'. Wording only; the call still comes from the decision alone.",
-  "V9_DESK_PROBATION_PRESENTATION": "desk.js and desk.css show a TRADE's tier (Probation, reduced size), the engine's own proposal as a plan (entry near the mark, stop, the signal's trailing stop and the strategy's time exit, risk, size on the page account and, as a labelled unit conversion of the same fractions, on the account the trader saved in the Analyzer, entry window left), the bound archive evidence and the live forward test, which strategy sides may trade with each probation side's live forward test against its archive band (every scan), and the governed book (the legacy paper book as a diagnostic on Portfolio). Presentation only: nothing is decided in the page. With the market branch, desk.js and desk.css also render the market context (V9_MARKET_CONTEXT_PRESENTATION).",
-  "V9_MARKET_CONTEXT_PRESENTATION": "Today (published as index.html) gains a Market context panel and the Analyzer a per-coin market context block. Both read data/v9/market.json (v9.market/1, written by the Scan workflow's new context-only step) through desk.js, label it context, show a missing value as missing and never change a decision region. analyze.html also carries phase B's governed-plan time exit (The Analyzer's exact governed proposal card and its copied plan text state the strategy's time exit as the decision engine now publishes it (proposal.time_exit_hours, quant.py's hold), and the signal's trailing stop (proposal.trailing_stop_pct) when it has one: exit at the stop, or N days after you enter, whichever comes first; the engine states no profit target. The legacy Analyzer stated every plan's exit and the governed card had dropped it. Presentation only: the call and the proposal still come from the decision alone.)."
+  "V9_DESK_PROBATION_PRESENTATION": "desk.js and desk.css show a TRADE's tier (Probation, reduced size), the engine's own proposal as a plan (entry near the mark, stop, the signal's trailing stop and the strategy's time exit, risk, size on the page account and, as a labelled unit conversion of the same fractions, on the account the trader saved in the Analyzer, entry window left), the bound archive evidence and the live forward test, which strategy sides may trade with each probation side's live forward test against its archive band (every scan), and the governed book (the legacy paper book as a diagnostic on Portfolio). Presentation only: nothing is decided in the page. With the market branch, desk.js and desk.css also render the market context (V9_MARKET_CONTEXT_PRESENTATION). The current change additionally includes V9_CONTEXT_AND_LEDGER_PRESENTATION.",
+  "V9_MARKET_CONTEXT_PRESENTATION": "Today (published as index.html) gains a Market context panel and the Analyzer a per-coin market context block. Both read data/v9/market.json (v9.market/1, written by the Scan workflow's new context-only step) through desk.js, label it context, show a missing value as missing and never change a decision region. analyze.html also carries phase B's governed-plan time exit (The Analyzer's exact governed proposal card and its copied plan text state the strategy's time exit as the decision engine now publishes it (proposal.time_exit_hours, quant.py's hold), and the signal's trailing stop (proposal.trailing_stop_pct) when it has one: exit at the stop, or N days after you enter, whichever comes first; the engine states no profit target. The legacy Analyzer stated every plan's exit and the governed card had dropped it. Presentation only: the call and the proposal still come from the decision alone.).",
+  "V9_CONTEXT_AND_LEDGER_PRESENTATION": "Analyzer shows all currently collected context and source/observation times, preserving missingness and correcting missing-snapshot versus listing status. Portfolio links to a read-only performance page. The page hash-binds the retained journal and decision to one audit snapshot, shows current registered expectations separately, and never invents historical entry tiers or complete lifetime coverage. No engine, signal, numerical output, policy or journal change."
  },
  "universe": [],
  "dex_status": [],
@@ -87,7 +88,7 @@
   {
    "file": "desk.js",
    "base_sha256": "4ee60cecc35844b053ad2b9a4a3f40c51a2eb3a8546f4268c3a27e3846833fb1",
-   "head_sha256": "a0d27cc71df29fb2826f882bb8039b8759d2bc669ba5ce4d72eb9bbaed21f9c7",
+   "head_sha256": "c44b3b8c5573e6bbd10e598f9a2db45d0bf543d645c2b5a884ed9ea6688dde10",
    "rule": "V9_DESK_PROBATION_PRESENTATION"
   },
   {
@@ -101,6 +102,24 @@
    "base_sha256": "c41d92a9202fe965a46c7bc4b462bc4e435245a5da7d54284159e68a372d106d",
    "head_sha256": "0d5b79ccfd675662b76ffb1de6256c456619150ac2193186e6e6f7754799929d",
    "rule": "V9_PROBATION_LABEL"
+  },
+  {
+   "file": "performance.html",
+   "base_sha256": null,
+   "head_sha256": "06b01b96c065c6878b56a4beae8283df0e97836e51f8eb724cc75ab73758afcb",
+   "rule": "V9_CONTEXT_AND_LEDGER_PRESENTATION"
+  },
+  {
+   "file": "performance.js",
+   "base_sha256": null,
+   "head_sha256": "291f4f4d8b494e2ca7c5dae44a0c7b6ad71a7455eea0025a1ff6130aaefac200",
+   "rule": "V9_CONTEXT_AND_LEDGER_PRESENTATION"
+  },
+  {
+   "file": "portfolio.html",
+   "base_sha256": "3b31b17ebe1a7010cf7a6118339746c0d2a48016963ca7b6882251619a574dcc",
+   "head_sha256": "69565b63c78b2a17697152a999b51472a46825ff4df5fd022c836d4d206511d2",
+   "rule": "V9_CONTEXT_AND_LEDGER_PRESENTATION"
   }
  ],
  "identity_states": {
