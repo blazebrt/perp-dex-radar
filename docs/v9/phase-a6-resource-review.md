@@ -878,3 +878,20 @@ Full/mixed totals increased from 97.949/98.237 to 110.328/103.165 seconds. The f
 Outcome package sizes, workload/disposition fields and audit statistics match attempt 11. This report comparison does not assert complete pair-record parity. New late-failure regressions and the small six-pair/206-price-path diagnostic separately verify that one-pass orchestration retains all accounting, source, price and statistics checks. Full/mixed worker peaks were 158,498,816 / 164,290,560 bytes versus 157,245,440 / 156,557,312 previously; sampled resources remain observations rather than upper bounds.
 
 Raw reports, environment, exit, log, ten progress receipts, comparison and source-bound provenance are retained under `research/v9/a6_intermediate_attempt12/`. Local WSL, incomplete dependency attestation, short synthetic histories, 1,536 rather than 4,263,580 signals, sampling gaps and excluded observer/checkpoint/remote-publication costs remain. The runtime/resource feasibility gap and A6.3 stay open. All prior evidence remains unchanged.
+
+## Current-code long-history measurement (2026-11-12)
+
+Attempt 13 repeats attempt 4's diverse synthetic workload at source `f7e3d5d964dfb8b9c221ba9fc06e1ea60243200a`: 16,384 bars, 96 assets (eight in sparse), six definitions/one unavailable, 64 spread signals per available definition, and 25,000-row shards. All four cases completed within the 600-second wrapper limit. Each normal case independently audited all 320 signals; full/mixed checked 16,000 control paths each, and sparse checked 2,240. Deliberate interruption retained the expected failure after three signals. All local Git byte checks, four completed-case receipts and the final-report hash verified.
+
+| Case | Attempt 4 seconds | Attempt 13 seconds | Prior outcome bytes | Current outcome bytes | Worker peak RSS bytes | Sampled allocated peak bytes |
+|---|---:|---:|---:|---:|---:|---:|
+| full | 64.399 | 77.348 | 4651383 | 3164535 | 216899584 | 162746368 |
+| mixed | 72.505 | 70.021 | 4651961 | 3165113 | 215494656 | 162193408 |
+| sparse | 8.008 | 6.651 | 818228 | 609332 | 64397312 | 14434304 |
+| interrupted | 44.043 | 43.196 | 41212 | 37116 | 215470080 | 139403264 |
+
+The full case was slower, while mixed/sparse/interrupted were shorter. Multiple implementation changes separate these measurements, and they were not contemporaneous paired runs: no causal or general speedup is established. Workload, dispositions and audit-statistics fields agree with attempt 4. This comparison does not establish complete pair-record parity. Normal full/mixed summary databases fell from 3,190,784 to 1,703,936 bytes, accounting for their outcome-package reduction; total sampled disk fell much less because source and temporary indexes remain substantial. Full worker peak RSS was 216,899,584 bytes versus 215,728,128 previously.
+
+This extends current-code coverage beyond the short-history attempt 12, but does not make the generated histories representative of market data or qualify full scale. Only 320 signals, 96 assets and five available definitions are exercised, versus 4,263,580 signals, 781 assets and 192 available definitions in the registered population. Repeated per-definition geometry can favor caches. Local WSL, incomplete dependency attestation, sampled rather than bounded resources and excluded remote publication/failure retention remain limitations. No market files were loaded or study attempt reserved.
+
+Raw reports, environment, exit, log, ten receipts, comparison and provenance are retained in `research/v9/a6_intermediate_attempt13/`. Next feasibility work should examine signal-count scaling with distinct asset/time inputs rather than repeat the same small timing fixture; both signal-volume and full-roster/long-history bounds still need evidence. Qualification, activation and A6.3 remain open.
