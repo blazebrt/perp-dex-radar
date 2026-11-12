@@ -4,7 +4,6 @@ from collections import OrderedDict
 import csv
 import gzip
 import io
-import itertools
 import json
 from pathlib import Path
 import sys
@@ -88,50 +87,50 @@ def prepare(md,evidence,source_commit,outcome_schema='v9.a6-outcomes/2'):
 
 def audit(directory,signals,context,prices,bindings,scratch,input_hash=INPUT_HASH):
     root,source=Path(directory),Path(signals)
-    accounting=O.verify(root,source,input_hash,bindings)
     original=O.load((source/'manifest.json').read_bytes());manifest=O.load((root/'manifest.json').read_bytes())
     O.require([t['definition'] for t in original['trials']]==context['plan']['trials'] and
               original['window']==[context['start'],context['end']],'source roster/window mismatch')
     verified=dict(signals=0,candidate_paths=0,control_paths=0)
     populations=OrderedDict()
 
-    def pairs():
-        for trial in original['trials']:
-            tid=trial['trial_id']
-            names=sorted(r['path'] for r in manifest['files'] if r['path'].startswith(tid+'-') and r['path'].endswith('.jsonl.gz'))
-            for signal,pair in itertools.zip_longest(O.records(source,[r['path'] for r in trial['shards']]),O.pair_records(root,names,manifest)):
-                O.require(signal is not None and pair is not None,'outcome population changed')
-                i,j=signal['panel_i'],signal['panel_j'];d=signal['direction'];t=signal['decision_time'];asset=signal['asset']
-                O.require(type(i) is int and type(j) is int and 0<=i<len(context['times']) and 0<=j<len(context['assets']),
-                          'invalid signal indices')
-                O.require(t==int(context['times'][i])+14400 and asset==context['assets'][j],'signal panel mismatch')
-                eligible=bool(context['eligibility'][i][j]);src=context['sources'][asset]
-                feature,history=src.reconstruct(t,d,eligible)
-                O.require(signal['features']==feature and signal['history']==history and signal['source_sha256']==src.sha
-                          and signal['original_eligible'] is eligible,'signal/source mismatch')
-                key=(i,d)
-                if key not in populations:
-                    populations[key]=[context['sources'][a].reconstruct(t,d,bool(context['eligibility'][i][k]))[0]
-                                for k,a in enumerate(context['assets'])]
-                    if len(populations)>POPULATION_CACHE_SIZE:populations.popitem(last=False)
-                populations.move_to_end(key)
-                C.verify(tid,feature,populations[key],pair['cohort'])
-                hold=signal['geometry']['hold']
-                O.require(type(hold) is int and hold>0,'invalid audit hold')
-                window_end=min(context['end'],t+hold*14400)
-                P.verify(prices.get(asset,t,window_end),t,d,signal['geometry'],eligible,src.disputes,
-                         min(context['end'],src.times[-1]+14400),pair['candidate'])
-                verified['candidate_paths']+=1
-                for control in pair['controls']:
-                    a=control['asset'];other=context['sources'][a]
-                    P.verify(prices.get(a,t,window_end),t,d,signal['geometry'],True,other.disputes,
-                             min(context['end'],other.times[-1]+14400),control['outcome'])
-                    verified['control_paths']+=1
-                verified['signals']+=1
-                yield pair
-    statistics=S.verify(pairs(),context['plan']['trials'],O.load((root/'sides.json').read_bytes()),
-        O.records(root,['days/'+r['path'] for r in manifest['day_shards']]),
-        O.records(root,['reuse/'+r['path'] for r in manifest['reuse_shards']]),scratch)
+    accumulator=S.Accumulator(context['plan']['trials'],scratch)
+
+    def check_pair(tid,signal,pair):
+        i,j=signal['panel_i'],signal['panel_j'];d=signal['direction'];t=signal['decision_time'];asset=signal['asset']
+        O.require(type(i) is int and type(j) is int and 0<=i<len(context['times']) and 0<=j<len(context['assets']),
+                  'invalid signal indices')
+        O.require(t==int(context['times'][i])+14400 and asset==context['assets'][j],'signal panel mismatch')
+        eligible=bool(context['eligibility'][i][j]);src=context['sources'][asset]
+        feature,history=src.reconstruct(t,d,eligible)
+        O.require(signal['features']==feature and signal['history']==history and signal['source_sha256']==src.sha
+                  and signal['original_eligible'] is eligible,'signal/source mismatch')
+        key=(i,d)
+        if key not in populations:
+            populations[key]=[context['sources'][a].reconstruct(t,d,bool(context['eligibility'][i][k]))[0]
+                        for k,a in enumerate(context['assets'])]
+            if len(populations)>POPULATION_CACHE_SIZE:populations.popitem(last=False)
+        populations.move_to_end(key)
+        C.verify(tid,feature,populations[key],pair['cohort'])
+        hold=signal['geometry']['hold']
+        O.require(type(hold) is int and hold>0,'invalid audit hold')
+        window_end=min(context['end'],t+hold*14400)
+        P.verify(prices.get(asset,t,window_end),t,d,signal['geometry'],eligible,src.disputes,
+                 min(context['end'],src.times[-1]+14400),pair['candidate'])
+        verified['candidate_paths']+=1
+        for control in pair['controls']:
+            a=control['asset'];other=context['sources'][a]
+            P.verify(prices.get(a,t,window_end),t,d,signal['geometry'],True,other.disputes,
+                     min(context['end'],other.times[-1]+14400),control['outcome'])
+            verified['control_paths']+=1
+        verified['signals']+=1
+        accumulator.add(pair)
+
+    try:
+        accounting=O.verify(root,source,input_hash,bindings,check_pair=check_pair)
+        statistics=accumulator.finish(O.load((root/'sides.json').read_bytes()),
+            O.records(root,['days/'+r['path'] for r in manifest['day_shards']]),
+            O.records(root,['reuse/'+r['path'] for r in manifest['reuse_shards']]))
+    finally:accumulator.close()
     O.require(verified['signals']==accounting['signals']==statistics['signals'],'audit count mismatch')
     return dict(status='VERIFIED_REGISTERED_PRICE_DIAGNOSTICS',input_manifest_sha256=input_hash,
         outcome_manifest_sha256=O.sha(root/'manifest.json'),bindings=bindings,accounting=accounting,statistics=statistics,

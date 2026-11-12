@@ -36,6 +36,18 @@ class Statistics(unittest.TestCase):
         self.assertAlmostEqual(side['conditional_price']['difference_mean'],2.5)
         self.assertEqual(sum(r['uses'] for r in self.reuse),200)
 
+    def test_incremental_parity_and_finalization_lifecycle(self):
+        expected=self.audit()
+        accumulator=V.Accumulator(self.trials,self.root/'incremental.db')
+        try:
+            for pair in self.pairs:accumulator.add(pair)
+            self.assertEqual(accumulator.finish(self.sides,iter(self.days),iter(self.reuse)),expected)
+            with self.assertRaises(ValueError):accumulator.add(self.pairs[0])
+            with self.assertRaises(ValueError):accumulator.finish(self.sides,iter(self.days),iter(self.reuse))
+        finally:accumulator.close()
+        accumulator.close()
+        with self.assertRaises(ValueError):accumulator.add(self.pairs[0])
+
     def test_each_statistic_tampering_rejected(self):
         for field in ('candidate_mean','control_mean','difference_mean','difference_median','difference_min','difference_max'):
             original=copy.deepcopy(self.sides)

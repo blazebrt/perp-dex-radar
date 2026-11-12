@@ -78,8 +78,13 @@ def known(outcome,signal):
     return observed
 
 
-def verify(directory,signals,input_hash,expected_bindings):
-    """Input hash and output provenance/code/protocol bindings are external anchors."""
+def verify(directory,signals,input_hash,expected_bindings,*,check_pair=None):
+    """Check full accounting; optional per-pair checks never replace final reconciliation.
+
+    The callback receives manifest trial identity, source signal and checked pair.
+    No success is returned until all inventory, population and side checks pass.
+    """
+    require(check_pair is None or callable(check_pair),'invalid per-pair auditor')
     root,source=Path(directory),Path(signals)
     require(sha(source/'manifest.json')==input_hash,'input manifest mismatch')
     original=load((source/'manifest.json').read_bytes())
@@ -136,6 +141,7 @@ def verify(directory,signals,input_hash,expected_bindings):
             for prefix,items in [('candidate',[pair['candidate']]),('control',[c['outcome'] for c in controls])]:
                 for item in items:d[prefix+':status:'+item['status']]+=1;d[prefix+':reason:'+str(item['reason'])]+=1
             n+=1;total+=1
+            if check_pair is not None:check_pair(tid,signal,pair)
         hourly=trial['status']=='UNAVAILABLE_HOURLY_POPULATION'
         require(n==(0 if hourly else trial['retained_records']),'trial population mismatch')
         completed.append(dict(trial_id=tid,signals=n,status='UNAVAILABLE_HOURLY_POPULATION' if hourly else 'PROCESSED'))

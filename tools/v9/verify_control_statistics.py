@@ -1,7 +1,7 @@
 """Reconcile A6 descriptive summaries from independently audited pair records.
 
 No production aggregation imports. A separate scratch database bounds memory;
-input accounting, cohort selection and price paths remain prerequisite audits.
+completed input accounting, cohort selection and price paths remain separate acceptance gates.
 """
 import itertools
 import math
@@ -18,34 +18,47 @@ def same(actual,expected):
     return type(actual) in (int,float) and math.isfinite(actual) and math.isclose(actual,expected,rel_tol=1e-10,abs_tol=1e-10)
 
 
-def verify(pairs,trials,sides,days,reuse,scratch):
-    check(not Path(scratch).exists(),'preserve existing statistics audit')
-    roster={t['trial_id']:t for t in trials}
-    check(len(roster)==len(trials),'duplicate trial roster')
-    db=sqlite3.connect(scratch)
-    try:
-        db.executescript('''PRAGMA temp_store=FILE; PRAGMA cache_size=-8192;
-          CREATE TABLE observations(id TEXT PRIMARY KEY,trial TEXT,side INTEGER,day INTEGER,matched INTEGER,
-            candidate REAL,control REAL,value REAL);
-          CREATE INDEX ordered_values ON observations(trial,side,value);
-          CREATE INDEX daily ON observations(trial,side,day);
-          CREATE TABLE uses(trial TEXT,side INTEGER,asset TEXT,time INTEGER,n INTEGER,
-            PRIMARY KEY(trial,side,asset,time));''')
-        n=0
-        for pair in pairs:
-            tid,d,t=pair['trial_id'],pair['direction'],pair['decision_time']
-            check(tid in roster and roster[tid]['archive_requirement']=='4h' and type(d) is int and d in (-1,1)
-                  and type(t) is int and t>=0,'invalid pair identity')
-            values=[pair[k] for k in ('candidate_price_R','control_mean_price_R','price_difference_R')]
-            resolved=pair['pair_status']=='PRICE_PAIR_OBSERVED';matched=pair['cohort']['status']=='DIAGNOSTIC_COHORT_50'
-            check((all(type(v) in (int,float) and math.isfinite(v) for v in values) and matched) if resolved
-                  else values==[None,None,None],'invalid pair values')
-            check(pair['net_difference_R'] is None and pair['full_matched_authority'] is False and
-                  pair['promotion_authority'] is False,'invented pair authority')
-            db.execute('INSERT INTO observations VALUES(?,?,?,?,?,?,?,?)',(pair['signal_id'],tid,d,t//86400,int(matched),*values))
-            db.executemany('INSERT INTO uses VALUES(?,?,?,?,1) ON CONFLICT(trial,side,asset,time) DO UPDATE SET n=n+1',
-                           ((tid,d,c['asset'],t) for c in pair['controls']))
-            n+=1
+class Accumulator:
+    """Incremental independent statistics; success requires explicit final reconciliation."""
+    def __init__(self,trials,scratch):
+        check(not Path(scratch).exists(),'preserve existing statistics audit')
+        self.roster={t['trial_id']:t for t in trials}
+        check(len(self.roster)==len(trials),'duplicate trial roster')
+        self.db=sqlite3.connect(scratch)
+        db=self.db
+        self.n=0;self.finished=False
+        try:
+            db.executescript('''PRAGMA temp_store=FILE; PRAGMA cache_size=-8192;
+              CREATE TABLE observations(id TEXT PRIMARY KEY,trial TEXT,side INTEGER,day INTEGER,matched INTEGER,
+                candidate REAL,control REAL,value REAL);
+              CREATE INDEX ordered_values ON observations(trial,side,value);
+              CREATE INDEX daily ON observations(trial,side,day);
+              CREATE TABLE uses(trial TEXT,side INTEGER,asset TEXT,time INTEGER,n INTEGER,
+                PRIMARY KEY(trial,side,asset,time));''')
+        except BaseException:
+            db.close();raise
+
+    def add(self,pair):
+        check(self.db is not None and not self.finished,'statistics accumulator is closed or finalized')
+        db=self.db;roster=self.roster
+        tid,d,t=pair['trial_id'],pair['direction'],pair['decision_time']
+        check(tid in roster and roster[tid]['archive_requirement']=='4h' and type(d) is int and d in (-1,1)
+              and type(t) is int and t>=0,'invalid pair identity')
+        values=[pair[k] for k in ('candidate_price_R','control_mean_price_R','price_difference_R')]
+        resolved=pair['pair_status']=='PRICE_PAIR_OBSERVED';matched=pair['cohort']['status']=='DIAGNOSTIC_COHORT_50'
+        check((all(type(v) in (int,float) and math.isfinite(v) for v in values) and matched) if resolved
+              else values==[None,None,None],'invalid pair values')
+        check(pair['net_difference_R'] is None and pair['full_matched_authority'] is False and
+              pair['promotion_authority'] is False,'invented pair authority')
+        db.execute('INSERT INTO observations VALUES(?,?,?,?,?,?,?,?)',(pair['signal_id'],tid,d,t//86400,int(matched),*values))
+        db.executemany('INSERT INTO uses VALUES(?,?,?,?,1) ON CONFLICT(trial,side,asset,time) DO UPDATE SET n=n+1',
+                       ((tid,d,c['asset'],t) for c in pair['controls']))
+        self.n+=1
+
+    def finish(self,sides,days,reuse):
+        check(self.db is not None and not self.finished,'statistics accumulator is closed or finalized')
+        self.finished=True
+        db=self.db;roster=self.roster;n=self.n
         db.commit()
         check([(s['trial_id'],s['direction']) for s in sides]==[(tid,d) for tid in roster for d in (-1,1)],'side roster mismatch')
         for side in sides:
@@ -89,4 +102,14 @@ def verify(pairs,trials,sides,days,reuse,scratch):
         return dict(descriptive_statistics_verified=True,day_aggregates_verified=True,control_reuse_verified=True,
                     signals=n,days=day_count,reuse_rows=use_count,source_provenance_verified=False,
                     full_matched_authority=False,promotion_authority=False)
-    finally:db.close()
+
+    def close(self):
+        if self.db is not None:self.db.close();self.db=None
+
+
+def verify(pairs,trials,sides,days,reuse,scratch):
+    accumulator=Accumulator(trials,scratch)
+    try:
+        for pair in pairs:accumulator.add(pair)
+        return accumulator.finish(sides,days,reuse)
+    finally:accumulator.close()

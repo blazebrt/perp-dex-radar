@@ -194,3 +194,14 @@ class PipelineProbe(unittest.TestCase):
             self.assertEqual(report['processed_signals'],6)
         for key in ('dispositions','statistics','candidate_paths','control_paths'):
             self.assertEqual(reports[0][key],reports[1][key])
+
+    def test_single_pass_audit_decodes_once_and_checks_all_control_paths(self):
+        from unittest.mock import patch
+        from tools.v9 import audit_control_outcomes as V
+        with patch.object(V.O.T,'unpack',wraps=V.O.T.unpack) as unpack, patch.object(V.P,'verify',wraps=V.P.verify) as prices:
+            report=P.scenario('mixed',3,400,price_profile='diverse',shard_rows=25000)
+        self.assertEqual(report['audit_status'],'VERIFIED_REGISTERED_PRICE_DIAGNOSTICS')
+        self.assertEqual(unpack.call_count,report['processed_signals'])
+        self.assertEqual(prices.call_count,report['candidate_paths']+report['control_paths'])
+        self.assertGreater(report['control_paths'],0)
+        self.assertTrue(report['statistics']['control_reuse_verified'])

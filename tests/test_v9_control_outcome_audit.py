@@ -42,6 +42,36 @@ class Audit(unittest.TestCase):
         self.assertFalse(result['net_inference_available'])
         self.assertEqual({p.name for p in self.out.iterdir()},{'audit.json'})
 
+    def test_single_decode_per_pair_still_checks_every_price_path(self):
+        with patch.object(B.O.T,'unpack',wraps=B.O.T.unpack) as unpack, patch.object(B.P,'verify',wraps=B.P.verify) as prices:
+            result=self.run_audit()
+        self.assertEqual(result['status'],'VERIFIED_REGISTERED_PRICE_DIAGNOSTICS')
+        self.assertEqual(unpack.call_count,result['signals'])
+        self.assertEqual(prices.call_count,result['candidate_paths']+result['control_paths'])
+
+    def test_late_accounting_failure_never_finalizes_statistics_or_accepts(self):
+        self.doc['processed_signals']+=1
+        (self.output/'manifest.json').write_text(json.dumps(self.doc),encoding='utf8')
+        with patch.object(B.P,'verify',wraps=B.P.verify) as prices, patch.object(B.S.Accumulator,'finish') as finish:
+            result=self.run_audit()
+        self.assertEqual(prices.call_count,4)
+        finish.assert_not_called()
+        self.assertEqual(result['status'],'FAILED')
+        self.assertIn('completion accounting mismatch',result['error']['message'])
+        self.assertEqual({p.name for p in self.out.iterdir()},{'failure.json'})
+
+    def test_late_statistics_failure_retains_failure_after_path_checks(self):
+        path=self.output/'sides.json';sides=json.loads(path.read_bytes())
+        side=next(s for s in sides if s['status']=='DESCRIPTIVE')
+        side['conditional_price']['difference_mean']=999
+        path.write_text(json.dumps(sides),encoding='utf8');self.rehash(path)
+        with patch.object(B.P,'verify',wraps=B.P.verify) as prices:
+            result=self.run_audit()
+        self.assertEqual(prices.call_count,4)
+        self.assertEqual(result['status'],'FAILED')
+        self.assertIn('conditional statistic mismatch',result['error']['message'])
+        self.assertEqual({p.name for p in self.out.iterdir()},{'failure.json'})
+
     def test_source_corruption_and_failed_audit_retained(self):
         (self.root/'h4/A.csv.gz').write_bytes(b'bad')
         result=self.run_audit();self.assertEqual(result['status'],'FAILED')
