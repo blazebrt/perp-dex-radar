@@ -895,3 +895,22 @@ The full case was slower, while mixed/sparse/interrupted were shorter. Multiple 
 This extends current-code coverage beyond the short-history attempt 12, but does not make the generated histories representative of market data or qualify full scale. Only 320 signals, 96 assets and five available definitions are exercised, versus 4,263,580 signals, 781 assets and 192 available definitions in the registered population. Repeated per-definition geometry can favor caches. Local WSL, incomplete dependency attestation, sampled rather than bounded resources and excluded remote publication/failure retention remain limitations. No market files were loaded or study attempt reserved.
 
 Raw reports, environment, exit, log, ten receipts, comparison and provenance are retained in `research/v9/a6_intermediate_attempt13/`. Next feasibility work should examine signal-count scaling with distinct asset/time inputs rather than repeat the same small timing fixture; both signal-volume and full-roster/long-history bounds still need evidence. Qualification, activation and A6.3 remain open.
+
+## Fourfold signal-count scaling (2026-11-12)
+
+Attempt 14 measured source `613c2087b6a05f94b41a3a54382b9f805fe78097` with 256 spread signals per available definition, four times attempt 13's 64. The rest of the requested shape is unchanged: 16,384 bars, 96 assets (eight in sparse), six definitions/one unavailable, diverse prices and 25,000-row shards. The `tools/v9` tree is byte-identical between the two source commits. All four cases completed within 600 seconds, all local Git byte checks passed, and the four completed-case receipts and final-report hash verified.
+
+Normal cases independently audited 1,280 signals each versus 320 previously. Full/mixed checked 64,000 control paths each and sparse checked 8,960. Deliberate interruption still stopped after three signals and retained the expected failure, so it is not a fourfold executed-workload case. All candidate/control accounting and unknown-inference gates remained active.
+
+| Case | 320-signal seconds | 1,280-signal seconds | Observed time ratio | Prior outcome bytes | Current outcome bytes | Current worker peak RSS bytes | Current sampled allocated peak bytes |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| full | 77.348 | 112.016 | 1.448 | 3164535 | 12629440 | 224260096 | 182304768 |
+| mixed | 70.021 | 113.593 | 1.622 | 3165113 | 12629991 | 223305728 | 181755904 |
+| sparse | 6.651 | 12.580 | 1.892 | 609332 | 2267085 | 64495616 | 17870848 |
+| interrupted | 43.196 | 44.144 | 1.022 | 37116 | 37056 | 215871488 | 145035264 |
+
+The normal full/mixed output packages grew approximately fourfold, while total runtime grew less in this pair of observations. Preparation costs are largely fixed at these dimensions, and cache reuse may affect results; these observations do not establish a scaling law or an upper bound. Timings were sequential single measurements, not repeated paired experiments. Spread coordinates are regenerated for each count, so populations are not nested and outcome statistics/dispositions are not expected to be identical. The comparison records only fixed-shape/status equality, counts, sizes and resources; it makes no record-parity claim. Coordinates are unique within each definition, but the five available definitions reuse the same generated population/geometry, which can favor execution caches.
+
+This closes the initial fourfold signal-count diagnostic, not resource qualification. At 1,280 signals and 96 assets, it remains much smaller than the registered 4,263,580-signal/781-asset workload; synthetic history and geometry are not representative-market guarantees. Local WSL, incomplete dependency attestation, sampled resource coverage gaps and excluded remote publication/failure retention remain. No market archive was loaded or study attempt reserved. Original measurements and source-bound provenance are retained in `research/v9/a6_intermediate_attempt14/`.
+
+Next: measure execution-cache hits/evictions and their runtime effect at these shapes, then establish combined full-roster/long-history/runtime/storage and hosted publication/failure-retention bounds. Do not extrapolate these sublinear timings into permission to activate the market run. A6.3 remains open.
