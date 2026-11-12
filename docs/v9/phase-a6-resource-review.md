@@ -861,3 +861,20 @@ The integrated outcome audit now streams source signals and decoded pairs once t
 The decoder, independent selector and price verifier are unchanged. The integrated audit accepts only after the accounting verifier returns successfully, final statistics reconcile, and all three signal counts agree. It no longer reconstructs packed records in a second scan. Failures may be found in a different order because per-pair checks interleave with accounting, but no partial work is accepted. A late accounting failure never finalizes statistics; a late statistics failure still yields only `failure.json`, and temporary indexes are closed/cleaned.
 
 Regression coverage includes one decode per pair while retaining every candidate/control price check, complete-cohort paths, late failures, incremental/standalone statistics parity, accumulator lifecycle, corrupt and rehashed-invalid outcomes, missing records and null-inference protections. The retained small diagnostic `research/v9/a6_single_pass_audit.json` records six pair decodes and 206 independent price checks, with source hashes and fixture dimensions. This demonstrates removed duplicate work, not a measured runtime speedup or full-scale resource bound. New source-bound complete-pipeline measurements remain necessary.
+
+## Single-pass audit: complete synthetic pipeline (2026-11-12)
+
+Attempt 12 measured source `2022a845aded08b2627be04d55511766a9ac13a9` with the same synthetic dimensions as attempt 11: 199 definitions/seven unavailable, 781 assets (eight in sparse), 1,200 bars, eight signals per available definition, diverse prices, spread placement and 25,000-row shards. All four cases completed within the 600-second limit. Normal cases independently audited 1,536 signals each; intentional interruption retained its expected failure after three. Local Git byte checks, case receipts and the final-report hash verified.
+
+| Case | Prior total seconds | Total seconds | Prior audit seconds | Audit seconds | Worker peak RSS bytes | Sampled allocated peak bytes |
+|---|---:|---:|---:|---:|---:|---:|
+| full | 97.949 | 110.328 | 42.165 | 44.846 | 158498816 | 129736704 |
+| mixed | 98.237 | 103.165 | 41.552 | 41.299 | 164290560 | 129687552 |
+| sparse | 8.290 | 9.980 | 3.388 | 4.188 | 31191040 | 13639680 |
+| interrupted | 19.510 | 21.643 | 0.004 | 0.046 | 126636032 | 47476736 |
+
+Full/mixed totals increased from 97.949/98.237 to 110.328/103.165 seconds. The full case's unchanged preparation/outcome stages also increased from 15.036/38.309 to 18.345/44.531 seconds. The cause of timing variation is not established. Removing the second pair decode is verified by call-count tests, but this measurement establishes no end-to-end speedup. Do not normalize or selectively omit slower stages to manufacture one.
+
+Outcome package sizes, workload/disposition fields and audit statistics match attempt 11. This report comparison does not assert complete pair-record parity. New late-failure regressions and the small six-pair/206-price-path diagnostic separately verify that one-pass orchestration retains all accounting, source, price and statistics checks. Full/mixed worker peaks were 158,498,816 / 164,290,560 bytes versus 157,245,440 / 156,557,312 previously; sampled resources remain observations rather than upper bounds.
+
+Raw reports, environment, exit, log, ten progress receipts, comparison and source-bound provenance are retained under `research/v9/a6_intermediate_attempt12/`. Local WSL, incomplete dependency attestation, short synthetic histories, 1,536 rather than 4,263,580 signals, sampling gaps and excluded observer/checkpoint/remote-publication costs remain. The runtime/resource feasibility gap and A6.3 stay open. All prior evidence remains unchanged.
