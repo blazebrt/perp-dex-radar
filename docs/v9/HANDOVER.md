@@ -23,7 +23,7 @@ This file is that plan. Keep it current.
    - `git show origin/evidence-results:REPORT.md` (phase A/B: the legacy strategies);
    - `git show origin/evidence-d1-results:REPORT_D1.md` and `origin/evidence-d2-results:REPORT_D2.md` (phase D);
    - `research/v9/evidence_runs.jsonl` (every run, hash-chained).
-4. Pick the first unchecked item in section 6 that is not blocked, and work on it.
+4. Pick an actionable unchecked item in section 6. Current delivery order: F4 performance ledger, then F3 Analyzer context; these do not depend on A6. Do not default to another small A6 benchmark. See `operations-monitoring.md` for the explicit remaining-work map.
 
 ## 1. Where things stand
 
@@ -40,6 +40,7 @@ This file is that plan. Keep it current.
 | Live multi-venue data layer | **C1â€“C3 built** (in PR #28): `v9/market.py`, `data/v9/market.json`, an hourly history on `v9-market-history`, a Today panel and Analyzer context. 16 of 16 sources answered from Actions. | `docs/v9/market-context.md`, branch `market-results` |
 | Trade alerts | **Built** (F5, in PR #28): Telegram and/or Discord on every new TRADE, with the full plan. Sends nothing until the owner adds the secrets. | `v9/alerts.py` |
 | New signal research (positioning, funding, OI, liquidations, basis, regime) | **D1 and D2 done, D7 answered.** Four strategies (funding fade, taker flow, top-trader divergence, crowd fade) were pre-registered and each tested once on the phase B dataset. **None is confirmed.** XSMOM long remains the only tradable side. | `docs/v9/phase-d1-preregistration.md`, `docs/v9/phase-d2-preregistration.md`, branches `evidence-d1-results`, `evidence-d2-results` |
+| Quality and operations | **G1 monitoring implemented in draft PR #30; G2 existing behavior verified complete (2026-11-12).** All active v9 market sources are monitored with explicit freshness limitations and retained alerts; activation awaits merge. Audit delivery is compressed and outside Today’s critical path. **16 major items remain: 14 core + 2 optional.** | `docs/v9/operations-monitoring.md` |
 | Decision engine v2 (expected-R ranking, regime, sizing) | **E4 done**: the forward test is evaluated every scan, shown on Today and demotes a side automatically. E1â€“E3 not started. | section 6, phase E |
 | Pro UX (rich trade plans, market board, performance ledger, alerts) | **F1 done** (full trade plan: entry, stop, trailing stop, time exit, size on the page account and in the trader's own dollars, evidence, forward test). F2 first version, F5 alerts. F3 and F4 not started. | section 6, phase F |
 
@@ -440,8 +441,8 @@ How every phase D study runs (D1 set the pattern):
 
 ### Phase G: quality and operations
 
-- [ ] G1. Freshness monitors and failure alerts for every source.
-- [ ] G2. Keep the published artifacts small (gzip, compact JSON); trim the 9.8 MB audit or load it lazily.
+- [x] G1. Active v9 market-source monitoring implemented (2026-11-12, draft PR #30): all 16 sources, collector failure, fetch and retained observation freshness, missing/partial coverage, GitHub warning annotations, job summary and retained report. Sources without upstream timestamps are explicitly FETCH_ONLY. Production activation awaits merge and a Scan check; no external watchdog is claimed. See `operations-monitoring.md`.
+- [x] G2. Existing compact/deterministic-gzip audit and page-specific loading verified (2026-11-12). Today never requests the audit; Portfolio renders the summary before detail; actual gzip, corrupt/missing fallback and unsupported-browser paths are tested. No audit records dropped or published files changed. See `operations-monitoring.md`.
 - [x] G3. CI covers every v9 module; parity manifests for every published change.
   - Every module in `v9/` and `tools/v9/` has tests in CI:
     - main job: market, alerts, metrics_fetch, record_run (`test_v9_evidence_runs`), and register_forward_test with
@@ -1249,3 +1250,11 @@ Attempt 14 measured source `613c2087b6a05f94b41a3a54382b9f805fe78097` at 256 sig
 Full/mixed/sparse/interrupted runtimes were 112.016/113.593/12.580/44.144 seconds versus 77.348/70.021/6.651/43.196 previously. Full/mixed outcome packages grew from 3,164,535/3,165,113 to 12,629,440/12,629,991 bytes. This is an observed scaling diagnostic, not a bound or causal law. Coordinates are unique per definition but regenerated rather than nested as count changes; definitions reuse geometry/populations, so caching can favor the fixture. No equality of changed-population outcomes/statistics is asserted. Validation: all 1,382 Linux regression tests passed in 343.934 seconds before results publication.
 
 Next: measure execution-cache hits/evictions and their runtime effect, then assess combined full-volume/long-history feasibility, then bounded hosted/remote-publication/failure-retention resources, reviewed environment/dependencies and independent qualification. The initial fourfold scaling subtask is complete. A6.3 and 18 major roadmap items remain open. No market outcome attempt, evidence-history append, promotion, merge or deployment.
+
+### 2026-11-12 — Stop benchmark churn; complete operations deliverables
+
+Reviewed every remaining major roadmap item and separated missing scientific evidence from independent software delivery. Implemented source monitoring for all 16 active v9 market sources, including observation freshness independent of fetch freshness, partial Gate coverage, absent/malformed sources, optional-key disclosure and collector failure even when a recent prior file exists. The Scan workflow runs the read-only monitor after collection, emits warning annotations and a job summary, and retains the diagnostic report for 14 days. It does not change market output bytes, trading authority or pages. G1 implementation is complete in draft; production activation still requires merge and verification.
+
+Verified G2's already-existing compact/gzip and page-specific audit loading. Added runtime checks proving Today avoids the audit, Portfolio renders before audit detail resolves, actual gzip decodes correctly, and corrupt/missing/unsupported gzip falls back to JSON. This is verified existing functionality, not a claimed new optimization. The established deterministic snapshot/compression test remains intact. Validation: all 1,395 Linux regression tests passed in 327.893 seconds on the final implementation; the Scan workflow parses and the existing v9 scope checks pass. An earlier validation run was stopped to include the oversized-timestamp fix, then the complete suite was rerun.
+
+G1/G2 are now checked in the roadmap, leaving 16 major items (14 core and two optional). A6.3 and the scientific blockers remain open; no acceptance threshold is weakened. Next product work is F4 followed by F3, with expected-R/sizing work and preregistered studies tracked separately in `operations-monitoring.md`. No new benchmark, market outcome attempt, evidence-history append, promotion, merge or deployment occurred.
