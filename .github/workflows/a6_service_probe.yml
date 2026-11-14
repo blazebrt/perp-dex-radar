@@ -1,0 +1,91 @@
+name: A6 service startup resource pilot
+
+on:
+  push:
+    branches: [v9/census-evidence]
+    paths: [.github/workflows/a6_service_probe.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: a6-service-resource-pilot
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    if: github.repository == 'blazebrt/perp-dex-radar' && github.ref == 'refs/heads/v9/census-evidence'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.10.12'
+      - name: Capture pilot environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir "$RUNNER_TEMP/a6-pilot"
+          python - <<'PY'
+          import json, os, platform, sys
+          from pathlib import Path
+          report = dict(schema='v9.a6-hosted-pilot-environment/1',
+              source_commit=os.environ['GITHUB_SHA'], run_id=os.environ['GITHUB_RUN_ID'],
+              run_attempt=os.environ['GITHUB_RUN_ATTEMPT'], python=sys.version,
+              platform=platform.platform(), runner_os=os.environ['RUNNER_OS'],
+              runner_arch=os.environ['RUNNER_ARCH'], image_os=os.environ.get('ImageOS'),
+              image_version=os.environ.get('ImageVersion'), synthetic_only=True,
+              resource_qualified=False, promotion_authority=False)
+          Path(os.environ['RUNNER_TEMP'], 'a6-pilot', 'environment.json').write_text(json.dumps(report, indent=2)+'\n')
+          PY
+          git --version > "$RUNNER_TEMP/a6-pilot/git-version.txt"
+      - name: Install pilot dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install numpy==2.2.6 pandas==2.2.3 numba==0.61.2 2>&1 | tee "$RUNNER_TEMP/a6-pilot/install.log"
+          python -m pip freeze --all > "$RUNNER_TEMP/a6-pilot/dependencies.txt"
+      # Keep the service populated until counters are captured; retain attempt 1 separately.
+      - name: Measure synthetic pipeline before service holder exits
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo env LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}" "$(command -v python)" - "$RUNNER_TEMP/a6-pilot" <<'PY'
+          import hashlib, json, sys
+          from pathlib import Path
+          from tools.v9.control_service_memory import run
+          output=Path(sys.argv[1]); root=Path.cwd()
+          command=[sys.executable,str(root/'tools/v9/control_resource_measure.py'),'--out',str(output/'measurements.json')]
+          accounting=run(command,root,output/'service',1200)
+          print(json.dumps(accounting,sort_keys=True))
+          if accounting['status']!='MEASURED_DIAGNOSTIC_PENDING_HOSTED_PLACEMENT_CHECK' or not accounting['cleanup_verified']:
+              raise RuntimeError('service accounting failed; inspect retained logs')
+          raw=(output/'measurements.json').read_bytes(); report=json.loads(raw)
+          expected='/system.slice/'+accounting['unit']
+          if accounting['service_properties']['ControlGroup']!=expected: raise ValueError('service group mismatch')
+          for phase in ('before','after'):
+              observed=report['cgroup_capability_'+phase]
+              if observed.get('status')!='SHARED_GROUP_COUNTERS_ONLY' or observed.get('group')!=expected:
+                  raise ValueError('workload membership mismatch')
+              if observed['counters']['memory.peak']>accounting['memory_peak_bytes']:
+                  raise ValueError('kernel peak exceeds service report')
+          verification=dict(status='SERVICE_WORKLOAD_GROUP_VERIFIED',
+              startup_basis='SERVICE_MANAGER_LAUNCH_CONTRACT_WITH_IN_WORKLOAD_MEMBERSHIP_RECEIPTS',
+              unit=accounting['unit'],group=expected,workload_membership_verified=True,
+              cleanup_verified=True,resource_qualified=False,promotion_authority=False)
+          (output/'placement-verification.json').write_text(json.dumps(verification,sort_keys=True,indent=2)+'\n')
+          (output/'measurements.sha256').write_text(hashlib.sha256(raw).hexdigest()+'  measurements.json\n')
+          PY
+      - name: Retain pilot diagnostics even on failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: a6-service-pilot-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/a6-pilot/
+          if-no-files-found: error
+          retention-days: 90

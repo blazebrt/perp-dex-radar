@@ -1,0 +1,17 @@
+{
+  "complete_distribution_inventory": false,
+  "git": "git version 2.34.1",
+  "hosted_runner": false,
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+  "promotion_authority": false,
+  "python": "3.10.12 (main, Aug 31 2026, 10:18:17) [GCC 11.4.0]",
+  "resource_qualified": false,
+  "selected_distributions": {
+    "llvmlite": "0.44.0",
+    "numba": "0.61.2",
+    "numpy": "2.2.6",
+    "pandas": "2.2.3"
+  },
+  "source_commit": "a39b753f73fa8b0514edf9873ad9177486f2af7d",
+  "synthetic_only": true
+}

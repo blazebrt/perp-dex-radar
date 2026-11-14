@@ -1,0 +1,109 @@
+{
+  "artifacts": {
+    "environment.json": {
+      "bytes": 528,
+      "sha256": "350135c29b853544258b09062a4b1d79cf8a93372efcadcf67ce255697779f10"
+    },
+    "exit.json": {
+      "bytes": 34,
+      "sha256": "2f88378d09e59069b8718b97f904cda0c5316099eadde14be5f168bcb044d0a3"
+    },
+    "log.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "measurements.json": {
+      "bytes": 35028,
+      "sha256": "b8df989a1be11ddb562e1168b15690659c22c76557461cabeb94a09409b6d620"
+    },
+    "progress/case-000.completed.json": {
+      "bytes": 9914,
+      "sha256": "1cd7dcd2572c864993b7a41e6d1e5f06d72082448181adf38a022a7b33785b66"
+    },
+    "progress/case-000.started.json": {
+      "bytes": 407,
+      "sha256": "bb5429d500e38165118b6d2eb520ed00ddb30967620545505b37b903174e0ac7"
+    },
+    "progress/case-001.completed.json": {
+      "bytes": 10280,
+      "sha256": "c985c7732319216e53bd727e321891e614e7aefa351029b3c9a711fe19de40d6"
+    },
+    "progress/case-001.started.json": {
+      "bytes": 408,
+      "sha256": "187df30d0d8f9d8064928152761aa7e5c84ec131a01cc635e9cb9aa1a37b0f21"
+    },
+    "progress/case-002.completed.json": {
+      "bytes": 9318,
+      "sha256": "4bd0e13ec6ea5d22193a1a0ec256cdecfe8103fc0cbc1a048cd3ef2aaf55b059"
+    },
+    "progress/case-002.started.json": {
+      "bytes": 409,
+      "sha256": "c51282db20c88abacfce852cb7afcddca55129e083a2121b25d88b20cf2c7b6b"
+    },
+    "progress/case-003.completed.json": {
+      "bytes": 2804,
+      "sha256": "ba91d46634d4c86ccf7487e8a39fa172077003230daefe292911fd9a8cc2d348"
+    },
+    "progress/case-003.started.json": {
+      "bytes": 414,
+      "sha256": "6f567777a50b84b00b4f866ae7d3aeca8c4fd61c982fdd6613475efc1a5b45ad"
+    },
+    "progress/completed.json": {
+      "bytes": 851,
+      "sha256": "c9bf86b8819eeb1198ae750261e95525424a25f7dbb8e6ac26b72dd413cab8f7"
+    },
+    "progress/started.json": {
+      "bytes": 1802,
+      "sha256": "e05cb262972ceffb664adc19c54ea50b94208891abc1eb53a0dba59e5ad0f16a"
+    }
+  },
+  "case_receipts_verified": 4,
+  "command": [
+    "timeout",
+    "--kill-after=10s",
+    "300s",
+    "python3",
+    "tools/v9/control_resource_measure.py",
+    "--signals",
+    "64",
+    "--bars",
+    "16384",
+    "--assets",
+    "96",
+    "--definitions",
+    "6",
+    "--unavailable",
+    "1",
+    "--shard-rows",
+    "25000",
+    "--signal-placement",
+    "spread",
+    "--price-profile",
+    "diverse",
+    "--out",
+    "a6-intermediate4-measurements.json"
+  ],
+  "date": "2026-10-29",
+  "date_timezone": "Asia/Calcutta",
+  "hosted_runner": false,
+  "limitations": [
+    "Local WSL, not the intended hosted runner.",
+    "Selected dependency versions are retained, not a complete locked-install attestation.",
+    "Long synthetic histories are not proof of coverage of every bound archive source.",
+    "Small signal/definition/asset population and uncalibrated synthetic prices remain unrepresentative.",
+    "RSS sums may double-count shared pages and miss processes; scans have gaps.",
+    "Allocated disk is sampled and descriptor-access gaps occurred in all cases.",
+    "Observer/checkpoint overhead and remote publication are excluded.",
+    "Earlier retained attempts remain unchanged; this run does not explain attempt 1."
+  ],
+  "market_data_loaded": false,
+  "promotion_authority": false,
+  "report_hash_verified": true,
+  "resource_qualified": false,
+  "schema": "v9.a6-local-synthetic-attempt/1",
+  "source_commit": "195e951a5de58bd1058c4249fe39277aa143830c",
+  "status": "COMPLETED_DIAGNOSTICS_NOT_RESOURCE_QUALIFIED",
+  "synthetic_only": true,
+  "tool_reported_exit_code": 0,
+  "wrapper_observed_exit_code": 0
+}

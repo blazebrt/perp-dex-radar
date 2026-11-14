@@ -1,0 +1,56 @@
+{
+  "audit_status": "VERIFIED_REGISTERED_PRICE_DIAGNOSTICS",
+  "calls": {
+    "independent_price_checks": 206,
+    "pair_decodes": 6
+  },
+  "candidate_paths": 6,
+  "control_paths": 200,
+  "date": "2026-11-12",
+  "implementation_sha256": {
+    "audit_control_outcomes.py": "5ac0ecd8acb4cc1a8d31d89ea9fa1e98b422effc5be4edecd476d06e92c91e43",
+    "control_pipeline_probe.py": "02792be914f1a393af9e665879a921580d6103834d6cb6547ccae1af0e7f87cc",
+    "verify_control_outcomes.py": "6857f7f493d7341185641aca6a3c1065a135c79485ba9ce4c0a6ffaba8a720e5",
+    "verify_control_prices.py": "f81c6e1f10edda73371ac16ec14e18e7dd452907a7a09dd6356226e47960186e",
+    "verify_control_selection.py": "654c739b06858bc0597072255fabafa099cbeea1193ff9471bfa12c72397822c",
+    "verify_control_statistics.py": "271f6ab3386055917cf7fd9f3312c37bdb358ee5d682d670d580ed92429ae436",
+    "verify_control_storage.py": "edcbaa7bf97b3aefa6f0cf60f1749d3da45d01ba2aae4139f7f15b1615dce637"
+  },
+  "limitations": [
+    "Small synthetic call-count diagnostic, not performance or resource qualification.",
+    "Failure detection order can differ because per-pair checks are interleaved.",
+    "Global accounting and final statistics must both pass before any audit success.",
+    "Independent selection, price and decoder implementations remain unchanged."
+  ],
+  "market_data_loaded": false,
+  "parent_commit": "8f3c66682b3436897c055061c50b3bf99b64239e",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "promotion_authority": false,
+  "python": "3.12.14",
+  "resource_qualified": false,
+  "schema": "v9.a6-single-pass-audit-diagnostic/1",
+  "shape": {
+    "assets": 61,
+    "bars": 400,
+    "definitions": 3,
+    "price_profile": "diverse",
+    "scenario": "mixed",
+    "shard_rows": 25000,
+    "signal_placement": "prefix",
+    "signals_per_available_trial": 3,
+    "unavailable": 1
+  },
+  "signals": 6,
+  "statistics": {
+    "control_reuse_verified": true,
+    "day_aggregates_verified": true,
+    "days": 6,
+    "descriptive_statistics_verified": true,
+    "full_matched_authority": false,
+    "promotion_authority": false,
+    "reuse_rows": 200,
+    "signals": 6,
+    "source_provenance_verified": false
+  },
+  "synthetic_only": true
+}

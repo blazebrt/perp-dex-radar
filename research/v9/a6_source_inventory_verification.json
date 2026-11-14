@@ -1,0 +1,13 @@
+{
+  "actual_broad_archive_files_verified": false,
+  "all_original_disputed_blocks_reconciled": true,
+  "bound_input_hashes_verified": true,
+  "broad_source_hash_bindings": 782,
+  "disputed_blocks": 94,
+  "fields": 189,
+  "inventory_sha256": "bcab567507ccee4e26112f39835bdfe5df6c1248f7e40fd049d5cdbfa04d3ea1",
+  "market_signals_generated": false,
+  "promotion_authority": false,
+  "schema": "v9.a6-source-inventory-verification/1",
+  "segments": 87
+}

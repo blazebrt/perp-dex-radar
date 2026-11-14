@@ -1,0 +1,119 @@
+{
+ "code": [
+  {
+   "base": "d89addb637899b76b9e2ecc13963908d893ac8612fb59b47e49135b66df35c49",
+   "file": "analyze.html",
+   "head": "bc238d2c5b35e7a508aa2a0bd91992786f4bdc5a4c24d0cdcaa2418ede72ce36",
+   "kind": "file",
+   "rule": "V9_MARKET_CONTEXT_PRESENTATION"
+  },
+  {
+   "base": "70776f17b73789252c1968616ccb3d6db78325583c35c9b21fcc8dc40ec7a1dd",
+   "file": "analyze.js",
+   "head": "14b29b44c2270833374c21100be82d13ab542d0951a570e4b6a4153e12f9b491",
+   "kind": "file",
+   "rule": "V9_PROBATION_LABEL"
+  },
+  {
+   "base": "LEGACY_HOLDOVER",
+   "file": "data/quant.json",
+   "head": "ACTIVE_PROBATION",
+   "path": "strategies/XSMOM/deployment_state",
+   "rule": "V9_XSMOM_LONG_PROBATION"
+  },
+  {
+   "base": "INSUFFICIENT_EVIDENCE",
+   "file": "data/quant.json",
+   "head": "PROBATION",
+   "path": "strategies/XSMOM/research_state",
+   "rule": "V9_XSMOM_LONG_PROBATION"
+  },
+  {
+   "base": "f2e10f9934a919543bbc2c5fa02e8823629fb9b78789cf6348c3e8cadb96e351",
+   "file": "data/quant.json",
+   "head": "67aa8122ae4a033af7352f0cf900e10d4bc1a2b744c545cc69c4c09b18ccf49e",
+   "path": "strategy_authority/runtime_policy_hash",
+   "rule": "V9_XSMOM_LONG_PROBATION"
+  },
+  {
+   "base": "v8.quant-strategy-policy/1",
+   "file": "data/quant.json",
+   "head": "v8.quant-strategy-policy/2",
+   "path": "strategy_authority/runtime_policy_schema",
+   "rule": "V9_XSMOM_LONG_PROBATION"
+  },
+  {
+   "base": "3cab76b9106aa5ef9756efcb1546a866f6e72574181b824da59ff9a6eb0aca7d",
+   "file": "desk.css",
+   "head": "5042c8811dcd21751df30ef679b5d0a39f1bfa509ee82666d5fc9985d5723818",
+   "kind": "file",
+   "rule": "V9_DESK_PROBATION_PRESENTATION"
+  },
+  {
+   "base": "4ee60cecc35844b053ad2b9a4a3f40c51a2eb3a8546f4268c3a27e3846833fb1",
+   "file": "desk.js",
+   "head": "c44b3b8c5573e6bbd10e598f9a2db45d0bf543d645c2b5a884ed9ea6688dde10",
+   "kind": "file",
+   "rule": "V9_DESK_PROBATION_PRESENTATION"
+  },
+  {
+   "base": "99ff267701d1804d4be6d7a050c24abc49b9ec13b60d41b3da0ffc6151293e7c",
+   "file": "index.html",
+   "head": "42bffca57286fa0d137994b11ec31391a8002a7abea70d48d9b32afbab928bc8",
+   "kind": "file",
+   "rule": "V9_MARKET_CONTEXT_PRESENTATION"
+  },
+  {
+   "base": null,
+   "file": "performance.html",
+   "head": "06b01b96c065c6878b56a4beae8283df0e97836e51f8eb724cc75ab73758afcb",
+   "kind": "file",
+   "rule": "V9_CONTEXT_AND_LEDGER_PRESENTATION"
+  },
+  {
+   "base": null,
+   "file": "performance.js",
+   "head": "291f4f4d8b494e2ca7c5dae44a0c7b6ad71a7455eea0025a1ff6130aaefac200",
+   "kind": "file",
+   "rule": "V9_CONTEXT_AND_LEDGER_PRESENTATION"
+  },
+  {
+   "base": "3b31b17ebe1a7010cf7a6118339746c0d2a48016963ca7b6882251619a574dcc",
+   "file": "portfolio.html",
+   "head": "69565b63c78b2a17697152a999b51472a46825ff4df5fd022c836d4d206511d2",
+   "kind": "file",
+   "rule": "V9_CONTEXT_AND_LEDGER_PRESENTATION"
+  },
+  {
+   "base": "c41d92a9202fe965a46c7bc4b462bc4e435245a5da7d54284159e68a372d106d",
+   "file": "quant.html",
+   "head": "0d5b79ccfd675662b76ffb1de6256c456619150ac2193186e6e6f7754799929d",
+   "kind": "file",
+   "rule": "V9_PROBATION_LABEL"
+  }
+ ],
+ "dex_status": [],
+ "failures": [],
+ "manifest": "tests/fixtures/v8/v9b_expected_deltas.json",
+ "notes": {
+  "added": [],
+  "removed": []
+ },
+ "overall": {
+  "changed_files": {
+   "analyze.html": 1,
+   "analyze.js": 1,
+   "data/quant.json": 4,
+   "desk.css": 1,
+   "desk.js": 1,
+   "index.html": 1,
+   "performance.html": null,
+   "performance.js": null,
+   "portfolio.html": 1,
+   "quant.html": 1
+  },
+  "decision_changes": [],
+  "unchanged_files": 15
+ },
+ "universe": []
+}

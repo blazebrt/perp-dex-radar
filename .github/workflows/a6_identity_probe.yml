@@ -1,0 +1,30 @@
+name: A6 runner identity diagnostics
+on:
+  push:
+    branches: [v9/census-evidence]
+    paths: [.github/workflows/a6_identity_probe.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: a6-runner-identity-probe
+  cancel-in-progress: false
+jobs:
+  probe:
+    if: github.repository == 'blazebrt/perp-dex-radar' && github.ref == 'refs/heads/v9/census-evidence'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Capture selected identity claims without changing the environment
+        run: python3 tools/v9/control_runner_identity.py --out "$RUNNER_TEMP/a6-runner-identity.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: a6-runner-identity-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/a6-runner-identity.json
+          if-no-files-found: error
+          retention-days: 90

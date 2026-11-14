@@ -361,7 +361,9 @@ class DeskPanel(unittest.TestCase):
         sol = self.out["sol"]
         self.assertIn("Hyperliquid <b>– / 8h</b>", sol)             # missing funding shows as missing, never 0
         self.assertNotIn("Positioning (Gate)", sol)
-        self.assertIn("is not in the market context", self.out["absent"])
+        self.assertIn("No asset-level observation", self.out["absent"])
+        self.assertIn("does not establish whether it is listed", self.out["absent"])
+        self.assertNotIn("not a listed Hyperliquid perp", self.out["absent"])
 
     def test_escaping(self):
         for k in ("evil", "evilcoin"):

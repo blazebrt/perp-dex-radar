@@ -1,0 +1,43 @@
+{
+  "environment": {
+    "ImageOS": "ubuntu24",
+    "ImageVersion": "20261023.334.3",
+    "RUNNER_ARCH": "X64",
+    "RUNNER_ENVIRONMENT": "github-hosted",
+    "RUNNER_OS": "Linux"
+  },
+  "files": {
+    "/etc/environment": {
+      "selected_fields": {
+        "ImageOS": "ubuntu24",
+        "ImageVersion": "20261023.334.3"
+      },
+      "sha256": "fd1de52771ec44f032283d7d0805e8e830c04256f0eadd3b8155fdc0a9f1c350",
+      "status": "READ"
+    },
+    "/imagegeneration/imagedata.json": {
+      "selected_fields": {
+        "Image": "ubuntu-24.04",
+        "Image Release": "https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261012.334",
+        "Included Software": "https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md",
+        "Version": "20261012.334.1"
+      },
+      "sha256": "4225a88e05bfdf2c627b9035b04c715a9c23b03fc68d31ad0e1567305268b2fe",
+      "status": "READ"
+    }
+  },
+  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "promotion_authority": false,
+  "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+  "resource_qualified": false,
+  "run_attempt": "1",
+  "run_id": "40655572012",
+  "schema": "v9.a6-runner-identity/2",
+  "source_commit": "590be5bb0b31044a72e68f18ec18f7651964c1cd",
+  "status": "CONFLICTING_IDENTITY_CLAIMS",
+  "version_claims": {
+    "environment": "20261023.334.3",
+    "etc_environment": "20261023.334.3",
+    "imagedata": "20261012.334.1"
+  }
+}

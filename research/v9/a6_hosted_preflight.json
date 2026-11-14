@@ -1,0 +1,86 @@
+{
+  "blockers": [],
+  "capacity": {
+    "available_memory_bytes": 15764819968,
+    "cgroup_memory_limits": [
+      {
+        "current_bytes": 376848384,
+        "group": "/system.slice/hosted-compute-agent.service",
+        "headroom_bytes": null,
+        "limit_bytes": null
+      },
+      {
+        "current_bytes": 1228042240,
+        "group": "/system.slice",
+        "headroom_bytes": null,
+        "limit_bytes": null
+      }
+    ],
+    "free_disk_bytes": 92114919424,
+    "host_available_memory_bytes": 15764819968,
+    "memory_capacity_scope": "CURRENT_GROUP_AND_VISIBLE_ANCESTORS_SNAPSHOT"
+  },
+  "identity": {
+    "environment": {
+      "ImageOS": "ubuntu24",
+      "ImageVersion": "20261101.360.1",
+      "RUNNER_ARCH": "X64",
+      "RUNNER_ENVIRONMENT": "github-hosted",
+      "RUNNER_OS": "Linux"
+    },
+    "files": {
+      "/etc/environment": {
+        "selected_fields": {
+          "ImageOS": "ubuntu24",
+          "ImageVersion": "20261101.360.1"
+        },
+        "sha256": "8d2283bc0f50858a999ffe95072c84061deae0aaa129304c8bbb2b7b734a60b8",
+        "status": "READ"
+      },
+      "/imagegeneration/imagedata.json": {
+        "selected_fields": {
+          "Image": "ubuntu-24.04",
+          "Image Release": "https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261101.360",
+          "Included Software": "https://github.com/actions/runner-images/blob/ubuntu24/20261101.360/images/ubuntu/Ubuntu2404-Readme.md",
+          "Version": "20261101.360.1"
+        },
+        "sha256": "4d52c9c7aa5ba40ca6ee8c8145840dfbec3bfd22285b594f509157d2d14a93aa",
+        "status": "READ"
+      }
+    },
+    "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+    "promotion_authority": false,
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "resource_qualified": false,
+    "run_attempt": "1",
+    "run_id": "42795844660",
+    "schema": "v9.a6-runner-identity/2",
+    "source_commit": "16926703cdd894c382dffedb2982f018375e4ab8",
+    "status": "CONSISTENT_CLAIMS_NOT_ATTESTED",
+    "version_claims": {
+      "environment": "20261101.360.1",
+      "etc_environment": "20261101.360.1",
+      "imagedata": "20261101.360.1"
+    }
+  },
+  "market_data_loaded": false,
+  "promotion_authority": false,
+  "remaining_requirements": [
+    "REPRESENTATIVE_FULL_VOLUME_AND_HISTORY",
+    "COMBINED_MEMORY_ALLOCATED_DISK_AND_RUNTIME_BOUNDS",
+    "REMOTE_PUBLICATION_AND_FAILURE_RETENTION",
+    "REVIEWED_LOCK_AND_ENVIRONMENT",
+    "INDEPENDENT_QUALIFICATION_REVIEW"
+  ],
+  "required_workload": {
+    "assets": 781,
+    "definitions": 199,
+    "signals": 4263580
+  },
+  "resource_qualified": false,
+  "run_attempt": "1",
+  "run_id": "42795844660",
+  "schema": "v9.a6-hosted-preflight/1",
+  "source_commit": "16926703cdd894c382dffedb2982f018375e4ab8",
+  "status": "PREREQUISITES_OBSERVED_NOT_QUALIFIED"
+}

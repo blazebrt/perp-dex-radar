@@ -1,0 +1,41 @@
+{
+  "changed_published_files": [
+    "desk.js",
+    "portfolio.html",
+    "performance.html",
+    "performance.js"
+  ],
+  "complete_lifetime_journal": false,
+  "date": "2026-11-12",
+  "differential": {
+    "base": "fe68203d6f5b76eb68250192ffb638cd9079eeb2",
+    "report": "docs/v9/product-delta-report.json",
+    "sha256": "597bb4f0849257c1995c783702796bfdb0f4ac6cacf7e995c66fe6ad0aadd4c2",
+    "unexpected_changes": 0
+  },
+  "historical_entry_tier_coverage": "UNAVAILABLE",
+  "numerical_outputs_and_decisions_unchanged_from_source_parent": true,
+  "production_deployed": false,
+  "schema": "v9.product-validation/1",
+  "source_hashes": {
+    "dashboard.py": "4359e0bb5131b3437586187fa77ec59413b094f5adcf7d8fda448b85f8b8d5ad",
+    "desk.js": "c44b3b8c5573e6bbd10e598f9a2db45d0bf543d645c2b5a884ed9ea6688dde10",
+    "performance.html": "06b01b96c065c6878b56a4beae8283df0e97836e51f8eb724cc75ab73758afcb",
+    "performance.js": "291f4f4d8b494e2ca7c5dae44a0c7b6ad71a7455eea0025a1ff6130aaefac200",
+    "portfolio.html": "69565b63c78b2a17697152a999b51472a46825ff4df5fd022c836d4d206511d2",
+    "tests/fixtures/v8/legacy_parity_golden_v9b.json": "5b82b7b8562fb22289fd1e8ba5832e1452e7c8ad62c638ced2b4a7f65d05c437",
+    "tests/fixtures/v8/v9b_expected_deltas.json": "d697837e025b7604f27829f66952e852da992ca80160c4a0a81a2c3c185b4aae",
+    "tests/test_v9_market.py": "20e1669d391d73f48b53b36434b267910a79dae97eb9285ea2a0a36350ada3f8",
+    "tests/test_v9_product_context.py": "7bc9ea856d35a5c7316f8c798f06256fb45169d1c966b284204c272cd36fffd1"
+  },
+  "source_parent": "bfc9bc6212092a1599fe22c54094b6b3c375e3c6",
+  "tests": {
+    "command": "python3 -m unittest discover -s tests -v",
+    "count": 1402,
+    "log_sha256": "31ccdfcbe7fb5d899ef623eaa5af35293c1222df38464d0e6958c0079fa137d3",
+    "result": "OK",
+    "seconds": 358.287
+  },
+  "visual_preview_limitation": "In-app browser could not connect to local preview server.",
+  "visual_preview_verified": false
+}

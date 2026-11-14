@@ -1,0 +1,89 @@
+{
+  "accounting": {
+    "cleanup_state": {
+      "ActiveState": "inactive",
+      "LoadState": "not-found"
+    },
+    "cleanup_verified": true,
+    "error_type": "ValueError",
+    "exclusions": [
+      "SYSTEM_SERVICE_MANAGER",
+      "OUTER_ORCHESTRATOR",
+      "WORKLOAD_ESCAPING_CGROUP"
+    ],
+    "hosted_startup_placement_verified": false,
+    "launch_returncode": 0,
+    "promotion_authority": false,
+    "resource_qualified": false,
+    "schema": "v9.a6-service-memory/1",
+    "service_properties": {
+      "ActiveState": "active",
+      "ControlGroup": "",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "LoadState": "loaded",
+      "MemoryAccounting": "yes",
+      "MemoryPeak": "[not set]",
+      "Result": "success",
+      "SubState": "exited"
+    },
+    "status": "FAILED",
+    "unit": "a6-synthetic-8c072bee4166471c9e41d53a4461bab2.service",
+    "wall_seconds": 23.897142191
+  },
+  "artifact_digest_verified": true,
+  "artifact_file_sha256": {
+    "dependencies.txt": "8bcf44b3e7027a7bbb1c43a1920574431a3d352a284a2a3a517182fa9febb614",
+    "environment.json": "a63476495a654ce23f68bacf63f882bf34065a04a49d0eff64cac48e2d0d914c",
+    "git-version.txt": "e928567de6f903039a669b7647bf037309d50e4f7916bb5c06f7b05d3bf966fe",
+    "install.log": "0eec7e62b223fd802be2d555b93ec92dabac9a57a32ab212d49a4c8081abe4c3",
+    "measurements.json": "7231e2ea8cfc1b9bc92f679deb8d63a2ac98ca4b91635712fb179dd337e728f5",
+    "service/accounting.json": "9a0878851aea0369bbb5ab37ad799e400bb60f6f19ff21b78ed86b7f061493a3",
+    "service/cleanup.log": "0346f0ff3043eecac3e566c78a7798a6369c1053b7e673ad4f0e86c7889dc435",
+    "service/launch.log": "c06b9e9168ecf2ae859daadf2f705784da30d5862df555725da8d5d58e1c28fa",
+    "service/manager-version.log": "24e682030f54829600ce9c96ef9d8be4297eb4cd1b11eca8fa7f83c5c4595fc7",
+    "service/preflight.log": "cd8a72ddfdbdcbae4e401d617cd315bcfde925fcfc9e25dbf900531f0b2eeb6f",
+    "service/properties.log": "e51e72860afb9cbee837d88b44ccc5eae231b82ccc4cc6d0f2a599784f5459da",
+    "service/stop.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "service/worker.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "artifact_id": 12694028784,
+  "artifact_sha256": "6b3945aad47678307b7499a72c781483ebe77e6336b3904b41edf95a52a39be7",
+  "dependencies": [
+    "llvmlite==0.44.0",
+    "numba==0.61.2",
+    "numpy==2.2.6",
+    "pandas==2.2.3",
+    "pip==26.2.2",
+    "python-dateutil==3.0.0",
+    "pytz==2026.5",
+    "setuptools==65.5.0",
+    "six==1.17.0",
+    "tzdata==2026.5"
+  ],
+  "disposition": "WORKLOAD_COMPLETED_SERVICE_POST_EXIT_COUNTERS_UNAVAILABLE",
+  "environment": {
+    "image_os": "ubuntu24",
+    "image_version": "20261023.334.3",
+    "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+    "promotion_authority": false,
+    "python": "3.10.12 (main, Sep 30 2024, 21:31:33) [GCC 13.2.0]",
+    "resource_qualified": false,
+    "run_attempt": "1",
+    "run_id": "40413541548",
+    "runner_arch": "X64",
+    "runner_os": "Linux",
+    "schema": "v9.a6-hosted-pilot-environment/1",
+    "source_commit": "cda2b30b06c7dc69b37b869ae48f6b342473f163",
+    "synthetic_only": true
+  },
+  "job_id": 121890020220,
+  "job_log_runner_image_version": "20261012.334.1",
+  "measurement_checksum_available": false,
+  "promotion_authority": false,
+  "resource_qualified": false,
+  "run_id": 40413541548,
+  "runner_image_metadata_consistent": false,
+  "schema": "v9.a6-service-pilot-attempt/1",
+  "source_commit": "cda2b30b06c7dc69b37b869ae48f6b342473f163"
+}

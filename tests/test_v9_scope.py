@@ -33,11 +33,12 @@ UNCHANGED = (
 
 
 def without_v9_steps(text):
-    """scan.yml without the steps v9 adds (the market context collector and the trade alerts): everything else must
+    """scan.yml without the steps v9 adds (the market context collector, paper observation retention and the trade alerts): everything else must
     be unchanged."""
     lines, out, skip = text.split("\n"), [], False
     for line in lines:
-        if line.startswith("      - name: v9 market context") or line.startswith("      - name: v9 trade alerts"):
+        if (line.startswith("      - name: v9 market context") or line.startswith("      - name: v9 trade alerts")
+                or line.startswith("      - name: v9 paper observation history")):
             skip = True
             continue
         if skip and line.startswith("      - name: "):
@@ -131,13 +132,17 @@ class V9Scope(unittest.TestCase):
     def test_decision_policy_only_adds_version_2_keys(self):
         old, new = json.loads(base("v8/decision_policy.json")), json.loads(head("v8/decision_policy.json"))
         self.assertEqual((old["review_status"], new["review_status"]),
-                         ("POLICY_REVIEWED_INITIAL_V1", "POLICY_REVIEWED_V2_PROBATION"))
+                         ("POLICY_REVIEWED_INITIAL_V1", "POLICY_V3_EXPECTED_R_PENDING_MERGE_REVIEW"))
         added = {("strategy_authority", "probation_deployment_states"),
                  ("strategy_authority", "probation_research_states"), ("portfolio", "gating_book")}
         for section in old:
             if section in ("schema", "review_status", "statement"):
                 continue
             for key, entry in new[section].items():
+                if (section, key) == ("ranking", "best_trades_now"):
+                    self.assertEqual(entry["value"], [["expected_net_R", "desc"]] + old[section][key]["value"])
+                    self.assertEqual(entry["basis"], old[section][key]["basis"])
+                    continue
                 if (section, key) in added:
                     continue
                 with self.subTest(entry=f"{section}.{key}"):
@@ -148,7 +153,7 @@ class V9Scope(unittest.TestCase):
     def test_decision_engine_changes_are_declared(self):
         changed, added, removed, _, _ = changed_functions("v8/decision.py")
         self.assertEqual(changed, {"validate_policy", "_valid_until", "_directional", "_emerging", "_context", "build"})
-        self.assertEqual(added, {"_side_name", "_authorized_side", "_governed_book", "_forward_test"})
+        self.assertEqual(added, {"_side_name", "_authorized_side", "_governed_book", "_forward_test", "_ranking_expectation"})
         self.assertEqual(removed, set())
 
     def test_portfolio_input_only_records_the_entry_time(self):

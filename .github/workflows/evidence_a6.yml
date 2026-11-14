@@ -1,0 +1,96 @@
+name: A6 pinned signal inventory and audit
+
+on:
+  push:
+    branches: ["v9/census-evidence"]
+    paths: [".github/workflows/evidence_a6.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: evidence-a6-first-extraction
+  cancel-in-progress: false
+
+jobs:
+  extract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      GIT_AUTHOR_NAME: perp-dex-radar
+      GIT_AUTHOR_EMAIL: actions@users.noreply.github.com
+      GIT_COMMITTER_NAME: perp-dex-radar
+      GIT_COMMITTER_EMAIL: actions@users.noreply.github.com
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install research libraries
+        run: python -m pip install --disable-pip-version-check numpy pandas numba
+      - name: Synthetic extraction and independent audit checks
+        run: python -m unittest tests.test_v9_control_features tests.test_v9_control_sources tests.test_v9_control_signals tests.test_v9_control_extract tests.test_v9_control_artifacts tests.test_v9_control_population tests.test_v9_control_audit tests.test_v9_control_publish -v
+      - name: Reserve first attempt and refuse any existing attempt
+        id: reserve
+        run: |
+          set -euo pipefail
+          previous=$(git ls-remote --heads origin refs/heads/evidence-a6-results)
+          test -z "$previous" || { echo 'Existing A6 attempt: recover and inspect it; do not rerun.'; exit 1; }
+          python - <<'PY'
+          import hashlib, json, os, pathlib
+          protocol = pathlib.Path('docs/v9/phase-a6-publication.md').read_bytes()
+          record = dict(status='RESERVED', source_commit=os.environ['GITHUB_SHA'],
+                        run_id=os.environ['GITHUB_RUN_ID'], run_attempt=os.environ['GITHUB_RUN_ATTEMPT'],
+                        preregistration_sha256=hashlib.sha256(protocol).hexdigest(), promotion_authority=False)
+          pathlib.Path('a6_reservation.json').write_text(json.dumps(record,sort_keys=True,indent=2)+'\n')
+          PY
+          export GIT_INDEX_FILE="$RUNNER_TEMP/a6-reservation.index"
+          git read-tree --empty
+          git update-index --add --cacheinfo "100644,$(git hash-object -w a6_reservation.json),reservation.json"
+          reservation=$(git commit-tree "$(git write-tree)" -m "Reserve first A6 extraction: $GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT")
+          git push origin "$reservation:refs/heads/evidence-a6-results"
+          echo "sha=$reservation" >> "$GITHUB_OUTPUT"
+      - name: Export exact original archive and phase B evidence
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          mkdir a6_archive
+          git fetch --no-tags --depth=1 origin 4828a2dbf69e0f7e66c97af7fbc0c9a1f24cccc7 e4c0f0d8a5926ab54dd17da9ba7309518c77f611
+          git archive 4828a2dbf69e0f7e66c97af7fbc0c9a1f24cccc7 | tar -x -C a6_archive
+          git show e4c0f0d8a5926ab54dd17da9ba7309518c77f611:evidence.json > a6_phase_b.json
+      - name: Extract once and independently audit retained population
+        run: python tools/v9/control_publish.py --md a6_archive --evidence a6_phase_b.json --out a6_results --source-commit "$GITHUB_SHA"
+      - name: Retain all attempt files as a descendant of reservation
+        if: always() && steps.reserve.outcome == 'success'
+        env:
+          RESERVATION: ${{ steps.reserve.outputs.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p a6_results
+          export GIT_INDEX_FILE="$RUNNER_TEMP/a6-results.index"
+          git read-tree "$RESERVATION"
+          while IFS= read -r -d '' file; do
+            git update-index --add --cacheinfo "100644,$(git hash-object -w "$file"),${file#a6_results/}"
+          done < <(find a6_results -type f -print0)
+          commit=$(git commit-tree "$(git write-tree)" -p "$RESERVATION" -m "Retain A6 extraction and audit: $GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT")
+          git push origin "$commit:refs/heads/evidence-a6-results"
+          echo "Retained attempt commit: $commit"
+      - name: Report result only after retention
+        run: |
+          python - <<'PY'
+          import json
+          attempt = json.load(open('a6_results/attempt.json'))
+          if attempt['status'] != 'EXTRACTED_AND_AUDITED_WITH_SEVEN_UNAVAILABLE':
+              raise SystemExit(attempt['status'])
+          print('Available populations audited; independent retained-result inspection is still required.')
+          PY
+      - name: Backup incomplete or unpublished files
+        if: failure() && steps.reserve.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: a6-attempt-${{ github.run_id }}-${{ github.run_attempt }}
+          path: a6_results/
+          if-no-files-found: ignore

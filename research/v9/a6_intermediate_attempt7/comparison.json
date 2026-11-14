@@ -1,0 +1,107 @@
+{
+  "baseline_report_sha256": "9fe314192e10a5dd7b51df3804ea2a071c4563960134a96029da69a146c83d42",
+  "candidate_report_sha256": "699482737ce17fe3b949f7ce333c177924bb436ebcbdec48d90edbf33ef53eee",
+  "cases": [
+    {
+      "after_seconds": 95.989261359,
+      "before_seconds": 281.64952100200003,
+      "report_fields_equal": {
+        "assets": true,
+        "audit_status": true,
+        "bars_per_asset": true,
+        "candidate_paths": true,
+        "control_paths": true,
+        "definitions": true,
+        "dispositions": true,
+        "net_inference_available": true,
+        "outcome_status": true,
+        "price_profile": true,
+        "processed_signals": true,
+        "promotion_authority": true,
+        "scenario": true,
+        "signal_placement": true,
+        "signals_per_available_trial": true,
+        "statistics": true,
+        "unavailable_definitions": true
+      },
+      "scenario": "full"
+    },
+    {
+      "after_seconds": 97.906413477,
+      "before_seconds": 278.89869251300007,
+      "report_fields_equal": {
+        "assets": true,
+        "audit_status": true,
+        "bars_per_asset": true,
+        "candidate_paths": true,
+        "control_paths": true,
+        "definitions": true,
+        "dispositions": true,
+        "net_inference_available": true,
+        "outcome_status": true,
+        "price_profile": true,
+        "processed_signals": true,
+        "promotion_authority": true,
+        "scenario": true,
+        "signal_placement": true,
+        "signals_per_available_trial": true,
+        "statistics": true,
+        "unavailable_definitions": true
+      },
+      "scenario": "mixed"
+    },
+    {
+      "after_seconds": 9.233371000999995,
+      "before_seconds": 11.216646325000056,
+      "report_fields_equal": {
+        "assets": true,
+        "audit_status": true,
+        "bars_per_asset": true,
+        "candidate_paths": true,
+        "control_paths": true,
+        "definitions": true,
+        "dispositions": true,
+        "net_inference_available": true,
+        "outcome_status": true,
+        "price_profile": true,
+        "processed_signals": true,
+        "promotion_authority": true,
+        "scenario": true,
+        "signal_placement": true,
+        "signals_per_available_trial": true,
+        "statistics": true,
+        "unavailable_definitions": true
+      },
+      "scenario": "sparse"
+    },
+    {
+      "after_seconds": 17.52805153899999,
+      "before_seconds": 19.477346345,
+      "report_fields_equal": {
+        "assets": true,
+        "audit_status": true,
+        "bars_per_asset": true,
+        "candidate_paths": true,
+        "control_paths": true,
+        "definitions": true,
+        "dispositions": true,
+        "net_inference_available": true,
+        "outcome_status": true,
+        "price_profile": true,
+        "processed_signals": true,
+        "promotion_authority": true,
+        "scenario": true,
+        "signal_placement": true,
+        "signals_per_available_trial": true,
+        "statistics": true,
+        "unavailable_definitions": true
+      },
+      "scenario": "interrupted"
+    }
+  ],
+  "causal_speedup_established": false,
+  "complete_pair_record_parity_verified": false,
+  "promotion_authority": false,
+  "resource_qualified": false,
+  "schema": "v9.a6-synthetic-report-comparison/1"
+}

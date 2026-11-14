@@ -33,7 +33,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # source file -> published name: the desk (Today is the front page) and its shared core
 DESK_PAGES = (("today.html", "index.html"), ("analyze.html", "analyze.html"), ("analyze.js", "analyze.js"),
               ("funding.html", "funding.html"), ("portfolio.html", "portfolio.html"), ("research.html", "research.html"),
-              ("desk.js", "desk.js"), ("desk.css", "desk.css"))
+              ("desk.js", "desk.js"), ("desk.css", "desk.css"),
+              ("performance.html", "performance.html"), ("performance.js", "performance.js"))
 DIAGNOSTIC_PAGES = ("picks.html", "quant.html", "smart.html")      # earlier engines, outside the desk's navigation
 PAGES = tuple(dst for _, dst in DESK_PAGES) + DIAGNOSTIC_PAGES
 # the committed, hash-bound Phase 9 research record the Research page reads (copied as is, never computed here)

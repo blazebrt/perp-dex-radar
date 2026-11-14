@@ -1,0 +1,92 @@
+# INACTIVE TEMPLATE: not under .github/workflows. Qualification/review required.
+name: A6 qualified outcome attempt
+on:
+  workflow_dispatch:
+    inputs:
+      qualification_commit:
+        description: Reviewed commit containing qualification.json and requirements.lock
+        required: true
+        type: string
+      qualification_sha256:
+        description: Independently reviewed qualification file SHA-256
+        required: true
+        type: string
+      dependency_lock_sha256:
+        description: Independently reviewed hashed dependency lock SHA-256
+        required: true
+        type: string
+permissions:
+  contents: write
+concurrency:
+  group: evidence-a6-single-outcome
+  cancel-in-progress: false
+jobs:
+  outcome:
+    if: github.repository == 'blazebrt/perp-dex-radar' && github.ref == 'refs/heads/v9/census-evidence' && github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - name: Capture fixed deadline before setup
+        run: echo "A6_DEADLINE=$(( $(date +%s) + 21000 ))" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v4
+        id: checkout
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Read reviewed qualification and dependency lock
+        env:
+          QUALIFICATION_COMMIT: ${{ inputs.qualification_commit }}
+          QUALIFICATION_SHA256: ${{ inputs.qualification_sha256 }}
+          LOCK_SHA256: ${{ inputs.dependency_lock_sha256 }}
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, pathlib, re, subprocess, sys
+          commit = os.environ['QUALIFICATION_COMMIT']
+          expected = os.environ['QUALIFICATION_SHA256']
+          lock_hash = os.environ['LOCK_SHA256']
+          assert re.fullmatch('[0-9a-f]{40}', commit)
+          assert all(re.fullmatch('[0-9a-f]{64}', value) for value in (expected, lock_hash))
+          subprocess.run(['git', 'fetch', '--no-tags', 'origin', commit], check=True)
+          root = pathlib.Path(os.environ['RUNNER_TEMP'])
+          for name, digest in [('qualification.json', expected), ('requirements.lock', lock_hash)]:
+              raw = subprocess.check_output(['git', 'show', commit + ':research/v9/a6-resource/' + name])
+              assert hashlib.sha256(raw).hexdigest() == digest
+              with (root / ('a6-' + name)).open('xb') as out: out.write(raw)
+          report = json.loads((root / 'a6-qualification.json').read_bytes())
+          assert report['source_commit'] == os.environ['GITHUB_SHA']
+          assert report['dependency_lock_sha256'] == lock_hash
+          assert report['python_version'] == sys.version.split()[0]
+          assert report['runner_image_version'] == os.environ['ImageVersion']
+          PY
+      - name: Install reviewed dependencies
+        run: python -m pip install --require-hashes -r "$RUNNER_TEMP/a6-requirements.lock"
+      - name: Execute one qualified reserved attempt
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          QUALIFICATION_SHA256: ${{ inputs.qualification_sha256 }}
+        run: >-
+          python tools/v9/control_outcome_runner.py
+          --qualification "$RUNNER_TEMP/a6-qualification.json"
+          --qualification-sha256 "$QUALIFICATION_SHA256"
+          --deadline-epoch "$A6_DEADLINE"
+      - name: Preserve local commit objects for recovery
+        if: always() && steps.checkout.outcome == 'success'
+        run: >-
+          python tools/v9/control_outcome_backup.py
+          --work "$RUNNER_TEMP/a6-outcome-${{ github.run_id }}-1/job"
+          --bundle "$RUNNER_TEMP/a6-outcome-${{ github.run_id }}-1/recovery.bundle"
+      - name: Backup attempt files and recovery bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a6-outcome-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: warn
+          include-hidden-files: true
+          path: |
+            ${{ runner.temp }}/a6-outcome-${{ github.run_id }}-1/job/
+            ${{ runner.temp }}/a6-outcome-${{ github.run_id }}-1/recovery.bundle
+            ${{ runner.temp }}/a6-qualification.json
+            ${{ runner.temp }}/a6-requirements.lock

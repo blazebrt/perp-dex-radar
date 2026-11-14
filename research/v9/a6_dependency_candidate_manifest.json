@@ -1,0 +1,86 @@
+{
+  "lock_sha256": "07a46148d00b0416c05539451ec2fb7deca0e99f9c846ad3ccbb4c9e49a34475",
+  "promotion_authority": false,
+  "resource_qualified": false,
+  "schema": "v9.a6-dependency-lock-candidate/1",
+  "status": "CANDIDATE_REQUIRES_INSTALLATION_AND_REVIEW",
+  "wheels": [
+    {
+      "bytes": 42361859,
+      "filename": "llvmlite-0.44.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+      "name": "llvmlite",
+      "sha256": "7202b678cdf904823c764ee0fe2dfe38a76981f4c1e51715b4cb5abb6cf1d9e8",
+      "version": "0.44.0"
+    },
+    {
+      "bytes": 3824054,
+      "filename": "numba-0.61.2-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "name": "numba",
+      "sha256": "ae8c7a522c26215d5f62ebec436e3d341f7f590079245a2f1008dfd498cc1642",
+      "version": "0.61.2"
+    },
+    {
+      "bytes": 16801050,
+      "filename": "numpy-2.2.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+      "name": "numpy",
+      "sha256": "fc7b73d02efb0e18c000e9ad8b83480dfcd5dfd11065997ed4c6747470ae8915",
+      "version": "2.2.6"
+    },
+    {
+      "bytes": 13064210,
+      "filename": "pandas-2.2.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+      "name": "pandas",
+      "sha256": "86976a1c5b25ae3f8ccae3a5306e443569ee3c3faf444dfd0f41cda24667ad57",
+      "version": "2.2.3"
+    },
+    {
+      "bytes": 1822182,
+      "filename": "pip-24.3.1-py3-none-any.whl",
+      "name": "pip",
+      "sha256": "3790624780082365f47549d032f3770eeb2b1e8bd1f7b2e02dace1afa361b4ed",
+      "version": "24.3.1"
+    },
+    {
+      "bytes": 94659,
+      "filename": "python_dateutil-3.0.0-py2.py3-none-any.whl",
+      "name": "python-dateutil",
+      "sha256": "3c79630202e4152c6add678446984236efe4f57e84d8e892aab0637bab82e9fd",
+      "version": "3.0.0"
+    },
+    {
+      "bytes": 506342,
+      "filename": "pytz-2026.5-py2.py3-none-any.whl",
+      "name": "pytz",
+      "sha256": "e658af3757f9e26a9d25dd2aff38335acd92bc9104f890a894b2c1ba28311b03",
+      "version": "2026.5"
+    },
+    {
+      "bytes": 1251070,
+      "filename": "setuptools-75.3.0-py3-none-any.whl",
+      "name": "setuptools",
+      "sha256": "f2504966861356aa38616760c0f66568e535562374995367b4e69c7143cf6bcd",
+      "version": "75.3.0"
+    },
+    {
+      "bytes": 11050,
+      "filename": "six-1.17.0-py2.py3-none-any.whl",
+      "name": "six",
+      "sha256": "4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274",
+      "version": "1.17.0"
+    },
+    {
+      "bytes": 347996,
+      "filename": "tzdata-2026.5-py2.py3-none-any.whl",
+      "name": "tzdata",
+      "sha256": "b683bd1b6659ddcd810ff02ad09ba821d4bf1065072805063eb35c49617905ac",
+      "version": "2026.5"
+    },
+    {
+      "bytes": 72494,
+      "filename": "wheel-0.45.1-py3-none-any.whl",
+      "name": "wheel",
+      "sha256": "708e7481cc80179af0e556bbf0cc00b8444c7321e2700b8d8580231d13017248",
+      "version": "0.45.1"
+    }
+  ]
+}
