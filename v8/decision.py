@@ -45,7 +45,7 @@ VERSION = "v8.decision/1"
 POLICY_VERSION = "v8.decision-policy/1"
 PATH = Path(__file__).with_name("decision_policy.json")
 FILE = "data/v8/decision.json"
-REVIEW_STATUS = "POLICY_REVIEWED_V2_PROBATION"    # the one accepted review status of v8.decision-policy/1 (v9: V2)
+REVIEW_STATUS = "POLICY_V3_EXPECTED_R_PENDING_MERGE_REVIEW"  # draft policy; activation requires owner review
 TRADE, WATCH, AVOID = "TRADE", "WATCH", "AVOID"
 STATES = (TRADE, WATCH, AVOID)
 STATE_ORDER = {TRADE: 0, WATCH: 1, AVOID: 2}
@@ -59,7 +59,7 @@ TRACE_STEPS = ("DISCOVERY", "IDENTITY", "ECONOMIC_EXPOSURE", "VENUE_HEALTH", "SI
                "RISK_LIMITS", "DECISION_STATE")
 PLACEMENT_STEPS = ("RANKING", "SECTION_PLACEMENT")
 RANK_FIELDS = {
-    "best_trades_now": {"signal_kind_order": "num", "signal_age_s": "num", "slippage_rate": "num",
+    "best_trades_now": {"expected_net_R": "num", "signal_kind_order": "num", "signal_age_s": "num", "slippage_rate": "num",
                         "after_executable_risk": "num", "asset": "str", "strategy": "str", "direction": "num"},
     "emerging_opportunities": {"primary_evidence_count": "num", "evidence_count": "num",
                                "outstanding_blockers": "num", "asset": "str"},
@@ -688,6 +688,7 @@ def _directional(asset, rec, sig, snap, policy, base):
                                        "limit_changes": (w or {}).get("limit_changes")},
                        "Phase 10 limits (v8.portfolio-risk-policy/1, unchanged)", INFO))
     metrics = after.get("metrics") or {}
+    expectation = _ranking_expectation(terms, (strat.get("probation") or {}).get("evidence")) if tier == PROBATION_TIER else _ranking_expectation(None, None)
     cand = {"id": cid, "type": DIRECTIONAL, "asset": asset, "strategy": sid, "direction": d,
             "authority_tier": tier,
             "probation": ({"risk_multiplier": mult, "entry_window_s": terms.get("entry_window_s"),
@@ -695,12 +696,14 @@ def _directional(asset, rec, sig, snap, policy, base):
                            "design_window": terms.get("design_window"), "archive_trades": terms.get("trades"),
                            "forward_test": fdet, "evidence": (strat.get("probation") or {}).get("evidence")}
                           if isinstance(terms, dict) else None),
+            "ranking_expectation": expectation,
             "positive_evidence": [{"type": "CURRENT_STRATEGY_SIGNAL", "strategy": sid, "direction": d,
                                    "kind": sig.get("kind")}],
             "funding": fund, "proposal": pinp,
             "portfolio": {"before": before, "after": after, "effect": (w or {}).get("effect"),
                           "delta": (w or {}).get("delta"), "explanation": (w or {}).get("explanation")},
-            "ranking_inputs": {"signal_kind_order": 0 if sig.get("kind") in FRESH_ENTRY_KINDS else 1,
+            "ranking_inputs": {"expected_net_R": expectation["mean_net_R"],
+                               "signal_kind_order": 0 if sig.get("kind") in FRESH_ENTRY_KINDS else 1,
                                "signal_age_s": age,
                                "slippage_rate": ((row or {}).get("liquidity") or {}).get("slippage_rate"),
                                "after_executable_risk": metrics.get("max_executable_risk"),
@@ -860,6 +863,36 @@ def _evaluate_asset(asset, rec, snap, policy):
 
 
 # --------------------------------------------------------------------------- ranking and sections
+def _ranking_expectation(terms, evidence):
+    """Use the bound out-of-sample estimate, never a fitted score or live result.
+
+    The snapshot adapter supplies already validated strategy-policy terms. Full
+    tier has no comparable expectation adapter yet and remains explicitly unknown.
+    Intervals describe uncertainty of the archive mean, not an individual trade.
+    """
+    result = {"status": "UNAVAILABLE", "mean_net_R": None, "lower_95": None, "upper_95": None,
+              "basis": "Bound archive out-of-sample net R per trade, including archive costs and funding",
+              "interval_scope": "Archive mean; not a prediction interval for this trade",
+              "candidate_specific": False, "evidence": None}
+    exp = terms.get("expectation") if isinstance(terms, dict) else None
+    if not isinstance(exp, dict) or not isinstance(evidence, dict):
+        return result
+    values = [exp.get("out_of_sample_" + key) for key in ("mean_R", "lower_95", "upper_95")]
+    digest_value = evidence.get("sha256")
+    try:
+        finite = all(_num(v) for v in values)
+    except OverflowError:
+        finite = False
+    if (not finite or not values[1] <= values[0] <= values[2]
+            or not isinstance(digest_value, str) or len(digest_value) != hashlib.sha256().digest_size * 2
+            or any(c not in "0123456789abcdef" for c in digest_value)
+            or not isinstance(evidence.get("path"), str) or not evidence["path"]):
+        return result
+    result.update(status="AVAILABLE", mean_net_R=values[0], lower_95=values[1], upper_95=values[2],
+                  evidence=copy.deepcopy(evidence))
+    return result
+
+
 def _key(cand, rules, section):
     out = []
     for field, order in rules:

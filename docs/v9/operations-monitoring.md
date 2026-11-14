@@ -20,7 +20,7 @@ The Today page requests decision and market context only; it never loads the aud
 
 ## Remaining delivery plan
 
-There are 15 unchecked major roadmap items: 13 core plus two optional (after the Analyzer delivery). This is a count of major acceptance items, not estimated days or remaining coding tasks.
+There are 14 unchecked major roadmap items: 12 core plus two optional (after expected-net-R ranking implementation). This is a count of major acceptance items, not estimated days or remaining coding tasks.
 
 | Items | What actually remains |
 |---|---|
@@ -29,8 +29,8 @@ There are 15 unchecked major roadmap items: 13 core plus two optional (after the
 | A7, D4, D6 | Source/coverage review, immutable preregistration, implementation and independently verified studies. Archive first observation must not be presented as verified listing inception. |
 | D5, E3 | Preregistered regime research and confirmed evidence before any regime gating. |
 | B9 | Review individual policy/follow-up dispositions; no new trade authority without evidence and review. |
-| E1, E2 | Evidence-calibrated ranking and portfolio sizing, with engine invariants and pinned output-parity review. |
-| F4 | The retained-ledger page is implemented; immutable entry-time authority capture and durable full-history retention remain. F3 current-source context is complete. See `product-context-ledger.md`. |
+| E2 | Tier/volatility portfolio sizing within Phase 10 limits; E1 ranking is implemented for current bound archive evidence, pending merge review. |
+| F4 | The retained-ledger page is implemented; durable observation capture is implemented but inactive; entry-time attribution and archive browsing remain. F3 current-source context is complete. See `product-context-ledger.md`. |
 | C4, D1b (optional) | Owner-provided optional credentials; optional prospective registration/collection respectively. |
 
 F3 and the retained F4 page are now implemented. F4 closure needs prospective entry attribution/full-history retention; do not infer it from current policy. Do not resume serial small A6 benchmarks as the default next task. An A6 continuation must have a concrete feasibility decision or implementation target. Missing scientific evidence remains visible separately from completed software. No merge, deployment, new strategy promotion or market study was performed in this change.

@@ -140,8 +140,8 @@ REVIEWED_VALUES_DIGEST = "2c788403b1f4f65f4d591a1075aeebceba24782d94d28a725a47f9
 class Policy(unittest.TestCase):
     def test_policy_is_governed_and_reviewed(self):
         p = DE.load_policy()
-        self.assertEqual((p["schema"], p["review_status"]), ("v8.decision-policy/1", "POLICY_REVIEWED_V2_PROBATION"))
-        self.assertEqual(DE.REVIEW_STATUS, "POLICY_REVIEWED_V2_PROBATION")
+        self.assertEqual((p["schema"], p["review_status"]), ("v8.decision-policy/1", "POLICY_V3_EXPECTED_R_PENDING_MERGE_REVIEW"))
+        self.assertEqual(DE.REVIEW_STATUS, "POLICY_V3_EXPECTED_R_PENDING_MERGE_REVIEW")
         for sec in DE.SECTION_KEYS:
             for k, e in p[sec].items():
                 self.assertEqual(e["basis"], "POLICY", f"{sec}.{k}")
@@ -163,6 +163,7 @@ class Policy(unittest.TestCase):
         for section, values in added.items():
             for key, value in values.items():
                 self.assertEqual(v1[section].pop(key), value)
+        self.assertEqual(v1["ranking"]["best_trades_now"].pop(0), ["expected_net_R", "desc"])
         self.assertEqual(DE.digest(v1), REVIEWED_VALUES_DIGEST)
         self.assertEqual(p["portfolio"]["after_state_effects"]["value"]["APPROACHING_LIMITS"], "CAP_WATCH")
         self.assertEqual(p["portfolio"]["after_state_effects"]["value"]["LIMIT_BREACHED"], "AVOID")

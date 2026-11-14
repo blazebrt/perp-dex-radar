@@ -169,7 +169,7 @@ process.stdout.write(value);
         new_fn = functions((ROOT / "v8/decision.py").read_text(encoding="utf8"))
         boundary_changes = {"_asset_gates", "_freshness", "_context", "_directional"}
         v9_changes = {"validate_policy", "_valid_until", "_emerging", "build"}
-        v9_added = {"_side_name", "_authorized_side", "_governed_book", "_forward_test"}
+        v9_added = {"_side_name", "_authorized_side", "_governed_book", "_forward_test", "_ranking_expectation"}
         for name, node in old_fn.items():
             if name not in boundary_changes | v9_changes:
                 with self.subTest(function=name):
