@@ -33,11 +33,12 @@ UNCHANGED = (
 
 
 def without_v9_steps(text):
-    """scan.yml without the steps v9 adds (the market context collector and the trade alerts): everything else must
+    """scan.yml without the steps v9 adds (the market context collector, paper observation retention and the trade alerts): everything else must
     be unchanged."""
     lines, out, skip = text.split("\n"), [], False
     for line in lines:
-        if line.startswith("      - name: v9 market context") or line.startswith("      - name: v9 trade alerts"):
+        if (line.startswith("      - name: v9 market context") or line.startswith("      - name: v9 trade alerts")
+                or line.startswith("      - name: v9 paper observation history")):
             skip = True
             continue
         if skip and line.startswith("      - name: "):

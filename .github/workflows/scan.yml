@@ -199,6 +199,22 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: python -m v8.snapshot --out site --pages-url "${{ steps.pages.outputs.base_url }}" --archive-dir "$RUNNER_TEMP/v8_archive" --history-branch v8-history --history-backfill --history-repo "${{ github.repository }}"
 
+      - name: v9 paper observation history (read only; never assigns entry authority)
+        if: always() && steps.core_tests.outcome == 'success' && github.ref == 'refs/heads/main'
+        continue-on-error: true
+        timeout-minutes: 5
+        run: python -m v9.paper_history --site site --report "$RUNNER_TEMP/v9-paper-retention.json"
+
+      - name: v9 paper observation history retain diagnostic
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: v9-paper-retention-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/v9-paper-retention.json
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: v9 trade alerts (a Telegram / Discord message when the desk gains a TRADE; nothing without the secrets)
         # Reads only this scan's published decision (data/v8/decision.json): a candidate that is TRADE now and was not in
         # the previous published decision is announced once, with the engine's own plan and its valid-until time.
