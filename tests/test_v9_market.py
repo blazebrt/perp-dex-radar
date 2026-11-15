@@ -243,10 +243,12 @@ class Collect(unittest.TestCase):
         self.assertIsNotNone(doc["regime"]["premiums"]["korea"])
 
     def test_no_engine_reads_the_market_context(self):
-        for path in list(ROOT.glob("v8/*.py")) + [ROOT / n for n in ("quant.py", "scanner.py", "picks.py", "smart.py")]:
+        for path in list(ROOT.glob("v8/*.py")) + [ROOT / n for n in ("quant.py", "scanner.py", "picks.py", "smart.py", "v9/risk_budget.py")]:
             text = path.read_text(encoding="utf-8")
             self.assertNotIn("v9.market", text, path)
             self.assertNotIn("data/v9/market.json", text, path)
+            if path == ROOT / "v8/decision.py":
+                text = text.replace("from v9 import risk_budget as RB\n", "")
             self.assertNotIn("from v9", text, path)
 
 

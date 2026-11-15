@@ -363,7 +363,7 @@ class GovernedBook(unittest.TestCase):
         self.assertEqual(cand(doc, "HI")["state"], DE.TRADE)
         doc = DE.build(snap({"HI": [P.sig("PROB")]}, book=[pos]))          # no fresh rate for ALPHA: never zero
         self.assertEqual(doc["portfolio"]["phase10"]["state"], PR.UNEVALUABLE)
-        self.assertEqual(cand(doc, "HI")["missing_authorities"], ["PORTFOLIO_UNEVALUABLE"])
+        self.assertEqual(cand(doc, "HI")["missing_authorities"], ["PROPOSAL_UNQUANTIFIABLE", "PORTFOLIO_UNEVALUABLE"])
 
     def test_entered_signal_stays_the_same_opportunity(self):
         bar = P.AS_OF - 5 * 3600

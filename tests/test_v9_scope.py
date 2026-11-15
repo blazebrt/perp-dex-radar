@@ -132,9 +132,9 @@ class V9Scope(unittest.TestCase):
     def test_decision_policy_only_adds_version_2_keys(self):
         old, new = json.loads(base("v8/decision_policy.json")), json.loads(head("v8/decision_policy.json"))
         self.assertEqual((old["review_status"], new["review_status"]),
-                         ("POLICY_REVIEWED_INITIAL_V1", "POLICY_V3_EXPECTED_R_PENDING_MERGE_REVIEW"))
+                         ("POLICY_REVIEWED_INITIAL_V1", "POLICY_V4_RISK_BUDGET_PENDING_MERGE_REVIEW"))
         added = {("strategy_authority", "probation_deployment_states"),
-                 ("strategy_authority", "probation_research_states"), ("portfolio", "gating_book")}
+                 ("strategy_authority", "probation_research_states"), ("portfolio", "gating_book"), ("portfolio", "sizing_rule")}
         for section in old:
             if section in ("schema", "review_status", "statement"):
                 continue
@@ -152,7 +152,7 @@ class V9Scope(unittest.TestCase):
 
     def test_decision_engine_changes_are_declared(self):
         changed, added, removed, _, _ = changed_functions("v8/decision.py")
-        self.assertEqual(changed, {"validate_policy", "_valid_until", "_directional", "_emerging", "_context", "build"})
+        self.assertEqual(changed, {"implementation_hash", "validate_policy", "_valid_until", "_directional", "_emerging", "_context", "build"})
         self.assertEqual(added, {"_side_name", "_authorized_side", "_governed_book", "_forward_test", "_ranking_expectation"})
         self.assertEqual(removed, set())
 

@@ -29,7 +29,7 @@ There are 14 unchecked major roadmap items: 12 core plus two optional (after exp
 | A7, D4, D6 | Source/coverage review, immutable preregistration, implementation and independently verified studies. Archive first observation must not be presented as verified listing inception. |
 | D5, E3 | Preregistered regime research and confirmed evidence before any regime gating. |
 | B9 | Review individual policy/follow-up dispositions; no new trade authority without evidence and review. |
-| E2 | Tier/volatility portfolio sizing within Phase 10 limits; E1 ranking is implemented for current bound archive evidence, pending merge review. |
+| E2 | Constrained incremental tier/covariance sizing is implemented; full-book rebalance recommendations and turnover/cost treatment remain. Existing positions are fixed, so whole-book parity is not claimed. E1 ranking is implemented for current bound archive evidence. Both await merge review. |
 | F4 | The retained-ledger page is implemented; durable observation capture is implemented but inactive; entry-time attribution and archive browsing remain. F3 current-source context is complete. See `product-context-ledger.md`. |
 | C4, D1b (optional) | Owner-provided optional credentials; optional prospective registration/collection respectively. |
 
