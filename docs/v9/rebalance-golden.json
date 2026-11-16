@@ -1,0 +1,157 @@
+{
+  "schema": "v9.rebalance-golden/1",
+  "parent": "2005af2bb4582a68132d6ffa8e2c276dd94b6746",
+  "fixture": "tests.test_v9_rebalance.book plus REQ ALPHA signal; synthetic only",
+  "before_decision_sha256": "c62832b7a10c681ef186193ac500d37c823c2d058c2e23e08ee4340cd3730353",
+  "after_decision_sha256": "b907f3110351b68087fdf13a515ae184b60e0a870472a6a32df00a538a9bcb07",
+  "candidates_unchanged": true,
+  "actual_portfolio_unchanged": true,
+  "input_unchanged": true,
+  "rebalance": {
+    "status": "MODEL_WITHIN_LIMITS",
+    "reason": null,
+    "trade_authorization": false,
+    "existing_positions_changed": false,
+    "whole_book_parity": true,
+    "numerical_policy": {
+      "max_positions": 64,
+      "max_sweeps": 2048,
+      "tolerance": 1e-08,
+      "max_scale_steps": 32
+    },
+    "source_as_of": 1784332800,
+    "common_returns": 49,
+    "last_return_end": 1784332800,
+    "sweeps": 8,
+    "uniform_scale_steps": 1,
+    "max_share_error": 8.963090936120466e-09,
+    "equity_before": 500.0,
+    "modeled_equity_after_costs": 499.94062500042577,
+    "turnover_usd": 62.49999955184559,
+    "estimated_fees_usd": 0.028124999798330514,
+    "estimated_slippage_usd": 0.031249999775922795,
+    "phase10_after": {
+      "schema": "v8.portfolio-risk/1",
+      "policy_schema": "v8.portfolio-risk-policy/1",
+      "policy_hash": "86c8c85522ec695cdee917adf2ba5f242b3b2fd755c426d0443981193d1ac2f2",
+      "policy_review_status": "POLICY_REVIEWED_INITIAL_V1",
+      "as_of": 1784332800,
+      "state": "WITHIN_LIMITS",
+      "breached": [],
+      "approaching": [],
+      "missing_authorities": [],
+      "missing_authority_count": 0,
+      "positions": 2,
+      "limits": {
+        "max_position_leverage": {
+          "metric": 0.050005938205119276,
+          "limit": 2.0,
+          "status": "OK"
+        },
+        "max_gross_leverage": {
+          "metric": 0.07500890820409419,
+          "limit": 3.0,
+          "status": "OK"
+        },
+        "max_net_leverage": {
+          "metric": 0.07500890820409419,
+          "limit": 1.5,
+          "status": "OK"
+        },
+        "max_executable_risk": {
+          "metric": 0.003821703872998599,
+          "limit": 0.03,
+          "status": "OK"
+        },
+        "max_asset_stop_risk": {
+          "metric": 0.002500296910255964,
+          "limit": 0.01,
+          "status": "OK"
+        },
+        "max_strategy_stop_risk": {
+          "metric": 0.0037504454102047094,
+          "limit": 0.02,
+          "status": "OK"
+        },
+        "max_side_stop_risk": {
+          "metric": 0.0037504454102047094,
+          "limit": 0.025,
+          "status": "OK"
+        },
+        "max_cluster_stop_risk": {
+          "metric": 0.0037504454102047094,
+          "limit": 0.02,
+          "status": "OK"
+        },
+        "max_stressed_loss": {
+          "metric": 0.005696926578100954,
+          "limit": 0.06,
+          "status": "OK"
+        }
+      },
+      "exposure": {
+        "gross_leverage": 0.07500890820409419,
+        "long_leverage": 0.07500890820409419,
+        "short_leverage": 0.0,
+        "net_leverage": 0.07500890820409419,
+        "gross_notional_usd": 37.50000044815441,
+        "gross_long_usd": 37.50000044815441,
+        "gross_short_usd": 0.0,
+        "net_usd": 37.50000044815441,
+        "max_position_leverage": 0.050005938205119276,
+        "by_actionability": {
+          "ACTIONABLE": {
+            "positions": 2,
+            "quantified": 2,
+            "gross_leverage": 0.07500890820409419,
+            "net_leverage": 0.07500890820409419,
+            "stop_risk": 0.0037504454102047094,
+            "unquantified": []
+          }
+        },
+        "unquantified_open_positions": []
+      },
+      "stress": {
+        "CORRELATED_MARKET_MOVE": 0.0007032944223586382,
+        "DIVERSIFICATION_FAILURE": 0.003821703872998599,
+        "STOP_SLIPPAGE": 0.005696926578100954,
+        "EXECUTION_COST": 0.0038929623357924882,
+        "LIQUIDITY_DEGRADATION": 0.003859208327100646,
+        "FUNDING_DETERIORATION": 0.0039342172353047395
+      }
+    },
+    "reductions_only": true,
+    "positions": [
+      {
+        "id": "old",
+        "asset": "HI",
+        "strategy": "REQ",
+        "direction": 1,
+        "current_notional_usd": 50.0,
+        "target_notional_usd": 25.0,
+        "reduction_usd": 25.0,
+        "tier_multiplier": 1.0,
+        "target_risk_share": 0.5,
+        "modeled_risk_share": 0.49999999103690906
+      },
+      {
+        "id": "second",
+        "asset": "LO",
+        "strategy": "REQ",
+        "direction": 1,
+        "current_notional_usd": 50.0,
+        "target_notional_usd": 12.500000448154411,
+        "reduction_usd": 37.49999955184559,
+        "tier_multiplier": 1.0,
+        "target_risk_share": 0.5,
+        "modeled_risk_share": 0.5000000089630909
+      }
+    ],
+    "limitations": [
+      "Hypothetical targets at current marks; no orders or journal changes.",
+      "Costs use the existing fee/slippage model, not guaranteed fills.",
+      "Venue lot sizes, minimum orders and execution sequencing are not modeled.",
+      "Costs are deducted from the supplied paper account equity; no live NAV is inferred."
+    ]
+  }
+}

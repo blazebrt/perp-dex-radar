@@ -1,5 +1,6 @@
 """Constrained incremental risk budgeting; never rebalance or mutate a book."""
 import math
+import copy
 from v8 import portfolio_risk as PR
 
 
@@ -118,3 +119,145 @@ def _allocate(portfolio, asset, direction, stop, cap, tier_multiplier, multiplie
                 target_notional_fraction=target, actual_notional_fraction=weight,
                 portfolio_daily_volatility=math.sqrt(total), existing_contributions=details,
                 whole_book_parity=False)
+
+
+# Numerical/resource bounds, not fitted trading thresholds. Failure is explicit.
+REBALANCE_NUMERICS = dict(max_positions=64, max_sweeps=2048, tolerance=1e-8, max_scale_steps=32)
+
+
+def _budget_weights(cov, budgets):
+    """Positive coordinate descent on .5*x'C*x - sum(b*log(x))."""
+    n = len(budgets)
+    vol = [math.sqrt(cov[i][i]) for i in range(n)]
+    corr = [[cov[i][j]/(vol[i]*vol[j]) for j in range(n)] for i in range(n)]
+    b = [v/math.fsum(budgets) for v in budgets]
+    x = [math.sqrt(v) for v in b]
+    for sweep in range(REBALANCE_NUMERICS['max_sweeps']):
+        for i in range(n):
+            other = math.fsum(corr[i][j]*x[j] for j in range(n) if j != i)
+            root = math.sqrt(other*other + 4*corr[i][i]*b[i])
+            x[i] = (2*b[i]/(root+other) if other >= 0 else (root-other)/(2*corr[i][i]))
+        rc = [x[i]*math.fsum(corr[i][j]*x[j] for j in range(n)) for i in range(n)]
+        total = math.fsum(rc)
+        if not finite(total) or total <= 0 or not all(finite(v) and v > 0 for v in x):
+            return None
+        error = max(abs(rc[i]/total-b[i]) for i in range(n))
+        if error <= REBALANCE_NUMERICS['tolerance'] and all(v > 0 for v in rc):
+            return [x[i]/vol[i] for i in range(n)], b, sweep+1
+    return None
+
+
+def rebalance(portfolio, multipliers):
+    """Read-only, reduction-only whole-book target, including modeled turnover costs."""
+    unavailable = dict(status='UNAVAILABLE', reason=None, trade_authorization=False,
+                       existing_positions_changed=False, whole_book_parity=False,
+                       numerical_policy=dict(REBALANCE_NUMERICS))
+    try:
+        return _rebalance(portfolio, multipliers, unavailable)
+    except (ArithmeticError, ValueError):
+        return dict(unavailable, reason='NUMERICAL_INPUT_UNAVAILABLE')
+
+
+def _rebalance(portfolio, multipliers, unavailable):
+    def fail(reason):
+        return dict(unavailable, reason=reason)
+    if not isinstance(portfolio, dict) or not isinstance(multipliers, dict):
+        return fail('BOOK_UNAVAILABLE')
+    policy = PR.load_policy()
+    before = PR.evaluate(portfolio, policy)
+    rows = before.get('positions') or []
+    if before.get('state') == PR.UNEVALUABLE or any(r.get('status') != 'VALID' for r in rows):
+        return fail('BOOK_UNEVALUABLE')
+    if not rows:
+        return dict(unavailable, status='EMPTY', reason='NO_GOVERNED_POSITIONS')
+    if len(rows) > REBALANCE_NUMERICS['max_positions']:
+        return fail('POSITION_RESOURCE_LIMIT')
+    if any(not r.get('entered') or r.get('actionability') != PR.ACTIONABLE for r in rows):
+        return fail('POSITION_ACTIONABILITY_UNAVAILABLE')
+    rows = sorted(rows, key=lambda r: r['id'])
+    if len({r['id'] for r in rows}) != len(rows):
+        return fail('DUPLICATE_POSITION_ID')
+    equity = before.get('equity')
+    sizing = portfolio.get('sizing')
+    risk = sizing.get('risk_per_trade') if isinstance(sizing, dict) else None
+    if not finite(equity) or equity <= 0 or not finite(risk) or risk <= 0:
+        return fail('SIZING_INPUT_UNAVAILABLE')
+    tiers = [multipliers.get(r['id']) for r in rows]
+    if any(not finite(t) or not 0 < t <= 1 for t in tiers):
+        return fail('EXISTING_TIER_UNKNOWN')
+    rates = [r['liquidity'].get('slippage_rate') for r in rows]
+    if any(not finite(v) or v < 0 for v in rates):
+        return fail('TURNOVER_COST_UNAVAILABLE')
+    fee = policy['costs']['fee_taker']['value']
+    names = sorted({r['asset'] for r in rows})
+    source, now = portfolio.get('returns'), portfolio.get('as_of')
+    if not isinstance(source, dict) or type(now) is not int or now <= 0:
+        return fail('RETURNS_UNAVAILABLE')
+    series = {a: PR._returns(source.get(a), now, policy) for a in names}
+    if any(not v for v in series.values()):
+        return fail('RETURNS_UNAVAILABLE')
+    keys = sorted(set.intersection(*(set(v) for v in series.values())))
+    dep = policy['dependence']
+    if len(keys) < dep['min_overlap_bars']['value']:
+        return fail('COMMON_HISTORY_INSUFFICIENT')
+    if now-keys[-1] >= dep['bar_seconds']['value']:
+        return fail('COMMON_HISTORY_STALE')
+    means = {a: math.fsum(series[a][k] for k in keys)/len(keys) for a in names}
+    vectors = [[r['direction']*(series[r['asset']][k]-means[r['asset']]) for k in keys] for r in rows]
+    cov = [[math.fsum(a*b for a,b in zip(x,y))/(len(keys)-1) for y in vectors] for x in vectors]
+    if any(not finite(v) for row in cov for v in row) or any(cov[i][i] <= 0 for i in range(len(rows))):
+        return fail('COVARIANCE_UNAVAILABLE')
+    solved = _budget_weights(cov, [t*t for t in tiers])
+    if solved is None:
+        return fail('PARITY_DID_NOT_CONVERGE')
+    shape, target_shares, sweeps = solved
+    caps = [min(r['notional_usd'], equity*risk*t/r['stop_distance']) for r,t in zip(rows,tiers)]
+    if any(not finite(v) or v <= 0 for v in caps):
+        return fail('POSITION_CAP_UNAVAILABLE')
+    scale = min(cap/x for cap,x in zip(caps,shape))
+    originals = {p['id']: p for p in portfolio['positions']}
+    for step in range(REBALANCE_NUMERICS['max_scale_steps']):
+        targets = [min(cap, scale*x) for cap,x in zip(caps,shape)]
+        trims = [max(0., r['notional_usd']-t) for r,t in zip(rows,targets)]
+        fees = math.fsum(v*fee for v in trims)
+        slippage = math.fsum(v*s for v,s in zip(trims,rates))
+        remaining_equity = equity-fees-slippage
+        if not finite(remaining_equity) or remaining_equity <= 0:
+            return fail('TURNOVER_COST_EXCEEDS_EQUITY')
+        model = copy.deepcopy(portfolio)
+        model['equity'] = remaining_equity
+        model['positions'] = []
+        for r,t in zip(rows,targets):
+            p = copy.deepcopy(originals[r['id']])
+            for k in ('quantity','notional','risk_fraction'):
+                p.pop(k,None)
+            p['notional'] = t
+            model['positions'].append(p)
+        after = PR.evaluate(model, policy)
+        caps_hold = all(t*r['stop_distance']/remaining_equity <= risk*m for r,t,m in zip(rows,targets,tiers))
+        if after.get('state') == PR.WITHIN and caps_hold:
+            rc = [targets[i]*math.fsum(cov[i][j]*targets[j] for j in range(len(rows))) for i in range(len(rows))]
+            total = math.fsum(rc)
+            if not finite(total) or total <= 0 or any(not finite(v) or v <= 0 for v in rc):
+                return fail('PARITY_VERIFICATION_FAILED')
+            shares = [v/total for v in rc]
+            error = max(abs(a-b) for a,b in zip(shares,target_shares))
+            if error > REBALANCE_NUMERICS['tolerance']:
+                return fail('PARITY_VERIFICATION_FAILED')
+            return dict(unavailable, status='MODEL_WITHIN_LIMITS', reason=None, whole_book_parity=True,
+                        source_as_of=now, common_returns=len(keys), last_return_end=keys[-1], sweeps=sweeps,
+                        uniform_scale_steps=step, max_share_error=error, equity_before=equity,
+                        modeled_equity_after_costs=remaining_equity, turnover_usd=math.fsum(trims),
+                        estimated_fees_usd=fees, estimated_slippage_usd=slippage,
+                        phase10_after=PR.audit_summary(after), reductions_only=True,
+                        positions=[dict(id=r['id'], asset=r['asset'], strategy=r['strategy'], direction=r['direction'],
+                                        current_notional_usd=r['notional_usd'], target_notional_usd=t,
+                                        reduction_usd=trim, tier_multiplier=tier,
+                                        target_risk_share=b, modeled_risk_share=a)
+                                   for r,t,trim,tier,b,a in zip(rows,targets,trims,tiers,target_shares,shares)],
+                        limitations=['Hypothetical targets at current marks; no orders or journal changes.',
+                                     'Costs use the existing fee/slippage model, not guaranteed fills.',
+                                     'Venue lot sizes, minimum orders and execution sequencing are not modeled.',
+                                     'Costs are deducted from the supplied paper account equity; no live NAV is inferred.'])
+        scale *= .5
+    return fail('NO_WITHIN_LIMITS_TARGET')

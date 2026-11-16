@@ -46,7 +46,7 @@ VERSION = "v8.decision/1"
 POLICY_VERSION = "v8.decision-policy/1"
 PATH = Path(__file__).with_name("decision_policy.json")
 FILE = "data/v8/decision.json"
-REVIEW_STATUS = "POLICY_V4_RISK_BUDGET_PENDING_MERGE_REVIEW"  # draft policy; activation requires owner review
+REVIEW_STATUS = "POLICY_V5_REBALANCE_PENDING_MERGE_REVIEW"  # draft policy; activation requires owner review
 TRADE, WATCH, AVOID = "TRADE", "WATCH", "AVOID"
 STATES = (TRADE, WATCH, AVOID)
 STATE_ORDER = {TRADE: 0, WATCH: 1, AVOID: 2}
@@ -125,7 +125,7 @@ SECTION_KEYS = {
     "execution": ("effects",),
     "funding": ("venue_rule", "max_rate_age_s"),
     "freshness": ("max_input_age_s",),
-    "portfolio": ("after_state_effects", "gating_book", "sizing_rule"),
+    "portfolio": ("after_state_effects", "gating_book", "sizing_rule", "rebalance_rule"),
     "emerging": ("evidence_from_flags", "primary_evidence", "warning_flags"),
     "funding_spread": ("holding_hours", "max_basis", "min_net_carry", "leg_volume_threshold"),
     "sections": SECTIONS,
@@ -203,6 +203,7 @@ def validate_policy(policy):
     need(pe[PR.UNEVALUABLE] != "PASS", "an unevaluable portfolio can never pass")
     need(v("portfolio", "gating_book") == GOVERNED_BOOK, "portfolio.gating_book must be " + GOVERNED_BOOK)
     need(v("portfolio", "sizing_rule") == "FIXED_BOOK_TIER_VARIANCE_BUDGET", "portfolio.sizing_rule")
+    need(v("portfolio", "rebalance_rule") == "REDUCTION_ONLY_POST_COST_TIER_PARITY", "portfolio.rebalance_rule")
     em = {k: v("emerging", k) for k in SECTION_KEYS["emerging"]}
     need(isinstance(em["evidence_from_flags"], dict)
          and all(isinstance(a, str) and isinstance(b, str) for a, b in em["evidence_from_flags"].items()),
@@ -1116,7 +1117,13 @@ def build(snapshot, policy=None):
     book = PR.evaluate(pf) if pf is not None else None
     governed = PR.evaluate(gpf) if gpf is not None else None
     rows = [r for r in (governed or {}).get("positions") or [] if isinstance(r, dict)]
+    rebalance_tiers = {}
+    for row in rows:
+        owner = (snap.get("strategies") or {}).get(row.get("strategy")) or {}
+        rebalance_tiers[row["id"]] = ((owner.get("probation") or {}).get("risk_multiplier")
+                                     if owner.get("deployment_state") == "ACTIVE_PROBATION" else 1.0)
     portfolio = {"phase10": PR.audit_summary(governed) if governed else PR.audit_summary(None),
+                 "rebalance": RB.rebalance(gpf, rebalance_tiers),
                  "gating_book": _v(policy, "portfolio", "gating_book"),
                  "governed": (gpf or {}).get("book"),
                  "governed_positions": [dict({k: r.get(k) for k in ("id", "asset", "strategy", "direction", "status",

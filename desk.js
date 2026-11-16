@@ -985,6 +985,26 @@
     const full = (doc.portfolio || {}).full_paper_book;
     return full && typeof full === "object" ? boundDetail({portfolio: {phase10: full}}, audit) : null;
   }
+  function rebalancePanel(doc) {
+    const b = (doc.portfolio || {}).rebalance;
+    if (!b || typeof b !== "object") return "";
+    let h = '<section class="sec panel" aria-labelledby="rb-h"><h2 id="rb-h">Whole-book balance model</h2><p class="secsub">Hypothetical reductions at current marks. No orders are placed and the current positions remain unchanged. Venue minimum orders and execution sequencing are not modeled.</p>';
+    const rows = b.positions;
+    const valid = b.status === "MODEL_WITHIN_LIMITS" && b.trade_authorization === false && b.existing_positions_changed === false &&
+      b.whole_book_parity === true && b.reductions_only === true && (b.phase10_after || {}).state === "WITHIN_LIMITS" &&
+      [b.equity_before, b.modeled_equity_after_costs].every((v) => isNum(v) && v > 0) &&
+      b.modeled_equity_after_costs <= b.equity_before &&
+      [b.turnover_usd, b.estimated_fees_usd, b.estimated_slippage_usd].every((v) => isNum(v) && v >= 0) &&
+      Array.isArray(rows) && rows.length > 0 && rows.every((r) => r && typeof r.id === "string" && typeof r.asset === "string" &&
+        [r.current_notional_usd, r.target_notional_usd, r.reduction_usd, r.target_risk_share, r.modeled_risk_share].every(isNum) &&
+        r.target_notional_usd > 0 && r.target_notional_usd <= r.current_notional_usd && r.reduction_usd >= 0 &&
+        r.reduction_usd <= r.current_notional_usd && [r.target_risk_share, r.modeled_risk_share].every((v) => v >= 0 && v <= 1) &&
+        Math.abs(r.target_risk_share - r.modeled_risk_share) <= 1e-6) && new Set(rows.map((r) => r.id)).size === rows.length;
+    if (!valid) return h + '<p>No verified balance target is available: ' + esc(b.status === "EMPTY" ? "no governed positions" : String(b.reason || "incomplete model").toLowerCase().replace(/_/g, " ")) + '.</p></section>';
+    h += '<p>The modeled book meets Phase 10 limits after estimated costs. Risk contributions follow the tier budgets; this does not predict future returns.</p><p>Turnover: <b>' + esc(usd(b.turnover_usd)) + '</b> · Estimated fees: <b>' + esc(usd(b.estimated_fees_usd)) + '</b> · Estimated slippage: <b>' + esc(usd(b.estimated_slippage_usd)) + '</b> · Modeled account after costs: <b>' + esc(usd(b.modeled_equity_after_costs)) + '</b>.</p>';
+    return h + '<div class="tblwrap"><table class="tbl"><thead><tr><th>Asset / strategy</th><th class="num">Current size</th><th class="num">Model target</th><th class="num">Reduction</th><th class="num">Target risk share</th><th class="num">Modeled risk share</th></tr></thead><tbody>' +
+      rows.map((r) => '<tr><td>' + esc(r.asset) + ' / ' + esc(r.strategy) + '</td><td class="num">' + esc(usd(r.current_notional_usd)) + '</td><td class="num">' + esc(usd(r.target_notional_usd)) + '</td><td class="num">' + esc(usd(r.reduction_usd)) + '</td><td class="num">' + esc(pct(r.target_risk_share)) + '</td><td class="num">' + esc(pct(r.modeled_risk_share)) + '</td></tr>').join("") + '</tbody></table></div></section>';
+  }
   function governedPositions(doc) {
     const rows = (doc.portfolio || {}).governed_positions;
     if (!Array.isArray(rows)) return "";
@@ -1030,7 +1050,7 @@
       h += portfolioDetail(doc, pr, audit, auditState);
       return {status: "AVAILABLE", statusHtml: st.html, statusBad: false, body: h};
     }
-    h += governedPositions(doc);
+    h += governedPositions(doc) + rebalancePanel(doc);
     const fv = portfolioView(full);
     h += '<section class="sec panel" aria-labelledby="lb-h"><h2 id="lb-h">Legacy paper book · diagnostic only</h2><div class="pfhead">' + pfChip(fv.state) +
       '<p>Every open paper position of the quant desk, including legacy holdovers the desk never recommended. It no longer gates any decision.</p></div>' +

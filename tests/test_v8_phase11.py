@@ -140,8 +140,8 @@ REVIEWED_VALUES_DIGEST = "2c788403b1f4f65f4d591a1075aeebceba24782d94d28a725a47f9
 class Policy(unittest.TestCase):
     def test_policy_is_governed_and_reviewed(self):
         p = DE.load_policy()
-        self.assertEqual((p["schema"], p["review_status"]), ("v8.decision-policy/1", "POLICY_V4_RISK_BUDGET_PENDING_MERGE_REVIEW"))
-        self.assertEqual(DE.REVIEW_STATUS, "POLICY_V4_RISK_BUDGET_PENDING_MERGE_REVIEW")
+        self.assertEqual((p["schema"], p["review_status"]), ("v8.decision-policy/1", "POLICY_V5_REBALANCE_PENDING_MERGE_REVIEW"))
+        self.assertEqual(DE.REVIEW_STATUS, "POLICY_V5_REBALANCE_PENDING_MERGE_REVIEW")
         for sec in DE.SECTION_KEYS:
             for k, e in p[sec].items():
                 self.assertEqual(e["basis"], "POLICY", f"{sec}.{k}")
@@ -159,7 +159,7 @@ class Policy(unittest.TestCase):
         v1 = {s: {k: e["value"] for k, e in p[s].items()} for s in DE.SECTION_KEYS}
         added = {"strategy_authority": {"probation_deployment_states": ["ACTIVE_PROBATION"],
                                         "probation_research_states": ["PROBATION"]},
-                 "portfolio": {"gating_book": "GOVERNED_TRADE_AUTHORIZED", "sizing_rule": "FIXED_BOOK_TIER_VARIANCE_BUDGET"}}
+                 "portfolio": {"gating_book": "GOVERNED_TRADE_AUTHORIZED", "sizing_rule": "FIXED_BOOK_TIER_VARIANCE_BUDGET", "rebalance_rule": "REDUCTION_ONLY_POST_COST_TIER_PARITY"}}
         for section, values in added.items():
             for key, value in values.items():
                 self.assertEqual(v1[section].pop(key), value)

@@ -20,6 +20,8 @@ Take the positive root using a cancellation-resistant calculation, then cap x by
 
 ## Acceptance boundary
 
+Update, 2026-11-16: the separate whole-book target and turnover/cost model is now implemented; see `whole-book-balancing.md`. E2 planning is complete in the draft. The following paragraph records the incremental-only boundary of the 2026-11-15 implementation.
+
 This completes the **incremental sizing implementation**, not E2's broader whole-book parity objective. Fixed existing positions may already have unequal risk contributions, and the cap can prevent the new position reaching its target. The output explicitly reports `whole_book_parity: false` for a nonempty book. Equalizing all existing positions would require a separately specified rebalance recommendation, turnover/cost treatment and review; this change does not silently perform or claim one. E2 remains unchecked in the handover.
 
 Covariance is a trailing historical estimate, not a guarantee of future risk. Perfectly hedged/degenerate books and unsupported negative contributions remain unavailable rather than acquiring unlimited capacity. Phase 10 remains the final authority for limits.
