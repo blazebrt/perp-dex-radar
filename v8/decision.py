@@ -46,7 +46,7 @@ VERSION = "v8.decision/1"
 POLICY_VERSION = "v8.decision-policy/1"
 PATH = Path(__file__).with_name("decision_policy.json")
 FILE = "data/v8/decision.json"
-REVIEW_STATUS = "POLICY_V5_REBALANCE_PENDING_MERGE_REVIEW"  # draft policy; activation requires owner review
+REVIEW_STATUS = "POLICY_V6_EMERGING_AUTHORITY_PENDING_MERGE_REVIEW"  # draft policy; activation requires owner review
 TRADE, WATCH, AVOID = "TRADE", "WATCH", "AVOID"
 STATES = (TRADE, WATCH, AVOID)
 STATE_ORDER = {TRADE: 0, WATCH: 1, AVOID: 2}
@@ -739,10 +739,11 @@ def _emerging(asset, rec, base, directional, policy):
                           note="first seen by this desk after tracking started; not a listing date")
             evidence.append(ev)
     for c in directional:
-        # v9: the side of a probation strategy that its archive evidence did not confirm is not positive evidence
-        if c["state"] == WATCH and "STRATEGY_SIDE_NOT_CONFIRMED" not in c["caps"]:
+        # WATCH alone is not evidence: legacy, missing and demoted authority must not boost Emerging.
+        authority = [g for g in c["trace"] if g["step"] == "STRATEGY_AUTHORITY"]
+        if c["state"] == WATCH and len(authority) == 1 and authority[0]["result"] == PASS:
             evidence.append({"type": "CURRENT_STRATEGY_SIGNAL", "strategy": c["strategy"], "direction": c["direction"],
-                             "candidate": c["id"], "source": "a WATCH directional decision of an enabled strategy"})
+                             "candidate": c["id"], "source": "a WATCH directional decision with passing strategy authority"})
     primary = [e for e in evidence if e["type"] in _v(policy, "emerging", "primary_evidence")]
     if not primary:
         return None

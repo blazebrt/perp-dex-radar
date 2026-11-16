@@ -140,8 +140,8 @@ REVIEWED_VALUES_DIGEST = "2c788403b1f4f65f4d591a1075aeebceba24782d94d28a725a47f9
 class Policy(unittest.TestCase):
     def test_policy_is_governed_and_reviewed(self):
         p = DE.load_policy()
-        self.assertEqual((p["schema"], p["review_status"]), ("v8.decision-policy/1", "POLICY_V5_REBALANCE_PENDING_MERGE_REVIEW"))
-        self.assertEqual(DE.REVIEW_STATUS, "POLICY_V5_REBALANCE_PENDING_MERGE_REVIEW")
+        self.assertEqual((p["schema"], p["review_status"]), ("v8.decision-policy/1", "POLICY_V6_EMERGING_AUTHORITY_PENDING_MERGE_REVIEW"))
+        self.assertEqual(DE.REVIEW_STATUS, "POLICY_V6_EMERGING_AUTHORITY_PENDING_MERGE_REVIEW")
         for sec in DE.SECTION_KEYS:
             for k, e in p[sec].items():
                 self.assertEqual(e["basis"], "POLICY", f"{sec}.{k}")

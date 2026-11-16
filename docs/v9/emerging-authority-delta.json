@@ -1,0 +1,27 @@
+{
+  "schema": "v9.emerging-authority-delta/1",
+  "parent": "cb785719cf8719d8513d70baa6fd7807c1ea65ff",
+  "files": {
+    "v8/decision.py": {
+      "base_sha256": "49f548b1e9de7554ce6e19dcbaeea38b50959e4b66436d920a5515ffe0039adf",
+      "head_sha256": "5c2518ab5133d94c9070979e2205467688e36eda2fe89cb04118efb58526ebef"
+    },
+    "v8/decision_policy.json": {
+      "base_sha256": "b51d3c6ee9f0eb6a37a4dd17609e45b86c4edb608c294a23ac4433be384bddce",
+      "head_sha256": "081b88f301990777c3df001e9ae26dfee9512f175c52315e70dff61455ab464f"
+    }
+  },
+  "intentional_changes": [
+    "Policy and implementation authority bindings",
+    "Unsupported WATCH strategy signals removed from Emerging evidence; resulting candidate/count/ranking/asset-summary changes",
+    "Retained authorized WATCH evidence source wording"
+  ],
+  "unchanged": [
+    "Directional candidate gates, states and proposals",
+    "Best trades and funding selections",
+    "Portfolio and sizing",
+    "Journal and frozen research code",
+    "Legacy published numerical fixtures"
+  ],
+  "golden": "docs/v9/emerging-authority-golden.json"
+}

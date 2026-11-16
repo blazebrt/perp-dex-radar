@@ -132,7 +132,7 @@ class V9Scope(unittest.TestCase):
     def test_decision_policy_only_adds_version_2_keys(self):
         old, new = json.loads(base("v8/decision_policy.json")), json.loads(head("v8/decision_policy.json"))
         self.assertEqual((old["review_status"], new["review_status"]),
-                         ("POLICY_REVIEWED_INITIAL_V1", "POLICY_V5_REBALANCE_PENDING_MERGE_REVIEW"))
+                         ("POLICY_REVIEWED_INITIAL_V1", "POLICY_V6_EMERGING_AUTHORITY_PENDING_MERGE_REVIEW"))
         added = {("strategy_authority", "probation_deployment_states"),
                  ("strategy_authority", "probation_research_states"), ("portfolio", "gating_book"), ("portfolio", "sizing_rule"), ("portfolio", "rebalance_rule")}
         for section in old:

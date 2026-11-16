@@ -20,7 +20,7 @@ The Today page requests decision and market context only; it never loads the aud
 
 ## Remaining delivery plan
 
-There are 13 unchecked major roadmap items: 11 core plus two optional (after E2 whole-book planning implementation). This is a count of major acceptance items, not estimated days or remaining coding tasks.
+There are 12 unchecked major roadmap items: 10 core plus two optional (after B9 follow-up dispositions and Emerging-authority correction). This is a count of major acceptance items, not estimated days or remaining coding tasks.
 
 | Items | What actually remains |
 |---|---|
@@ -28,10 +28,11 @@ There are 13 unchecked major roadmap items: 11 core plus two optional (after E2 
 | A6 | Full-workload feasibility, bounded hosted resources/publication, independent qualification, and the one registered outcome run; small benchmarks are not acceptance. |
 | A7, D4, D6 | Source/coverage review, immutable preregistration, implementation and independently verified studies. Archive first observation must not be presented as verified listing inception. |
 | D5, E3 | Preregistered regime research and confirmed evidence before any regime gating. |
-| B9 | Review individual policy/follow-up dispositions; no new trade authority without evidence and review. |
 | F4 | The retained-ledger page is implemented; durable observation capture is implemented but inactive; archive browsing is implemented; entry-time attribution and production qualification remain. F3 current-source context is complete. See `product-context-ledger.md`. |
 | C4, D1b (optional) | Owner-provided optional credentials; optional prospective registration/collection respectively. |
 
 F3 and the retained F4 page are now implemented. F4 closure needs prospective entry attribution/full-history retention; do not infer it from current policy. Do not resume serial small A6 benchmarks as the default next task. An A6 continuation must have a concrete feasibility decision or implementation target. Missing scientific evidence remains visible separately from completed software. No merge, deployment, new strategy promotion or market study was performed in this change.
 
 E1 ranking and E2 tier/covariance sizing plus whole-book reduction-only targets are implemented in the draft. E2 includes modeled turnover costs, post-cost caps and Phase 10 verification, with a read-only Portfolio display. Activation awaits merge review; no execution-ready order list is claimed. See `whole-book-balancing.md`.
+
+B9 follow-ups are now dispositioned in `b9-followup-dispositions.md`. The draft Emerging-authority correction removes unsupported signal evidence without changing directional decisions or research authority.
