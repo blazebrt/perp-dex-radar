@@ -74,7 +74,7 @@ def package(directory):
     bound(raw[paths[2]], matches[0], paths[2])
     require(decision.get('schema') == 'v8.decision/1' and type(decision.get('as_of')) is int
             and decision['as_of'] > 0, 'invalid decision snapshot')
-    require(type(manifest.get('ts')) is int and manifest['ts'] > 0, 'invalid audit time')
+    require(type(manifest.get('ts')) is int and 0 < manifest['ts'] < 8640000000000, 'invalid audit time')
     require(isinstance(decision.get('strategy_tiers'), dict), 'missing observed authority')
     require(all(isinstance(journal.get(k), list) for k in ('open', 'closed')), 'invalid journal')
     require(sum(len(journal[k]) for k in ('open', 'closed')) <= 20000, 'capture row limit exceeded')
@@ -105,6 +105,16 @@ def package(directory):
     body = canonical(snapshot)
     path = PREFIX + 'snapshots/' + sha(body) + '.json.gz'
     files[path] = gzip.compress(body, mtime=0)
+    view = canonical(dict(schema='v9.paper-observation-view/1', snapshot_path=path,
+                          snapshot=body.decode('utf-8'),
+                          records={r['path']: unpack(files[r['path']]).decode('utf-8') for r in records}))
+    require(len(view) <= MAX_SOURCE_BYTES, 'browse bundle exceeds capture limit')
+    view_path = PREFIX + 'views/' + sha(view) + '.json.gz'
+    files[view_path] = gzip.compress(view, mtime=0)
+    index = canonical(dict(schema='v9.paper-observation-index/1', snapshot_time=manifest['ts'],
+                           snapshot_path=path, view_path=view_path, records=len(records)))
+    index_path = PREFIX + 'indexes/' + f"{manifest['ts']:020d}-" + sha(body) + '-' + sha(index) + '.json.gz'
+    files[index_path] = gzip.compress(index, mtime=0)
     return files, path
 
 
@@ -178,10 +188,10 @@ def verify_archive(read, snapshot_path):
 def publish(repo, files, snapshot_path, *, remote='origin', attempts=3):
     """Add only, to an existing history branch. Retry non-fast-forward races."""
     require(snapshot_path in files and snapshot_path.startswith(PREFIX + 'snapshots/'), 'missing snapshot')
-    require(all(re.fullmatch(PREFIX + r'(records|snapshots)/[a-f0-9]{64}\.json\.gz', p) for p in files), 'invalid capture path')
+    require(all(re.fullmatch(PREFIX + r'(?:(?:records|snapshots|views)/[a-f0-9]{64}|indexes/[0-9]{20}-[a-f0-9]{64}-[a-f0-9]{64})\.json\.gz', p) for p in files), 'invalid capture path')
     paths = sorted(files)
     bodies = {p: unpack(files[p]) for p in paths}
-    require(all(sha(bodies[p]) == p.rsplit('/', 1)[1][:-8] for p in paths), 'content-address mismatch')
+    require(all(sha(bodies[p]) == p.rsplit('/', 1)[1][:-8].rsplit('-', 1)[-1] for p in paths), 'content-address mismatch')
     blobs = {p: git(repo, ['hash-object', '-w', '--stdin'], data=files[p]).decode().strip() for p in paths}
     ref = 'refs/v9-paper-observation/base'
     require(git(repo, ['ls-remote', '--heads', remote, 'refs/heads/' + BRANCH]).strip(), 'existing history branch required')

@@ -68,7 +68,8 @@
   }
   function render(data, filter={}, now=Math.floor(Date.now()/1000)) {
     let h = '<p class="note">Snapshot ' + esc(utc(data.asOf)) + (num(data.validUntil) && now > data.validUntil ? ' — stale; historical display only' : '') + '. Paper records, not exchange-account results.</p>';
-    h += '<h2>Current authority and registered expectations</h2><p class="note">Current tiers are shown only as current policy. They do not establish a historical trade’s tier or authorization. Archive intervals describe historical research, not a forecast interval for live returns.</p>';
+    if(data.archive) h += '<p class="note">Archived capture ' + esc(utc(data.archive.snapshotTime)) + ' UTC; commit ' + esc(data.archive.commit) + '. Content hashes verified. Original audit and decision documents are not reverified. This selected capture is not the current journal or a complete lifetime ledger.</p>';
+    h += data.archive ? '<h2>Authority observed at capture</h2><p class="note">Captured tiers are neither current authority nor entry-time authorization. Archive intervals describe historical research, not a forecast interval for live returns.</p>' : '<h2>Current authority and registered expectations</h2><p class="note">Current tiers are shown only as current policy. They do not establish a historical trade’s tier or authorization. Archive intervals describe historical research, not a forecast interval for live returns.</p>';
     for (const tier of ['FULL','PROBATION']) {
       const rows = data.expectations.filter(r => r.tier === tier);
       h += '<h3>' + (tier === 'FULL' ? 'Full authority' : 'Probation') + '</h3>';

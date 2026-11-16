@@ -14,7 +14,7 @@
   "data/v8/research/phase9/research_phase9_summary.json",
   "data/v8/research/phase9/research_strategy_adjudication.json"
  ],
- "combined": "09cbb2edf8cfa5efe91c1166e842c3085e3b0635f1c9c08c05f1bc0076fe2072",
+ "combined": "c36edf7f0a1883086e4bfdfd612bc008479008c5926a920c304b853eb938210d",
  "decisions": {
   "picks": {
    "daytrade_all": [
@@ -510,8 +510,9 @@
   "desk.js": "83589d3d5171300efd49ace42d339ea0d19594fa26195b7e3e39d33d3ffd330e",
   "funding.html": "babfdea3ee2ca3d1f991b0947d047a42cb42cc4e4a89116b6591d5e305df03a1",
   "index.html": "42bffca57286fa0d137994b11ec31391a8002a7abea70d48d9b32afbab928bc8",
-  "performance.html": "06b01b96c065c6878b56a4beae8283df0e97836e51f8eb724cc75ab73758afcb",
-  "performance.js": "291f4f4d8b494e2ca7c5dae44a0c7b6ad71a7455eea0025a1ff6130aaefac200",
+  "paper-history.js": "fdb8e84b61c16d2bef87eb233ea0def3c81fdbf5b820f9f0f8049081b8795199",
+  "performance.html": "d9e052535cebc717db4b312c3b993ba59b0d6a8839251ef3a2af46a0e7c06997",
+  "performance.js": "77a5f333357598256d0c3e06f7e81913dfeb232040813a2c838cf0404316597a",
   "picks.html": "4a3b9572d960a2ec1ed92d603ff6c89fb97e4af225bc2f4f5d48f121a7af3864",
   "portfolio.html": "69565b63c78b2a17697152a999b51472a46825ff4df5fd022c836d4d206511d2",
   "quant.html": "0d5b79ccfd675662b76ffb1de6256c456619150ac2193186e6e6f7754799929d",

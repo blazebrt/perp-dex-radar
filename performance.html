@@ -39,26 +39,59 @@ tr.blocked td { background: color-mix(in srgb, var(--unavail-bg) 70%, transparen
 <div class="pfhead"><label>Strategy <select id="strategy"><option value="">All strategies</option></select></label>
 <label>Record <select id="state"><option value="">All records</option><option value="open">Open</option><option value="closed">Closed</option></select></label>
 <button id="reload" type="button">Reload snapshot</button></div>
+<section aria-label="Archived captures"><h2>Browse archived captures</h2>
+<p>Load one immutable capture from public history. Earlier captures may need many requests. Missing scans, pruned records and entry-time authority remain unknown.</p>
+<button id="history-list" type="button">List archived captures</button>
+<label>Capture <select id="history-select" disabled><option>No archive loaded</option></select></label>
+<button id="history-load" type="button" disabled>Load selected capture</button>
+<p id="history-status" role="status" aria-live="polite"></p></section>
 <div id="ledger"></div>
 <p class="foot">The decision and complete retained journal are matched to the audit snapshot by file size and SHA-256 before display. This checks consistency, not the truth of upstream observations. Nothing on this page changes a trade decision.</p>
 </main>
 <script src="desk.js"></script>
 <script src="performance.js"></script>
+<script src="paper-history.js"></script>
 <script>
 "use strict";
 (function () {
  const D=window.DESK, P=window.PERFORMANCE, status=document.getElementById('status'), body=document.getElementById('ledger'), strategy=document.getElementById('strategy'), state=document.getElementById('state');
  if(!D || !P){status.textContent='The ledger could not load. No performance is shown.';return;}
- D.shell(); let data=null, request=0;
+ D.shell(); let data=null, request=0, controller=null, listing=null;
+ const H=window.PAPER_HISTORY, list=document.getElementById('history-list'), select=document.getElementById('history-select'), load=document.getElementById('history-load'), historyStatus=document.getElementById('history-status');
+ function cancel(){if(controller)controller.abort();controller=null;}
+ function populate(){
+  strategy.replaceChildren();const all=document.createElement('option');all.value='';all.textContent='All strategies';strategy.append(all);
+  for(const sid of [...new Set(data.records.map(r=>r.strategy).filter(s=>typeof s==='string'))].sort()){
+   const option=document.createElement('option');option.value=sid;option.textContent=sid;strategy.append(option);
+  }
+ }
+ async function archive(browse){
+  cancel();const token=++request;controller=new AbortController();const signal=controller.signal;
+  const timer=setTimeout(()=>controller && token===request && controller.abort(),120000);
+  data=null;body.innerHTML='';status.textContent=browse?'Listing archived captures…':'Loading and verifying selected capture…';
+  list.disabled=true;load.disabled=true;select.disabled=true;
+  try{
+   if(browse){
+    listing=null;select.replaceChildren();const next=await H.inventory({signal});if(token!==request)return;listing=next;
+    next.entries.forEach((entry,i)=>{const option=document.createElement('option');option.value=String(i);option.textContent=entry.legacy?'Older capture (date unknown until loaded) '+entry.snapshot.split('/').pop().slice(0,12):new Date(entry.time*1000).toISOString()+' · '+entry.snapshot.split('/').pop().slice(0,12);select.append(option);});
+    historyStatus.textContent=next.entries.length+' captures at commit '+next.commit+'. This is not proof of complete lifetime coverage.';
+    status.textContent=next.entries.length?'Select a capture to view its records.':'No archived captures found. Current snapshot remains available via Reload snapshot.';
+   }else{
+    if(!listing || !listing.entries[Number(select.value)])throw Error('Select a listed capture');
+    const next=await H.load(listing.commit,listing.entries[Number(select.value)],P,{signal});if(token!==request)return;
+    data=next;populate();status.textContent='Archive content verified. Original sources and entry-time authority are not reverified.';render();
+   }
+  }catch(error){if(token!==request)return;data=null;body.innerHTML='';status.textContent='Archive unavailable: '+(signal.aborted?'request cancelled or timed out':String(error.message||error))+'. No partial results are shown.';}
+  finally{clearTimeout(timer);if(token===request){controller=null;list.disabled=false;select.disabled=load.disabled=!(listing&&listing.entries.length);}}
+ }
+ if(H){list.addEventListener('click',()=>archive(true));load.addEventListener('click',()=>archive(false));}
+ else{list.disabled=true;historyStatus.textContent='Archive browser unavailable. Current ledger can still load.';}
  function render(){if(data)body.innerHTML=P.render(data,{strategy:strategy.value,state:state.value});}
  async function reload(){
-  const token=++request; data=null; body.innerHTML=''; status.textContent='Loading and verifying one snapshot…';
+  cancel();const token=++request;list.disabled=!H;select.disabled=load.disabled=!(listing&&listing.entries.length); data=null; body.innerHTML=''; status.textContent='Loading and verifying one snapshot…';
   try{
    const next=await P.load(D);if(token!==request)return;data=next;
-   strategy.replaceChildren();const all=document.createElement('option');all.value='';all.textContent='All strategies';strategy.append(all);
-   for(const sid of [...new Set(data.records.map(r=>r.strategy).filter(s=>typeof s==='string'))].sort()){
-    const option=document.createElement('option');option.value=sid;option.textContent=sid;strategy.append(option);
-   }
+   populate();
    status.textContent='Snapshot file bindings verified. Historical entry tiers and full lifetime coverage remain unavailable.';render();
   }catch(error){if(token!==request)return;data=null;body.innerHTML='';status.textContent='Ledger unavailable: '+String(error.message || error)+'. Reload to try again.';}
  }

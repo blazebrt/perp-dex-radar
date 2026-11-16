@@ -29,7 +29,7 @@ There are 13 unchecked major roadmap items: 11 core plus two optional (after E2 
 | A7, D4, D6 | Source/coverage review, immutable preregistration, implementation and independently verified studies. Archive first observation must not be presented as verified listing inception. |
 | D5, E3 | Preregistered regime research and confirmed evidence before any regime gating. |
 | B9 | Review individual policy/follow-up dispositions; no new trade authority without evidence and review. |
-| F4 | The retained-ledger page is implemented; durable observation capture is implemented but inactive; entry-time attribution and archive browsing remain. F3 current-source context is complete. See `product-context-ledger.md`. |
+| F4 | The retained-ledger page is implemented; durable observation capture is implemented but inactive; archive browsing is implemented; entry-time attribution and production qualification remain. F3 current-source context is complete. See `product-context-ledger.md`. |
 | C4, D1b (optional) | Owner-provided optional credentials; optional prospective registration/collection respectively. |
 
 F3 and the retained F4 page are now implemented. F4 closure needs prospective entry attribution/full-history retention; do not infer it from current policy. Do not resume serial small A6 benchmarks as the default next task. An A6 continuation must have a concrete feasibility decision or implementation target. Missing scientific evidence remains visible separately from completed software. No merge, deployment, new strategy promotion or market study was performed in this change.

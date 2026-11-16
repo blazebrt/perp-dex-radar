@@ -14,7 +14,8 @@
   "V9_DESK_PROBATION_PRESENTATION": "desk.js and desk.css show a TRADE's tier (Probation, reduced size), the engine's own proposal as a plan (entry near the mark, stop, the signal's trailing stop and the strategy's time exit, risk, size on the page account and, as a labelled unit conversion of the same fractions, on the account the trader saved in the Analyzer, entry window left), the bound archive evidence and the live forward test, which strategy sides may trade with each probation side's live forward test against its archive band (every scan), and the governed book (the legacy paper book as a diagnostic on Portfolio). Presentation only: nothing is decided in the page. With the market branch, desk.js and desk.css also render the market context (V9_MARKET_CONTEXT_PRESENTATION). The current change additionally includes V9_CONTEXT_AND_LEDGER_PRESENTATION. The current Portfolio addition is described by V9_REBALANCE_PRESENTATION.",
   "V9_MARKET_CONTEXT_PRESENTATION": "Today (published as index.html) gains a Market context panel and the Analyzer a per-coin market context block. Both read data/v9/market.json (v9.market/1, written by the Scan workflow's new context-only step) through desk.js, label it context, show a missing value as missing and never change a decision region. analyze.html also carries phase B's governed-plan time exit (The Analyzer's exact governed proposal card and its copied plan text state the strategy's time exit as the decision engine now publishes it (proposal.time_exit_hours, quant.py's hold), and the signal's trailing stop (proposal.trailing_stop_pct) when it has one: exit at the stop, or N days after you enter, whichever comes first; the engine states no profit target. The legacy Analyzer stated every plan's exit and the governed card had dropped it. Presentation only: the call and the proposal still come from the decision alone.).",
   "V9_CONTEXT_AND_LEDGER_PRESENTATION": "Analyzer shows all currently collected context and source/observation times, preserving missingness and correcting missing-snapshot versus listing status. Portfolio links to a read-only performance page. The page hash-binds the retained journal and decision to one audit snapshot, shows current registered expectations separately, and never invents historical entry tiers or complete lifetime coverage. No engine, signal, numerical output, policy or journal change.",
-  "V9_REBALANCE_PRESENTATION": "Portfolio displays the decision engine whole-book reduction-only risk-budget model, after estimated turnover costs and unchanged Phase 10 checks. Explicitly hypothetical: no orders, journal updates, live NAV, venue minimum-size or fill guarantees. Missing/stale/inconsistent targets are withheld."
+  "V9_REBALANCE_PRESENTATION": "Portfolio displays the decision engine whole-book reduction-only risk-budget model, after estimated turnover costs and unchanged Phase 10 checks. Explicitly hypothetical: no orders, journal updates, live NAV, venue minimum-size or fill guarantees. Missing/stale/inconsistent targets are withheld.",
+  "V9_ARCHIVE_BROWSER_PRESENTATION": "Performance offers opt-in read-only historical capture browsing, pinned to an immutable history commit. Content hashes are checked; capture-time tiers are distinct from current and entry-time authority. No lifetime coverage, original-source revalidation or trade authorization is inferred. Current ledger, engine and numerical outputs remain unchanged."
  },
  "universe": [],
  "dex_status": [],
@@ -107,20 +108,26 @@
   {
    "file": "performance.html",
    "base_sha256": null,
-   "head_sha256": "06b01b96c065c6878b56a4beae8283df0e97836e51f8eb724cc75ab73758afcb",
-   "rule": "V9_CONTEXT_AND_LEDGER_PRESENTATION"
+   "head_sha256": "d9e052535cebc717db4b312c3b993ba59b0d6a8839251ef3a2af46a0e7c06997",
+   "rule": "V9_ARCHIVE_BROWSER_PRESENTATION"
   },
   {
    "file": "performance.js",
    "base_sha256": null,
-   "head_sha256": "291f4f4d8b494e2ca7c5dae44a0c7b6ad71a7455eea0025a1ff6130aaefac200",
-   "rule": "V9_CONTEXT_AND_LEDGER_PRESENTATION"
+   "head_sha256": "77a5f333357598256d0c3e06f7e81913dfeb232040813a2c838cf0404316597a",
+   "rule": "V9_ARCHIVE_BROWSER_PRESENTATION"
   },
   {
    "file": "portfolio.html",
    "base_sha256": "3b31b17ebe1a7010cf7a6118339746c0d2a48016963ca7b6882251619a574dcc",
    "head_sha256": "69565b63c78b2a17697152a999b51472a46825ff4df5fd022c836d4d206511d2",
    "rule": "V9_CONTEXT_AND_LEDGER_PRESENTATION"
+  },
+  {
+   "file": "paper-history.js",
+   "base_sha256": null,
+   "head_sha256": "fdb8e84b61c16d2bef87eb233ea0def3c81fdbf5b820f9f0f8049081b8795199",
+   "rule": "V9_ARCHIVE_BROWSER_PRESENTATION"
   }
  ],
  "identity_states": {
