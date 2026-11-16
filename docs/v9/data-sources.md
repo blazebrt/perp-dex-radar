@@ -114,3 +114,7 @@ Rules: official free public endpoints first; respect rate limits and terms; neve
 - Binance archive: 1056 USD-M symbols listed in the archive, 900 USDT perpetuals, including delisted ones (sample first/last months in sources.json).
 - Hyperliquid: 234 perps in `meta`, 56 flagged `isDelisted`; their daily candles still load (e.g. FTM 861 days, MATIC 736 days, RNDR 535 days).
 
+
+## Listing interpretation correction (2026-11-16)
+
+The historical `upbit.market.all` survey row records endpoint availability, not validated listing-event coverage. Membership changes are first/last observations in supplied responses, not proven listing or delisting times. Likewise, an archive first candle is not verified listing inception. `listing-observation-contract.md` documents the official-source review, offline evidence checker and remaining D6 requirements. No historical probe result is reclassified as a fresh endpoint check.

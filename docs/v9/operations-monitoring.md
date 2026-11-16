@@ -26,7 +26,7 @@ There are 12 unchecked major roadmap items: 10 core plus two optional (after B9 
 |---|---|
 | A4, A5, D3 | Complete-return evidence is unavailable under the frozen hourly definitions/coverage. No zero substitution, retroactive definition edits or invented funding can close them. |
 | A6 | Full-workload feasibility, bounded hosted resources/publication, independent qualification, and the one registered outcome run; small benchmarks are not acceptance. |
-| A7, D4, D6 | Source/coverage review, immutable preregistration, implementation and independently verified studies. Archive first observation must not be presented as verified listing inception. |
+| A7, D4, D6 | Source/coverage review, immutable preregistration, implementation and independently verified studies. Archive first observation must not be presented as verified listing inception. D6 source-contract review and an offline content-bound observation checker are implemented; verified event/identity coverage and the preregistered study remain. |
 | D5, E3 | Preregistered regime research and confirmed evidence before any regime gating. |
 | F4 | The retained-ledger page is implemented; durable observation capture is implemented but inactive; archive browsing is implemented; entry-time attribution and production qualification remain. F3 current-source context is complete. See `product-context-ledger.md`. |
 | C4, D1b (optional) | Owner-provided optional credentials; optional prospective registration/collection respectively. |
