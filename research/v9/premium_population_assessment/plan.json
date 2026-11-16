@@ -1,0 +1,6 @@
+{
+  "purpose": "DIRECTORY_PAGINATION_ONLY_NO_OUTCOMES",
+  "initial_response_sha256": "fbb96b41000ab3a7106e7446b5d5bb28b95fd61503c4f14a11f79d4b5f8d0a67",
+  "max_pages": 20,
+  "prefix": "data/futures/um/daily/premiumIndexKlines/"
+}
