@@ -39,3 +39,7 @@ The next implementation target is a bounded unit executor plus an independent gl
 6. Retain the original activation gate until a reviewed qualification mechanism covers the redesigned architecture. Only then request controlled market activation and record/reconcile the single study attempt.
 
 Remaining blockers are thus explicit: the partition executor/reconciler is unfinished software; representative hosted resource and remote-retention evidence is missing; qualification review and market activation are not yet authorized. A6.3 remains open, but the old "keep benchmarking the same single-job design" path is rejected.
+
+## Implementation follow-up, 2026-11-17
+
+The synthetic worker, independent transport checker and global reconstruction prototype are now implemented and parity-tested; see `a6-partition-execution.md`. The current single-job no-go decision is unchanged. Production transport/binding integration, durable once-only execution, global storage/resource qualification and activation remain outstanding.
