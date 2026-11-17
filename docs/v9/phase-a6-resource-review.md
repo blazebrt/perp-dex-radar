@@ -914,3 +914,7 @@ The normal full/mixed output packages grew approximately fourfold, while total r
 This closes the initial fourfold signal-count diagnostic, not resource qualification. At 1,280 signals and 96 assets, it remains much smaller than the registered 4,263,580-signal/781-asset workload; synthetic history and geometry are not representative-market guarantees. Local WSL, incomplete dependency attestation, sampled resource coverage gaps and excluded remote publication/failure retention remain. No market archive was loaded or study attempt reserved. Original measurements and source-bound provenance are retained in `research/v9/a6_intermediate_attempt14/`.
 
 Next: measure execution-cache hits/evictions and their runtime effect at these shapes, then establish combined full-roster/long-history/runtime/storage and hosted publication/failure-retention bounds. Do not extrapolate these sublinear timings into permission to activate the market run. A6.3 remains open.
+
+## 2026-11-17: decision superseding the next-small-benchmark direction
+
+See `phase-a6-feasibility-decision.md`: current single-job activation is NO_GO on available evidence. The complete engineering review and pinned 465-unit input metadata plan establish a concrete partition-executor/global-reconciliation target. Sensitivity calculations are not qualification bounds. Earlier measurements and scientific requirements remain unchanged; no market attempt was reserved or executed.
