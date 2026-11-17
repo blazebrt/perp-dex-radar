@@ -63,11 +63,65 @@ class Capture(unittest.TestCase):
             root=Path(tmp);fixture(root);files,path=H.package(root)
             result=H.verify_archive(files.__getitem__,path)
             self.assertEqual(result['status'],'ARCHIVE_CONTENT_VERIFIED')
-            self.assertFalse(result['original_source_documents_reverified'])
+            self.assertTrue(result['original_source_documents_reverified'])
             recordpath=result['snapshot']['records'][0]['path']
             files[recordpath]=gzip.compress(b'{}')
             with self.assertRaisesRegex(ValueError,'hash'):H.verify_archive(files.__getitem__,path)
             with self.assertRaisesRegex(ValueError,'snapshot path'):H.verify_archive(files.__getitem__,'../outside')
+
+    def test_exact_original_bytes_recover_after_source_site_is_removed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);fixture(root)
+            # Preserve whitespace as well as the decoded audit values.
+            audit=root/'data/v8/audit_latest.json'
+            audit.write_bytes(b'  '+audit.read_bytes()+b'\n')
+            originals={p:(root/p).read_bytes() for p in ('data/v8/audit_latest.json','data/v8/decision.json','data/quant_journal.json')}
+            files,path=H.package(root)
+            for p in originals:(root/p).unlink()
+            result=H.verify_archive(files.__getitem__,path)
+            self.assertTrue(result['original_source_documents_reverified'])
+            self.assertFalse(result['trade_authorization'])
+            for p,b in originals.items():
+                self.assertEqual(H.unpack(files[result['snapshot']['original_sources'][p]]),b)
+
+    def test_older_capture_remains_content_only_without_source_reads(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);fixture(root);files,path=H.package(root)
+            snapshot=H.decode(H.unpack(files[path]));del snapshot['original_sources']
+            raw=H.canonical(snapshot);old=H.PREFIX+'snapshots/'+H.sha(raw)+'.json.gz'
+            files[old]=gzip.compress(raw)
+            files={p:b for p,b in files.items() if '/sources/' not in p}
+            result=H.verify_archive(files.__getitem__,old)
+            self.assertFalse(result['original_source_documents_reverified'])
+            self.assertEqual(result['records'][0]['record']['id'],'old')
+
+    def test_rehashed_capture_cannot_disagree_with_retained_sources(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);fixture(root);files,path=H.package(root)
+            original=H.decode(H.unpack(files[path]))
+            for key,value in [('observed_authority',{'FULL':[{'strategy':'invented'}]}),
+                              ('snapshot_time',12345),('decision_time',12345),
+                              ('records',[]),('source_files',{}),('source_bindings_verified',False),
+                              ('original_sources',None),('original_sources',{})]:
+                snapshot=dict(original);snapshot[key]=value
+                raw=H.canonical(snapshot);changed=H.PREFIX+'snapshots/'+H.sha(raw)+'.json.gz'
+                files[changed]=gzip.compress(raw)
+                with self.subTest(key=key),self.assertRaises(ValueError):H.verify_archive(files.__getitem__,changed)
+
+    def test_missing_corrupt_or_escaping_original_source_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);fixture(root);files,path=H.package(root)
+            snapshot=H.decode(H.unpack(files[path]))
+            source=snapshot['original_sources']['data/v8/decision.json']
+            body=files.pop(source)
+            with self.assertRaises(KeyError):H.verify_archive(files.__getitem__,path)
+            files[source]=gzip.compress(b'{}')
+            with self.assertRaisesRegex(ValueError,'source hash'):H.verify_archive(files.__getitem__,path)
+            files[source]=body
+            snapshot['original_sources']['data/v8/decision.json']='../outside'
+            raw=H.canonical(snapshot);changed=H.PREFIX+'snapshots/'+H.sha(raw)+'.json.gz'
+            files[changed]=gzip.compress(raw)
+            with self.assertRaisesRegex(ValueError,'source path'):H.verify_archive(files.__getitem__,changed)
 
     def test_cli_preserves_failure_report_without_payload_or_git_error(self):
         with tempfile.TemporaryDirectory() as tmp:

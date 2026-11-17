@@ -60,6 +60,14 @@ def package(directory):
             data = stream.read(MAX_SOURCE_BYTES + 1)
         require(len(data) <= MAX_SOURCE_BYTES, 'source exceeds capture limit')
         raw[path] = data
+    return package_sources(raw)
+
+
+def package_sources(raw):
+    """Validate exact public source bytes and build immutable capture objects."""
+    paths = ('data/v8/audit_latest.json', 'data/v8/decision.json', 'data/quant_journal.json')
+    require(set(raw) == set(paths) and all(isinstance(b, bytes) and len(b) <= MAX_SOURCE_BYTES for b in raw.values()),
+            'invalid source inventory or size')
     audit, decision, journal = [decode(raw[path]) for path in paths]
     require(all(isinstance(x, dict) for x in (audit, decision, journal)), 'invalid source document')
     manifest = audit.get('manifest')
@@ -91,17 +99,22 @@ def package(directory):
             path = PREFIX + 'records/' + sha(body) + '.json.gz'
             files[path] = gzip.compress(body, mtime=0)
             records.append(dict(identity=identity, state=state, path=path, sha256=sha(body)))
+    original_sources = {}
+    for source_path, source_body in raw.items():
+        retained_path = PREFIX + 'sources/' + sha(source_body) + '.json.gz'
+        files[retained_path] = gzip.compress(source_body, mtime=0)
+        original_sources[source_path] = retained_path
     snapshot = dict(schema='v9.paper-observation-snapshot/1', snapshot_time=manifest['ts'],
                     decision_time=decision['as_of'], decision_valid_until=decision.get('valid_until'),
                     observed_authority=decision['strategy_tiers'], policy_hash=decision.get('policy_hash'),
                     decision_implementation_hash=decision.get('implementation_hash'),
                     recorder_sha256=sha(Path(__file__).read_bytes()),
                     source_files={p: dict(bytes=len(b), sha256=sha(b)) for p, b in raw.items()},
-                    source_bindings_verified=True, records=records,
+                    source_bindings_verified=True, records=records, original_sources=original_sources,
                     historical_entry_authority='UNRECORDED_NOT_INFERRED', trade_authorization=False,
                     limitations=['This records authority at the snapshot, not at trade entry.',
                                  'Records pruned before capture and scans that never completed cannot be recovered.',
-                                 'Raw source hashes bind the capture; full original audit/decision bytes are not archived here.'])
+                                 'Original public source bytes are retained; content binding is not upstream authentication.'])
     body = canonical(snapshot)
     path = PREFIX + 'snapshots/' + sha(body) + '.json.gz'
     files[path] = gzip.compress(body, mtime=0)
@@ -153,8 +166,8 @@ def unpack(data):
 def verify_archive(read, snapshot_path):
     """Recover retained rows with content checks, not renewed source authority.
 
-    `read` must read from one pinned archive revision. Original source documents
-    are not retained here, so their former verification cannot be rerun here.
+    `read` must read from one pinned archive revision. New captures retain original
+    source bytes for replay; older captures remain content-only verification.
     """
     require(re.fullmatch(PREFIX + r'snapshots/[a-f0-9]{64}\.json\.gz', snapshot_path), 'invalid snapshot path')
     body = unpack(read(snapshot_path))
@@ -181,14 +194,34 @@ def verify_archive(read, snapshot_path):
         identities.add(key)
         records.append(record)
     require(snapshot.get('trade_authorization') is False and snapshot.get('historical_entry_authority') == 'UNRECORDED_NOT_INFERRED', 'unsupported archive authority')
+    reverified = False
+    if 'original_sources' in snapshot:
+        original = snapshot['original_sources']
+        expected = {'data/v8/audit_latest.json', 'data/v8/decision.json', 'data/quant_journal.json'}
+        require(isinstance(original, dict) and set(original) == expected, 'invalid original source inventory')
+        raw_sources = {}
+        for source, path in original.items():
+            require(isinstance(path, str) and re.fullmatch(PREFIX + r'sources/[a-f0-9]{64}\.json\.gz', path),
+                    'invalid original source path')
+            source_body = unpack(read(path))
+            require(sha(source_body) == path.rsplit('/', 1)[1][:-8], 'original source hash mismatch')
+            raw_sources[source] = source_body
+        replay_files, replay_path = package_sources(raw_sources)
+        replay = decode(unpack(replay_files[replay_path]))
+        fields = ('snapshot_time', 'decision_time', 'decision_valid_until', 'observed_authority',
+                  'policy_hash', 'decision_implementation_hash', 'source_files', 'records', 'original_sources')
+        require(snapshot.get('source_bindings_verified') is True and
+                all(k in snapshot and canonical(snapshot[k]) == canonical(replay[k]) for k in fields),
+                'original source replay mismatch')
+        reverified = True
     return dict(status='ARCHIVE_CONTENT_VERIFIED', snapshot=snapshot, records=records,
-                original_source_documents_reverified=False, trade_authorization=False)
+                original_source_documents_reverified=reverified, trade_authorization=False)
 
 
 def publish(repo, files, snapshot_path, *, remote='origin', attempts=3):
     """Add only, to an existing history branch. Retry non-fast-forward races."""
     require(snapshot_path in files and snapshot_path.startswith(PREFIX + 'snapshots/'), 'missing snapshot')
-    require(all(re.fullmatch(PREFIX + r'(?:(?:records|snapshots|views)/[a-f0-9]{64}|indexes/[0-9]{20}-[a-f0-9]{64}-[a-f0-9]{64})\.json\.gz', p) for p in files), 'invalid capture path')
+    require(all(re.fullmatch(PREFIX + r'(?:(?:records|snapshots|views|sources)/[a-f0-9]{64}|indexes/[0-9]{20}-[a-f0-9]{64}-[a-f0-9]{64})\.json\.gz', p) for p in files), 'invalid capture path')
     paths = sorted(files)
     bodies = {p: unpack(files[p]) for p in paths}
     require(all(sha(bodies[p]) == p.rsplit('/', 1)[1][:-8].rsplit('-', 1)[-1] for p in paths), 'content-address mismatch')
