@@ -1356,3 +1356,10 @@ Added an offline verifier and reproducible report. Endpoint/query identity, resp
 D4 source-directory pagination is complete; historical eligibility/identity and per-instrument bar coverage are not accepted. D4 and the overall roadmap remain open: 12 major items (10 core plus two optional). No study activation, evidence-history append, promotion, merge or deployment occurred.
 
 Validation: all 1,466 Linux regression tests passed in 354.558 seconds, including retained-inventory reproduction and rejection of incomplete/reordered/corrupted pages, wrong endpoints/queries and ambiguous XML fields. Existing parity goldens and published outputs remain unchanged.
+
+
+Hosted validation follow-up: run `43915344355` exposed an existing cleanup-test race when `/proc/<pid>/stat` disappeared during its read and raised ProcessLookupError instead of FileNotFoundError. The test now accepts those two precise disappearance errors, retaining process-group cleanup, bounded waits and live-child checks. A deterministic injected-read case covers the observed race. Runtime measurement code, resource qualification and production behavior are unchanged. The failed run remains visible; final validation is recorded below.
+
+### 2026-11-17 — Cleanup-test race correction validated
+
+Final local validation passed: all 1,467 Linux regression tests in 355.841 seconds, including the injected ProcessLookupError case and actual process-group cleanup checks. This corrects the test race observed in hosted run 43915344355 without changing runtime measurement or trading behavior. The premium directory assessment remains at 1,011 observed prefixes, with five explicitly unsupported symbols and no historical-coverage acceptance. Twelve major roadmap items remain (10 core plus two optional).

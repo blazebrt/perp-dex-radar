@@ -183,13 +183,22 @@ class WorkerCleanup(unittest.TestCase):
                     try:
                         raw=Path('/proc',str(child_pid),'stat').read_text()
                         if raw[raw.rfind(')')+2:].split()[0]=='Z':break
-                    except FileNotFoundError:break
+                    except (FileNotFoundError,ProcessLookupError):break
                     time.sleep(.02)
                 else:self.fail('child still running after cleanup')
             finally:
                 try:os.killpg(process.pid,signal.SIGKILL)
                 except ProcessLookupError:pass
                 process.wait(timeout=5)
+
+    def test_cleanup_accepts_process_disappearance_during_proc_read(self):
+        original=Path.read_text
+        def read(path,*args,**kwargs):
+            if path.parts[:2]==('/', 'proc') and path.name=='stat':
+                raise ProcessLookupError('process vanished during read')
+            return original(path,*args,**kwargs)
+        with patch.object(Path,'read_text',read):
+            self.check_cleanup(True)
 
     def test_observer_failure_calls_group_cleanup_and_preserves_error(self):
         import subprocess
