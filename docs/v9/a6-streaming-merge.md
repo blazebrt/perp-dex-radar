@@ -34,4 +34,4 @@ This is a structural input-scratch bound, not a measured hosted allocated-disk/R
 | Independent qualification acceptance | Still open; local test success is not a substitute. |
 | Controlled one-time market outcome run and reconciliation | Not authorized or started; only follows the preceding gates and explicit activation approval. |
 
-The owner was asked for an existing object-storage provider/bucket and spending limit while this implementation proceeded. Do not invent an account, purchase capacity, claim hosted qualification from local fixtures, or mark A6 complete because the software tests pass. No merge/deployment/release/market reservation/promotion occurred.
+The earlier request for an owner-supplied storage account/budget is superseded by the owner's instruction to use available alternatives or explicitly skip unavailable dependencies. `a6-github-recovery.md` implements an existing-GitHub hosted handoff check. Do not claim hosted/full-volume qualification from local fixtures or mark A6 complete because the software tests pass. No merge/deployment/release/market reservation/promotion occurred.

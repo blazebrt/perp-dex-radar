@@ -36,3 +36,7 @@ F3 and the retained F4 page are now implemented. F4 closure needs prospective en
 E1 ranking and E2 tier/covariance sizing plus whole-book reduction-only targets are implemented in the draft. E2 includes modeled turnover costs, post-cost caps and Phase 10 verification, with a read-only Portfolio display. Activation awaits merge review; no execution-ready order list is claimed. See `whole-book-balancing.md`.
 
 B9 follow-ups are now dispositioned in `b9-followup-dispositions.md`. The draft Emerging-authority correction removes unsupported signal evidence without changing directional decisions or research authority.
+
+## Owner dependency direction (2026-11-18)
+
+Do not ask the owner to supply external accounts, buckets, credentials or budgets. Use available tools and existing services; explicitly skip unavailable optional dependencies. Do not convert a missing required acceptance check into a pass. The earlier A6 storage-account request is withdrawn. `a6-github-recovery.md` provides a small existing-GitHub cross-job recovery alternative; it does not claim permanent storage or full-volume readiness. If that route cannot meet production requirements, record the limitation and advance another actionable roadmap item rather than waiting for the owner.
