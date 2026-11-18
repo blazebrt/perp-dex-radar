@@ -1,0 +1,44 @@
+{
+  "schema": "v9.a6-github-recovery-evidence/1",
+  "workflow_run_id": 44368737167,
+  "workflow_url": "https://github.com/blazebrt/perp-dex-radar/actions/runs/44368737167",
+  "source_commit": "4c4b7df0cd57b7022962c60b8fb7776cc3a4438c",
+  "conclusion": "success",
+  "producer_job_id": 135029436214,
+  "recovery_job_id": 135029713464,
+  "report": {
+    "consumer": {
+      "boot_sha256": "d63e97263ec75fd726ebc2218869d90fbf6eedb7652ec979a6c499be32416f02",
+      "run_attempt": "1",
+      "run_id": "44368737167",
+      "runner_arch": "X64",
+      "runner_os": "Linux",
+      "source_commit": "4c4b7df0cd57b7022962c60b8fb7776cc3a4438c"
+    },
+    "execution_authorized": false,
+    "independent_boot_verified": true,
+    "long_term_retention_qualified": false,
+    "producer": {
+      "boot_sha256": "ffdc22016ddcc073db94feaa2eca7092941029fb57c11c2715f1f721b573cbf5",
+      "run_attempt": "1",
+      "run_id": "44368737167",
+      "runner_arch": "X64",
+      "runner_os": "Linux",
+      "source_commit": "4c4b7df0cd57b7022962c60b8fb7776cc3a4438c"
+    },
+    "refused_recomputations": 3,
+    "resource_qualified": false,
+    "schema": "v9.a6-hosted-recovery/1",
+    "states": {
+      "0000000000000000000000000000000000000000000000000000000000000000:00000": "RECORDED",
+      "0000000000000000000000000000000000000000000000000000000000000001:00000": "FAILED",
+      "0000000000000000000000000000000000000000000000000000000000000002:00000": "CLAIMED",
+      "0000000000000000000000000000000000000000000000000000000000000003:00000": "PENDING",
+      "__merge__": "PENDING"
+    },
+    "status": "SYNTHETIC_TRANSFER_RECOVERY_VERIFIED",
+    "synthetic_only": true,
+    "transfer_manifest_sha256": "539095907c8d6c39770ba9b9a1ea93f239d1d73b356c29f1598d70e370ad40e2",
+    "transferred_bytes": 26513
+  }
+}
