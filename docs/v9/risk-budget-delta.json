@@ -1,0 +1,35 @@
+{
+  "schema": "v9.risk-budget-delta/1",
+  "parent": "86210d376a2de767a2eff94e54aa684ba6692e69",
+  "files": {
+    "v8/decision.py": {
+      "base_sha256": "e9c5608813cb2817666aed127df8b748b9e3010e18735e650439b998c47034cf",
+      "head_sha256": "89fdb8df19179949cf7f59a639e70aa58703383e614b593d9b64a4f0c39517e6"
+    },
+    "v8/decision_policy.json": {
+      "base_sha256": "b62567e3d46e7b885723762b79ef64cc7b749cf8bbea27c338c39bce142f4209",
+      "head_sha256": "883d310b52f3ff7136814dda16576b7cce5a53c6feffa6e4b0896c449c2654ed"
+    },
+    "v9/risk_budget.py": {
+      "base_sha256": null,
+      "head_sha256": "ac5fae7e9622a88dbabf6e1a1260f2099e3bdebdfa0a84a521ccc8a9d98cea97"
+    }
+  },
+  "intentional_changes": [
+    "Decision implementation binding now includes the sizing module",
+    "Draft policy binding and sizing rule",
+    "Candidate risk_budget diagnostic; proposal reduction-only risk_fraction, final size_multiplier and explicit tier cap multiplier",
+    "Portfolio after-state and consequent state, ranking and placement under unchanged Phase 10 rules"
+  ],
+  "unchanged": [
+    "Strategy signals and evidence",
+    "Nonportfolio trade gates",
+    "Phase 10 limits and risk engine",
+    "Open journal records and existing position sizes"
+  ],
+  "not_claimed": [
+    "Full-book parity",
+    "Production activation",
+    "Improved realized returns"
+  ]
+}

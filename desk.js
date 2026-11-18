@@ -985,6 +985,26 @@
     const full = (doc.portfolio || {}).full_paper_book;
     return full && typeof full === "object" ? boundDetail({portfolio: {phase10: full}}, audit) : null;
   }
+  function rebalancePanel(doc) {
+    const b = (doc.portfolio || {}).rebalance;
+    if (!b || typeof b !== "object") return "";
+    let h = '<section class="sec panel" aria-labelledby="rb-h"><h2 id="rb-h">Whole-book balance model</h2><p class="secsub">Hypothetical reductions at current marks. No orders are placed and the current positions remain unchanged. Venue minimum orders and execution sequencing are not modeled.</p>';
+    const rows = b.positions;
+    const valid = b.status === "MODEL_WITHIN_LIMITS" && b.trade_authorization === false && b.existing_positions_changed === false &&
+      b.whole_book_parity === true && b.reductions_only === true && (b.phase10_after || {}).state === "WITHIN_LIMITS" &&
+      [b.equity_before, b.modeled_equity_after_costs].every((v) => isNum(v) && v > 0) &&
+      b.modeled_equity_after_costs <= b.equity_before &&
+      [b.turnover_usd, b.estimated_fees_usd, b.estimated_slippage_usd].every((v) => isNum(v) && v >= 0) &&
+      Array.isArray(rows) && rows.length > 0 && rows.every((r) => r && typeof r.id === "string" && typeof r.asset === "string" &&
+        [r.current_notional_usd, r.target_notional_usd, r.reduction_usd, r.target_risk_share, r.modeled_risk_share].every(isNum) &&
+        r.target_notional_usd > 0 && r.target_notional_usd <= r.current_notional_usd && r.reduction_usd >= 0 &&
+        r.reduction_usd <= r.current_notional_usd && [r.target_risk_share, r.modeled_risk_share].every((v) => v >= 0 && v <= 1) &&
+        Math.abs(r.target_risk_share - r.modeled_risk_share) <= 1e-6) && new Set(rows.map((r) => r.id)).size === rows.length;
+    if (!valid) return h + '<p>No verified balance target is available: ' + esc(b.status === "EMPTY" ? "no governed positions" : String(b.reason || "incomplete model").toLowerCase().replace(/_/g, " ")) + '.</p></section>';
+    h += '<p>The modeled book meets Phase 10 limits after estimated costs. Risk contributions follow the tier budgets; this does not predict future returns.</p><p>Turnover: <b>' + esc(usd(b.turnover_usd)) + '</b> · Estimated fees: <b>' + esc(usd(b.estimated_fees_usd)) + '</b> · Estimated slippage: <b>' + esc(usd(b.estimated_slippage_usd)) + '</b> · Modeled account after costs: <b>' + esc(usd(b.modeled_equity_after_costs)) + '</b>.</p>';
+    return h + '<div class="tblwrap"><table class="tbl"><thead><tr><th>Asset / strategy</th><th class="num">Current size</th><th class="num">Model target</th><th class="num">Reduction</th><th class="num">Target risk share</th><th class="num">Modeled risk share</th></tr></thead><tbody>' +
+      rows.map((r) => '<tr><td>' + esc(r.asset) + ' / ' + esc(r.strategy) + '</td><td class="num">' + esc(usd(r.current_notional_usd)) + '</td><td class="num">' + esc(usd(r.target_notional_usd)) + '</td><td class="num">' + esc(usd(r.reduction_usd)) + '</td><td class="num">' + esc(pct(r.target_risk_share)) + '</td><td class="num">' + esc(pct(r.modeled_risk_share)) + '</td></tr>').join("") + '</tbody></table></div></section>';
+  }
   function governedPositions(doc) {
     const rows = (doc.portfolio || {}).governed_positions;
     if (!Array.isArray(rows)) return "";
@@ -1030,7 +1050,7 @@
       h += portfolioDetail(doc, pr, audit, auditState);
       return {status: "AVAILABLE", statusHtml: st.html, statusBad: false, body: h};
     }
-    h += governedPositions(doc);
+    h += governedPositions(doc) + rebalancePanel(doc);
     const fv = portfolioView(full);
     h += '<section class="sec panel" aria-labelledby="lb-h"><h2 id="lb-h">Legacy paper book · diagnostic only</h2><div class="pfhead">' + pfChip(fv.state) +
       '<p>Every open paper position of the quant desk, including legacy holdovers the desk never recommended. It no longer gates any decision.</p></div>' +
@@ -1281,13 +1301,16 @@
   }
   /* One coin's market context for the Analyzer (Hyperliquid, Binance and Bybit funding, open interest, Gate positioning). */
   function vMarketAsset(m, coin, now) {
-    if (!marketOk(m) || !m.assets || typeof m.assets !== "object") return "";
+    if (!marketOk(m) || !m.assets || typeof m.assets !== "object") return '<p class="note">Market context is unavailable. Missing context does not establish listing status or change the decision.</p>';
     const a = m.assets[coin];
-    if (!a || typeof a !== "object") return '<p class="muted small" style="margin:0">' + esc(coin) + ' is not in the market context (it is not a listed Hyperliquid perp).</p>';
+    if (!a || typeof a !== "object") return '<p class="note">No asset-level observation for ' + esc(coin) + ' in this snapshot. This does not establish whether it is listed.</p>' + marketSources(m, null) + '<details><summary>Broader market context (not coin-specific)</summary>' + vMarket(m, now) + '</details>';
     const rows = [], row = (l, v) => rows.push('<dt>' + esc(l) + '</dt><dd>' + v + '</dd>');
     const fr = (x) => signed(x, (y) => pct(y)) + " / 8h";
+    row("Prices (Hyperliquid)", 'mark <b>' + esc(price(a.mark)) + '</b> · oracle <b>' + esc(price(a.oracle)) + '</b>');
     row("Funding", 'Hyperliquid <b>' + esc(fr(a.funding_8h)) + '</b> · Binance <b>' + esc(fr(a.funding_8h_binance)) + '</b> · Bybit <b>' + esc(fr(a.funding_8h_bybit)) + '</b>');
-    row("Open interest", '<b>' + esc(usd(a.oi_usd)) + '</b> on Hyperliquid' + (a.at_oi_cap ? ' <span class="tag warn">at its OI cap</span>' : ""));
+    row("Funding provenance", 'Hyperliquid rates and its predicted-funding feed for Binance/Bybit; these are not independent venue observations.');
+    row("Open interest", '<b>' + esc(usd(a.oi_usd)) + '</b> on Hyperliquid · cap status: ' + (a.at_oi_cap === true ? 'at cap' : a.at_oi_cap === false ? 'not at cap' : 'unknown'));
+    row("Venue maximum leverage", esc(isNum(a.max_leverage) ? a.max_leverage + '× (venue metadata, not a sizing recommendation)' : 'unknown'));
     row("24h", 'volume <b>' + esc(usd(a.vol_24h_usd)) + '</b> · change <b>' + esc(signed(a.chg_24h, (x) => pct(x))) + '</b> · premium ' + esc(signed(a.premium, (x) => pct(x))));
     const gt = a.gate;
     if (gt && typeof gt === "object") {
@@ -1295,9 +1318,29 @@
         '</b> · taker buy/sell 24h <b>' + esc(isNum(gt.lsr_taker_24h) ? gt.lsr_taker_24h.toFixed(2) : "–") + '</b>');
       row("Open interest (Gate)", '<b>' + esc(usd(gt.oi_usd)) + '</b> · 24h ' + esc(signed(gt.oi_chg_24h, (x) => pct(x))));
       row("Liquidations 24h", 'longs <b>' + esc(usd(gt.liq_long_24h_usd)) + '</b> · shorts <b>' + esc(usd(gt.liq_short_24h_usd)) + '</b>');
-    }
+      row("Gate observation time", esc(isInt(gt.as_of) ? utcTxt(gt.as_of) : 'unknown'));
+    } else row("Gate observation", 'Unavailable; missing positioning/liquidations are not zero.');
     return '<dl class="kv mk">' + rows.join("") + '</dl><p class="note">Market context of ' + esc(timeTxt(m.as_of)) + (now > m.fresh_until ? " (stale)" : "") +
-      ' from free public sources. Context only: it is not part of the decision above.</p>';
+      ' from free public sources. Context only: it is not part of the decision above. Snapshot freshness does not prove every upstream observation is fresh.</p>' + marketSources(m, a) + '<details><summary>Broader market context (not coin-specific)</summary>' + vMarket(m, now) + '</details>';
+  }
+
+  function marketSources(m, asset) {
+    const r = m.regime || {}, vol = r.volatility || {}, margin = r.btc_margin || {};
+    const observations = {'deribit.dvol.btc': (vol.btc_dvol || {}).as_of, 'deribit.dvol.eth': (vol.eth_dvol || {}).as_of,
+      'alt.fng': (r.sentiment || {}).as_of, 'llama.stable': (r.stablecoins || {}).as_of,
+      'farside.etf': (r.etf_flows || {}).last_date, 'cg.global': (r.global || {}).as_of,
+      'bfx.longs': (margin.longs || {}).as_of, 'bfx.shorts': (margin.shorts || {}).as_of,
+      'gate.stats': asset && asset.gate ? asset.gate.as_of : null};
+    let h = '<details><summary>Sources and observation times</summary><p class="note">Fetch time is when the desk received a response. Unknown observation time is not proof of fresh data. Macro sources describe the market, not this coin.</p><div style="overflow:auto"><table><thead><tr><th>Source</th><th>Response</th><th>Fetched UTC</th><th>Observed UTC</th></tr></thead><tbody>';
+    const sources = m.sources && typeof m.sources === 'object' ? m.sources : {};
+    for (const sid of Object.keys(sources).sort()) {
+      const src = sources[sid] || {};
+      h += '<tr><td>' + esc(sid) + '</td><td>' + esc(src.status || 'unknown') + '</td><td>' + esc(isInt(src.fetched_at) ? utcTxt(src.fetched_at) : 'unknown') + '</td><td>' + esc(isInt(observations[sid]) ? utcTxt(observations[sid]) : 'unknown') + '</td></tr>';
+    }
+    h += '</tbody></table></div></details>';
+    const stable = r.stablecoins;
+    if (stable && typeof stable === 'object') h += '<p class="note">Stablecoin supply (DefiLlama): ' + esc(usd(stable.total_usd)) + ' · 7d ' + esc(signed(stable.chg_7d, x => pct(x))) + ' · 30d ' + esc(signed(stable.chg_30d, x => pct(x))) + '.</p>';
+    return h;
   }
 
   // ------------------------------------------------------------------ browser loading

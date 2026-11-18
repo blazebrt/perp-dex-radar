@@ -1,0 +1,58 @@
+{
+  "artifacts": {
+    "a6_intermediate_attempt1_environment.json": {
+      "bytes": 528,
+      "sha256": "d6ad7fb144b8b032d39b681b09ed4010760f2af504d8c3f824e328ddbc87941e"
+    },
+    "a6_intermediate_attempt1_log.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "command": [
+    "timeout",
+    "--kill-after=10s",
+    "180s",
+    "python3",
+    "tools/v9/control_resource_measure.py",
+    "--signals",
+    "128",
+    "--bars",
+    "4000",
+    "--assets",
+    "128",
+    "--definitions",
+    "12",
+    "--unavailable",
+    "2",
+    "--shard-rows",
+    "25000",
+    "--out",
+    "a6-intermediate-measurements.json"
+  ],
+  "completed_cases": null,
+  "date": "2026-10-29",
+  "date_timezone": "Asia/Calcutta",
+  "hosted_runner": false,
+  "inner_timeout_exit_code": null,
+  "limitations": [
+    "No case-level durable checkpoint: completed work cannot be inferred.",
+    "The tool exit code does not establish timeout, out-of-memory or a workload defect.",
+    "Kernel tail mentioned unclean journal handling; this does not identify the cause.",
+    "The process check was a later snapshot, not proof of graceful cleanup."
+  ],
+  "local_git_retention_verified": null,
+  "market_data_loaded": false,
+  "measurement_report_created": false,
+  "post_attempt_matching_processes_observed": 0,
+  "promotion_authority": false,
+  "requested_kill_grace_seconds": 10,
+  "requested_timeout_seconds": 180,
+  "resource_qualified": false,
+  "schema": "v9.a6-local-synthetic-attempt/1",
+  "source_commit": "a39b753f73fa8b0514edf9873ad9177486f2af7d",
+  "status": "UNSUCCESSFUL_NO_MEASUREMENT_REPORT",
+  "synthetic_only": true,
+  "termination_cause": "UNKNOWN",
+  "tool_reported_exit_code": 1
+}

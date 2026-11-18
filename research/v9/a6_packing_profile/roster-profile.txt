@@ -1,0 +1,63 @@
+         323967645 function calls (310050050 primitive calls) in 187.184 seconds
+
+   Ordered by: cumulative time
+   List reduced from 643 to 55 due to restriction <55>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    3.431    3.431  187.827  187.827 control_pipeline_probe.py:23(scenario)
+        1    0.301    0.301   84.214   84.214 control_outcomes.py:16(run)
+        1    0.003    0.003   83.316   83.316 audit_control_outcomes.py:143(run)
+        1    0.001    0.001   83.302   83.302 audit_control_outcomes.py:89(audit)
+        1    0.572    0.572   70.036   70.036 verify_control_statistics.py:21(verify)
+     1537    1.277    0.001   67.525    0.044 audit_control_outcomes.py:98(pairs)
+     1536    0.009    0.000   58.429    0.038 control_pipeline_probe.py:66(match)
+     1536    0.048    0.000   58.420    0.038 control_adapter.py:91(match)
+     1536    0.704    0.000   57.135    0.037 control_pairs.py:22(match)
+  6207177    7.596    0.000   35.900    0.000 __init__.py:183(dumps)
+     1536    4.474    0.003   35.440    0.023 verify_control_selection.py:30(verify)
+     1536    4.258    0.003   32.786    0.021 control_cohort.py:45(select)
+4442308/3242692    3.211    0.000   31.878    0.000 {built-in method builtins.all}
+  6207177    6.411    0.000   24.701    0.000 encoder.py:182(encode)
+     3470    0.083    0.000   23.844    0.007 verify_control_outcomes.py:53(pair_records)
+    78336    0.237    0.000   23.373    0.000 control_pairs.py:33(attempt)
+     1536    0.080    0.000   22.896    0.015 control_pairs.py:41(<listcomp>)
+     3072    0.140    0.000   21.974    0.007 verify_control_storage.py:29(unpack)
+14669568/2675712   12.499    0.000   21.806    0.000 copy.py:128(deepcopy)
+    78336    0.535    0.000   21.236    0.000 control_adapter.py:83(execute)
+     1536    0.022    0.000   20.872    0.014 control_storage.py:20(pack)
+     3072    0.027    0.000   18.559    0.006 control_storage.py:10(table)
+1016832/393216    3.358    0.000   17.949    0.000 copy.py:227(_deepcopy_dict)
+     3072    0.096    0.000   17.153    0.006 control_storage.py:14(<dictcomp>)
+  3703840    1.556    0.000   16.831    0.000 control_storage.py:6(canonical)
+  1901840    1.287    0.000   16.669    0.000 control_storage.py:15(<genexpr>)
+     6144    1.209    0.000   16.278    0.003 verify_control_storage.py:13(expand)
+  5718363   16.223    0.000   16.223    0.000 encoder.py:204(iterencode)
+    78336    2.885    0.000   14.545    0.000 control_adapter.py:48(price_rows)
+        1    0.273    0.273   13.252   13.252 verify_control_outcomes.py:81(verify)
+  1199616    6.030    0.000   12.933    0.000 verify_control_selection.py:15(bucket)
+    78336    2.927    0.000   12.771    0.000 audit_control_outcomes.py:50(get)
+    82189    0.202    0.000   11.559    0.000 gzip.py:272(write)
+    82189   11.144    0.000   11.144    0.000 {method 'compress' of 'zlib.Compress' objects}
+      781    0.010    0.000   10.243    0.013 gzip.py:543(compress)
+  1199616    4.392    0.000    9.130    0.000 control_cohort.py:18(features)
+  1424830    1.523    0.000    8.914    0.000 {built-in method builtins.any}
+     4634    4.475    0.001    6.263    0.001 {method 'executemany' of 'sqlite3.Connection' objects}
+  1875962    3.170    0.000    6.083    0.000 csv.py:107(__next__)
+    78336    1.519    0.000    6.079    0.000 control_execution.py:19(simulate)
+ 63227134    5.829    0.000    5.829    0.000 {method 'get' of 'dict' objects}
+    78336    2.382    0.000    5.404    0.000 verify_control_prices.py:16(verify)
+ 27534732    3.058    0.000    4.387    0.000 {built-in method builtins.isinstance}
+     6144    0.131    0.000    3.944    0.001 copy.py:201(_deepcopy_list)
+  2399817    1.982    0.000    3.803    0.000 {built-in method builtins.sum}
+    85278    0.083    0.000    3.673    0.000 verify_control_outcomes.py:47(records)
+  6207177    3.603    0.000    3.603    0.000 encoder.py:104(__init__)
+  1201152    0.351    0.000    3.599    0.000 control_cohort.py:64(<genexpr>)
+  1201152    0.341    0.000    3.591    0.000 verify_control_selection.py:48(<genexpr>)
+    89296    0.268    0.000    3.532    0.000 __init__.py:299(loads)
+  1201152    0.493    0.000    3.261    0.000 verify_control_selection.py:34(identity)
+  1201152    0.491    0.000    3.256    0.000 control_cohort.py:40(identity)
+    81408    0.239    0.000    3.125    0.000 control_extract.py:50(emit)
+   162472    3.115    0.000    3.115    0.000 {method 'execute' of 'sqlite3.Connection' objects}
+   181477    0.488    0.000    2.947    0.000 control_execution.py:44(observed)
+
+

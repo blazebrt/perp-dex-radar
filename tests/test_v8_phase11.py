@@ -140,8 +140,8 @@ REVIEWED_VALUES_DIGEST = "2c788403b1f4f65f4d591a1075aeebceba24782d94d28a725a47f9
 class Policy(unittest.TestCase):
     def test_policy_is_governed_and_reviewed(self):
         p = DE.load_policy()
-        self.assertEqual((p["schema"], p["review_status"]), ("v8.decision-policy/1", "POLICY_REVIEWED_V2_PROBATION"))
-        self.assertEqual(DE.REVIEW_STATUS, "POLICY_REVIEWED_V2_PROBATION")
+        self.assertEqual((p["schema"], p["review_status"]), ("v8.decision-policy/1", "POLICY_V6_EMERGING_AUTHORITY_PENDING_MERGE_REVIEW"))
+        self.assertEqual(DE.REVIEW_STATUS, "POLICY_V6_EMERGING_AUTHORITY_PENDING_MERGE_REVIEW")
         for sec in DE.SECTION_KEYS:
             for k, e in p[sec].items():
                 self.assertEqual(e["basis"], "POLICY", f"{sec}.{k}")
@@ -159,10 +159,11 @@ class Policy(unittest.TestCase):
         v1 = {s: {k: e["value"] for k, e in p[s].items()} for s in DE.SECTION_KEYS}
         added = {"strategy_authority": {"probation_deployment_states": ["ACTIVE_PROBATION"],
                                         "probation_research_states": ["PROBATION"]},
-                 "portfolio": {"gating_book": "GOVERNED_TRADE_AUTHORIZED"}}
+                 "portfolio": {"gating_book": "GOVERNED_TRADE_AUTHORIZED", "sizing_rule": "FIXED_BOOK_TIER_VARIANCE_BUDGET", "rebalance_rule": "REDUCTION_ONLY_POST_COST_TIER_PARITY"}}
         for section, values in added.items():
             for key, value in values.items():
                 self.assertEqual(v1[section].pop(key), value)
+        self.assertEqual(v1["ranking"]["best_trades_now"].pop(0), ["expected_net_R", "desc"])
         self.assertEqual(DE.digest(v1), REVIEWED_VALUES_DIGEST)
         self.assertEqual(p["portfolio"]["after_state_effects"]["value"]["APPROACHING_LIMITS"], "CAP_WATCH")
         self.assertEqual(p["portfolio"]["after_state_effects"]["value"]["LIMIT_BREACHED"], "AVOID")
@@ -235,7 +236,7 @@ class Policy(unittest.TestCase):
         b = DE.build(s, p)
         self.assertNotEqual(a["policy_hash"], b["policy_hash"])
         self.assertNotEqual(a["authority"]["authority_hash"], b["authority"]["authority_hash"])
-        self.assertEqual(a["implementation_hash"], hashlib.sha256((ROOT / "v8/decision.py").read_bytes()).hexdigest())
+        self.assertEqual(a["implementation_hash"], DE.digest({name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in ("v8/decision.py", "v9/risk_budget.py")}))
 
 
 class States(unittest.TestCase):
@@ -417,14 +418,14 @@ class Portfolio(unittest.TestCase):
     def test_within_approaching_breached_unevaluable(self):
         _, c = one(signal=sig("REQ"))
         self.assertEqual((c["portfolio"]["after"]["state"], c["state"]), (PR.WITHIN, DE.TRADE))
-        near = [book_position(f"n{k}", a, d, 50.0, strategy=st) for k, (a, d, st) in
+        near = [book_position(f"n{k}", a, d, 55.0, strategy=st) for k, (a, d, st) in
                 enumerate((("LO", 1, "REQ"), ("NEG", -1, "REQ4H"), ("ALPHA", 1, "REQ"), ("BRAVO", -1, "REQ4H")))]
         _, c = one(signal=sig("REQ"), book=near)
         self.assertEqual(c["portfolio"]["after"]["state"], PR.APPROACHING)
         self.assertEqual((c["state"], c["caps"]), (DE.WATCH, ["PORTFOLIO_APPROACHING_LIMITS"]))
         _, c = one(signal=sig("REQ"), book=[book_position("missing", "LO", funding={"state": "MISSING"})])
         self.assertEqual(c["portfolio"]["after"]["state"], PR.UNEVALUABLE)
-        self.assertEqual((c["state"], c["missing_authorities"]), (DE.WATCH, ["PORTFOLIO_UNEVALUABLE"]))
+        self.assertEqual((c["state"], c["missing_authorities"]), (DE.WATCH, ["PROPOSAL_UNQUANTIFIABLE", "PORTFOLIO_UNEVALUABLE"]))
 
     def test_breach_is_avoid_and_traced_and_rank_cannot_override(self):
         big = [book_position(f"b{k}", a, 1, 100.0) for k, a in enumerate(("LO", "ALPHA", "BRAVO", "CHARLIE", "DELTA"))]

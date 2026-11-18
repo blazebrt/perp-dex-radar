@@ -1,0 +1,84 @@
+{
+  "schema": "v9.a6-feasibility-decision/1",
+  "decision": "NO_GO_CURRENT_SINGLE_JOB_DESIGN",
+  "source_commit": "4d66149925bc4b51b6277cdb207cd87cc5052c6e",
+  "method": "Engineering sensitivity scenarios from retained synthetic measurements; not predictions or upper/lower bounds.",
+  "input_files": {
+    "research/v9/a6_intermediate_attempt13/measurements.json": {
+      "bytes": 35007,
+      "sha256": "c3d828c84d4b1de2071a63151c9c5b04174f578decb5c4c4fb8db05112c04365"
+    },
+    "research/v9/a6_intermediate_attempt14/measurements.json": {
+      "bytes": 35445,
+      "sha256": "f16242d90d52820043cc23326adb2d35a66634f7c2acca732ada3cf610ab11cb"
+    },
+    "research/v9/a6_hosted_preflight.json": {
+      "bytes": 2838,
+      "sha256": "c7ff66aaa2c100fc631739aad08cc97c1238a1c527e7e4dce95b47feb6358a95"
+    },
+    "docs/v9/a6-outcome.workflow.yaml": {
+      "bytes": 4230,
+      "sha256": "f4a09e9249dd90494ff685df78115160b97882f98fea8fd51af1b2cd39edc589"
+    },
+    "tools/v9/control_resource_gate.py": {
+      "bytes": 6762,
+      "sha256": "c63643f9a53cb71224aa0af0050b19f0323df77b09470ec2d6477db56670cf03"
+    },
+    "docs/v9/phase-a6-execution-inference.md": {
+      "bytes": 10389,
+      "sha256": "707bafeddd61e07d76cba44f6df18c25ffce2c389b49c1704b04ea171ecb981b"
+    },
+    "research/v9/a6_partition_plan.json": {
+      "bytes": 237428,
+      "sha256": "9ae87963e87c0b572ee4e82e855b2c4978abf95857dc22cae096a40634ae322d"
+    },
+    "tools/v9/control_partition_plan.py": {
+      "bytes": 4922,
+      "sha256": "10cda44a499d86529b209d9386cc151c347cc69669b42cbafc5504157b3facf7"
+    }
+  },
+  "signals": 4263580,
+  "maximum_gate_work_seconds_before_setup": 12600,
+  "required_signals_per_second_minimum": 338.3793650793651,
+  "historical_half_free_disk_bytes": 46057459712,
+  "historical_half_available_memory_bytes": 7882409984,
+  "scenarios": [
+    {
+      "case": "full",
+      "observed_signals": 1280,
+      "observed_seconds": 112.015885681,
+      "observed_signals_per_second": 11.426950670596822,
+      "required_rate_multiple": 29.61239396526525,
+      "constant_observed_throughput_hours": 103.6433788784284,
+      "incremental_observed_seconds_per_signal": 0.03611208186145833,
+      "incremental_slope_hours_excluding_fixed_cost": 42.76854166191015,
+      "linear_output_bytes": 42067677965.0,
+      "linear_original_plus_local_publication_copy_bytes": 105313750260.03125
+    },
+    {
+      "case": "mixed",
+      "observed_signals": 1280,
+      "observed_seconds": 113.59298800599998,
+      "observed_signals_per_second": 11.26830117306528,
+      "required_rate_multiple": 30.029314967920474,
+      "constant_observed_throughput_hours": 105.10260238772166,
+      "incremental_observed_seconds_per_signal": 0.045387169819791656,
+      "incremental_slope_hours_excluding_fixed_cost": 53.753285972296474,
+      "linear_output_bytes": 42069513302.953125,
+      "linear_original_plus_local_publication_copy_bytes": 105318453521.71875
+    }
+  ],
+  "partition_plan": {
+    "units": 465,
+    "trials": 199,
+    "signals": 4263580,
+    "independent_manifest_metadata_comparison": "EXACT_ORDER_IDENTITIES_HASH_REFERENCES_AND_ROW_RANGES"
+  },
+  "next_architecture": "Partitioned single logical attempt with independently verified global reconciliation and bounded durable storage.",
+  "resource_qualified": false,
+  "market_data_loaded": false,
+  "outcomes_computed": false,
+  "execution_authorized": false,
+  "promotion_authority": false,
+  "source_manifest_metadata_loaded": true
+}

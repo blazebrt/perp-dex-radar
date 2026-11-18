@@ -276,10 +276,10 @@ class ProbationTier(unittest.TestCase):
         self.assertEqual((c["state"], c["caps"]), (DE.WATCH, ["STRATEGY_SIDE_NOT_CONFIRMED"]))
         self.assertIsNone(c["authority_tier"])
         self.assertEqual(c["proposal"]["size_multiplier"], 0.5)
-        # ... and it is not positive evidence for an emerging observation (a legacy-holdover WATCH signal still is)
+        # ... and it is not positive evidence for an emerging observation (legacy-holdover WATCH signals are also excluded)
         self.assertFalse([x for x in doc["candidates"] if x["type"] == DE.EMERGING])
         doc = DE.build(snap({"HI": [P.sig("TSMOM", d=-1, age=600)]}))
-        self.assertTrue([x for x in doc["candidates"] if x["type"] == DE.EMERGING])
+        self.assertFalse([x for x in doc["candidates"] if x["type"] == DE.EMERGING])
 
     def test_entry_window_and_valid_until(self):
         c = cand(DE.build(snap({"HI": [P.sig("PROB", age=600)]})), "HI")
@@ -363,7 +363,7 @@ class GovernedBook(unittest.TestCase):
         self.assertEqual(cand(doc, "HI")["state"], DE.TRADE)
         doc = DE.build(snap({"HI": [P.sig("PROB")]}, book=[pos]))          # no fresh rate for ALPHA: never zero
         self.assertEqual(doc["portfolio"]["phase10"]["state"], PR.UNEVALUABLE)
-        self.assertEqual(cand(doc, "HI")["missing_authorities"], ["PORTFOLIO_UNEVALUABLE"])
+        self.assertEqual(cand(doc, "HI")["missing_authorities"], ["PROPOSAL_UNQUANTIFIABLE", "PORTFOLIO_UNEVALUABLE"])
 
     def test_entered_signal_stays_the_same_opportunity(self):
         bar = P.AS_OF - 5 * 3600

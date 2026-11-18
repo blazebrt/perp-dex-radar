@@ -1,0 +1,17 @@
+{
+  "purpose": "SOURCE_CONTRACT_AND_COVERAGE_ONLY_NO_STRATEGY_OUTCOMES",
+  "samples": [
+    [
+      "BTCUSDT",
+      "2020-01-01"
+    ],
+    [
+      "BTCUSDT",
+      "2026-09-01"
+    ],
+    [
+      "BLZUSDT",
+      "2022-01-01"
+    ]
+  ]
+}

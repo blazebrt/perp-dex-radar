@@ -40,12 +40,13 @@ from pathlib import Path
 
 from . import portfolio_risk as PR
 from . import strategy_policy as SP
+from v9 import risk_budget as RB
 
 VERSION = "v8.decision/1"
 POLICY_VERSION = "v8.decision-policy/1"
 PATH = Path(__file__).with_name("decision_policy.json")
 FILE = "data/v8/decision.json"
-REVIEW_STATUS = "POLICY_REVIEWED_V2_PROBATION"    # the one accepted review status of v8.decision-policy/1 (v9: V2)
+REVIEW_STATUS = "POLICY_V6_EMERGING_AUTHORITY_PENDING_MERGE_REVIEW"  # draft policy; activation requires owner review
 TRADE, WATCH, AVOID = "TRADE", "WATCH", "AVOID"
 STATES = (TRADE, WATCH, AVOID)
 STATE_ORDER = {TRADE: 0, WATCH: 1, AVOID: 2}
@@ -59,7 +60,7 @@ TRACE_STEPS = ("DISCOVERY", "IDENTITY", "ECONOMIC_EXPOSURE", "VENUE_HEALTH", "SI
                "RISK_LIMITS", "DECISION_STATE")
 PLACEMENT_STEPS = ("RANKING", "SECTION_PLACEMENT")
 RANK_FIELDS = {
-    "best_trades_now": {"signal_kind_order": "num", "signal_age_s": "num", "slippage_rate": "num",
+    "best_trades_now": {"expected_net_R": "num", "signal_kind_order": "num", "signal_age_s": "num", "slippage_rate": "num",
                         "after_executable_risk": "num", "asset": "str", "strategy": "str", "direction": "num"},
     "emerging_opportunities": {"primary_evidence_count": "num", "evidence_count": "num",
                                "outstanding_blockers": "num", "asset": "str"},
@@ -106,8 +107,9 @@ def _clean(x):
 
 
 def implementation_hash():
-    """SHA-256 of the exact bytes of this decision implementation."""
-    return hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    """Bind both decision orchestration and its sizing implementation."""
+    return digest({"v8/decision.py": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                   "v9/risk_budget.py": hashlib.sha256(Path(RB.__file__).read_bytes()).hexdigest()})
 
 
 # --------------------------------------------------------------------------- policy
@@ -123,7 +125,7 @@ SECTION_KEYS = {
     "execution": ("effects",),
     "funding": ("venue_rule", "max_rate_age_s"),
     "freshness": ("max_input_age_s",),
-    "portfolio": ("after_state_effects", "gating_book"),
+    "portfolio": ("after_state_effects", "gating_book", "sizing_rule", "rebalance_rule"),
     "emerging": ("evidence_from_flags", "primary_evidence", "warning_flags"),
     "funding_spread": ("holding_hours", "max_basis", "min_net_carry", "leg_volume_threshold"),
     "sections": SECTIONS,
@@ -200,6 +202,8 @@ def validate_policy(policy):
     need(pe[PR.BREACHED] == "AVOID", "a Phase 10 limit breach after the addition is always AVOID")
     need(pe[PR.UNEVALUABLE] != "PASS", "an unevaluable portfolio can never pass")
     need(v("portfolio", "gating_book") == GOVERNED_BOOK, "portfolio.gating_book must be " + GOVERNED_BOOK)
+    need(v("portfolio", "sizing_rule") == "FIXED_BOOK_TIER_VARIANCE_BUDGET", "portfolio.sizing_rule")
+    need(v("portfolio", "rebalance_rule") == "REDUCTION_ONLY_POST_COST_TIER_PARITY", "portfolio.rebalance_rule")
     em = {k: v("emerging", k) for k in SECTION_KEYS["emerging"]}
     need(isinstance(em["evidence_from_flags"], dict)
          and all(isinstance(a, str) and isinstance(b, str) for a, b in em["evidence_from_flags"].items()),
@@ -628,6 +632,17 @@ def _directional(asset, rec, sig, snap, policy, base):
     size_mult = mult if _num(mult) and 0 < mult <= MAX_PROBATION_RISK_MULTIPLIER else 1.0
     if _num(risk):
         risk = risk * size_mult      # a probation side is always proposed at its reduced size, whatever its state
+    multipliers = {}
+    for position in (pf or {}).get("positions") or []:
+        if not isinstance(position, dict):
+            continue
+        if not isinstance(position.get("id"), str):
+            continue  # Phase 10 retains and rejects malformed positions; never key on an invalid identity.
+        owner = (snap.get("strategies") or {}).get(position.get("strategy")) or {}
+        multipliers[position.get("id")] = ((owner.get("probation") or {}).get("risk_multiplier")
+                                          if owner.get("deployment_state") == "ACTIVE_PROBATION" else 1.0)
+    allocation = RB.allocate(pf, asset, d, stop, risk, size_mult, multipliers)
+    risk = allocation["risk_fraction"]
     proposal = {"id": "PROPOSED:" + cid.split(":", 1)[1], "asset": asset, "strategy": sid, "direction": d,
                 "mark": price if _num(price) and price > 0 else None,
                 "stop": (price * (1 - d * stop) if _num(price) and price > 0 and _num(stop) and d in (1, -1) else None),
@@ -648,7 +663,8 @@ def _directional(asset, rec, sig, snap, policy, base):
     evaluated_equity = ((w or {}).get("after_result") or {}).get("equity")
     pinp = {"id": proposal["id"], "mark": proposal["mark"], "stop": proposal["stop"],
             "risk_fraction": proposal["risk_fraction"], "sizing_basis": sizing.get("basis"),
-            "base_risk_fraction": sizing.get("risk_per_trade"), "size_multiplier": size_mult,
+            "base_risk_fraction": sizing.get("risk_per_trade"), "tier_size_multiplier": size_mult,
+            "size_multiplier": (risk / sizing["risk_per_trade"] if _num(risk) and _num(sizing.get("risk_per_trade")) and sizing["risk_per_trade"] > 0 else None),
             "status": (row or {}).get("status"), "leverage": (row or {}).get("leverage"),
             "stop_risk": (row or {}).get("account_risk"), "expected_fees": (row or {}).get("expected_fees"),
             "expected_slippage": (row or {}).get("expected_slippage"),
@@ -688,19 +704,22 @@ def _directional(asset, rec, sig, snap, policy, base):
                                        "limit_changes": (w or {}).get("limit_changes")},
                        "Phase 10 limits (v8.portfolio-risk-policy/1, unchanged)", INFO))
     metrics = after.get("metrics") or {}
+    expectation = _ranking_expectation(terms, (strat.get("probation") or {}).get("evidence")) if tier == PROBATION_TIER else _ranking_expectation(None, None)
     cand = {"id": cid, "type": DIRECTIONAL, "asset": asset, "strategy": sid, "direction": d,
-            "authority_tier": tier,
+            "authority_tier": tier, "risk_budget": allocation,
             "probation": ({"risk_multiplier": mult, "entry_window_s": terms.get("entry_window_s"),
                            "expectation": terms.get("expectation"), "holdout": terms.get("holdout"),
                            "design_window": terms.get("design_window"), "archive_trades": terms.get("trades"),
                            "forward_test": fdet, "evidence": (strat.get("probation") or {}).get("evidence")}
                           if isinstance(terms, dict) else None),
+            "ranking_expectation": expectation,
             "positive_evidence": [{"type": "CURRENT_STRATEGY_SIGNAL", "strategy": sid, "direction": d,
                                    "kind": sig.get("kind")}],
             "funding": fund, "proposal": pinp,
             "portfolio": {"before": before, "after": after, "effect": (w or {}).get("effect"),
                           "delta": (w or {}).get("delta"), "explanation": (w or {}).get("explanation")},
-            "ranking_inputs": {"signal_kind_order": 0 if sig.get("kind") in FRESH_ENTRY_KINDS else 1,
+            "ranking_inputs": {"expected_net_R": expectation["mean_net_R"],
+                               "signal_kind_order": 0 if sig.get("kind") in FRESH_ENTRY_KINDS else 1,
                                "signal_age_s": age,
                                "slippage_rate": ((row or {}).get("liquidity") or {}).get("slippage_rate"),
                                "after_executable_risk": metrics.get("max_executable_risk"),
@@ -720,10 +739,11 @@ def _emerging(asset, rec, base, directional, policy):
                           note="first seen by this desk after tracking started; not a listing date")
             evidence.append(ev)
     for c in directional:
-        # v9: the side of a probation strategy that its archive evidence did not confirm is not positive evidence
-        if c["state"] == WATCH and "STRATEGY_SIDE_NOT_CONFIRMED" not in c["caps"]:
+        # WATCH alone is not evidence: legacy, missing and demoted authority must not boost Emerging.
+        authority = [g for g in c["trace"] if g["step"] == "STRATEGY_AUTHORITY"]
+        if c["state"] == WATCH and len(authority) == 1 and authority[0]["result"] == PASS:
             evidence.append({"type": "CURRENT_STRATEGY_SIGNAL", "strategy": c["strategy"], "direction": c["direction"],
-                             "candidate": c["id"], "source": "a WATCH directional decision of an enabled strategy"})
+                             "candidate": c["id"], "source": "a WATCH directional decision with passing strategy authority"})
     primary = [e for e in evidence if e["type"] in _v(policy, "emerging", "primary_evidence")]
     if not primary:
         return None
@@ -860,6 +880,36 @@ def _evaluate_asset(asset, rec, snap, policy):
 
 
 # --------------------------------------------------------------------------- ranking and sections
+def _ranking_expectation(terms, evidence):
+    """Use the bound out-of-sample estimate, never a fitted score or live result.
+
+    The snapshot adapter supplies already validated strategy-policy terms. Full
+    tier has no comparable expectation adapter yet and remains explicitly unknown.
+    Intervals describe uncertainty of the archive mean, not an individual trade.
+    """
+    result = {"status": "UNAVAILABLE", "mean_net_R": None, "lower_95": None, "upper_95": None,
+              "basis": "Bound archive out-of-sample net R per trade, including archive costs and funding",
+              "interval_scope": "Archive mean; not a prediction interval for this trade",
+              "candidate_specific": False, "evidence": None}
+    exp = terms.get("expectation") if isinstance(terms, dict) else None
+    if not isinstance(exp, dict) or not isinstance(evidence, dict):
+        return result
+    values = [exp.get("out_of_sample_" + key) for key in ("mean_R", "lower_95", "upper_95")]
+    digest_value = evidence.get("sha256")
+    try:
+        finite = all(_num(v) for v in values)
+    except OverflowError:
+        finite = False
+    if (not finite or not values[1] <= values[0] <= values[2]
+            or not isinstance(digest_value, str) or len(digest_value) != hashlib.sha256().digest_size * 2
+            or any(c not in "0123456789abcdef" for c in digest_value)
+            or not isinstance(evidence.get("path"), str) or not evidence["path"]):
+        return result
+    result.update(status="AVAILABLE", mean_net_R=values[0], lower_95=values[1], upper_95=values[2],
+                  evidence=copy.deepcopy(evidence))
+    return result
+
+
 def _key(cand, rules, section):
     out = []
     for field, order in rules:
@@ -1068,7 +1118,13 @@ def build(snapshot, policy=None):
     book = PR.evaluate(pf) if pf is not None else None
     governed = PR.evaluate(gpf) if gpf is not None else None
     rows = [r for r in (governed or {}).get("positions") or [] if isinstance(r, dict)]
+    rebalance_tiers = {}
+    for row in rows:
+        owner = (snap.get("strategies") or {}).get(row.get("strategy")) or {}
+        rebalance_tiers[row["id"]] = ((owner.get("probation") or {}).get("risk_multiplier")
+                                     if owner.get("deployment_state") == "ACTIVE_PROBATION" else 1.0)
     portfolio = {"phase10": PR.audit_summary(governed) if governed else PR.audit_summary(None),
+                 "rebalance": RB.rebalance(gpf, rebalance_tiers),
                  "gating_book": _v(policy, "portfolio", "gating_book"),
                  "governed": (gpf or {}).get("book"),
                  "governed_positions": [dict({k: r.get(k) for k in ("id", "asset", "strategy", "direction", "status",

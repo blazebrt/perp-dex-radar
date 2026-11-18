@@ -1,0 +1,8 @@
+{
+  "matching_processes": [],
+  "method": "Post-exit /proc cmdline scan for v9-a6-intermediate6- worker checkout prefix",
+  "promotion_authority": false,
+  "resource_qualified": false,
+  "schema": "v9.a6-local-cleanup-observation/1",
+  "scope": "Snapshot only; escaped or renamed processes are not proven absent"
+}

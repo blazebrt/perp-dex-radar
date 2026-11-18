@@ -1,0 +1,26 @@
+{
+  "completed_cases": [
+    {
+      "path": "case-000.completed.json",
+      "sha256": "6209dd39edc708f8893ce9bee54fb1c865c557db53667614fec2355d54415089"
+    },
+    {
+      "path": "case-001.completed.json",
+      "sha256": "6b615b63a77112322ec27b8c37af28df5dc4f17dce9e7e0e0173e9c2b5a0b2ee"
+    },
+    {
+      "path": "case-002.completed.json",
+      "sha256": "11cddd4ebba96fa89b04107d425962316889139f7e1d614df157fa7897f4a1f5"
+    },
+    {
+      "path": "case-003.completed.json",
+      "sha256": "9023d41040f5250bbc8ef0ae7f1c6ef6ea686a20a5c046badcc64cd796b5bf7a"
+    }
+  ],
+  "promotion_authority": false,
+  "report_sha256": "f16242d90d52820043cc23326adb2d35a66634f7c2acca732ada3cf610ab11cb",
+  "resource_qualified": false,
+  "schema": "v9.a6-synthetic-progress/1",
+  "status": "MEASUREMENTS_COMPLETED_NOT_FINAL_REPORT",
+  "synthetic_only": true
+}

@@ -1,0 +1,28 @@
+{
+  "schema": "v9.expected-r-delta/1",
+  "parent": "1c95d0c222204eba7f8279b064d0711d7aa8b716",
+  "status": "DRAFT_PENDING_MERGE_REVIEW",
+  "scope": "Directional section ranking only; no gate, proposal, portfolio limit, signal or research-method change",
+  "files": {
+    "v8/decision.py": {
+      "base_sha256": "b26e089b0793df59e37287c1f6830c6b09bed8f83684b90b3736b1d4ea67076e",
+      "head_sha256": "e9c5608813cb2817666aed127df8b748b9e3010e18735e650439b998c47034cf"
+    },
+    "v8/decision_policy.json": {
+      "base_sha256": "f73f9fdea646d52c3fa7332d3fbca9b07f9abdae2368750ef6224eded05219dc",
+      "head_sha256": "b62567e3d46e7b885723762b79ef64cc7b749cf8bbea27c338c39bce142f4209"
+    }
+  },
+  "intentional_output_changes": [
+    "policy and decision implementation bindings",
+    "directional ranking_expectation with archive mean interval and evidence reference",
+    "directional ranking_inputs.expected_net_R",
+    "section ordering, placement, ranking traces and resulting rank-change explanations"
+  ],
+  "limitations": [
+    "Archive strategy-side mean is not a candidate-specific return forecast.",
+    "The interval describes uncertainty in the archive mean, not the next trade.",
+    "Full-tier and malformed/unavailable estimates remain null; no unbound fallback or design-window substitution.",
+    "No production activation or new strategy authority."
+  ]
+}

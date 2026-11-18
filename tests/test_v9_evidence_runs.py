@@ -18,6 +18,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools" / "v9"))
@@ -52,13 +53,19 @@ class CommittedHistory(unittest.TestCase):
         rs = records()
         ab = [r for r in rs if r["study"] == "A/B"][-1]
         for r in rs:
-            self.assertEqual(r["dataset_sha256"], ab["dataset_sha256"], r["study"])
+            if r['study'] == 'A5':
+                from tools.v9.hourly_replay import MANIFEST_SHA
+                self.assertEqual(r['dataset_sha256'], MANIFEST_SHA)
+            else:
+                self.assertEqual(r["dataset_sha256"], ab["dataset_sha256"], r["study"])
             self.assertEqual(len(r["files"]["report"]), 64)
 
     def test_no_preregistration_changed_after_its_run(self):
         for r in records():
             if r["study"] == "A/B":
                 continue
+            for path, digest in r.get('preregistrations_sha256', {}).items():
+                self.assertEqual(hashlib.sha256((ROOT/path).read_bytes()).hexdigest(), digest)
             doc = ROOT / r["preregistration"]
             self.assertEqual(hashlib.sha256(doc.read_bytes()).hexdigest(), r["preregistration_sha256"],
                              f"{r['preregistration']} changed after run {r['seq']}: a changed definition is a new study")
@@ -138,6 +145,39 @@ class BuildAndAppend(unittest.TestCase):
             fh.write("not json\n")
         with self.assertRaises(SystemExit):
             RR.append(dict(rec, results_commit="e" * 40), path)          # never appends to a broken history
+
+
+class A4Artifacts(unittest.TestCase):
+    def test_shards_and_matrix_are_verified_before_recording(self):
+        import gzip
+        shard = gzip.compress(b'{"trial_id":"x","net_R":1}\n')
+        files = {'trades/x.jsonl.gz': shard, 'daily_returns.npz': b'matrix',
+                 'REPORT_A4.md': b'# diagnostic',
+                 'run_meta.txt': b'v9/census-evidence aaaaa 2026-10-15T00:00Z',
+                 'dataset_ref.txt': b'archive-data bbbbb\n'}
+        files['trades_a4.json'] = json.dumps({'trades/x.jsonl.gz':
+            {'sha256': hashlib.sha256(shard).hexdigest(), 'trades': 1}}).encode()
+        evidence = dict(schema='v9.census-replay/1', provenance=dict(
+            dataset_sha256='c'*64, protocol_sha256='d'*64, plan_sha256='e'*64,
+            replay_code_hash='f'*64, runner_sha256='a'*64, universe_sha256='b'*64),
+            known_trial_return_matrix_complete=False, historical_trial_census_complete=False,
+            artifacts={p: hashlib.sha256(files[p]).hexdigest()
+                       for p in ('daily_returns.npz', 'REPORT_A4.md', 'trades_a4.json')})
+        files['evidence_a4.json'] = json.dumps(evidence).encode()
+        def git(repo, *args):
+            return b'1'*40 if args[0] == 'rev-parse' else files[args[1].split(':', 1)[1]]
+        with mock.patch.object(RR, '_git', side_effect=git):
+            result = RR.build('A4', repo='unused', ref='results')
+            self.assertEqual(result['confirmed'], [])
+            self.assertFalse(result['known_trial_return_matrix_complete'])
+            self.assertEqual(result['preregistration_sha256'], 'd'*64)
+            for path in ('daily_returns.npz', 'trades/x.jsonl.gz'):
+                with self.subTest(path=path):
+                    original = files[path]
+                    files[path] = b'corrupted'
+                    with self.assertRaises(ValueError):
+                        RR.build('A4', repo='unused', ref='results')
+                    files[path] = original
 
 
 if __name__ == "__main__":

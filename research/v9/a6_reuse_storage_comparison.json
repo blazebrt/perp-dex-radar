@@ -1,0 +1,41 @@
+{
+  "cases": [
+    {
+      "database_bytes": 20439040,
+      "layout": "original_rowid",
+      "logical_sha256": "3bff1f48027d3369cd6c296d34b9b9348facbcc8302f5ef39fa75fb1449166c0",
+      "page_count": 4990,
+      "page_size": 4096,
+      "rows": 100000,
+      "uses": 200000
+    },
+    {
+      "database_bytes": 10113024,
+      "layout": "without_rowid",
+      "logical_sha256": "3bff1f48027d3369cd6c296d34b9b9348facbcc8302f5ef39fa75fb1449166c0",
+      "page_count": 2469,
+      "page_size": 4096,
+      "rows": 100000,
+      "uses": 200000
+    }
+  ],
+  "database_byte_reduction": 10326016,
+  "implementation_sha256": "beeb73d2e08e3403517d7d90dc3b02810ec0f3fae75201656ac971d5fcad2421",
+  "limitations": [
+    "Isolated table dimensions, not representative full-volume history or pipeline.",
+    "File length and SQLite page count are not allocated-disk or combined-resource bounds.",
+    "Independent audit scratch layout remains unchanged.",
+    "No execution speedup or market qualification claimed."
+  ],
+  "logical_rows_equal": true,
+  "parent_commit": "a51ea4a81e496d0ee2db5414f847113b38a39f77",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "promotion_authority": false,
+  "python": "3.12.14",
+  "recipe": "For i=0..99999 insert (format(i%192,'064x'), 1 if i%2 else -1, 'asset-'+str(i%781), 1700000000+(i//781)*14400, 1); then increment n once for every stored key. Fresh default SQLite Summary databases; only baseline reuse table is recreated without WITHOUT ROWID. Commit, close, reopen and hash sorted logical rows as compact JSON plus LF.",
+  "resource_qualified": false,
+  "rows": 100000,
+  "schema": "v9.a6-reuse-storage-comparison/1",
+  "scope": "ISOLATED_SYNTHETIC_REUSE_TABLE_NOT_PIPELINE",
+  "sqlite_version": "3.53.1"
+}

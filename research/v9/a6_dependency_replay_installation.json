@@ -1,0 +1,31 @@
+{
+  "image_version": "20261023.334.3",
+  "imports": {
+    "numba": "0.61.2",
+    "numpy": "2.2.6",
+    "pandas": "2.2.3"
+  },
+  "installed_distributions": {
+    "llvmlite": "0.44.0",
+    "numba": "0.61.2",
+    "numpy": "2.2.6",
+    "pandas": "2.2.3",
+    "pip": "24.3.1",
+    "python-dateutil": "3.0.0",
+    "pytz": "2026.5",
+    "setuptools": "75.3.0",
+    "six": "1.17.0",
+    "tzdata": "2026.5",
+    "wheel": "0.45.1"
+  },
+  "lock_sha256": "07a46148d00b0416c05539451ec2fb7deca0e99f9c846ad3ccbb4c9e49a34475",
+  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "promotion_authority": false,
+  "python_version": "3.10.12",
+  "resource_qualified": false,
+  "run_attempt": "1",
+  "run_id": "40558677982",
+  "schema": "v9.a6-dependency-installation/1",
+  "source_commit": "752d4d7ef89cfc2f63fabc56e1ab837bc9a59581",
+  "status": "OFFLINE_HASHED_CANDIDATE_INSTALL_VERIFIED"
+}
