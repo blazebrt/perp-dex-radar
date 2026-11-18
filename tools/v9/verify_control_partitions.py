@@ -10,7 +10,7 @@ from tools.v9 import verify_control_outcomes as O, verify_control_storage as S
 def canonical(value):return json.dumps(value,sort_keys=True,separators=(',',':'),allow_nan=False).encode()
 
 
-def verify(source,plan,directories,input_hash,expected_implementation,expected_protocol):
+def verify(source,plan,directories,input_hash,expected_implementation,expected_protocol,*,only_unit=None):
     source=Path(source)
     O.require(O.sha(source/'manifest.json')==input_hash,'input manifest mismatch')
     manifest=O.load((source/'manifest.json').read_bytes())
@@ -28,6 +28,9 @@ def verify(source,plan,directories,input_hash,expected_implementation,expected_p
     inventory=[dict(trial_id=t['trial_id'],status=t['status'],retained_records=t.get('retained_records',0),units=len(t['shards'])) for t in manifest['trials']]
     O.require(canonical(plan['trials'])==canonical(inventory) and plan.get('input_manifest_sha256')==input_hash
               and all(plan.get(k) is False for k in ('source_shards_reverified','resource_qualified','execution_authorized','promotion_authority')), 'invalid plan inventory/authority')
+    if only_unit is not None:
+        expected=[u for u in expected if u['unit_id']==only_unit]
+        O.require(len(expected)==1,'unknown selected unit')
     O.require(len(directories)==len(expected),'missing or extra units')
     roots=[Path(p).resolve() for p in directories]
     O.require(len(set(roots))==len(roots),'duplicate unit directory')

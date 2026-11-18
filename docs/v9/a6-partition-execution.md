@@ -27,3 +27,7 @@ Early focused validation found a retained replay generator leaving its final gzi
 ## Remaining acceptance work
 
 The worker, transport checker and global reconstruction prototype are implemented and synthetically verified. Still required before market use: a reviewed transport/recovery addendum preserving the frozen study; one global reservation and immutable durable unit receipts; controlled scheduling without silent recomputation; production source/auditor binding integration; bounded combined-process and global-merge resources; full-roster/long-history hosted qualification; remote publication/failure-recovery evidence; independent qualification review; then controlled activation and reconciliation of the one registered attempt. Global merge/output retention still has the storage pressure identified in `phase-a6-feasibility-decision.md`; partitioning alone does not solve it.
+
+## 2026-11-18: local persistent coordination
+
+A SQLite reservation/claim ledger and non-recomputing recovery path are now implemented and tested; see `a6-partition-coordination.md`. At-most-once claims apply within one preserved local reservation only. Distributed durable storage, production bindings, full-workload qualification and market activation remain outstanding. Earlier limits on direct worker APIs and synthetic-only scope remain.
