@@ -27,3 +27,7 @@ The worker's cooperative deadlines remain cooperative; memory, allocated disk, f
 ## Validation
 
 Tests cover a complete synthetic run/merge, concurrent claims with one winner, abrupt process exit immediately after a committed claim, permanent failed-unit refusal, blocked incomplete merges, unit and merge recovery without computation, changed receipt/code/input rejection, exclusive reservation/output behavior, registered-market refusal and Linux symlink escape rejection. Earlier focused tests exposed a Windows read-only-file flush error and path-length failure; flush handles now use non-truncating read/write access and output directories use fixed plan ordinals. File content is not changed by flushing.
+
+## Shared transport follow-up (2026-11-18)
+
+The separate `control_partition_transport.py` reference implementation now arbitrates claims through a shared local bare Git branch and retains successful/failed outputs across checkouts. See `a6-partition-transport.md`. It does not share an open SQLite file or permit restored pending copies to independently authorize transport execution. Local coordinator guarantees and limitations above are unchanged. Hosted/network qualification and production transport selection remain open.
