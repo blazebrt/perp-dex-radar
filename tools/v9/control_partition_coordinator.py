@@ -184,14 +184,27 @@ def unit_paths(db,root,r):
     return paths
 
 
-def record_merge(root,source):
+def record_merge(root,source,*,load_unit=None):
     db=connection(root)
     try:
         db.execute('BEGIN IMMEDIATE');r=bound(db,source)
         row=db.execute("SELECT * FROM jobs WHERE id='__merge__'").fetchone()
         O.require(row['state'] in ('CLAIMED','RECORDED'),'merge not recoverable')
-        paths=unit_paths(db,root,r)
-        verified=V.verify(source,r['plan'],paths,r['input_manifest_sha256'],worker_bindings(),r['protocol_sha256'])
+        O.require(load_unit is None or callable(load_unit),'invalid unit loader')
+        if load_unit is None:
+            paths=unit_paths(db,root,r)
+            verified=V.verify(source,r['plan'],paths,r['input_manifest_sha256'],worker_bindings(),r['protocol_sha256'])
+        else:
+            verified=[]
+            if not r['plan']['units']:
+                V.verify(source,r['plan'],[],r['input_manifest_sha256'],worker_bindings(),r['protocol_sha256'])
+            for unit in r['plan']['units']:
+                recorded=db.execute("SELECT * FROM jobs WHERE id=? AND kind='unit'",(unit['unit_id'],)).fetchone()
+                O.require(recorded is not None and recorded['state']=='RECORDED','units not recorded')
+                with load_unit(unit,output(root,unit['unit_id'])) as path:
+                    O.require(O.sha(path/'receipt.json')==recorded['artifact_hash'],'unit retention changed')
+                    verified.extend(V.verify(source,r['plan'],[path],r['input_manifest_sha256'],worker_bindings(),
+                                              r['protocol_sha256'],only_unit=unit['unit_id']))
         out=output(root,'__merge__');manifest=O.load((out/'manifest.json').read_bytes())
         expected={p.name:E.X.sha(p) for p in (Path(M.O.__file__),Path(E.A.__file__),Path(E.A.P.__file__),
                   Path(E.A.E.__file__),Path(M.O.S.__file__),Path(E.W.__file__),Path(E.__file__),Path(P.__file__),Path(M.__file__),Path(V.__file__))}

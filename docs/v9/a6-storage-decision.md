@@ -37,3 +37,7 @@ Workers do not fetch other units' payloads merely to claim or publish their own 
 - Open: production source/auditor bindings, separately reviewed one-attempt transport addendum and independent qualification review before owner-authorized activation.
 
 Next work must address provider integration/hosted evidence or the global merge resource blocker. Do not add another interchangeable local backend or return to serial small timing benchmarks. No market reservation, new study, release, deployment, promotion or frozen-protocol edit occurred.
+
+## Incremental merge follow-up (2026-11-18)
+
+The global merge, terminal publication verifier and retained-state verifier now restore only one input unit at a time; see `a6-streaming-merge.md`. The earlier all-input materialization limitation is resolved for object-backed mode. Global merged output, summary/source/audit scratch, publication copies and hosted bounds remain open. Whole-reservation verification no longer leaves each unit restored; individual bundles remain available for explicit retrieval. This does not lift the synthetic bundle limits or authorize execution.

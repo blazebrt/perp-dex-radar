@@ -120,4 +120,5 @@ class ObjectTransport(unittest.TestCase):
         shutil.rmtree(self.root/'failed')
         out=self.root/'recovery';report=T.verify_retained(self.remote,out,self.source,objects=self.store)
         self.assertEqual(next(r for r in report['jobs'] if r['id']==self.ids[0])['state'],'FAILED')
+        T.hydrate(out/'reservation',self.ids[0],self.store)
         self.assertTrue((T.C.output(out/'reservation',self.ids[0])/'receipt.json').is_file())

@@ -4,6 +4,7 @@ No network URL, market activation, automatic computation retry or force push.
 Git ref updates arbitrate claims; SQLite is only the checked-out state format.
 """
 from pathlib import Path
+from contextlib import contextmanager
 import shutil
 import subprocess
 import tempfile
@@ -85,9 +86,24 @@ def offload(root,job,objects):
         shutil.rmtree(out)
 
 
-def hydrate_units(root,reservation,objects):
-    if objects is not None:
-        for unit in reservation['plan']['units']:hydrate(root,unit['unit_id'],objects)
+@contextmanager
+def loaded_unit(root,objects,unit,path):
+    """Materialize at most one immutable input unit; always discard its scratch copy."""
+    mode(root,objects)
+    C.O.require(objects is not None and Path(path)==C.output(root,unit['unit_id']),'invalid streamed unit path')
+    path=Path(path);C.O.require(not path.exists(),'preserve existing unit workspace')
+    try:
+        hydrate(root,unit['unit_id'],objects)
+        C.O.require(path.is_dir(),'missing unit bundle')
+        yield path
+    finally:
+        # The source object bundle remains retained. Only this exclusive scratch path is removed.
+        checked=C.output(root,unit['unit_id'])
+        if checked.exists():shutil.rmtree(checked)
+
+
+def loader(root,objects):
+    return None if objects is None else lambda unit,path:loaded_unit(root,objects,unit,path)
 
 
 def remove_hydrated(root,reservation):
@@ -178,8 +194,7 @@ def publish(remote,workspace,source,job,token,*,failed=False,objects=None):
             if failed:
                 C.fail(target,job,token,RuntimeError('retained worker failure'))
             elif job=='__merge__':
-                hydrate_units(target,shared,objects)
-                C.record_merge(target,source)
+                C.record_merge(target,source,load_unit=loader(target,objects))
             else:C.record_unit(target,source,job)
             if objects is not None:
                 offload(target,job,objects)
@@ -208,9 +223,9 @@ def merge_once(remote,workspace,source,context,*,objects=None):
     r,token,_=claim(remote,workspace,source,'__merge__',objects=objects)
     root=Path(workspace)/'reservation'
     try:
-        hydrate_units(root,r,objects)
         units=[C.output(root,u['unit_id']) for u in r['plan']['units']]
-        result=C.M.merge(source,C.output(root,'__merge__'),r['plan'],units,context,r['input_manifest_sha256'])
+        result=C.M.merge(source,C.output(root,'__merge__'),r['plan'],units,context,r['input_manifest_sha256'],
+                         load_unit=loader(root,objects))
     except BaseException:
         publish(remote,workspace,source,'__merge__',token,failed=True,objects=objects)
         raise
@@ -228,8 +243,15 @@ def verify_retained(remote,workspace,source,*,objects=None):
     finally:db.close()
     rows=C.snapshot(root)
     for item in rows:
-        hydrate(root,item['id'],objects)
-        if item['kind']=='unit' and item['state']=='RECORDED':C.record_unit(root,source,item['id'])
-    if next(item for item in rows if item['kind']=='merge')['state']=='RECORDED':C.record_merge(root,source)
+        if objects is not None and item['kind']=='unit':
+            # Failed outputs are hash-checked too; absent outputs remain explicitly absent.
+            if reference(root,item['id']).exists() or item['state']=='RECORDED':
+                with loaded_unit(root,objects,dict(unit_id=item['id']),C.output(root,item['id'])):
+                    if item['state']=='RECORDED':C.record_unit(root,source,item['id'])
+        else:
+            hydrate(root,item['id'],objects)
+            if item['kind']=='unit' and item['state']=='RECORDED':C.record_unit(root,source,item['id'])
+    if next(item for item in rows if item['kind']=='merge')['state']=='RECORDED':
+        C.record_merge(root,source,load_unit=loader(root,objects))
     return dict(status='RETAINED_SYNTHETIC_STATE_VERIFIED',jobs=rows,
                 commit=git(workspace,'rev-parse','HEAD').decode().strip(),execution_authorized=False)

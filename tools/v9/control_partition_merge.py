@@ -5,7 +5,7 @@ from tools.v9 import control_outcomes as O, control_partition_execute as E, cont
 from tools.v9 import verify_control_partitions as V
 
 
-def merge(source,out,plan,units,context,input_hash,*,max_rows=25000):
+def merge(source,out,plan,units,context,input_hash,*,max_rows=25000,load_unit=None):
     O.V.check(input_hash!=P.INPUT_SHA and context.get('provenance',{}).get('synthetic') is True,
               'registered market reconciliation remains disabled')
     source,out=Path(source).resolve(),Path(out).resolve()
@@ -14,9 +14,27 @@ def merge(source,out,plan,units,context,input_hash,*,max_rows=25000):
     O.V.check(not out.exists(),'preserve previous merge')
     expected={p.name:O.X.sha(p) for p in (Path(E.__file__),Path(P.__file__),Path(E.A.__file__),
               Path(E.A.P.__file__),Path(E.A.E.__file__),Path(E.W.__file__))}
+    protocol=O.X.sha(O.ROOT/'docs/v9/phase-a6-execution-inference.md')
+    O.V.check(load_unit is None or callable(load_unit),'invalid unit loader')
     # Verify before opening the destination. Incomplete units never produce a success manifest.
-    verified=V.verify(source,plan,units,input_hash,expected,O.X.sha(O.ROOT/'docs/v9/phase-a6-execution-inference.md'))
-    sequence=iter(V.pairs(verified))
+    if load_unit is None:
+        verified=V.verify(source,plan,units,input_hash,expected,protocol)
+        sequence=iter(V.pairs(verified))
+    else:
+        O.V.check(len(units)==len(plan['units']) and len(set(Path(p).resolve() for p in units))==len(units),
+                  'missing or duplicate unit paths')
+        verified=[]
+        if not units:V.verify(source,plan,[],input_hash,expected,protocol)
+        for unit,path in zip(plan['units'],units):
+            with load_unit(unit,path) as directory:
+                verified.extend(V.verify(source,plan,[directory],input_hash,expected,protocol,only_unit=unit['unit_id']))
+        def streamed_pairs():
+            for unit,path,previous in zip(plan['units'],units,verified):
+                with load_unit(unit,path) as directory:
+                    current=V.verify(source,plan,[directory],input_hash,expected,protocol,only_unit=unit['unit_id'])[0]
+                    O.V.check(current['receipt_sha256']==previous['receipt_sha256'],'unit changed after preflight')
+                    yield from V.pairs([current])
+        sequence=streamed_pairs()
     class Replay:
         def close(self):sequence.close()
         def match(self,signal):
