@@ -47,9 +47,9 @@ Owner direction (2026-11-18): obtain external needs through available tools or f
 | Listing evidence preparation (D6) | **Source contract and offline checker implemented (2026-11-16), draft PR #30.** Content-bound observations preserve unavailable listing times and never infer events from first candles or market-list membership. No dataset/study activated. | `docs/v9/listing-observation-contract.md` |
 | B9 follow-ups | **Implementation/dispositions complete (2026-11-16), draft PR #30.** Unsupported strategy authority no longer boosts Emerging; strategy status, qualified-outcome labels and frozen signal rules have explicit dispositions. Pending merge review. | `docs/v9/b9-followup-dispositions.md` |
 | Expected-net-R ranking | **E1 implemented in draft PR #30 (2026-11-14), pending merge review.** Eligible directional candidates sort by the bound out-of-sample archive mean; the archive mean interval and evidence reference are retained. Unknown estimates sort last without zero substitution. Gates and sizing are unchanged. | `docs/v9/expected-r-ranking.md` |
-| Paper observation history | **Capture implementation complete in draft PR #30 (2026-11-14), not activated.** Content-addressed record versions and snapshot inventories preserve observations after journal pruning; non-force publication retries preserve concurrent market-history writes. Historical archive browsing is implemented (2026-11-16), including dated indexes and verified bundled reads; exact original-source retention and offline re-verification are implemented (2026-11-17); historical entry tiers and pre-capture gaps remain unknown. | `docs/v9/paper-observation-history.md` |
-| Quality and operations | **G1 monitoring implemented in draft PR #30; G2 existing behavior verified complete (2026-11-12).** All active v9 market sources are monitored with explicit freshness limitations and retained alerts; activation awaits merge. Audit delivery is compressed and outside Today’s critical path. **12 major items remain: 10 core + 2 optional.** | `docs/v9/operations-monitoring.md` |
-| Decision engine v2 (expected-R ranking, regime, sizing) | **E4 done**: the forward test is evaluated every scan, shown on Today and demotes a side automatically. E1â€“E3 not started. | section 6, phase E |
+| Paper observation history | **Capture implementation complete in draft PR #30 (2026-11-14), not activated.** Content-addressed record versions and snapshot inventories preserve observations after journal pruning; non-force publication retries preserve concurrent market-history writes. Historical archive browsing is implemented (2026-11-16), including dated indexes and verified bundled reads; exact original-source retention and offline re-verification are implemented (2026-11-17); a pinned archive-wide coverage checker is implemented (2026-11-24); historical entry tiers and pre-capture gaps remain unknown. | `docs/v9/paper-observation-history.md` |
+| Quality and operations | **G1 monitoring implemented in draft PR #30; G2 existing behavior verified complete (2026-11-12).** All active v9 market sources are monitored with explicit freshness limitations and retained alerts; activation awaits merge. Audit delivery is compressed and outside Today’s critical path. **10 core acceptance items remain; C4 and D1b are explicitly skipped optional scope (2026-11-24), not passed evidence.** | `docs/v9/operations-monitoring.md` |
+| Decision engine v2 (expected-R ranking, regime, sizing) | **E4 done**: the forward test is evaluated every scan, shown on Today and demotes a side automatically. E1 and E2 are implemented in draft PR #30; E3 awaits D5 evidence. | section 6, phase E |
 | Pro UX (rich trade plans, market board, performance ledger, alerts) | **F1 done** (full trade plan: entry, stop, trailing stop, time exit, size on the page account and in the trader's own dollars, evidence, forward test). F2 first version, F5 alerts. F3 currently collected source context is implemented. F4 retained-ledger page is implemented; complete historical entry-tier attribution/history remains open. | section 6, phase F |
 
 ## 2. Diagnosis: why there are no trades, and what got worse
@@ -330,7 +330,7 @@ Result (evidence run `fd03198`, `tools/v9/confirm.py`):
   keeps the source and fetch time).
 - [x] F2 (first version): Today's "Market context" panel and the Analyzer's per-coin market context (`desk.js`
   `views.market` / `views.marketAsset`).
-- [ ] C4. Optional keys (owner action, free): `COINALYZE_API_KEY` (aggregated liquidation, OI and funding history),
+- **SKIPPED optional scope (2026-11-24): C4.** No owner credential dependency is retained. Optional keys: `COINALYZE_API_KEY` (aggregated liquidation, OI and funding history),
   `CRYPTOPANIC_API_KEY`, `FRED_API_KEY`. The probe already checks for them.
 
 ### Phase D: signal research on the new data (each through the evidence engine; only survivors become strategies)
@@ -365,7 +365,7 @@ How every phase D study runs (D1 set the pattern):
   - XS_FLOW_MOM long is positive in every window, at a 1.5Ã— cost stress (+0.013R) and against its random twin
     (+0.081R), but too small to be significant. It is not a strategy. It may be worth recording forward, since the
     live data exists (D1b).
-- [ ] D1b (optional). A forward-only record of XS_FLOW_MOM long, registered in the shadow ledger before its first
+- **SKIPPED optional scope (2026-11-24): D1b.** No forward collection is activated or claimed complete. The optional proposal was a forward-only record of XS_FLOW_MOM long, registered in the shadow ledger before its first
   observation, with no decision authority. It would need the live 4h candles to carry taker-buy volume, which
   quant.py's candles may not; check that first.
 - [x] D2 (pre-registered in `aa6f75a`; result `950d75d` on `evidence-d2-results`). Binance positioning: XS_TOP_DIV
@@ -1465,3 +1465,13 @@ This removes two specific duplicate-copy paths; it is not full-volume resource q
 Review also closed a receipt swap-and-restore race: the independently recorded digest must equal the initial source-inventory digest before packaging/publication. A deterministic regression injects that swap and confirms the remote claim remains incomplete.
 
 Validation: the final implementation passed all 1,525 Linux regression tests in 545.497 seconds. Seven new tests cover unit/merge publication with payload copying forbidden, lost acknowledgements without full result restoration, preserved failed/original outputs, changed unit/merge verification documents, mutations before/after packaging, receipt swap-and-restore refusal, and corrupt retained chunks. The superseded regression process was stopped after the final race fix; only this complete final run is cited. No scientific/product output or parity-golden change occurred.
+
+## 2026-11-24: retained paper-history coverage assessment
+
+Completed the read-only archive-wide coverage checker in v9/paper_coverage.py. It inventories every snapshot in a caller-pinned local Git commit, verifies retained source/record bindings, deduplicates identities across captures and preserves trades pruned from later snapshots. It reports entry-field conflicts, invalid/missing entry timestamps, entries dated after capture, original-source versus content-only verification and observed capture spacing. Corruption or missing objects fails the entire assessment. Reports use exclusive creation and never rewrite an existing result.
+
+Inspection confirmed that quant creates paper entries before the later decision snapshot. Those snapshots cannot establish entry-time authorization. The checker therefore assigns no historical tier, calculates no qualified return and explicitly leaves lifetime completeness unknown. F4 is still open for prospective entry-time evidence and production qualification; this closes the cross-capture inventory/consistency check, not entry attribution. No frozen engine, published page, production workflow, market study, strategy promotion or evidence ledger changed.
+
+Optional scope disposition: following the owner's direction to skip unavailable optional dependencies and prioritize finishing, C4 credentials and D1b prospective XS_FLOW_MOM collection are removed from the active delivery list. They are SKIPPED, not successfully completed studies. Ten core acceptance items remain; no scientific requirement was removed.
+
+Validation: all 1,529 Linux regression tests passed in 409.936 seconds; all four new focused coverage checks also passed on Windows. Tests cover cross-capture union/pruning, changed entry fields, unknown/future timestamps, corrupt/missing objects, duplicate inventories, observation limits, empty history, pinned Git reads despite working-copy corruption and exclusive report creation.
