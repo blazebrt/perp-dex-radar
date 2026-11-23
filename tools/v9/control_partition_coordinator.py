@@ -122,21 +122,33 @@ def worker_bindings():
             Path(E.A.P.__file__),Path(E.A.E.__file__),Path(E.W.__file__))}
 
 
-def record_unit(root,source,job):
+def retained_path(root,source,job,artifact_dir):
+    path=output(root,job) if artifact_dir is None else Path(artifact_dir)
+    O.require(path.is_dir() and not any(p.is_symlink() for p in [path,*path.parents]),'unsafe retained directory')
+    resolved=path.resolve();source=Path(source).resolve();registry=Path(root).resolve()
+    O.require(resolved!=source and source not in resolved.parents and resolved not in source.parents,'retained output overlaps source')
+    if artifact_dir is not None:
+        O.require(resolved!=registry and registry not in resolved.parents and resolved not in registry.parents,
+                  'external artifact overlaps registry')
+    return path
+
+
+def record_unit(root,source,job,*,artifact_dir=None):
     """Recover a complete retained receipt only; never recompute a claimed unit."""
     db=connection(root)
     try:
         db.execute('BEGIN IMMEDIATE');r=bound(db,source)
         row=db.execute('SELECT * FROM jobs WHERE id=? AND kind=?',(job,'unit')).fetchone()
         O.require(row is not None and row['state'] in ('CLAIMED','RECORDED'),'unit not recoverable')
-        path=output(root,job)
+        path=retained_path(root,source,job,artifact_dir)
+        sha=O.sha(path/'receipt.json')
         V.verify(source,r['plan'],[path],r['input_manifest_sha256'],worker_bindings(),r['protocol_sha256'],only_unit=job)
         flush_tree(path)
         if os.name!='nt':
             fd=os.open(Path(root),os.O_RDONLY)
             try:os.fsync(fd)
             finally:os.close(fd)
-        sha=O.sha(path/'receipt.json')
+        O.require(O.sha(path/'receipt.json')==sha,'receipt changed during verification')
         if row['state']=='RECORDED':O.require(row['artifact_hash']==sha,'recorded receipt changed')
         else:db.execute("UPDATE jobs SET state='RECORDED',artifact_hash=? WHERE id=?",(sha,job))
         db.commit()
@@ -184,7 +196,7 @@ def unit_paths(db,root,r):
     return paths
 
 
-def record_merge(root,source,*,load_unit=None):
+def record_merge(root,source,*,load_unit=None,artifact_dir=None):
     db=connection(root)
     try:
         db.execute('BEGIN IMMEDIATE');r=bound(db,source)
@@ -205,7 +217,8 @@ def record_merge(root,source,*,load_unit=None):
                     O.require(O.sha(path/'receipt.json')==recorded['artifact_hash'],'unit retention changed')
                     verified.extend(V.verify(source,r['plan'],[path],r['input_manifest_sha256'],worker_bindings(),
                                               r['protocol_sha256'],only_unit=unit['unit_id']))
-        out=output(root,'__merge__');manifest=O.load((out/'manifest.json').read_bytes())
+        out=retained_path(root,source,'__merge__',artifact_dir)
+        sha=O.sha(out/'manifest.json');manifest=O.load((out/'manifest.json').read_bytes())
         expected={p.name:E.X.sha(p) for p in (Path(M.O.__file__),Path(E.A.__file__),Path(E.A.P.__file__),
                   Path(E.A.E.__file__),Path(M.O.S.__file__),Path(E.W.__file__),Path(E.__file__),Path(P.__file__),Path(M.__file__),Path(V.__file__))}
         bindings=dict(input_commit=M.O.INPUT_COMMIT,provenance=O.load((Path(source)/'manifest.json').read_bytes())['provenance'],
@@ -216,7 +229,8 @@ def record_merge(root,source,*,load_unit=None):
                   and transport.get('resource_qualified') is False and transport.get('execution_authorized') is False
                   and transport.get('plan_sha256')==digest(r['plan']) and transport.get('receipts')==
                   [dict(unit_id=v['receipt']['unit_id'],sha256=v['receipt_sha256']) for v in verified],'merge receipt binding mismatch')
-        flush_tree(out);sha=O.sha(out/'manifest.json')
+        flush_tree(out)
+        O.require(O.sha(out/'manifest.json')==sha,'manifest changed during verification')
         if row['state']=='RECORDED':O.require(row['artifact_hash']==sha,'recorded merge changed')
         else:db.execute("UPDATE jobs SET state='RECORDED',artifact_hash=? WHERE id='__merge__'",(sha,))
         db.commit()

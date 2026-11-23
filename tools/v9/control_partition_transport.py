@@ -76,14 +76,14 @@ def hydrate(root,job,objects):
         B.restore(C.O.load(ref.read_bytes()),objects,out)
 
 
-def offload(root,job,objects):
-    out=C.output(root,job)
-    if out.exists():
-        bundle=B.pack(out,objects)
-        C.O.require({r['path']:r['sha256'] for r in bundle['files']}==inventory(out),'output changed during offload')
+def offload(root,job,objects,artifact,expected_files):
+    if expected_files is not None:
+        bundle=B.pack(artifact,objects)
+        C.O.require({r['path']:r['sha256'] for r in bundle['files']}==expected_files==inventory(artifact),
+                    'output changed during offload')
         ref=reference(root,job);ref.parent.mkdir(exist_ok=True)
+        C.O.require(not ref.parent.is_symlink(),'unsafe object reference directory')
         with ref.open('xb') as stream:stream.write(C.E.canonical(bundle))
-        shutil.rmtree(out)
 
 
 @contextmanager
@@ -181,23 +181,38 @@ def publish(remote,workspace,source,job,token,*,failed=False,objects=None):
             C.O.require(record['token']==token,'shared claim token mismatch')
             destination=C.output(target,job)
             if record['state']==wanted:
-                hydrate(target,job,objects)
-                retained=inventory(destination) if destination.exists() else None
+                if objects is None:
+                    retained=inventory(destination) if destination.exists() else None
+                else:
+                    ref=reference(target,job)
+                    C.O.require(not ref.is_symlink(),'unsafe object reference')
+                    retained=B.verify(C.O.load(ref.read_bytes()),objects) if ref.exists() else None
+                    if wanted=='RECORDED':
+                        key='manifest.json' if job=='__merge__' else 'receipt.json'
+                        C.O.require(retained is not None and retained.get(key)==record['artifact_hash'],'recorded artifact binding mismatch')
                 C.O.require(retained==files,'retained terminal output differs')
+                C.O.require((inventory(artifact) if artifact.exists() else None)==files,'output changed during retention recovery')
                 return git(current,'rev-parse','HEAD').decode().strip()
             C.O.require(record['state']=='CLAIMED','shared job cannot transition')
             C.O.require(not destination.exists(),'unrecorded shared output exists')
-            if files is not None:
+            if files is not None and objects is None:
                 shutil.copytree(artifact,destination)
                 C.O.require(inventory(destination)==files and inventory(artifact)==files,'output changed during transfer')
                 C.flush_tree(destination)
+            elif files is not None:
+                C.flush_tree(artifact)
             if failed:
                 C.fail(target,job,token,RuntimeError('retained worker failure'))
             elif job=='__merge__':
-                C.record_merge(target,source,load_unit=loader(target,objects))
-            else:C.record_unit(target,source,job)
+                C.record_merge(target,source,load_unit=loader(target,objects),
+                               artifact_dir=artifact if objects is not None else None)
+            else:C.record_unit(target,source,job,artifact_dir=artifact if objects is not None else None)
             if objects is not None:
-                offload(target,job,objects)
+                if not failed:
+                    key='manifest.json' if job=='__merge__' else 'receipt.json'
+                    _,terminal=row(target,source,job)
+                    C.O.require(files.get(key)==terminal['artifact_hash'],'verified artifact differs from initial inventory')
+                offload(target,job,objects,artifact,files)
                 remove_hydrated(target,shared)
             try:return push(current,'Retain synthetic result')
             except subprocess.CalledProcessError as error:last=error

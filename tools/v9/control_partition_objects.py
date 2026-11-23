@@ -115,6 +115,25 @@ def pack(directory,store,*,chunk_bytes=CHUNK_BYTES):
     return bundle
 
 
+def chunks(row,store):
+    for part in row['chunks']:
+        raw=store.get(part['sha256'],part['bytes'])
+        # Verify independently of the store adapter, including any future network adapter.
+        require(len(raw)==part['bytes'] and digest(raw)==part['sha256'],'returned object mismatch')
+        yield raw
+
+
+def verify(bundle,store):
+    """Hash every retained byte without materializing a second file tree."""
+    result={}
+    for row in validate(bundle):
+        hasher=hashlib.sha256()
+        for raw in chunks(row,store):hasher.update(raw)
+        require(hasher.hexdigest()==row['sha256'],'retained file hash mismatch')
+        result[row['path']]=row['sha256']
+    return result
+
+
 def restore(bundle,store,destination):
     files=validate(bundle);destination=Path(destination)
     require(not destination.exists() and not destination.is_symlink(),'new restore directory required')
@@ -123,10 +142,7 @@ def restore(bundle,store,destination):
         path=destination/row['path'];path.parent.mkdir(parents=True,exist_ok=True)
         hasher=hashlib.sha256()
         with path.open('xb') as stream:
-            for part in row['chunks']:
-                raw=store.get(part['sha256'],part['bytes'])
-                # Verify independently of the store adapter, including any future network adapter.
-                require(len(raw)==part['bytes'] and digest(raw)==part['sha256'],'returned object mismatch')
+            for raw in chunks(row,store):
                 stream.write(raw);hasher.update(raw)
             stream.flush();os.fsync(stream.fileno())
         require(hasher.hexdigest()==row['sha256'],'restored file hash mismatch')

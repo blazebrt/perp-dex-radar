@@ -41,3 +41,7 @@ Next work must address provider integration/hosted evidence or the global merge 
 ## Incremental merge follow-up (2026-11-18)
 
 The global merge, terminal publication verifier and retained-state verifier now restore only one input unit at a time; see `a6-streaming-merge.md`. The earlier all-input materialization limitation is resolved for object-backed mode. Global merged output, summary/source/audit scratch, publication copies and hosted bounds remain open. Whole-reservation verification no longer leaves each unit restored; individual bundles remain available for explicit retrieval. This does not lift the synthetic bundle limits or authorize execution.
+
+## Direct publication follow-up (2026-11-19)
+
+Object-backed publication no longer makes a full local copy of the original result, and idempotent retention recovery hashes chunks without restoring another result tree. See `a6-direct-publication.md`. Original merged output, summary/source/audit scratch and object storage remain unqualified at full volume. The former extra publication-copy requirement is removed for object-backed mode; earlier sensitivity measurements are retained unchanged as historical observations.
