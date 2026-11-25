@@ -23,3 +23,22 @@ Candles must match the requested symbol and interval, appear in strictly increas
 Reports distinguish missing bars over the requested window from internal gaps between returned bars. An empty successful response reports all requested bars unavailable. A response at 5,000 bars is explicitly flagged; fewer rows do not prove completeness. Dataset acceptance, historical membership/listing-time verification and outcome authority are always false. Historical liquidity eligibility, symbol reuse, cross-venue identity, funding/costs and study preregistration require separate review before a cross-venue study.
 
 Validation uses synthetic responses and local files only. No live acquisition, market outcome, promotion or evidence-history entry is claimed by these tests.
+
+## Completed capture and assessment (2026-11-25)
+
+The capture made on 2026-11-24 is retained in research/v9/a7_source_assessment/: manifest.json binds each request and available raw response; metadata.json is the exact instrument response; coverage.json is the offline verifier output; assessment.json aggregates coverage and reproduces failure reasons. Every planned request was attempted once. The public endpoint was reachable locally, so no new hosted workflow or account was needed.
+
+| Measure | Result |
+|---|---:|
+| Captured instruments / flagged delisted | 235 / 56 |
+| Planned / attempted requests | 470 / 470 |
+| Validated / failed responses | 462 / 8 |
+| Validated 4h / daily candles | 923,327 / 223,276 |
+| Validated 4h responses at 5,000-bar cap | 14 |
+| Complete requested 4h / daily windows | 0 / 36 |
+
+The fixed requested range was 2022-01-01 00:00 UTC to exclusive 2026-11-24 00:00 UTC. Seven responses fail OHLC geometry (135 rows across HPOS, RLB, UNIBOT, OX and PANDORA); DASH 4h failed with URLError and has no retained response. Raw failures remain unchanged. No retry, repair or selection of successful rows into an accepted dataset occurred. Zero internal gaps in successful responses does not cover absent prefixes/suffixes, failed instruments or missing historical membership.
+
+The full raw capture (158,958,647 bytes) and its verified ZIP (33,608,428 bytes) remain in the task workspace under outputs/a7-capture-2026-11-24 and outputs/a7-capture-2026-11-24.zip. The archive hash is recorded in assessment.json. Raw candles are not uploaded to this PR; reports and hashes alone do not establish remote raw-data availability.
+
+The source decision is NOT ACCEPTED. Collection/assessment is complete, while historical identity/membership, funding/cost evidence, failed responses, durable research input retention and preregistration still prevent a qualified cross-venue study. No outcome computation or activation follows from this capture.
