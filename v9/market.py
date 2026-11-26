@@ -487,6 +487,8 @@ def history_record(doc):
         vals = {**a, **{f"gate_{k}": v for k, v in g.items()}}
         rows[coin] = [vals.get(k) for k in HISTORY_FIELDS]
     return {"schema": HISTORY_VERSION, "as_of": doc["as_of"], "source_status": {k: v.get("status") for k, v in doc["sources"].items()},
+            "captured_at": int(time.time()),
+            "source_fetched_at": {k: v.get("fetched_at") for k, v in doc["sources"].items()},
             "regime": doc["regime"], "fields": list(HISTORY_FIELDS), "assets": rows}
 
 
