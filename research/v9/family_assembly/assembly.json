@@ -1,0 +1,75 @@
+{
+  "artifacts_sha256": {
+    "REPORT.md": "f545f659cc3fca5df1b782bb2bb31ac25b767fda3a14df061153a1e65644a42a",
+    "columns.json": "ef4dfb127e904e2fd65c5ce4edeb8e8c758909acd9dcdc5ef23d3d163b686cab",
+    "daily_returns.npz": "b083e789107aebe4ad792030455dc78ffeec15e2968507a889ff21a5a16409b0"
+  },
+  "available_diagnostic_columns": 192,
+  "columns": 199,
+  "common_universe_experiment": false,
+  "confirmed": [],
+  "days": 2346,
+  "diagnostic_subset_reference": "18c14932bcc2ba9e8685f231e1725a786869edd9:evidence_a4.json#diagnostic_4h_subset",
+  "evidence_history_entries": [
+    4,
+    5
+  ],
+  "historical_trial_census_complete": false,
+  "inherited_statistics": {
+    "bootstrap": {
+      "reason": "every planned trial needs a finite common daily series",
+      "status": "UNAVAILABLE_INSUFFICIENT_DATA"
+    },
+    "dsr": {
+      "reason": "every planned trial needs a finite common daily series",
+      "status": "UNAVAILABLE_INSUFFICIENT_DATA"
+    },
+    "pbo": {
+      "reason": "every planned trial needs a finite common daily series",
+      "status": "UNAVAILABLE_INSUFFICIENT_DATA"
+    },
+    "trial_sharpe_variance": null
+  },
+  "input_sha256": {
+    "18c14932bcc2ba9e8685f231e1725a786869edd9:daily_returns.npz": "b083e789107aebe4ad792030455dc78ffeec15e2968507a889ff21a5a16409b0",
+    "18c14932bcc2ba9e8685f231e1725a786869edd9:evidence_a4.json": "51aee72758351acef7f974acede4ab6f082cc32f5da12abfbc9081e06f18fabb",
+    "84412b14ae8a1dee7299c2ebdbb32a45ac5d0e0e:BTC_LEAD.jsonl.gz": "4fcd0c82f820e8a3ae0b06dcb84fed9b2c57a7e461ef1a8f3e0cbff2c302363b",
+    "84412b14ae8a1dee7299c2ebdbb32a45ac5d0e0e:FAIL_BRK.jsonl.gz": "464c0beecee2409dda225db5f9e1f4309fe38451b3e71900ed298b2f6b03742c",
+    "84412b14ae8a1dee7299c2ebdbb32a45ac5d0e0e:FUND_CARRY.jsonl.gz": "88f8a5d421bb5895a09ae1a08e1d1a6dc12fcee8ba5a4f68a70375c0b22f71f2",
+    "84412b14ae8a1dee7299c2ebdbb32a45ac5d0e0e:FUND_FADE.jsonl.gz": "65a874722ee5d8ad4b863a95ce88e3b65c089381ddd15170e4dc22c5a792697b",
+    "84412b14ae8a1dee7299c2ebdbb32a45ac5d0e0e:LIQ_FLUSH.jsonl.gz": "c1501aa00ee122296b763538defafe0129c1fce8e45877e7d6c349abcfc14b94",
+    "84412b14ae8a1dee7299c2ebdbb32a45ac5d0e0e:PULLBACK.jsonl.gz": "9cf1bea2e843a60f7d82a58c703b0ea6f91815f8c4353203bf735df3a7c0fc6a",
+    "84412b14ae8a1dee7299c2ebdbb32a45ac5d0e0e:VOL_SPIKE.jsonl.gz": "7fb6a7eca78cc39f318363a42a65f3a45f119594cec05c92f550e1e393f5a987",
+    "84412b14ae8a1dee7299c2ebdbb32a45ac5d0e0e:attempts_a5.json": "59f94395297f5088d6c54f36960db580bcb4eca7cd6976d458f7cab5a831f698",
+    "84412b14ae8a1dee7299c2ebdbb32a45ac5d0e0e:evidence_a5.json": "e707127e130a52fab7b50849dd7b8dccb7d02279896f323ccd13f93e19654c3b",
+    "84412b14ae8a1dee7299c2ebdbb32a45ac5d0e0e:replay_run.json": "25d897726b58a55a864027c64b63530aa728e473227191a96f70e3e8b82e7b23",
+    "docs/v9/phase-a4-family-assembly.md": "324916b44fb8edcd4412c396aa9708e7ad3515702bbeab9d27fe72a939b15831",
+    "research/v9/a5_replay_verification.json": "565a7cd9fe5b30b9b6b36868ac05057a22d9ddd61c271f722e5546ad3d6d4a0f",
+    "research/v9/census_replay_plan.json": "7910cb5678771db32e2ebfe162a916c5cd7ff209987a598f6be6c4f470551af1",
+    "research\\v9\\evidence_runs.jsonl": "8d86e55bc5990bcbb10f363ae1cd4346b9063b2cd80cfc7397081802df773e50",
+    "tools/v9/verify_hourly_artifacts.py": "5b9d3a5b964a85fd11e57cac06be74be1812b1405824ecb4b68be479db7870cc",
+    "tools/v9/verify_hourly_prices.py": "5aad7a80be1db49de262076251f361778747f0272a58019c0f8f5929a6c3a9f7",
+    "tools/v9/verify_hourly_signals.py": "71f7f15bff2162b8e1a8bbed8df8813bd55aa786c1ac48c134290e939a42468c"
+  },
+  "known_trial_return_matrix_complete": false,
+  "promotion_authority": false,
+  "restrictions": [
+    "Broad four-hour/daily universe versus causal top-150 hourly universe.",
+    "Legacy four-hour simulator versus explicit gap-aware hourly execution.",
+    "Hourly funding completeness is unknown; price exits are not net returns.",
+    "FUND_FADE is observed-event conditional; two segments are unavailable.",
+    "FUND_CARRY is unavailable for causal quorum mapping, not a zero-return trial.",
+    "Hourly retrospective quality exclusions and entry embargoes apply.",
+    "Hourly continuity and positive-volume warm-up resets apply.",
+    "Historical trial census remains incomplete; no promotion authority."
+  ],
+  "schema": "v9.family-assembly/1",
+  "sources": {
+    "A4": "18c14932bcc2ba9e8685f231e1725a786869edd9",
+    "A5": "84412b14ae8a1dee7299c2ebdbb32a45ac5d0e0e"
+  },
+  "specification_sha256": "324916b44fb8edcd4412c396aa9708e7ad3515702bbeab9d27fe72a939b15831",
+  "statistics_recomputed": false,
+  "tool_sha256": "0d689bcb0e42ed59de8df4354752db2714f761e85b776f15c3afce8a98c4bfdf",
+  "unavailable_columns": 7
+}

@@ -1,0 +1,61 @@
+{
+  "implementation_sha256": {
+    "control_pipeline_probe.py": "02792be914f1a393af9e665879a921580d6103834d6cb6547ccae1af0e7f87cc",
+    "control_probe_prices.py": "b20e7c52a3c527058d344198a384ddc410f772729b99fe97838299e2f3dc6a4a",
+    "control_probe_progress.py": "f81f15caa4b7d43ca2d778c7ef4e40bb573000dab8656f66c4ccdd65efb89277",
+    "control_probe_shape.py": "9ec6f1042adac238b951df2bede378faf215238a1b2b356cd28dadfd9827688a",
+    "control_publication_probe.py": "9f1268e5511aceec76b6c7406bb439392cb4cb6962288ac0c87cfa47beb0e328",
+    "control_resource_measure.py": "edaf4f51131a9e3c9674c617dfac3e9d9237b00cf31ef32ed6ff0e3d1ad73a79"
+  },
+  "plan": [
+    {
+      "assets": 96,
+      "bars": 16384,
+      "definitions": 6,
+      "price_profile": "diverse",
+      "scenario": "full",
+      "shard_rows": 25000,
+      "signal_placement": "spread",
+      "signals": 64,
+      "unavailable": 1
+    },
+    {
+      "assets": 96,
+      "bars": 16384,
+      "definitions": 6,
+      "price_profile": "diverse",
+      "scenario": "mixed",
+      "shard_rows": 25000,
+      "signal_placement": "spread",
+      "signals": 64,
+      "unavailable": 1
+    },
+    {
+      "assets": 96,
+      "bars": 16384,
+      "definitions": 6,
+      "price_profile": "diverse",
+      "scenario": "sparse",
+      "shard_rows": 25000,
+      "signal_placement": "spread",
+      "signals": 64,
+      "unavailable": 1
+    },
+    {
+      "assets": 96,
+      "bars": 16384,
+      "definitions": 6,
+      "price_profile": "diverse",
+      "scenario": "interrupted",
+      "shard_rows": 25000,
+      "signal_placement": "spread",
+      "signals": 64,
+      "unavailable": 1
+    }
+  ],
+  "promotion_authority": false,
+  "resource_qualified": false,
+  "schema": "v9.a6-synthetic-progress/1",
+  "status": "STARTED",
+  "synthetic_only": true
+}

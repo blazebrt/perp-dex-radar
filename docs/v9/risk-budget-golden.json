@@ -1,0 +1,36 @@
+{
+  "schema": "v9.risk-budget-golden/1",
+  "parent": "86210d376a2de767a2eff94e54aa684ba6692e69",
+  "fixture": "tests.test_v9_risk_budget.Budget.book plus REQ LO signal; synthetic only",
+  "before_decision_sha256": "cce9809de9dd4a87fdee507b96ea26ff16ef16c5f8be30c003a79a1254356ea7",
+  "after_decision_sha256": "67d8f51a85fdfeda1599d52443ccf036072100a7055f8ac06678435f41cac8a3",
+  "before_risk_fraction": 0.005,
+  "after_risk_fraction": 0.002499999999999972,
+  "allocation": {
+    "status": "TARGETED",
+    "risk_fraction": 0.002499999999999972,
+    "reason": null,
+    "method": "FIXED_BOOK_MARGINAL_VARIANCE_BUDGET",
+    "existing_positions_changed": false,
+    "whole_book_parity": false,
+    "common_returns": 49,
+    "last_return_end": 1784332800,
+    "daily_volatility": 0.020203050891044228,
+    "tier_budget": 1.0,
+    "stop_risk_cap": 0.005,
+    "target_share": 0.5,
+    "actual_share": 0.5000000000000001,
+    "target_notional_fraction": 0.049999999999999434,
+    "actual_notional_fraction": 0.049999999999999434,
+    "portfolio_daily_volatility": 0.0020203050891043997,
+    "existing_contributions": [
+      {
+        "id": "old",
+        "actual_share": 0.5,
+        "target_share": 0.5
+      }
+    ]
+  },
+  "original_input_unchanged": true,
+  "nonportfolio_gates_unchanged": true
+}

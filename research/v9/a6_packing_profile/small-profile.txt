@@ -1,0 +1,38 @@
+         15414266 function calls (15268593 primitive calls) in 13.019 seconds
+
+   Ordered by: cumulative time
+   List reduced from 642 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    1.203    1.203   13.146   13.146 control_pipeline_probe.py:23(scenario)
+        1    0.004    0.004    4.139    4.139 control_outcomes.py:16(run)
+       16    0.000    0.000    3.805    0.238 control_pipeline_probe.py:66(match)
+       16    0.001    0.000    3.805    0.238 control_adapter.py:91(match)
+        1    0.002    0.002    3.354    3.354 audit_control_outcomes.py:143(run)
+        1    0.000    0.000    3.346    3.346 audit_control_outcomes.py:89(audit)
+        1    0.005    0.005    3.205    3.205 verify_control_statistics.py:21(verify)
+       17    0.031    0.002    3.123    0.184 audit_control_outcomes.py:98(pairs)
+       16    0.007    0.000    2.891    0.181 control_pairs.py:22(match)
+      816    0.004    0.000    2.507    0.003 control_pairs.py:33(attempt)
+       16    0.001    0.000    2.485    0.155 control_pairs.py:41(<listcomp>)
+      816    0.026    0.000    2.479    0.003 control_adapter.py:83(execute)
+      781    0.009    0.000    2.375    0.003 gzip.py:543(compress)
+      816    0.521    0.001    2.371    0.003 control_adapter.py:48(price_rows)
+     1629    0.011    0.000    2.145    0.001 gzip.py:272(write)
+     1629    2.110    0.001    2.110    0.001 {method 'compress' of 'zlib.Compress' objects}
+      816    0.528    0.001    2.072    0.003 audit_control_outcomes.py:50(get)
+     7061    0.159    0.000    1.405    0.000 control_features.py:9(snapshot)
+     1030    0.944    0.001    1.331    0.001 {method 'executemany' of 'sqlite3.Connection' objects}
+   400198    0.668    0.000    1.313    0.000 csv.py:107(__next__)
+        8    0.010    0.001    0.909    0.114 control_adapter.py:110(<listcomp>)
+     6280    0.032    0.000    0.907    0.000 control_signals.py:36(snapshot)
+    49633    0.192    0.000    0.903    0.000 {built-in method builtins.any}
+50355/37859    0.139    0.000    0.844    0.000 {built-in method builtins.all}
+    77785    0.110    0.000    0.820    0.000 __init__.py:183(dumps)
+   312400    0.624    0.000    0.787    0.000 control_probe_prices.py:9(bar)
+    77785    0.097    0.000    0.660    0.000 encoder.py:182(encode)
+      781    0.011    0.000    0.549    0.001 control_signals.py:26(__init__)
+    72697    0.530    0.000    0.530    0.000 encoder.py:204(iterencode)
+   589501    0.306    0.000    0.452    0.000 control_features.py:25(<genexpr>)
+
+

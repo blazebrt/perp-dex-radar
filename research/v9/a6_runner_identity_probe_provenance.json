@@ -1,0 +1,17 @@
+{
+  "artifact_digest_verified": true,
+  "artifact_id": 12801731242,
+  "artifact_sha256": "ab8d1fa1f8977434806f380c50884610d4dce216b7df9ffcbd91b06336757c02",
+  "disposition": "HOSTED_IMAGE_CONFIGURATION_CONFLICT_CONFIRMED",
+  "job_id": 122705660149,
+  "job_log_matches_imagedata": true,
+  "job_log_runner_image_version": "20261012.334.1",
+  "promotion_authority": false,
+  "report_sha256": "fabed39e1e3d81d5142aff7b09eee9db33661653ff3fefd50cf2e419dbd31e90",
+  "resource_qualified": false,
+  "run_id": 40655572012,
+  "runner_image_metadata_consistent": false,
+  "runtime_matches_etc_environment": true,
+  "schema": "v9.a6-runner-identity-provenance/1",
+  "source_commit": "590be5bb0b31044a72e68f18ec18f7651964c1cd"
+}

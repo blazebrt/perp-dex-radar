@@ -1,0 +1,33 @@
+{
+  "results_commit": "003ddccc825b5aeaec1beab834c56f21b8baa9a8",
+  "source_commit": "34ec1d328034bd2a5cff7322fe14bbe8db4f0f80",
+  "manifest_sha256": "2f6af2c6ded2bca99c07b88cf9bc8d046261767a91afca4347e81da0fa613d09",
+  "segments": 690,
+  "days": 2345,
+  "source_objects": 19425,
+  "hourly_rows": 13862338,
+  "missing_hours": 7026,
+  "zero_trade_hours": 663,
+  "all_artifact_hashes_verified": true,
+  "hourly_structure_and_coverage_verified": true,
+  "selection_structure_verified": true,
+  "accepted_dataset": false,
+  "replay_complete": false,
+  "promotion_authority": false,
+  "conflicted_segments": 87,
+  "source_conflict_fields": 189,
+  "fields": {
+    "qv": 93,
+    "tbqv": 85,
+    "c": 4,
+    "o": 2,
+    "l": 3,
+    "h": 2
+  },
+  "potentially_affected_coin_ranking_windows": 630,
+  "potentially_affected_ranking_days": 63,
+  "schema": "v9.a5-independent-audit/1",
+  "run_id": 38903923119,
+  "conflicted_four_hour_blocks": 94,
+  "verification_scope": "Artifact hashes, saved hourly rows and coverage, schedule structure, recorded hourly conflict values; not independent verification of every provider transaction."
+}

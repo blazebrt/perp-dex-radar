@@ -67,9 +67,9 @@ def pair(asset, long_fund=-0.003, short_fund=0.003):
 
 
 def mixed(signals=None, **kw):
-    """TRADE (HI, a requalified strategy), WATCH (LO, a legacy holdover; ALPHA and LO emerging), AVOID (NEG, a disabled
+    """TRADE (HI, a requalified strategy), WATCH (LO, a legacy holdover; ALPHA and LO have independent move flags), AVOID (NEG, a disabled
     strategy) and a qualified funding spread (TWIN, two healthy legs)."""
-    recs = [P.rec("HI"), P.rec("LO"), P.rec("NEG"), P.rec("ALPHA", flags=["STAGE1_EXTREME", "MULTI_VENUE"]), P.rec("TWIN")]
+    recs = [P.rec("HI"), P.rec("LO", flags=["STAGE1_EXTREME"]), P.rec("NEG"), P.rec("ALPHA", flags=["STAGE1_EXTREME", "MULTI_VENUE"]), P.rec("TWIN")]
     sigs = {"HI": [P.sig("REQ")], "LO": [P.sig("TSMOM", kind="ACTIVE")], "NEG": [P.sig("DIS")]} if signals is None else signals
     cons = [P.contract(a) for a in ("HI", "LO", "NEG", "ALPHA")] + pair("TWIN")
     return DE.build(P.snapshot(recs, sigs, contracts=cons, **kw))

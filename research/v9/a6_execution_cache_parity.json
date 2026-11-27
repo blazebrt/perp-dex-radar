@@ -1,0 +1,51 @@
+{
+  "adapter_sha256": "9884ff03a73ab18d0ccf47a7e8dd8045e8f79847aeb492587f1e7eca3aa63267",
+  "cases": [
+    {
+      "audit_status": "VERIFIED_REGISTERED_PRICE_DIAGNOSTICS",
+      "cache_entries": 0,
+      "candidate_paths": 6,
+      "control_paths": 200,
+      "kernel_calls": 206,
+      "pair_records_sha256": "0035d0b6b901bbc56aebb77dfd4271e77736976c4fcf2814e22977a14144a3e4",
+      "processed_signals": 6
+    },
+    {
+      "audit_status": "VERIFIED_REGISTERED_PRICE_DIAGNOSTICS",
+      "cache_entries": 4096,
+      "candidate_paths": 6,
+      "control_paths": 200,
+      "kernel_calls": 119,
+      "pair_records_sha256": "0035d0b6b901bbc56aebb77dfd4271e77736976c4fcf2814e22977a14144a3e4",
+      "processed_signals": 6
+    }
+  ],
+  "complete_pair_records_equal": true,
+  "date": "2026-11-11",
+  "independent_auditor_unchanged": true,
+  "limitations": [
+    "Small synthetic parity diagnostic, not performance or resource qualification.",
+    "Fixed adapter source/context required; every original pair remains retained.",
+    "4096-entry LRU bound is not a measured memory-byte bound.",
+    "No market data or hosted execution."
+  ],
+  "parent_commit": "6831bdbf2e65c9f100e7041674fe28e95d0eb805",
+  "pipeline_probe_sha256": "02792be914f1a393af9e665879a921580d6103834d6cb6547ccae1af0e7f87cc",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "promotion_authority": false,
+  "python": "3.12.14",
+  "resource_qualified": false,
+  "schema": "v9.a6-execution-cache-parity/1",
+  "shape": {
+    "assets": 61,
+    "bars": 400,
+    "definitions": 3,
+    "price_profile": "diverse",
+    "scenario": "mixed",
+    "shard_rows": 25000,
+    "signal_placement": "prefix",
+    "signals_per_available_trial": 3,
+    "unavailable": 1
+  },
+  "statistics_and_dispositions_equal": true
+}

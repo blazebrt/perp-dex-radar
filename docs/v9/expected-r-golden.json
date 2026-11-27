@@ -1,0 +1,21 @@
+{
+  "schema": "v9.expected-r-golden/1",
+  "fixture": "tests.test_v9_expected_r.ExpectedR.fixture (synthetic only)",
+  "parent": "1c95d0c222204eba7f8279b064d0711d7aa8b716",
+  "before_decision_sha256": "843073f2e17c0833803c58ecc37ffac2783cfd544d45a0ea7399840887e1feab",
+  "after_decision_sha256": "a2387d6c9746e4eb250e7d5749177e383fb3fc355d6610650596d6a2bb91d963",
+  "before_order": [
+    "BTC",
+    "HI",
+    "LO"
+  ],
+  "after_order": [
+    "LO",
+    "HI",
+    "BTC"
+  ],
+  "candidate_gates_states_proposals_portfolio_unchanged": true,
+  "portfolio_document_unchanged": true,
+  "engine_sha256": "e9c5608813cb2817666aed127df8b748b9e3010e18735e650439b998c47034cf",
+  "policy_sha256": "b62567e3d46e7b885723762b79ef64cc7b749cf8bbea27c338c39bce142f4209"
+}

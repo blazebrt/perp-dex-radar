@@ -1,0 +1,212 @@
+{
+  "schema": "v9.emerging-authority-golden/1",
+  "parent": "cb785719cf8719d8513d70baa6fd7807c1ea65ff",
+  "synthetic_only": true,
+  "cases": [
+    {
+      "case": "legacy_only",
+      "input_sha256": "e8cb8649bd079c2e2f54737ebf29a8136038cfaf5ca959a1fc09f8d51e01d486",
+      "before_sha256": "c98b864e12c098861b51422d9eab7ec2ece3b04b747b2445e7a3c8cb7560bd08",
+      "after_sha256": "606d52852123d332ec2b060046572c4e6462cd6157fcc43bc12be0a010f7501c",
+      "unchanged": [
+        "portfolio",
+        "best_trades_now",
+        "funding_opportunities",
+        "strategy_tiers",
+        "non_emerging_candidates",
+        "input"
+      ],
+      "before": [
+        {
+          "asset": "HI",
+          "evidence": [
+            {
+              "type": "CURRENT_STRATEGY_SIGNAL",
+              "strategy": "TSMOM",
+              "direction": 1,
+              "candidate": "DIRECTIONAL_STRATEGY:HI:TSMOM:LONG",
+              "source": "a WATCH directional decision of an enabled strategy"
+            }
+          ],
+          "ranking": {
+            "primary_evidence_count": 1,
+            "evidence_count": 1,
+            "outstanding_blockers": 1,
+            "asset": "HI"
+          }
+        }
+      ],
+      "after": []
+    },
+    {
+      "case": "legacy_with_observation",
+      "input_sha256": "9356e7345859f08639fce6a6dcf399631498557612f82e69375fae3e658cbc1c",
+      "before_sha256": "4612befbd29f176c58786939585a8c51475c5214902ee27664c9e62e2076193b",
+      "after_sha256": "59f03c7ce3531c8255768c0ff03602cfe77a851f63ff69e988cc627e760842d4",
+      "unchanged": [
+        "portfolio",
+        "best_trades_now",
+        "funding_opportunities",
+        "strategy_tiers",
+        "non_emerging_candidates",
+        "input"
+      ],
+      "before": [
+        {
+          "asset": "HI",
+          "evidence": [
+            {
+              "type": "RECENTLY_OBSERVED_BY_DESK",
+              "source": "v8.discovery/1 flag NEW_LISTING",
+              "first_seen": null,
+              "listing_age": {
+                "state": "UNKNOWN"
+              },
+              "note": "first seen by this desk after tracking started; not a listing date"
+            },
+            {
+              "type": "CURRENT_STRATEGY_SIGNAL",
+              "strategy": "TSMOM",
+              "direction": 1,
+              "candidate": "DIRECTIONAL_STRATEGY:HI:TSMOM:LONG",
+              "source": "a WATCH directional decision of an enabled strategy"
+            }
+          ],
+          "ranking": {
+            "primary_evidence_count": 2,
+            "evidence_count": 2,
+            "outstanding_blockers": 1,
+            "asset": "HI"
+          }
+        }
+      ],
+      "after": [
+        {
+          "asset": "HI",
+          "evidence": [
+            {
+              "type": "RECENTLY_OBSERVED_BY_DESK",
+              "source": "v8.discovery/1 flag NEW_LISTING",
+              "first_seen": null,
+              "listing_age": {
+                "state": "UNKNOWN"
+              },
+              "note": "first seen by this desk after tracking started; not a listing date"
+            }
+          ],
+          "ranking": {
+            "primary_evidence_count": 1,
+            "evidence_count": 1,
+            "outstanding_blockers": 1,
+            "asset": "HI"
+          }
+        }
+      ]
+    },
+    {
+      "case": "authorized_watch",
+      "input_sha256": "c3cf051ce3c1787744e3e5a6242312f2727f494ebfa89d93c2ce238ae24407fe",
+      "before_sha256": "828e8e218f772912fd6db8526631f83087d58b69a2929a5b8ad97b4cca9bf8ca",
+      "after_sha256": "287cc80aa9bb68d79d8f83bb8e10232b0ce64a29a2e6a9a904a93cfeac7e54c3",
+      "unchanged": [
+        "portfolio",
+        "best_trades_now",
+        "funding_opportunities",
+        "strategy_tiers",
+        "non_emerging_candidates",
+        "input"
+      ],
+      "before": [
+        {
+          "asset": "HI",
+          "evidence": [
+            {
+              "type": "CURRENT_STRATEGY_SIGNAL",
+              "strategy": "PROB",
+              "direction": 1,
+              "candidate": "DIRECTIONAL_STRATEGY:HI:PROB:LONG",
+              "source": "a WATCH directional decision of an enabled strategy"
+            }
+          ],
+          "ranking": {
+            "primary_evidence_count": 1,
+            "evidence_count": 1,
+            "outstanding_blockers": 2,
+            "asset": "HI"
+          }
+        }
+      ],
+      "after": [
+        {
+          "asset": "HI",
+          "evidence": [
+            {
+              "type": "CURRENT_STRATEGY_SIGNAL",
+              "strategy": "PROB",
+              "direction": 1,
+              "candidate": "DIRECTIONAL_STRATEGY:HI:PROB:LONG",
+              "source": "a WATCH directional decision with passing strategy authority"
+            }
+          ],
+          "ranking": {
+            "primary_evidence_count": 1,
+            "evidence_count": 1,
+            "outstanding_blockers": 2,
+            "asset": "HI"
+          }
+        }
+      ]
+    },
+    {
+      "case": "failed_probation",
+      "input_sha256": "36b422fcc60ad9e54cd8e1fb08b89ad307ad81f56acd5123daf563b098f38176",
+      "before_sha256": "6ed654e77ea94d7958565f401148f544769a11cae6054b1f39e9b5542a4054dc",
+      "after_sha256": "852f805364ae8f9a3a2f451e5d11472034663093b0a45861824e72a3c6c938c6",
+      "unchanged": [
+        "portfolio",
+        "best_trades_now",
+        "funding_opportunities",
+        "strategy_tiers",
+        "non_emerging_candidates",
+        "input"
+      ],
+      "before": [
+        {
+          "asset": "HI",
+          "evidence": [
+            {
+              "type": "CURRENT_STRATEGY_SIGNAL",
+              "strategy": "PROB",
+              "direction": 1,
+              "candidate": "DIRECTIONAL_STRATEGY:HI:PROB:LONG",
+              "source": "a WATCH directional decision of an enabled strategy"
+            }
+          ],
+          "ranking": {
+            "primary_evidence_count": 1,
+            "evidence_count": 1,
+            "outstanding_blockers": 1,
+            "asset": "HI"
+          }
+        }
+      ],
+      "after": []
+    },
+    {
+      "case": "authorized_trade",
+      "input_sha256": "3575316ea7c9a201b08ab30464bf9a343222fabd492f3a46252d3d09eb5400e2",
+      "before_sha256": "a2c624d1645ab6e9697420a0e4066cd88c246cb44dcd96ff5e24a7a3d2f8e5f5",
+      "after_sha256": "e62fd09ffc97c1014303f2daadff9805bfc33c208f6bc8f66a919f166a0ba48f",
+      "unchanged": [
+        "portfolio",
+        "best_trades_now",
+        "funding_opportunities",
+        "strategy_tiers",
+        "non_emerging_candidates",
+        "input"
+      ],
+      "before": [],
+      "after": []
+    }
+  ]
+}

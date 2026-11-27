@@ -1,0 +1,44 @@
+{
+  "artifacts": {
+    "roster-profile.txt": {
+      "bytes": 4602,
+      "sha256": "b75686925b9f29e761041955334ebaa77ae94811f456acf59fb3e7afc2104847"
+    },
+    "roster-recipe.py": {
+      "bytes": 313,
+      "sha256": "55fd5369d891f649c1e6d622657de25d65e0b02c7314a2cd40cc770f57b6e883"
+    },
+    "small-profile.txt": {
+      "bytes": 2583,
+      "sha256": "99efa0d8b79483f66ea7e12c1e14908cbd0ec2349d66bc43f6f050c8c83d9ed4"
+    },
+    "small-recipe.py": {
+      "bytes": 311,
+      "sha256": "26106ce8c7e0ad974803aa9b062232d07f0672ce3c6c2904adf20fcb5353abe3"
+    }
+  },
+  "complete_environment_attestation": false,
+  "date": "2026-11-10",
+  "hosted_runner": false,
+  "limitations": [
+    "Instrumentation overhead means profile times are not uninstrumented runtime measurements.",
+    "Cumulative times overlap and must not be summed.",
+    "Local synthetic history and signal volume do not qualify full study resources.",
+    "Current optimization has regression byte parity, not a measured pipeline speedup."
+  ],
+  "market_data_loaded": false,
+  "observations": {
+    "canonical_serialization_calls": 3703840,
+    "production_packing_cumulative_seconds": 20.872,
+    "production_table_cumulative_seconds": 18.559,
+    "roster_scenario_seconds": 187.827
+  },
+  "profile_mode": "CPROFILE_INSTRUMENTED_NOT_RESOURCE_BOUND",
+  "promotion_authority": false,
+  "resource_qualified": false,
+  "roster_exit_code": 0,
+  "roster_timeout_seconds": 360,
+  "schema": "v9.a6-synthetic-profile/1",
+  "source_commit": "02d26ab2695639c14292dfab7f9fe85a43caaf80",
+  "synthetic_only": true
+}

@@ -1,0 +1,31 @@
+{
+  "all_wheel_hashes_and_sizes_verified": true,
+  "artifact_digests_verified": true,
+  "artifact_expiry": "2027-01-25T11:38:49Z",
+  "disposition": "CANDIDATE_OFFLINE_INSTALL_AND_SYNTHETIC_PIPELINE_VERIFIED_PENDING_INDEPENDENT_REVIEW",
+  "environment_image_version": "20261023.334.3",
+  "job_id": 122167240704,
+  "job_log_runner_image_version": "20261012.334.1",
+  "lock_sha256": "07a46148d00b0416c05539451ec2fb7deca0e99f9c846ad3ccbb4c9e49a34475",
+  "promotion_authority": false,
+  "report_file_sha256": {
+    "candidate/requirements.lock": "07a46148d00b0416c05539451ec2fb7deca0e99f9c846ad3ccbb4c9e49a34475",
+    "candidate/wheel-manifest.json": "fd83cce5da64ff25f4afe7e107d9cf2762bac70b50e96772e05242453113c1a6",
+    "download.log": "b8707a65cda46001c5ad799eb875f9011ac17616c3885deb78d57bade027c015",
+    "install.log": "4ea5ea0c56e8665807610ef5635798181e402b1101c45932951aaf97358ab1ec",
+    "installation.json": "e212627777394e7855a40851eed5798b35c67f51b645fa91fc86bab23b42bd31",
+    "measurements.json": "be12406db785bcd2c2ca18c1fabf8693ec362b1d2ee4cfca5462cf3ecc60b81e",
+    "pip-check.log": "9261363b733079a641c2e4cc9bc46ffa1d8336945a87f807b6cf68847dbc9b09",
+    "resolver.txt": "6ed0d07df26e51009e00d014c97e8012ef4077ea7083d526a612180277bb6819"
+  },
+  "reports_artifact_id": 12731421659,
+  "reports_artifact_sha256": "feccdd6a0452c2a4787fdb694d3567e8c4daeabd55f71298bfa511fe1394b70f",
+  "resolver": "pip 26.2.2 from /opt/hostedtoolcache/Python/3.10.12/x64/lib/python3.10/site-packages/pip (python 3.10)",
+  "resource_qualified": false,
+  "run_id": 40497702104,
+  "runner_image_metadata_consistent": false,
+  "schema": "v9.a6-dependency-candidate-provenance/1",
+  "source_commit": "a843e92abe81bd5a498e258617166f24472b16fa",
+  "wheels_artifact_id": 12731601476,
+  "wheels_artifact_sha256": "25d02144d627dde982cd363c3af2e803cdbe59147969243a22e8b1aa3a543fa1"
+}

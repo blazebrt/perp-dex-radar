@@ -1,0 +1,112 @@
+{
+  "artifacts": {
+    "comparison.json": {
+      "bytes": 3297,
+      "sha256": "62a9a57dd6c487536c0887de61d6eb58dfe9c01d11ceaadfa6f0c8f91fe5a9d2"
+    },
+    "environment.json": {
+      "bytes": 528,
+      "sha256": "ff11bd3065f8fe89f56d5af30645d0cf543f1577892d131422ae39c784df64da"
+    },
+    "exit.json": {
+      "bytes": 34,
+      "sha256": "2f88378d09e59069b8718b97f904cda0c5316099eadde14be5f168bcb044d0a3"
+    },
+    "log.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "measurements.json": {
+      "bytes": 755791,
+      "sha256": "699482737ce17fe3b949f7ce333c177924bb436ebcbdec48d90edbf33ef53eee"
+    },
+    "progress/case-000.completed.json": {
+      "bytes": 230997,
+      "sha256": "eeaef919ab2612c36a6d605812623c9ef45821c7bb05de132b0b2e776a471d46"
+    },
+    "progress/case-000.started.json": {
+      "bytes": 408,
+      "sha256": "c49a4ad559a6f05c8b50974a02f9c6539e01e085e83cc88ce1e1e26ed3901733"
+    },
+    "progress/case-001.completed.json": {
+      "bytes": 249635,
+      "sha256": "d30c8210a44850972900e0a0ccb60f1e8a866067c0385786a222336df85965bf"
+    },
+    "progress/case-001.started.json": {
+      "bytes": 409,
+      "sha256": "bd80b583e24922f8e5626d4b936989f5e77e2e9b346a07f3b4c49ce75bf22d0d"
+    },
+    "progress/case-002.completed.json": {
+      "bytes": 236281,
+      "sha256": "6f7ff5dbb9689273e0236f95a6263ea1ebb7fee5eafbe00cf852634a08a89f70"
+    },
+    "progress/case-002.started.json": {
+      "bytes": 410,
+      "sha256": "5d6ad7c9b5e41fab407eabc9d1fc5222cb0bd0f3f2b09eea0dfa62e5eaec989f"
+    },
+    "progress/case-003.completed.json": {
+      "bytes": 2807,
+      "sha256": "0ad620b570c1605071e31d445142f781a0be8c0c85dd4d4f9710a70026e48cbd"
+    },
+    "progress/case-003.started.json": {
+      "bytes": 415,
+      "sha256": "2162003e91c176d0d6b6ff893448db170b0eada4aafd32dec8941b0608eb440c"
+    },
+    "progress/completed.json": {
+      "bytes": 851,
+      "sha256": "f4545492ff7f13023c52676f253ece897c98a9253e04056fabc8b93bb1910a97"
+    },
+    "progress/started.json": {
+      "bytes": 1806,
+      "sha256": "7cf1e9f2029fd3149b4c9b04464da6a18a688c7f2f3157b9c660217b2c14ad02"
+    }
+  },
+  "case_receipts_verified": 4,
+  "command": [
+    "timeout",
+    "--kill-after=10s",
+    "600s",
+    "python3",
+    "tools/v9/control_resource_measure.py",
+    "--signals",
+    "8",
+    "--bars",
+    "1200",
+    "--assets",
+    "781",
+    "--definitions",
+    "199",
+    "--unavailable",
+    "7",
+    "--shard-rows",
+    "25000",
+    "--signal-placement",
+    "spread",
+    "--price-profile",
+    "diverse",
+    "--out",
+    "a6-intermediate7-measurements.json"
+  ],
+  "date": "2026-11-10",
+  "date_timezone": "Asia/Calcutta",
+  "hosted_runner": false,
+  "limitations": [
+    "Local WSL, not the intended hosted runner.",
+    "Selected dependency versions are not a complete locked-install attestation.",
+    "Short histories and small per-definition signal counts do not establish full-volume coverage.",
+    "Synthetic price distributions and repeated definition geometry are uncalibrated.",
+    "Sampled RSS can double-count shared pages or miss processes; allocated disk and session scans have coverage gaps.",
+    "Observer/checkpoint overhead and remote publication are excluded.",
+    "Earlier retained attempts remain unchanged."
+  ],
+  "market_data_loaded": false,
+  "promotion_authority": false,
+  "report_hash_verified": true,
+  "resource_qualified": false,
+  "schema": "v9.a6-local-synthetic-attempt/1",
+  "source_commit": "0701d869459e0c281131eec4e60a3774ae0c1aa3",
+  "status": "COMPLETED_DIAGNOSTICS_NOT_RESOURCE_QUALIFIED",
+  "synthetic_only": true,
+  "tool_reported_exit_code": 0,
+  "wrapper_observed_exit_code": 0
+}
