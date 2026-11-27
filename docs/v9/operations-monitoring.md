@@ -42,3 +42,10 @@ B9 follow-ups are now dispositioned in `b9-followup-dispositions.md`. The draft 
 Do not ask the owner to supply external accounts, buckets, credentials or budgets. Use available tools and existing services; explicitly skip unavailable optional dependencies. Do not convert a missing required acceptance check into a pass. The earlier A6 storage-account request is withdrawn. `a6-github-recovery.md` provides a small existing-GitHub cross-job recovery alternative; it does not claim permanent storage or full-volume readiness. If that route cannot meet production requirements, record the limitation and advance another actionable roadmap item rather than waiting for the owner.
 
 Hosted alternative result: GitHub run 44368737167 passed the 26,513-byte synthetic cross-runner handoff and exact recovery/refusal checks. Evidence is committed in `research/v9/a6_github_recovery.json`. This limited hosted check is complete without an owner-provided account; permanent/full-volume storage and resource gates remain open. Do not re-request a bucket or budget.
+
+
+## 2026-11-27: separate prospective ledger implementation
+
+The owner selected a separate ledger rather than modifying frozen quant behavior. The offline lifecycle in v9/prospective_paper.py now retains a candidate-specific audited decision before a later quote, rechecks entry authority, preserves the original tier, and records cancellation and observed stop/time exits in an atomic local event journal. See prospective-paper-contract.md for fixed rules and limits. No live workflow uses it yet, and costs/funding/net R remain unknown.
+
+F4 next work is production integration and qualification: authenticated source timing and instrument mapping, durable remote retention/recovery, prospective-book risk/cost treatment, separate page integration with pinned deltas, then an authorized qualification Scan. Do not return to retrospective tier inference or modify the old quant journal. The offline lifecycle is implemented; F4 acceptance and the ten-item core count remain unchanged until those requirements are met.
